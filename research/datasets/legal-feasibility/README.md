@@ -52,4 +52,9 @@ These are raw, coded facts. There are no composite scores and no weights; scorin
 
 Each dataset's `.md` has its method, exact queries, live counts, field dictionary and caveats.
 
+Keys and gotchas:
+- `zone_case` in `zba-decisions.csv` is **not unique**: six case numbers repeat across distinct decisions because of printing and OCR slips. Use `decision_pdf` as the key.
+- Council and Planning Commission titles have individual owner names redacted (`scripts/redact_owner_names.py`).
+- **Deemed decisions:** the City code says a missed deadline is a deemed denial, but PA MPC §908(9)/§913.2(b)(2) say deemed approval. This is unresolved; see `pathways.csv` and `../../sources/pa-dced-2003-01-mpc-908-913-2-deemed-approval.md`.
+
 Matrix states beyond the ranked enum: `per_plan` (AP/CP/RP: uses are set by the site's approved plan), `not_city_jurisdiction` (MTOBOR), `unknown` (code unresolved).
