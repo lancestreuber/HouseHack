@@ -6,6 +6,7 @@
 
 import { airQualityOverlay } from "./air-quality";
 import { chasOverlay } from "./chas";
+import { designationAreasOverlay, locationAffordabilityOverlay } from "./designations-lai";
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
 import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
@@ -30,6 +31,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   housingCostsOverlay,
   uspsVacancyOverlay,
   chasOverlay,
+  locationAffordabilityOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
@@ -53,6 +55,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   surfaceHeatOverlay,
   treeCanopyOverlay,
   imperviousOverlay,
+  designationAreasOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
@@ -63,6 +66,7 @@ export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: strin
   { group: "infrastructure", title: "Infrastructure" },
   { group: "places", title: "Places" },
   { group: "environment", title: "Environment" },
+  { group: "policy", title: "Policy & designations" },
 ];
 export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 
