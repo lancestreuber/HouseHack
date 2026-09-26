@@ -155,6 +155,7 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
 
 | I need… | Go to |
 |---|---|
+| **How to join parcel size, zoning, air quality and weather onto the parcel GeoJSON** | [`knowledge/data/parcel-enrichment-join-plan.md`](knowledge/data/parcel-enrichment-join-plan.md) |
 | **Every external link** (datasets, APIs, code, news, papers), grouped and tagged | [`docs/02-bibliography.md`](docs/02-bibliography.md) |
 | The one-line list of every topic | [`knowledge/INDEX.md`](knowledge/INDEX.md) |
 | An endpoint URL, resource ID or field name | [`knowledge/data/`](knowledge/data/) (one node per data family) |
