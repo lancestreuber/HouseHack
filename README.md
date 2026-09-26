@@ -15,7 +15,49 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 
 ## Our project
 
-_Track and approach TBD._
+> **Team: start here.** This branch (`vid-branch`) holds the plan and research for our entry. No app code has been written yet. It's the groundwork, so the build goes fast once we split up.
+> Shared plan doc (comment there): https://claude.ai/code/artifact/fdc6bb41-5dda-4a0a-a185-f8062534171a
+
+### What we're building
+One tool that combines **Track 1** (Development Feasibility & Pro Forma) and **Track 3** (Typology, Equity & Climate) for the City of Pittsburgh. Enter any address, ZIP or neighborhood. For any of the city's ~142k parcels you get:
+- a **Development Ease Score** (0–100) and the biggest barriers, in plain language: zoning, steep slope, landslide, undermining, flood, ownership;
+- the **housing types that fit** (ADU, duplex, triplex, townhomes, small multifamily, mid-rise) and the **tradeoffs** of each across demand, transit, equity and climate, weighted by sliders the user controls;
+- a **pro forma** showing cost, rent and the funding gap per unit, plus which subsidy programs could close it;
+- a **policy toggle** that applies Pittsburgh's pending 2026 zoning reform (ADUs by right, no parking minimums) and shows what changes;
+- an **AI brief** (Claude) that explains the numbers and cites the source data for every claim.
+
+The goal is a real tool a CDC, planner, small developer or resident could use on Monday. It's not just a demo. **The map and UI are the product**, so aim for Felt/Linear-level polish.
+
+### What's done
+| | |
+|---|---|
+| Design spec | [docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md). Read "Updates after research" first. |
+| Research | [docs/research/](docs/research/): UI/map, data sources, zoning rules, stack setup, pro forma. Every figure comes from live public sources, checked Sep 26. |
+| Draft issues | [docs/issues-draft.md](docs/issues-draft.md): 36 issues across 4 lanes and 4 milestones. They aren't on GitHub yet; we'll create them after your feedback. |
+| Doc index | [docs/README.md](docs/README.md) lists which doc to read for your lane. |
+
+### What we need from you
+1. **Read the plan doc** and leave comments: what's missing, what's too much, what you'd change.
+2. **Pick a lane** in Discord (one person per lane; each lane owns its own folders so we don't collide):
+   - **A: Data pipeline.** Fetch, join and export all layers, plus satellite sampling. Read [data-sources.md](docs/research/data-sources.md).
+   - **B: Scoring + AI.** Zoning rules, Ease Score, typology matching, pro forma, Claude endpoints. Read [zoning-rules.md](docs/research/zoning-rules.md) and [pro-forma.md](docs/research/pro-forma.md).
+   - **C: Map + explorer.** MapLibre map, layers, search, sliders, lot finder. Read [ui-map.md](docs/research/ui-map.md).
+   - **D: Report, compare, polish.** Site report, compare, reform toggle, landing page, video, submission. Read [ui-map.md](docs/research/ui-map.md) and [pro-forma.md](docs/research/pro-forma.md).
+3. **Vote on a name**: Groundwork PGH (working name), Buildable Burgh, LotLogic, SiteLine PGH or Yinz Can Build.
+4. **Get set up** by following [stack-setup.md §1](docs/research/stack-setup.md). In short:
+   - Install bun: `curl -fsSL https://bun.sh/install | bash`.
+   - Create `apps/web/.env` **before** running `bun install`. No database is needed.
+   - Run `bun run dev` and open http://localhost:3001.
+5. **Git:** branch off `main` per lane, open PRs, and merge with merge commits, not squash, because judges check commit history. Never commit `.env` or API keys; the repo is public.
+
+### Timeline (ET)
+| When | Milestone |
+|---|---|
+| Sat 1:30pm | Setup done: env, shared types, mock data, design tokens |
+| Sat 7pm | Checkpoint: end-to-end on real data, deployed to Vercel |
+| Sun 2pm | Feature freeze, then bug bash and polish |
+| Sun 5–8pm | Record the 3–5 min demo video |
+| Sun 9pm | Submit (hard deadline 11:59pm) |
 
 ## Tech Stack
 
