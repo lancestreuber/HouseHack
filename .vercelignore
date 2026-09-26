@@ -6,6 +6,9 @@
 **/.env
 **/.env.*
 !**/.env.example
+# varlock schemas hold no secrets and postinstall codegen needs them.
+!.env.schema
+!**/.env.schema
 local.db
 local.db-*
 .alchemy/
