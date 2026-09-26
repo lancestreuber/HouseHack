@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.17",
+  "version": "2026-09-26.18",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -1487,7 +1487,7 @@
         "id": "not_permitted_border",
         "label": "Housing not permitted, but the parcel touches a district that allows attached or multi-unit homes",
         "multiplier": 0.35,
-        "note": "Exceptions happen at district edges (a use variance or a map amendment extending the neighboring district), but few housing use variances are in districts that don't allow housing, and rezoning counts include only items that reached a vote."
+        "note": "Exceptions happen at district edges: a use variance or a map amendment extending the neighboring district. Since 2015, Council adopted 42 of 49 site rezonings and defeated none (7 held, withdrawn, pending or expired). But few housing use variances are in districts that don't allow housing."
       },
       {
         "code": 5,
@@ -1521,7 +1521,7 @@
         "multiplier": 0.85
       }
     ],
-    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5). Approval-path multipliers were softened in round 1 (ZA 0.98, special exception 0.94, conditional use 0.92, planned 0.96) because the pillar blend is compressed: ×0.85 was costing a median 39 percentile points for a path approved 90% of the time.",
+    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings (42 of 49 adopted since 2015) and use variances (73% of posted decisions, n=30) do get approved, especially where a parcel borders a district that already allows housing (×0.5). Approval-path multipliers were softened in round 1 (ZA 0.98, special exception 0.94, conditional use 0.92, planned 0.96) because the pillar blend is compressed: ×0.85 was costing a median 39 percentile points for a path approved 90% of the time.",
     "border_types": [
       "single_attached",
       "two_unit",

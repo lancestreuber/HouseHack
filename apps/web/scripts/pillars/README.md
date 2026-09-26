@@ -32,7 +32,7 @@ The build, the scorer, the panel and the CLI all read this file. **Weights are v
 | `bun scripts/pillars/build-indicators.ts` | Computes and normalizes every indicator for all ~142k parcels. Writes `public/data/pillars/parcels/*.json` (per-parcel shards for the panel, committed) and `parcel-indicators.json` (gitignored) (~4 min) |
 | `bun scripts/pillars/score-parcels.ts [--preset climate_first] [--weights mine.json] [--out f.csv]` | Writes a scores CSV for any weighting |
 | `bun scripts/pillars/explain-parcel.ts <PIN> [...]` | Prints the full breakdown for parcels: the same numbers as the panel |
-| `bun scripts/pillars/diagnostics.ts` | Runs JRC composite-indicator checks: indicator vs pillar correlation, pillar correlations, rank stability across presets |
+| `bun scripts/pillars/diagnostics.ts` | Runs JRC composite-indicator checks: indicator vs pillar (or sub-score) correlation, pillar correlations, rank stability across presets. "Weak" is expected for independent hazards (flooding vs slope) and for context signals; "conflicting" or "redundant" needs a look. |
 | `bun test src/lib/pillars` | Scorer unit tests |
 
 Rerun the build after changing a source or normalization rule. Weight changes need no rebuild.
