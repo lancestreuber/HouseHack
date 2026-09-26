@@ -153,3 +153,7 @@ Result: 135 parcel, 48 Census, 101 none (mostly area-wide remaps and text amendm
 ## Reproduce
 
 Run the scripts in `scripts/` in this order (they write intermediates to their own directory): `council_pull.py`, `council_pull2.py`, `council_hist.py`, `council_votes.py`, `council_build.py`, `council_geocode.py`. The Planning Commission step, `council_pc.py`, needs the six minutes PDFs converted with `pdftotext -layout`. You need Python 3 with `certifi`. `pull.py` classifies titles in an inline step that was run by hand; the classification rules are the regexes in `council_build.py`.
+
+## Personal data (added 2026-09-26 review)
+
+Legistar titles sometimes name individual property owners. `scripts/redact_owner_names.py` replaces an individual's name before ", property owner(s)", ", owner", ", applicant" or ", lessee" (or after "on behalf of" / "owned by") with `[individual owner name redacted]`. Organization names are kept. The script redacted 4 titles. **Run it after any rebuild with the council_* scripts**, which pull titles unredacted.

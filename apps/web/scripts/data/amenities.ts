@@ -26,8 +26,9 @@ const ASSET_LAYERS: Record<string, { file: string; exclude?: RegExp }> = {
 };
 
 async function buildFood() {
+  // Skip closed permits and the county's test accounts ("(TEST) …", "TEST Client").
   const rows = parseCSV(await fetch(FOOD).then((r) => r.text())).filter(
-    (r) => !r.bus_cl_date && Number(r.x) && Number(r.y),
+    (r) => !r.bus_cl_date && Number(r.x) && Number(r.y) && !/\(test\b|test client/i.test(r.facility_name),
   );
   // Density layer: one weightless point per restaurant or shop.
   const commerce = rows

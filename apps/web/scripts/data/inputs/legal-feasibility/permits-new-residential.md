@@ -18,9 +18,9 @@
 
 | typology | n | new / conversion | issued (OSPI) | censored (open) | median days to issue | p75 | KM median* | top current districts |
 |---|---|---|---|---|---|---|---|---|
-| single_detached | 467 | 463 / 4 | 343 | 28 | 140 | 271 | 154 | R1D-H 77, R1A-VH 68, R1A-H 58, RM-M 31 |
+| single_detached | 468 | 464 / 4 | 344 | 28 | 140.0 | 270.0 | 154 | R1D-H 77, R1A-VH 68, R1A-H 58, RM-M 31 |
 | single_attached | 234 | 233 / 1 | 225 | 9 | 181 | 271 | 181 | RM-M 94, R1A-H 43, R1A-VH 27, GPRB 10 |
-| two_unit | 119 | 36 / 83 | 89 | 22 | 121 | 215 | 153 | RM-M 18, R1D-H 18, R2-H 14, R1A-VH 10 |
+| two_unit | 118 | 35 / 83 | 88 | 22 | 121.5 | 216.0 | 153 | RM-M 18, R1D-H 18, R2-H 14, R1A-VH 10 |
 | three_unit | 6 | 4 / 2 | 2 | 2 | 219 | 244 | 269 | R3-M 2, RM-M 2, UPR-B 1, UC-MU 1 |
 | multi_unit_4_19 | 35 | 33 / 2 | 24 | 1 | 196.5 | 326 | 205 | RM-M 17, LNC 6, UNC 3, UPR-B 2 |
 | multi_unit_20plus | 26 | 25 / 1 | 16 | 3 | 182.5 | 299 | 237 | RIV-IMU 7, LNC 4, UI 4, RP 3 |
@@ -111,3 +111,8 @@ CSV columns: `group_by` (`zon_new` or `neighborhood`), `group_value`, `typology`
 ## Suggested map style
 
 Overlay group **"Legal feasibility"**, layer "New housing permits 2019–2026". Circle points coloured by `typology` with a categorical palette: single_detached, single_attached, two_unit and three_unit in one hue family (light to dark), multi_unit_4_19 / multi_unit_20plus / multi_unit_size_unknown in a second family, senior / other_group / adu as distinct accents, and `unknown` in neutral grey. Radius steps by `units` (1, 2–3, 4–19, 20+; unknown = smallest). Open ring (stroke only) for `censored=true`. Reduced opacity for `classification_confidence='low'` and for records with an `overlap_flag`. Popup: `typology`, `units`, `status`, `days_to_issue` or "open N days", `zon_new`, `neighborhood`, `work_desc`, `permit_id`. Filters: typology, year of `issue_date`, `record_kind`.
+
+
+## Review fix (2026-09-26)
+
+`FAM2` matched `DOUBLE` in "double-car garage", which typed one new single-family house as `two_unit`. `DOUBLE` now counts only when it isn't followed by car/garage/wide/door/hung/stack/bay/stud/height/story/deck/porch. The result: single_detached 467 → 468, two_unit 119 → 118. The rebuild reproduced the previous outputs byte for byte before the fix.

@@ -27,13 +27,18 @@ async function buildMatrix() {
   const districts = Object.fromEntries(
     Object.entries(matrix.districts).map(([zone, row]) => [zone, { ...row }]),
   );
-  // Cells read from a special district's own chapter, or still unconfirmed, carry
-  // a note explaining the reading; keep it (trimmed) for the tooltip.
-  const notes: Record<string, Record<string, { unconfirmed: boolean; note: string }>> = {};
+  // Cells read from a special district's own chapter, inferred, or still
+  // unconfirmed carry a note explaining the reading; keep it (trimmed) for the
+  // tooltip. Unconfirmed and inferred cells are drawn fainter.
+  const TENTATIVE: Record<string, string> = {
+    unconfirmed: "Unconfirmed reading of the code",
+    inferred_from_adopted_use_list: "Inferred from the district's adopted use list",
+  };
+  const notes: Record<string, Record<string, { unconfirmed: boolean; basis: string | null; note: string }>> = {};
   for (const r of parseCSV(await Bun.file(`${DIR}/typology-district-matrix.csv`).text())) {
     if (r.confidence === "read" || !r.note) continue;
     const note = r.note.length > 240 ? `${r.note.slice(0, 237).trimEnd()}…` : r.note;
-    (notes[r.zon_new] ??= {})[r.typology] = { unconfirmed: r.confidence === "unconfirmed", note };
+    (notes[r.zon_new] ??= {})[r.typology] = { unconfirmed: r.confidence in TENTATIVE, basis: TENTATIVE[r.confidence] ?? null, note };
   }
   const zba: Record<string, Record<string, { n: number; approved: number; denied: number; split: number }>> = {};
   // ZBA rows are keyed by base district. Skip a base whose subdistricts have
@@ -57,11 +62,20 @@ async function buildMatrix() {
 export const LEGAL_MATRIX_AS_OF = ${JSON.stringify(matrix.as_of)};
 export const LEGAL_MATRIX_SOURCE = ${JSON.stringify(matrix.source)};
 
-export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: string; clock: string; fee: string; section: string; note: string }> = ${JSON.stringify(
+export const PATHWAYS: Record<string, { rank: number | null; decider: string; hearing: string; clock: string; missedDeadline: string; fee: string; section: string; note: string }> = ${JSON.stringify(
     Object.fromEntries(
       pathways.map((p) => [
         p.pathway,
-        { rank: Number(p.rank), decider: p.decider, hearing: p.hearing, clock: p.statutory_clock, fee: p.extra_fee_usd, section: p.section, note: p.note },
+        {
+          rank: p.rank === "" ? null : Number(p.rank),
+          decider: p.decider,
+          hearing: p.hearing,
+          clock: p.statutory_clock,
+          missedDeadline: p.deemed_denial_on_missed_deadline,
+          fee: p.extra_fee_usd,
+          section: p.section,
+          note: p.note,
+        },
       ]),
     ),
     null,
@@ -70,7 +84,7 @@ export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: 
 
 export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = ${JSON.stringify(districts, null, 2)};
 
-export const CELL_NOTES: Record<string, Record<string, { unconfirmed: boolean; note: string }>> = ${JSON.stringify(notes, null, 2)};
+export const CELL_NOTES: Record<string, Record<string, { unconfirmed: boolean; basis: string | null; note: string }>> = ${JSON.stringify(notes, null, 2)};
 
 // ZBA decisions 2023–2026 by base district × project type (all relief types),
 // only where the research team didn't flag the sample as too small.
@@ -167,12 +181,29 @@ async function buildZbaDecisions() {
   });
 }
 
+// 800 ft circles around licensed care facilities: new assisted living or
+// personal care residences must be at least that far away (§911.04.A.66, .95A/B).
+async function buildCareSpacing() {
+  const src = (await Bun.file(`${DIR}/care-facility-spacing-800ft.geojson`).json()) as { features: GeoJSONFeature[] };
+  const keep = ["facility_name", "facility_type", "counts_as", "radius_ft", "completeness"];
+  await writeOverlay("care-facility-spacing.geojson", {
+    type: "FeatureCollection",
+    features: src.features.map((f) => ({
+      type: "Feature" as const,
+      geometry: f.geometry,
+      properties: Object.fromEntries(keep.map((k) => [k, f.properties[k] ?? null])),
+    })),
+    metadata: { source: "research/datasets/legal-feasibility/care-facility-spacing-800ft.geojson (2026-09-26)", builtAt: new Date().toISOString() },
+  });
+}
+
 export async function buildLegalFeasibility() {
   await buildMatrix();
   await buildSeniorHousing();
   await buildPermitsByType();
   await buildCouncilActions();
   await buildZbaDecisions();
+  await buildCareSpacing();
 }
 
 if (import.meta.main) await buildLegalFeasibility();

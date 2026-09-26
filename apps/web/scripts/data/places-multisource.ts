@@ -45,7 +45,9 @@ export async function buildPlacesMultisource() {
   //   as grocery stores, whatever their permit category says.
   const NOT_GROCERY =
     /dollar ?tree|dollar general|family dollar|get ?go|sheetz|sunoco|\bbp\b|7-?eleven|speedway|circle k|\bcvs\b|walgreens|uni-?mart|\bbeer\b|beverage|distributor/i;
-  const food = (await read("allegheny_food_retail_merged.csv")).map((r) =>
+  // The county permit list includes test accounts, e.g. "(TEST) Nicole's Bake Shop".
+  const TEST_RECORD = /\(test\b|test client/i;
+  const food = (await read("allegheny_food_retail_merged.csv")).filter((r) => !TEST_RECORD.test(r.name)).map((r) =>
     (r.tier === "full_grocery" || r.tier === "specialty_food") && NOT_GROCERY.test(r.name) ? { ...r, tier: "other_food_retail" } : r,
   );
   const foodProps = (r: Row) => ({
