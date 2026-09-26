@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.7",
+  "version": "2026-09-26.8",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -651,7 +651,7 @@
       "geography": "parcel",
       "source": {
         "kind": "nearest",
-        "file": "scripts/pillars/inputs/allegheny_food_retail_merged.csv",
+        "file": "public/data/overlays/places-groceries.geojson",
         "where": {
           "tier": "full_grocery"
         }
@@ -673,7 +673,7 @@
       "geography": "parcel",
       "source": {
         "kind": "nearest",
-        "file": "scripts/pillars/inputs/allegheny_pharmacies_nppes_2026.csv",
+        "file": "public/data/overlays/places-pharmacies.geojson",
         "where": {
           "kind": "retail"
         }
@@ -734,8 +734,8 @@
       "source": {
         "kind": "nearest",
         "file": [
-          "scripts/pillars/inputs/allegheny_fqhc_sites_hrsa.csv",
-          "scripts/pillars/inputs/allegheny_clinics_nppes_2026.csv",
+          "public/data/overlays/places-health-centers.geojson",
+          "public/data/overlays/places-clinics.geojson",
           "public/data/overlays/places-hospitals.geojson"
         ]
       },
