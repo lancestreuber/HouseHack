@@ -25,12 +25,15 @@ export type Contribution = { indicator: string; sub: string | null; value: numbe
 
 export type SubScore = { id: string; score: number | null; coverage: number; weight: number };
 
+// `capped` is true when the gate lowered the score, false for flag-only gates.
+export type Flag = { text: string; capped: boolean };
+
 export type PillarScore = {
   score: number | null;
   coverage: number;
   subscores: SubScore[];
   contributions: Contribution[];
-  flags: string[];
+  flags: Flag[];
 };
 
 export type LegalStatus = { code: number; id: string; label: string; multiplier: number; note?: string };
@@ -39,9 +42,9 @@ export type AvailabilityStatus = LegalStatus;
 
 export type ParcelScore = {
   pillars: Record<PillarId, PillarScore>;
-  // Overall after the legal multiplier; `overallBeforeLegal` is the pillar blend alone.
+  // Overall after the zoning and site-availability multipliers; `overallBeforeMultipliers` is the pillar blend alone.
   overall: number | null;
-  overallBeforeLegal: number | null;
+  overallBeforeMultipliers: number | null;
   legal: LegalStatus | null;
   availability: AvailabilityStatus | null;
 };
@@ -106,11 +109,12 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
     const subWeight = scored.reduce((a, g) => a + g.weight, 0);
     let score = subWeight > 0 ? scored.reduce((a, g) => a + g.weight * (g.score as number), 0) / subWeight : null;
 
-    const flags: string[] = [];
+    const flags: Flag[] = [];
     for (const gate of (pillar as { gates?: Gate[] }).gates ?? []) {
       const when = gate.when ?? [{ indicator: gate.indicator as string, below: gate.below }];
       if (when.every((c) => conditionHolds(values, c))) {
-        flags.push(gate.flag);
+        const capped = score != null && gate.cap < score;
+        flags.push({ text: gate.flag, capped });
         if (score != null) score = Math.min(score, gate.cap);
       }
     }
@@ -128,11 +132,11 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
     };
   }
 
-  const overallBeforeLegal = overallScore(pillars, overrides, cfg);
+  const overallBeforeMultipliers = overallScore(pillars, overrides, cfg);
   const legal = legalStatus(values, overrides, cfg);
   const availability = levelStatus(cfg.availability, values, overrides.legal);
-  const overall = overallBeforeLegal == null ? null : overallBeforeLegal * (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
-  return { pillars, overall, overallBeforeLegal, legal, availability };
+  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
+  return { pillars, overall, overallBeforeMultipliers, legal, availability };
 }
 
 type LevelBlock = { indicator: string; levels: { code: number; id: string; label: string; multiplier: number; note?: string }[] };

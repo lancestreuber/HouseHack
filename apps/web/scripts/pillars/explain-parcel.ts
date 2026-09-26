@@ -46,11 +46,11 @@ for (const pin of process.argv.slice(2)) {
   const m = meta.get(pin) ?? {};
   console.log(`\n=== ${pin} · ${m.hood ?? "?"} · zoning ${row[0]} · ${m.classdesc ?? ""} / ${m.usedesc ?? ""} · vacant=${m.Vacant ?? "?"} · owner=${m.OwnerCateg ?? "?"} · lot ${Math.round(Number(m.Shape__Area) || 0)} sq ft`);
   console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1}) · Availability: ${s.availability?.label ?? "?"} (×${s.availability?.multiplier ?? 1})`);
-  console.log(`Overall ${f1(s.overall)} (before legal ${f1(s.overallBeforeLegal)}), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${phraseFor("overall", rank("overall", s.overall)) ?? ""}`);
+  console.log(`Overall ${f1(s.overall)} (pillar blend ${f1(s.overallBeforeMultipliers)} before zoning/availability multipliers), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${phraseFor("overall", rank("overall", s.overall)) ?? ""}`);
   for (const p of PILLAR_IDS) {
     const ps = s.pillars[p];
     const def = config.pillars.find((x) => x.id === p)!;
-    console.log(`\n  ${def.label}: ${f1(ps.score)} (p${rank(p, ps.score) ?? "?"}) — ${phraseFor(p, ps.score, norm) ?? ""}${ps.flags.length ? ` [${ps.flags.join("; ")}]` : ""}`);
+    console.log(`\n  ${def.label}: ${f1(ps.score)} (p${rank(p, ps.score) ?? "?"}) — ${phraseFor(p, ps.score, norm) ?? ""}${ps.flags.length ? ` [${ps.flags.map((f) => `${f.text}${f.capped ? " (capped)" : ""}`).join("; ")}]` : ""}`);
     for (const sub of ps.subscores) console.log(`    sub ${sub.id}: ${f1(sub.score)} — ${phraseFor(sub.id, sub.score, norm) ?? ""}`);
     const shares = new Map(ps.contributions.map((c) => [c.indicator, c.share]));
     for (const ind of config.indicators.filter((i) => i.pillar === p)) {

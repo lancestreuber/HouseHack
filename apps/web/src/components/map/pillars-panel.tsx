@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { phraseFor } from "@/lib/pillars/phrases";
-import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
+import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
 
 type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -149,7 +149,7 @@ function ScoreBar({ score }: { score: number | null }) {
 
 const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
 
-function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: ParcelData; contribution?: number }) {
+function IndicatorRow({ ind, data, contribution, scored }: { ind: Indicator; data: ParcelData; contribution?: number; scored: boolean }) {
   const [open, setOpen] = useState(false);
   const norm = data.norm[ind.id];
   const unitNote = ind.unit ? (config.units as Record<string, string>)[ind.unit] : undefined;
@@ -160,7 +160,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
         <span className="tabular-nums">{norm == null || ind.unit === "pathway" || ind.unit === "use" ? "—" : norm}</span>
         <span className="text-muted-foreground">{formatRaw(data.raw[ind.id], ind.unit)}</span>
         <span className="text-muted-foreground tabular-nums">
-          {ind.weight === 0 ? "context" : contribution != null ? `+${contribution.toFixed(1)} pts` : "excluded"}
+          {ind.weight === 0 ? "context" : !scored ? "not scored" : contribution != null ? `+${contribution.toFixed(1)} pts` : "no data"}
         </span>
       </button>
       {open && (
@@ -232,8 +232,9 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
           </div>
         )}
         {score.flags.map((f) => (
-          <p key={f} className="text-red-400">
-            ⚠ {f} (pillar capped)
+          <p key={f.text} className={f.capped ? "text-red-400" : "text-amber-400/90"}>
+            ⚠ {f.text}
+            {f.capped ? " (pillar capped)" : ""}
           </p>
         ))}
       </button>
@@ -265,7 +266,13 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
                 </div>
                 <ul>
                   {inds.map((ind) => (
-                    <IndicatorRow key={ind.id} ind={ind} data={data} contribution={contributions.get(ind.id)} />
+                    <IndicatorRow
+                      key={ind.id}
+                      ind={ind}
+                      data={data}
+                      contribution={contributions.get(ind.id)}
+                      scored={!g.id || (sub?.weight ?? 1) > 0}
+                    />
                   ))}
                 </ul>
               </div>
@@ -277,10 +284,92 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
   );
 }
 
+const WEIGHTS_KEY = "pillars-weights-v1";
+const DEFAULT_WEIGHTS = Object.fromEntries(config.pillars.map((p) => [p.id, p.weight])) as Record<PillarId, number>;
+
+function loadWeights(): Record<PillarId, number> {
+  try {
+    const saved = JSON.parse(localStorage.getItem(WEIGHTS_KEY) ?? "null");
+    if (saved && typeof saved === "object") return { ...DEFAULT_WEIGHTS, ...saved };
+  } catch {}
+  return DEFAULT_WEIGHTS;
+}
+
+// Pillar weights as 0–5 ratings (the OECD Better Life Index pattern). Shown as
+// percentages of the total. Weights are value judgments, so the panel says so.
+function WeightsControl({ weights, onChange }: { weights: Record<PillarId, number>; onChange: (w: Record<PillarId, number>) => void }) {
+  const [open, setOpen] = useState(false);
+  const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
+  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full justify-between text-left">
+        <span className="font-medium">
+          {open ? "▾" : "▸"} Your priorities {isDefault ? "(equal weights)" : "(custom)"}
+        </span>
+        <span className="text-muted-foreground">value judgments</span>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5">
+          {config.pillars.map((p) => {
+            const id = p.id as PillarId;
+            return (
+              <label key={id} className="grid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-2">
+                <span className="truncate">{p.label}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.5}
+                  value={weights[id]}
+                  onChange={(e) => onChange({ ...weights, [id]: Number(e.target.value) })}
+                  aria-label={`${p.label} weight`}
+                />
+                <span className="text-right tabular-nums text-muted-foreground">{Math.round((weights[id] / total) * 100)}%</span>
+              </label>
+            );
+          })}
+          <div className="flex flex-wrap gap-1 pt-1">
+            {Object.entries(config.presets).map(([name, w]) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => onChange({ ...DEFAULT_WEIGHTS, ...(w as Partial<Record<PillarId, number>>) })}
+                className="rounded border px-1.5 py-0.5 hover:bg-foreground/10"
+              >
+                {name.replace(/_/g, " ")}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => void }) {
   const { data, status } = useParcelData(pin);
-  const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
-  const range = useMemo(() => (result ? weightSensitivity(result.pillars) : null), [result]);
+  const [weights, setWeightsState] = useState<Record<PillarId, number>>(DEFAULT_WEIGHTS);
+  useEffect(() => setWeightsState(loadWeights()), []);
+  const setWeights = (w: Record<PillarId, number>) => {
+    setWeightsState(w);
+    try {
+      localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w));
+    } catch {}
+  };
+  const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
+  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
+  const range = useMemo(() => {
+    if (!result) return null;
+    const r = weightSensitivity(result.pillars, overrides);
+    // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
+    const m = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
+    return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
+  }, [result, overrides]);
+  const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
+  const overallPhrase =
+    result?.availability && result.availability.multiplier < 1 ? result.availability.label : phraseFor("overall", rank);
 
   return (
     <aside className="flex h-full w-[22rem] shrink-0 flex-col border-l bg-background text-xs">
@@ -301,6 +390,7 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
         )}
         {data && result && (
           <>
+            <WeightsControl weights={weights} onChange={setWeights} />
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between">
                 <span className="font-medium">Overall</span>
@@ -316,20 +406,19 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
                   counted as a neutral 50.
                 </p>
               )}
-              {percentileRank(data.quantiles?.overall, result.overall) != null && (
+              {rank != null && (
                 <p className="mt-1">
-                  Better than <span className="font-semibold">{percentileRank(data.quantiles?.overall, result.overall)}%</span> of City parcels
-                  as a place to build (default weights).
+                  Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
+                  {isDefault ? "" : " (compared with scores at equal weights)"}.
                 </p>
               )}
-              {phraseFor("overall", percentileRank(data.quantiles?.overall, result.overall)) && (
-                <p className="mt-1">{phraseFor("overall", percentileRank(data.quantiles?.overall, result.overall))}</p>
-              )}
+              {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
               <p className="mt-1 text-muted-foreground">
-                Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeLegal)}), equal weights
-                {result.legal ? `, × ${result.legal.multiplier} for zoning` : ""}
+                Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
+                {isDefault ? "equal weights" : "your weights"}
+                {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
                 {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
-                {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
+                {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
             </section>
             {result.availability && result.availability.multiplier < 1 && (
@@ -357,8 +446,8 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
               <PillarCard key={p.id} id={p.id as PillarId} score={result.pillars[p.id as PillarId]} data={data} />
             ))}
             <p className="text-muted-foreground">
-              All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Weights are value judgments, published in
-              pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
+              All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Default weights and every rule are
+              published in pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
             </p>
           </>
         )}

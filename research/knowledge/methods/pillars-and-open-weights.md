@@ -5,7 +5,17 @@
 **Why we care:** The brief's success test requires that users "change normative weights" and "see why the tool ranked them differently". This node turns ~40 low-level layers into five numbers per parcel in a way a user can re-weight and audit.
 **Last checked:** 2026-09-26
 
-> **Status: DRAFT for Rishit + Lance to decide.** The pillar list, the directions and the defaults are proposals. The method (normalize → weighted mean → publish the weights) is the part that comes from precedent: see [r8 composite indices](../../sweeps/r8-composite-indices.md).
+> **Superseded in part (2026-09-26 evening).** The pillars are built and live. Current state:
+> - Scale: 100 = a good place to build new housing.
+> - Pillar 3 is **Housing Need**. Displacement pressure is shown as a flag, not scored.
+> - Climate has carbon and local-environment sub-scores.
+> - Zoning and site availability multiply the overall score.
+> - The overall is a weighted geometric mean.
+> - The panel has weight sliders and presets.
+>
+> The how-to and the current rules are in `apps/web/scripts/pillars/README.md`; the reviews are in `research/pillars/reviews/`. The text below is the original draft, kept for history.
+>
+> **Original status: DRAFT for Rishit + Lance to decide.** The pillar list, the directions and the defaults are proposals. The method (normalize → weighted mean → publish the weights) is the part that comes from precedent: see [r8 composite indices](../../sweeps/r8-composite-indices.md).
 
 ## TL;DR
 
