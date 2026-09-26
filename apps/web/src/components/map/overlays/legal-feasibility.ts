@@ -47,15 +47,23 @@ function pathwayFill(typology: string) {
 
 // ZBA outcomes are keyed by base district: "R1D-L" -> "R1D", "UC-MU" -> "UC".
 const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
+// These bases pool subdistricts with different rules (e.g. RIV-GI bars housing,
+// RIV-MU allows apartments), so their counts would mislead. GT subdistricts
+// share rules, so GT is shown but labeled as pooled.
+const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
+const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Grandview GT districts pooled" };
 
 function zbaLine(zone: string, typology: string) {
-  const byType = ZBA_OUTCOMES[zbaBase(zone)];
+  const base = zbaBase(zone);
+  if (ZBA_POOLED_SKIP.has(base)) return "";
+  const byType = ZBA_OUTCOMES[base];
   const typed = byType?.[typology];
   const all = byType?.ALL;
   const fmt = (o: { n: number; approved: number }) => `${o.approved} of ${o.n} approved`;
   // Counts cover any relief (setbacks, parking, use), not only permission for the use itself.
-  if (typed) return `Zoning Board cases 2023–26 for this type in ${zbaBase(zone)} (any relief sought): ${fmt(typed)}`;
-  if (all) return `Zoning Board cases 2023–26, all types in ${zbaBase(zone)} (any relief sought): ${fmt(all)}`;
+  const where = ZBA_POOLED_LABEL[base] ?? base;
+  if (typed) return `Zoning Board cases 2023–26 for this type in ${where} (any relief sought): ${fmt(typed)}`;
+  if (all) return `Zoning Board cases 2023–26, all types in ${where} (any relief sought): ${fmt(all)}`;
   return "";
 }
 
@@ -415,14 +423,15 @@ function zbaOverlay(housing: boolean): OverlayDefinition {
       ...(housing ? [{ color: "#ffffff", label: "White ring = changes the number of homes", shape: "line" as const }] : []),
     ],
     meta: {
-      source: "City of Pittsburgh Zoning Board of Adjustment decision PDFs (City site and Internet Archive), compiled by the research team",
+      source: "City of Pittsburgh ZBA decisions (pittsburghpa.gov and Internet Archive), coded by HouseHack 2026-09-26",
       sourceUrl: "https://www.pittsburghpa.gov/Business-Development/City-Planning/City-Planning-Meetings/ZBA-Agendas",
       asOf: "Decisions 2023 – Aug 2026, pulled 2026-09-26",
       geography: "Case addresses, City of Pittsburgh",
       evidence: "observed",
       caveats: [
         "Covers roughly 61–73% of each year's case numbers; withdrawn cases never get a posted decision, so approval looks higher than it is.",
-        "Zoning is the district named in each decision.",
+        "Zoning is the district named in each decision; some name several.",
+        "Each case's decision PDF is in the data (decision_pdf); popups can't hold links.",
         "Outcomes were read from the decision text (some scanned and OCR'd).",
       ],
     },
