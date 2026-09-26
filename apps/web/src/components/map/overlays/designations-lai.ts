@@ -130,7 +130,7 @@ export const locationAffordabilityOverlay: OverlayDefinition = {
     evidence: "observed",
     caveats: [
       "Old inputs (2012–2016): relative differences between tracts are the useful part.",
-      "H+T share: HUD's affordability benchmark is 45% of income. It's modeled for a fixed household, so tracts differ only by location.",
+      "H+T share: HUD's LAI sets no affordability threshold; the Center for Neighborhood Technology's H+T Index uses 45% of income. It's modeled for a fixed household, so tracts differ only by location.",
       "Miles driven is HUD's modeled VMT for a fixed household profile (median income, 4 people, 2 commuters), so tracts differ only by location. HUD's observed VMT covers Illinois only.",
     ],
   },
