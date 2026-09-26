@@ -54,6 +54,8 @@ function chatFor(apiKey: string | undefined) {
 }
 
 // Spoken replies, cached by text so replays and repeated demo answers are free.
+// Bump VOICE_VERSION when the TTS request changes so stale clips aren't reused.
+const VOICE_VERSION = 2;
 const speechCache = new Map<string, { mimeType: string; data: string }>();
 const SPEECH_CACHE_LIMIT = 100;
 
@@ -66,12 +68,13 @@ export const chatRouter = {
     .input(z.object({ text: z.string().min(1).max(1200) }))
     .handler(async ({ input, context }) => {
       if (!context.geminiApiKey) return null;
-      const cached = speechCache.get(input.text);
+      const cacheKey = `${VOICE_VERSION}:${input.text}`;
+      const cached = speechCache.get(cacheKey);
       if (cached) return cached;
       try {
         const audio = await geminiSpeak(context.geminiApiKey, input.text);
         if (speechCache.size >= SPEECH_CACHE_LIMIT) speechCache.delete(speechCache.keys().next().value as string);
-        speechCache.set(input.text, audio);
+        speechCache.set(cacheKey, audio);
         return audio;
       } catch {
         return null;

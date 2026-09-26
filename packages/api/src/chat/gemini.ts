@@ -94,7 +94,8 @@ export async function geminiSpeak(apiKey: string, text: string, voice = DEFAULT_
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
         signal: AbortSignal.timeout(25_000),
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `Read this aloud in a warm, natural, conversational tone, like a helpful local guide: ${text}` }] }],
+          // Send only the words to speak: TTS models sometimes read style instructions aloud.
+          contents: [{ parts: [{ text }] }],
           generationConfig: {
             responseModalities: ["AUDIO"],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
