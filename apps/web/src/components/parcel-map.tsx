@@ -1,6 +1,7 @@
 import type { GeoJSONSource, StyleSpecification } from "maplibre-gl";
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
 // MapLibre parses vector tiles in a Web Worker. The bundler rewrites the
@@ -39,14 +40,19 @@ import { ParcelTab } from "./map/parcel-tab";
 import { PillarsPanel } from "./map/pillars-panel";
 import { TypologyPanel } from "./map/typology-panel";
 
-type BasemapId = "carto-dark" | "osm-inverted";
+type BasemapId = "carto" | "osm";
 
-// Free, no-API-key dark vector basemap.
+// Free, no-API-key vector basemaps -- picks the light/dark variant to match
+// the site's own theme (next-themes), not a fixed choice.
 const CARTO_DARK_STYLE_URL =
   "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
+const CARTO_LIGHT_STYLE_URL =
+  "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+const cartoStyleUrl = (isDark: boolean) => (isDark ? CARTO_DARK_STYLE_URL : CARTO_LIGHT_STYLE_URL);
 
-// Plain OSM raster tiles, made to look dark/B&W with a CSS filter on the
-// map canvas (invert + grayscale) instead of a purpose-built dark style.
+// Plain OSM raster tiles. In dark theme these get a CSS filter on the map
+// canvas (invert + grayscale) so they read as dark/B&W like the CARTO style;
+// in light theme they're shown as-is.
 const OSM_RASTER_STYLE: StyleSpecification = {
   version: 8,
   sources: {
@@ -87,6 +93,15 @@ const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PAR
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
 const PARCEL_MIN_ZOOM = 14;
+
+// CARTO's vector tiles carry a "building" source-layer (source id "carto")
+// with render_height/render_min_height fields -- the standard MapLibre 3D
+// buildings recipe. Only present on the CARTO vector style; the OSM
+// raster style has no vector data to extrude, so this is a no-op there.
+const BUILDINGS_3D_LAYER_ID = "buildings-3d";
+const BUILDING_ZOOM_THRESHOLD = 15;
+const TILTED_PITCH = 55;
+const SPIN_DEGREES_PER_SECOND = 6;
 
 // A real Pittsburgh parcel (R1D-H, single-unit detached residential) with
 // full indicator coverage, used so the panels show real demo data on first
@@ -137,7 +152,27 @@ function addZoningLayer(map: MapLibreMap) {
   });
 }
 
-function addParcelLayer(map: MapLibreMap) {
+function add3dBuildingsLayer(map: MapLibreMap, visible: boolean) {
+  if (!map.getSource("carto")) return;
+  if (map.getLayer(BUILDINGS_3D_LAYER_ID)) return;
+  map.addLayer({
+    id: BUILDINGS_3D_LAYER_ID,
+    type: "fill-extrusion",
+    source: "carto",
+    "source-layer": "building",
+    minzoom: BUILDING_ZOOM_THRESHOLD,
+    filter: ["!=", ["get", "hide_3d"], true],
+    layout: { visibility: visible ? "visible" : "none" },
+    paint: {
+      "fill-extrusion-color": "#a3a3a3",
+      "fill-extrusion-height": ["coalesce", ["get", "render_height"], 5],
+      "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0],
+      "fill-extrusion-opacity": 0.85,
+    },
+  });
+}
+
+function addParcelLayer(map: MapLibreMap, isDark: boolean) {
   if (map.getSource(PARCEL_SOURCE_ID)) return;
   map.addSource(PARCEL_SOURCE_ID, {
     type: "geojson",
@@ -154,7 +189,8 @@ function addParcelLayer(map: MapLibreMap) {
     type: "line",
     source: PARCEL_SOURCE_ID,
     paint: {
-      "line-color": "#f5f5f5",
+      // Light outline reads on a dark basemap; needs to flip dark-on-light.
+      "line-color": isDark ? "#f5f5f5" : "#171717",
       "line-width": 1,
       "line-opacity": 0.85,
     },
@@ -209,7 +245,11 @@ export function ParcelMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
-  const [basemap, setBasemap] = useState<BasemapId>("carto-dark");
+  const [basemap, setBasemap] = useState<BasemapId>("carto");
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme !== "light";
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
   const [showZoning, setShowZoning] = useState(true);
   const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
   const overlayStateRef = useRef(overlayState);
@@ -220,6 +260,13 @@ export function ParcelMap() {
   // breakdown and typology panes are never empty on first load -- an actual
   // click or address search just swaps this out.
   const [selectedPin, setSelectedPin] = useState<string | null>(DEMO_PIN);
+  const [spinning, setSpinning] = useState(false);
+  const spinningRef = useRef(spinning);
+  spinningRef.current = spinning;
+  const [threeDEnabled, setThreeDEnabled] = useState(true);
+  const threeDEnabledRef = useRef(threeDEnabled);
+  threeDEnabledRef.current = threeDEnabled;
+  const wasZoomedInRef = useRef(false);
   const mapPane = usePaneCollapse();
   const scoresPane = usePaneCollapse();
   const breakdownPane = usePaneCollapse();
@@ -252,7 +299,7 @@ export function ParcelMap() {
 
     const map = new MapLibreMap({
       container: containerRef.current,
-      style: CARTO_DARK_STYLE_URL,
+      style: basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDarkRef.current),
       bounds: COUNTY_BOUNDS,
       attributionControl: { compact: true },
     });
@@ -261,24 +308,44 @@ export function ParcelMap() {
 
     map.on("load", () => {
       addZoningLayer(map);
-      addParcelLayer(map);
+      addParcelLayer(map, isDarkRef.current);
+      add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
     map.on("styledata", () => {
       addZoningLayer(map);
-      addParcelLayer(map);
+      addParcelLayer(map, isDarkRef.current);
+      add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
     map.on("moveend", () => {
       void refreshParcels(map);
       void refreshViewportOverlays(map, overlayStateRef.current);
       setZoom(map.getZoom());
+
+      // Tilt into a 3D view when zoomed in close enough to see buildings, and
+      // back out when zooming back out -- but not while spin mode is driving
+      // the camera itself, or when 3D mode has been turned off entirely.
+      if (!spinningRef.current && threeDEnabledRef.current) {
+        const zoomedIn = map.getZoom() >= BUILDING_ZOOM_THRESHOLD;
+        if (zoomedIn !== wasZoomedInRef.current) {
+          wasZoomedInRef.current = zoomedIn;
+          map.easeTo({ pitch: zoomedIn ? TILTED_PITCH : 0, duration: 500 });
+        }
+      }
     });
+
+    // Manually rotating/dragging is a clear signal to stop the automated spin.
+    // Only pan-drag, not rotate: MapLibre also fires "rotatestart" for our
+    // own programmatic setBearing calls in the spin loop below, which made
+    // spin mode cancel itself within a frame or two.
+    map.on("dragstart", () => setSpinning(false));
 
     // Overlays (air quality, weather, lead, sewers, ...) come from the registry
     // in ./map/overlays. Re-applied after every style load, since a basemap
     // swap drops all sources and layers.
     const applyOverlays = () => {
       addZoningLayer(map);
-      addParcelLayer(map);
+      addParcelLayer(map, isDarkRef.current);
+      add3dBuildingsLayer(map, threeDEnabledRef.current);
       syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
       void refreshViewportOverlays(map, overlayStateRef.current);
     };
@@ -324,8 +391,44 @@ export function ParcelMap() {
       isFirstRun.current = false;
       return;
     }
-    map.setStyle(basemap === "carto-dark" ? CARTO_DARK_STYLE_URL : OSM_RASTER_STYLE);
-  }, [basemap]);
+    map.setStyle(basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDark));
+  }, [basemap, isDark]);
+
+  // Manual 3D toggle: shows/hides the building extrusions and snaps pitch to
+  // match, independent of the auto zoom-based tilt above.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (map.getLayer(BUILDINGS_3D_LAYER_ID)) {
+      map.setLayoutProperty(BUILDINGS_3D_LAYER_ID, "visibility", threeDEnabled ? "visible" : "none");
+    }
+    if (!threeDEnabled) {
+      wasZoomedInRef.current = false;
+      map.easeTo({ pitch: 0, duration: 500 });
+    } else if (map.getZoom() >= BUILDING_ZOOM_THRESHOLD) {
+      wasZoomedInRef.current = true;
+      map.easeTo({ pitch: TILTED_PITCH, duration: 500 });
+    }
+  }, [threeDEnabled]);
+
+  // Spin mode: continuously rotates the bearing around the current center,
+  // tilted so the (if zoomed in enough) extruded buildings actually orbit
+  // rather than just spinning flat.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !spinning) return;
+    map.easeTo({ pitch: TILTED_PITCH, duration: 500 });
+    let frame: number;
+    let last = performance.now();
+    const tick = (now: number) => {
+      const dt = (now - last) / 1000;
+      last = now;
+      map.setBearing((map.getBearing() + SPIN_DEGREES_PER_SECOND * dt) % 360);
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [spinning]);
 
   // Applied imperatively rather than via className on the container: React owns
   // the class attribute, so changing it would wipe the `maplibregl-map` (and
@@ -334,10 +437,10 @@ export function ParcelMap() {
     const canvas = mapRef.current?.getCanvas();
     if (!canvas) return;
     canvas.style.filter =
-      basemap === "osm-inverted"
+      basemap === "osm" && isDark
         ? "grayscale(100%) hue-rotate(180deg) invert(100%)"
         : "";
-  }, [basemap]);
+  }, [basemap, isDark]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -388,17 +491,17 @@ export function ParcelMap() {
                   <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
                     <button
                       type="button"
-                      onClick={() => setBasemap("carto-dark")}
-                      className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
+                      onClick={() => setBasemap("carto")}
+                      className={`px-2 py-1 ${basemap === "carto" ? "bg-foreground text-background" : ""}`}
                     >
-                      Dark Matter
+                      CARTO
                     </button>
                     <button
                       type="button"
-                      onClick={() => setBasemap("osm-inverted")}
-                      className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
+                      onClick={() => setBasemap("osm")}
+                      className={`px-2 py-1 ${basemap === "osm" ? "bg-foreground text-background" : ""}`}
                     >
-                      OSM (inverted)
+                      OSM
                     </button>
                     <button
                       type="button"
@@ -406,6 +509,20 @@ export function ParcelMap() {
                       className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
                     >
                       Zoning
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSpinning((v) => !v)}
+                      className={`border-l px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
+                    >
+                      Spin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setThreeDEnabled((v) => !v)}
+                      className={`border-l px-2 py-1 ${threeDEnabled ? "bg-foreground text-background" : ""}`}
+                    >
+                      3D
                     </button>
                   </div>
                   <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
