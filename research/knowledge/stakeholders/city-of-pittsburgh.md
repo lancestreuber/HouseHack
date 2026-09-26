@@ -22,7 +22,7 @@
 **Implementing the 2022 Housing Needs Assessment** `[skimmed]` ([HNA final report, Jan 2022](https://www.pittsburghpa.gov/files/assets/city/v/1/dcp/documents/21887_pittsburgh_hna_final_report.pdf)):
 
 - The HNA is from **January 2022**, not 2024 (a correction to an earlier assumption in the stakeholder sweep's brief).
-- Implementation is a set of zoning text amendments: minimum lot size (enacted May 2025), then ADUs, parking and IZ / an affordable-housing bonus packaged as Bill 2025-1545 (hearing Sept 23, 2026; vote not found) ([EngagePgh](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment)). See [reforms in flux](../policy/reforms-in-flux-2025-2026.md).
+- Implementation is a set of zoning text amendments: minimum lot size (enacted May 2025), then ADUs, parking and IZ / an affordable-housing bonus packaged as Bill 2025-1545. ⚠ Legistar (checked by the critique, 2026-09-26): **Held In Council**; public hearings 9/10/25 and 9/23/26; committee substitute and PC referral 10/15/25; PC report received 6/12/26; **no final vote** *(corrected 2026-09-26 per docs/04-critique.md row 9)* ([EngagePgh](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment)). See [reforms in flux](../policy/reforms-in-flux-2025-2026.md).
 
 **Pittsburgh 2050 comprehensive plan** `[skimmed]`: 20 policy areas and 7 draft maps feeding a future land-use map; its housing section is to estimate how many units to produce *and preserve*, with an anti-displacement lens ([PublicSource explainer](https://www.publicsource.org/explaining-pittsburgh-comprehensive-plan/)). Council moved to freeze its consultant contracts in Dec 2025 `[skimmed]` ([WESA 2025-12-22](https://www.wesa.fm/politics-government/2025-12-22/council-freeze-pittsburgh-comprehensive-plan)); current status unknown.
 
@@ -30,14 +30,14 @@
 
 From PublicSource, 2026-09-23 `[read]` ([link](https://www.publicsource.org/pittsburgh-building-permits-faster-under-oconnor/)):
 
-- Building/Development Application permits: 27 → 11 days (July 2025 → July 2026). Single-family: median 11 → 5 days. EZ Permits covers 15 permit types.
+- ⚠ The City reports, via PublicSource, a median of about **11 days to issue** a BDA in July 2026, vs 27 a year earlier (time to issue, not review time). Single-family permits fell from 11 to 5 days, **Jan → Jun 2026** (the City's own analysis; a different date range). Not independently verified *(corrected 2026-09-26 per docs/04-critique.md row 4)*. EZ Permits covers 15 permit types.
 - Remaining obstacles named: **zoning restrictions, variances, and building-code conflicts** (e.g. dual-exit rules for office-to-residential conversion).
-- Our own computed timelines broadly agree and show residential new construction still takes months: [permit timelines](../policy/permit-timelines.md).
+- Our own computed timelines point the same way but are not like-for-like (different measures, censored 2026 data), and show residential new construction still takes months elapsed, including applicant time ⚠ *(corrected 2026-09-26 per docs/04-critique.md row 4)*: [permit timelines](../policy/permit-timelines.md).
 
-## The one AI use the City has named
+## The one AI use the City has named (in the March 2026 plan)
 
-- Completeness checking of applications ("missing info"). Nothing else.
-- Context from elsewhere: Seattle's CivCheck pilot found completeness checks 87% accurate and code-compliance checks 92%, concluded coverage matters more than accuracy, and recommended automating completeness checks only `[read]` ([Seattle Innovation Hub, 2026-06-17](https://innovation-hub.seattle.gov/2026/06/17/ai-construction-permitting-seattle-civcheck-study/)).
+- ⚠ The only AI use named **in the March 2026 permitting plan and release** is completeness checking of applications ("missing info"). No City AI policy, IT strategy or procurement record was searched, so this is not a claim about the City's AI uses generally *(corrected 2026-09-26 per docs/04-critique.md row 15)*.
+- Context from elsewhere: Seattle's CivCheck pilot found completeness checks 87% accurate and code-compliance checks 92%, concluded coverage matters more than accuracy, and recommended automating completeness checks only `[skimmed]` ⚠ (tag lowered to match other nodes *(corrected 2026-09-26 per docs/04-critique.md row 30)*) ([Seattle Innovation Hub, 2026-06-17](https://innovation-hub.seattle.gov/2026/06/17/ai-construction-permitting-seattle-civcheck-study/)).
 - Inference from the stakeholder sweep: judges scoring data and AI integrity may favor rules-based scoring that cites code sections, with a model used for explanation.
 
 ## What this means for us (inference)
@@ -49,7 +49,7 @@ From PublicSource, 2026-09-23 `[read]` ([link](https://www.publicsource.org/pitt
 
 - Is the City's "AI for missing info" tool procured or a pilot? Would a parcel tool complement it or conflict with it?
 - Who at the City owns the public-lot inventory data, and would a scored inventory be more adoptable than scoring arbitrary parcels?
-- Council's action on Bill 2025-1545; PC's vote on Bill 2026-0834.
+- Council's final vote on Bill 2025-1545 (Held In Council as of 2026-09-24 per Legistar); action on Bill 2026-0834 (hearing 10/13/26).
 - Is there a City housing production target anywhere?
 - Status of the 2050 comprehensive plan contracts.
 
@@ -75,9 +75,11 @@ From PublicSource, 2026-09-23 `[read]` ([link](https://www.publicsource.org/pitt
 - [EngagePgh, implementing the Housing Needs Assessment](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment) `[read]` *(accessed 2026-09-26)*
 - [PublicSource, explaining the comprehensive plan](https://www.publicsource.org/explaining-pittsburgh-comprehensive-plan/) `[skimmed]` *(accessed 2026-09-26)*
 - [WESA, 2025-12-22, comprehensive plan freeze](https://www.wesa.fm/politics-government/2025-12-22/council-freeze-pittsburgh-comprehensive-plan) `[skimmed]` *(accessed 2026-09-26)*
-- [Seattle Innovation Hub, CivCheck study](https://innovation-hub.seattle.gov/2026/06/17/ai-construction-permitting-seattle-civcheck-study/) `[read]` *(accessed 2026-09-26)*
+- [Seattle Innovation Hub, CivCheck study](https://innovation-hub.seattle.gov/2026/06/17/ai-construction-permitting-seattle-civcheck-study/) `[skimmed]` ⚠ *(accessed 2026-09-26; was `[read]`, resolved to the weakest tag across nodes per critique row 30)*
+- [Pittsburgh Legistar](https://pittsburgh.legistar.com/) and its [web API](https://webapi.legistar.com/v1/pittsburgh/matters) `[read]` *(accessed 2026-09-26, via the critique's live check)*: status and history of Bill 2025-1545
 - Sweep: [../../sweeps/r3-stakeholder-needs.md](../../sweeps/r3-stakeholder-needs.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md)
 - Working notes: [../../archive/working-notes-2026-09-26/04-stakeholders.md](../../archive/working-notes-2026-09-26/04-stakeholders.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 4, 9, 15, 30

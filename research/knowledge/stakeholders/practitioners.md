@@ -7,12 +7,12 @@
 
 ## Barriers practitioners cite
 
-Roughly in the order the stakeholder sweep found them emphasized. This ordering is the sweep's judgment, not a survey.
+⚠ **This is not a ranking and not a survey** *(corrected 2026-09-26 per docs/04-critique.md row 12)*. In the news and advocacy coverage we read (roughly 12 pieces), the barriers most often named are title, financing and preservation. The numbering below is only for reference. No tool user was asked, and two of the brief's four personas (municipal planner, small developer) have no direct voice here.
 
 ### 1. Acquisition, title and legal process
 
 - Rising Tide Partners and Hazelwood Initiative (2022): **2+ years to clear title**, being outbid at treasurer sale, and conservatorship requiring an upfront appraisal, legal work and immediate stabilization money. Hazelwood: properties "deteriorated to the point that our engineer said we need to tear them down" while they waited to acquire them `[read]` ([Pittsburgh Quarterly](https://pittsburghquarterly.com/articles/opportunity-awaits-but/)).
-- **This is 2022 evidence.** It predates the Land Bank's April 2026 sheriff-sale change (~9 months to clear title). See [Land Bank](land-bank.md).
+- **This is 2022 evidence.** It predates the Land Bank's April 2026 sheriff-sale change. ⚠ The Land Bank **expects** about 9 months to clear title under that authority (third-party meeting summary; WESA); there is no outcome data *(corrected 2026-09-26 per docs/04-critique.md row 13)*. See [Land Bank](land-bank.md).
 - 20,000+ vacant units, many with "dead-end" tangled titles; the City is not foreclosing on tax-delinquent vacant homes, so "these properties are simply inaccessible" `[read]` ([PublicSource 2025-12-22](https://www.publicsource.org/pittsburgh-housing-shortage-population-decline-vacant-homes/)).
 
 ### 2. Financing, subsidy and appraisal gap
@@ -24,7 +24,7 @@ Roughly in the order the stakeholder sweep found them emphasized. This ordering 
 
 ### 3. Preservation
 
-- The County frames losing existing affordable units as the bigger problem (44,000+ sub-$1,000 apartments lost 2019–2024). See [Allegheny County](allegheny-county.md).
+- The County frames losing existing affordable units as the bigger problem. ⚠ The count of apartments renting under $1,000 (nominal) fell by 44,000+ from 2019 to 2024, per the County as reported by WESA; how much is rent inflation vs physical loss is unknown *(corrected 2026-09-26 per docs/04-critique.md row 14)*. See [Allegheny County](allegheny-county.md).
 
 ### 4. Rehab vs. new construction
 
@@ -34,13 +34,13 @@ Roughly in the order the stakeholder sweep found them emphasized. This ordering 
 ### 5. Inclusionary zoning cost uncertainty
 
 - A 196-unit Uptown project was paused over IZ costs `[skimmed]` ([Axios](https://www.axios.com/local/pittsburgh/2025/05/14/zoning-rules-slow-housing-pittsburgh)); Walnut Capital sought an exemption `[skimmed]` ([Post-Gazette](https://www.post-gazette.com/business/development/2026/02/05/inclusionary-zoning-pittsburgh-walnut-capital/stories/202602050090)).
-- At the Sept 11, 2025 hearing on Bill 2025-1545: Lawrenceville United and OPDC supported IZ; Pro-Housing Pittsburgh and the building trades opposed it as an unfunded cost. A trades representative said "ADUs, no." `[read]` (citizenportal.ai third-party summary). See [inclusionary zoning and bonus](../policy/inclusionary-zoning-and-bonus.md).
+- At the September 2025 hearing on Bill 2025-1545 (⚠ Legistar dates the first public hearing **9/10/25**, not Sept 11 *(corrected 2026-09-26 per docs/04-critique.md row 9)*): Lawrenceville United and OPDC supported IZ; Pro-Housing Pittsburgh and the building trades opposed it as an unfunded cost. A trades representative said "ADUs, no." `[read]` (citizenportal.ai third-party summary). See [inclusionary zoning and bonus](../policy/inclusionary-zoning-and-bonus.md).
 
 ### 6. Zoning and variances
 
 - The City found a "high preponderance of lots that did not meet current minimum lot size requirements" in low and very-low density zones; no published share of nonconforming lots or of projects needing variances was found `[read]` ([EngagePgh](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment/minimum-lot-size)).
 - PublicSource names zoning restrictions, variances and building-code conflicts as the obstacles left after permitting sped up `[read]`.
-- Resubmission cycles are still the complaint; one architect called it "screaming into the void" `[read]` ([r3 alternative-framings sweep](../../sweeps/r3-alternative-framings.md)). Our computed median of 5 revision cycles for residential new construction agrees ([permit timelines](../policy/permit-timelines.md)).
+- Resubmission cycles are still the complaint; one architect called it "screaming into the void" `[read]` ([r3 alternative-framings sweep](../../sweeps/r3-alternative-framings.md)). ⚠ This is one anecdote. Our computed "5 revision cycles" is a count of reviewer-level flags, not rounds, so it does not corroborate the quote *(corrected 2026-09-26 per docs/04-critique.md row 33)* ([permit timelines](../policy/permit-timelines.md)).
 
 ### 7. Site conditions and infrastructure `[skimmed]`
 
@@ -50,7 +50,7 @@ Roughly in the order the stakeholder sweep found them emphasized. This ordering 
 
 This is the stakeholder sweep's main finding, restated as an assumption we must defend or drop:
 
-1. **"Which site is easiest" is not the constraint anyone names.** The constraints cited are acquisition and title; the financing, subsidy or appraisal gap; preservation; IZ cost uncertainty; zoning and variances; and Land Bank funding.
+1. **"Which site is easiest" is not the constraint anyone names in the coverage we read.** The constraints cited (not ranked; see ⚠ above) are acquisition and title; the financing, subsidy or appraisal gap; preservation; IZ cost uncertainty; zoning and variances; and Land Bank funding.
 2. **Nonprofits usually pursue parcels they already control or that sit in their target neighborhood; they don't shop citywide.** A citywide ranking may matter more to the City or Land Bank than to a CDC. (Sweep inference from the sources above, not a quote.)
 3. **Permitting is improving fast.** Zoning and variances are the remaining regulatory friction, and the code is being rewritten ([reforms in flux](../policy/reforms-in-flux-2025-2026.md)).
 4. **Rehab vs. new construction is central.** Most Land Bank structures are rehab; vacant lots are often irregular or undersized.
@@ -98,3 +98,5 @@ What would rescue the premise (inference): score things practitioners do cite, s
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
 - Working notes: [../../archive/working-notes-2026-09-26/04-stakeholders.md](../../archive/working-notes-2026-09-26/04-stakeholders.md)
+- [Pittsburgh Legistar web API](https://webapi.legistar.com/v1/pittsburgh/matters) `[read]` *(accessed 2026-09-26, via the critique's live check)*: Bill 2025-1545 hearing dates
+- [Adversarial critique](../../docs/04-critique.md) — rows 9, 12, 13, 14, 33

@@ -36,7 +36,7 @@ From 30,775 paginated ZDR + BDA records; start = earliest workflow date, end = I
 | BDA residential new construction 2024–26 | 74 issued | 153 d | 246 d | 340 d |
 | BDA commercial new construction 2024–26 | 157 | 104 d | 245 d | – |
 
-Residential new construction is **right-censored**: 74 of 210 issued, 78 in "Applicant Revisions"; the true median is longer. Median revision cycles for that group: 5. The ZDR series is effectively dead after mid-2024; zoning review appears merged into the BDA (inference).
+⚠ Residential new construction is **heavily right-censored**: only 74 of 210 (35%) finished (62 Issued + 12 Completed); the 136 unfinished include 78 Applicant Revisions, 27 Application Finalization and 22 Application Incomplete. The median describes the finished minority and is biased short by an unknown amount. Durations run from the earliest workflow date, so they **include applicant time**. The "5 revision cycles" is a median of ~5 reviewer-level "Revisions Required" flags; parallel discipline reviews share one scheduled start, so these are **flags, not resubmission rounds** *(corrected 2026-09-26 per docs/04-critique.md rows 2–3)*. The ZDR series is effectively dead after mid-2024; zoning review appears merged into the BDA (inference).
 
 ## PLI permits `[read]`
 - WPRDC `pli-permits`, resource `f4d1177a-f597-4c32-8cbf-7885f56253f6`: 65,378 rows from 2019-06 (to 2026-09 per working notes). Fields `permit_id`, `permit_type`, `work_description`, `work_type`, `commercial_or_residential`, `total_project_value`, `issue_date`, `parcel_num`, `latitude`/`longitude`, `status`.
@@ -88,4 +88,5 @@ Residential new construction is **right-censored**: 74 of 210 issued, 78 in "App
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 2, 3
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
