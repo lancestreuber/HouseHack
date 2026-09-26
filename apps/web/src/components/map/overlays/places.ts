@@ -196,29 +196,149 @@ const assetOverlay = (id: string, label: string, file: string, color: string, ex
     meta: { ...ASSETS_META, caveats: [...ASSETS_META.caveats, ...extraCaveats] },
   });
 
+const SNAP_LINE = (p: Record<string, unknown>) =>
+  p.snap ? "Accepts SNAP (USDA-authorized)" : "Not matched to a SNAP-authorized store";
+const FOOD_META = {
+  source: "USDA FNS SNAP authorized retailers merged with ACHD food permits (deduplicated)",
+  sourceUrl: "https://services1.arcgis.com/RLQu0rK7h4kbsBq5/arcgis/rest/services/snap_retailer_location_data/FeatureServer/0",
+  asOf: "SNAP list Sep 2026; ACHD permits as of 2025",
+  geography: "Store locations",
+};
+
 export const groceriesOverlay = pointOverlay({
   id: "places-groceries",
   label: "Grocery stores",
-  description: "Supermarkets (including Aldi) with an active food permit.",
+  description: "Full-service grocery stores and specialty food stores (SNAP retailer list merged with county food permits).",
   file: "places-groceries.geojson",
-  color: "#84cc16",
+  color: {
+    property: "tier",
+    colors: { full_grocery: "#84cc16", specialty_food: "#facc15" },
+    labels: { full_grocery: "Full-service grocery", specialty_food: "Specialty food store (bakery, butcher, ethnic market…)" },
+  },
   radius: [3, 7],
+  tooltip: (p) => [String(p.name), p.address && String(p.address), p.snap_type && `USDA store type: ${p.snap_type}`, SNAP_LINE(p)],
+  meta: {
+    ...FOOD_META,
+    caveats: [
+      "Store tier comes from USDA and county permit categories, not a store audit.",
+      "Permits can lag closures.",
+    ],
+  },
+});
+
+export const foodOtherOverlay = pointOverlay({
+  id: "places-food-other",
+  label: "Other food retail",
+  description: "Farmers markets, dollar and packaged-food stores, and convenience stores.",
+  file: "places-food-other.geojson",
+  color: {
+    property: "tier",
+    colors: { farmers_market: "#22c55e", other_food_retail: "#a8a29e", convenience_limited: "#78716c" },
+    labels: {
+      farmers_market: "Farmers market or seasonal stand",
+      other_food_retail: "Dollar / packaged-food store",
+      convenience_limited: "Convenience store (limited food)",
+    },
+  },
+  radius: [2, 5],
+  tooltip: (p) => [String(p.name), p.address && String(p.address), p.permit_category && `Permit: ${p.permit_category}`, SNAP_LINE(p)],
+  meta: { ...FOOD_META, caveats: ["Tier comes from USDA and county permit categories, not a store audit."] },
+});
+
+export const pharmaciesOverlay = pointOverlay({
+  id: "places-pharmacies",
+  label: "Pharmacies",
+  description: "Pharmacies registered with CMS (NPPES), Rite Aid excluded (closed 2025).",
+  file: "places-pharmacies.geojson",
+  color: {
+    property: "kind",
+    colors: { retail: "#14b8a6", other_pharmacy: "#5eead4", clinic_or_institutional: "#0f766e" },
+    labels: {
+      retail: "Retail pharmacy",
+      other_pharmacy: "Specialty, long-term-care or mail-order",
+      clinic_or_institutional: "Clinic or hospital pharmacy",
+    },
+  },
+  radius: [2.5, 6],
   tooltip: (p) => [String(p.name), p.address && String(p.address)],
   meta: {
-    source: "Allegheny County Health Dept food facility permits (WPRDC, CC0)",
-    sourceUrl: "https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations",
-    asOf: "Permits as of 2025",
-    geography: "Store locations",
-    caveats: ["Permit data; closures can lag.", "Smaller independent grocers may be filed under other categories."],
+    source: "CMS NPPES NPI Registry (pharmacy organizations)",
+    sourceUrl: "https://npiregistry.cms.hhs.gov/",
+    asOf: "Registry pulled Sep 2026",
+    geography: "Pharmacy locations (geocoded addresses)",
+    caveats: [
+      "NPPES doesn't record closures, so a few listed pharmacies may be gone.",
+      "Rite Aid (84 county NPIs) is excluded: the chain closed all stores by Sep 2025.",
+    ],
+  },
+});
+
+export const banksOverlay = pointOverlay({
+  id: "places-banks",
+  label: "Bank branches",
+  description: "FDIC-insured bank branches.",
+  file: "places-banks.geojson",
+  color: "#64748b",
+  radius: [2.5, 6],
+  tooltip: (p) => [String(p.name), p.branch && String(p.branch), p.address && String(p.address)],
+  meta: {
+    source: "FDIC BankFind branch locations",
+    sourceUrl: "https://api.fdic.gov/banks/locations",
+    asOf: "FDIC index Sep 2026",
+    geography: "Branch locations",
+    caveats: ["Credit unions (NCUA) aren't included."],
+  },
+});
+
+export const healthCentersOverlay = pointOverlay({
+  id: "places-health-centers",
+  label: "Community health centers",
+  description: "HRSA-funded health center sites: primary care on a sliding fee scale, regardless of insurance.",
+  file: "places-health-centers.geojson",
+  color: "#f43f5e",
+  radius: [3, 7],
+  tooltip: (p) => [String(p.name), p.organization && String(p.organization), p.address && String(p.address), p.mobile && "Mobile van site"],
+  meta: {
+    source: "HRSA health center service delivery sites",
+    sourceUrl: "https://data.hrsa.gov/data/download",
+    asOf: "HRSA daily file, Sep 2026",
+    geography: "Service site locations",
+    caveats: ["Administrative-only sites are excluded; 3 sites are mobile vans."],
+  },
+});
+
+export const clinicsOverlay = pointOverlay({
+  id: "places-clinics",
+  label: "Urgent care & other clinics",
+  description: "Urgent care and primary-care clinics registered with CMS (NPPES).",
+  file: "places-clinics.geojson",
+  color: {
+    property: "kind",
+    colors: { urgent_care: "#fb7185", primary_care_clinic: "#fda4af", community_health_clinic: "#e11d48", fqhc_clinic: "#be123c" },
+    labels: {
+      urgent_care: "Urgent care",
+      primary_care_clinic: "Primary-care clinic",
+      community_health_clinic: "Community health clinic",
+      fqhc_clinic: "Health-center clinic (not in HRSA site list)",
+    },
+  },
+  radius: [2.5, 6],
+  tooltip: (p) => [String(p.name), p.address && String(p.address)],
+  meta: {
+    source: "CMS NPPES NPI Registry (clinic taxonomies)",
+    sourceUrl: "https://npiregistry.cms.hhs.gov/",
+    asOf: "Registry pulled Sep 2026",
+    geography: "Clinic locations (geocoded addresses)",
+    caveats: ["Health-center clinics within ~100 m of an HRSA site are dropped as duplicates.", "NPPES doesn't record closures."],
   },
 });
 
 export const AMENITY_OVERLAYS = [
   groceriesOverlay,
-  assetOverlay("places-pharmacies", "Pharmacies", "places-pharmacies.geojson", "#14b8a6", [
-    "Rite Aid locations are excluded (the chain closed its stores in 2025).",
-  ]),
-  assetOverlay("places-health-centers", "Health centers", "places-health-centers.geojson", "#f43f5e"),
+  foodOtherOverlay,
+  pharmaciesOverlay,
+  healthCentersOverlay,
+  clinicsOverlay,
   pointOverlay({
     id: "places-libraries",
     label: "Libraries",
@@ -234,7 +354,7 @@ export const AMENITY_OVERLAYS = [
       geography: "Library locations",
     },
   }),
-  assetOverlay("places-banks", "Banks", "places-banks.geojson", "#64748b"),
+  banksOverlay,
   assetOverlay("places-post-offices", "Post offices", "places-post-offices.geojson", "#0ea5e9"),
   assetOverlay("places-senior-centers", "Senior centers", "places-senior-centers.geojson", "#d97706"),
   assetOverlay("places-food-banks", "Food banks & pantries", "places-food-banks.geojson", "#65a30d"),
