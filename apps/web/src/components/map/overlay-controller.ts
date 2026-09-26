@@ -49,10 +49,20 @@ export function syncOverlays(map: MapLibreMap, state: OverlayState, underLayerId
     }
 
     if (!map.getSource(sourceId)) {
-      map.addSource(sourceId, {
-        type: "geojson",
-        data: def.source.kind === "static" ? def.source.url : { type: "FeatureCollection", features: [] },
-      });
+      if (def.source.kind === "raster") {
+        map.addSource(sourceId, {
+          type: "raster",
+          tiles: def.source.tiles,
+          tileSize: def.source.tileSize,
+          minzoom: def.source.minZoom,
+          attribution: def.source.attribution,
+        });
+      } else {
+        map.addSource(sourceId, {
+          type: "geojson",
+          data: def.source.kind === "static" ? def.source.url : { type: "FeatureCollection", features: [] },
+        });
+      }
     }
 
     for (const spec of specs) {

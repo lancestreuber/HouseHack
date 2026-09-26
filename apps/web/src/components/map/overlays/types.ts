@@ -49,6 +49,14 @@ export type GeoJSONData = { type: "FeatureCollection"; features: unknown[] };
 export type OverlaySource =
   | { kind: "static"; url: string }
   | {
+      // Image tiles rendered by a server (e.g. an ArcGIS ImageServer); no build step.
+      kind: "raster";
+      tiles: string[];
+      tileSize: number;
+      minZoom: number;
+      attribution?: string;
+    }
+  | {
       // Fetched for the visible map area once zoomed in far enough.
       kind: "viewport";
       minZoom: number;
