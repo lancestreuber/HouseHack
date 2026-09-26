@@ -68,7 +68,7 @@ export const chasOverlay: OverlayDefinition = {
     source: "HUD Comprehensive Housing Affordability Strategy (CHAS) 2018–2022, Table 8",
     sourceUrl: "https://www.huduser.gov/portal/datasets/cp.html",
     asOf: "CHAS 2018–2022 (released Dec 2025)",
-    geography: "Census tract share, not this parcel",
+    geography: "Census tract share (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "Five-year ACS-based tabulation with large tract margins of error.",

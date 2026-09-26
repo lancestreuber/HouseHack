@@ -79,6 +79,7 @@ export const leadServiceLinesOverlay: OverlayDefinition = {
     evidence: "observed",
     caveats: [
       "Non-lead addresses (~61k of ~81k) are not drawn.",
+      "Covers PWSA customers only (most of the City). Outside PWSA, no dot means no data, not no lead.",
       "Unknown means not yet inspected, not safe.",
       "PWSA publishes this with an accuracy disclaimer.",
     ],

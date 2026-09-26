@@ -81,7 +81,11 @@ export const marketMvaOverlay: OverlayDefinition = {
       ];
     if (metric.id === "drr_class")
       return [
-        ...DRR_CLASSES.map((c) => ({ color: DRR_COLORS[c], label: c, shape: "fill" as const })),
+        ...DRR_CLASSES.map((c) => ({
+          color: DRR_COLORS[c],
+          label: c === "Below Countywide Ave" ? "Below countywide average (about half of block groups)" : `Ratio ${c}`,
+          shape: "fill" as const,
+        })),
         { color: NO_DATA_COLOR, label: "Insufficient data", shape: "fill" as const },
       ];
     const isSale = metric.id === "median_sale_1719";
@@ -101,6 +105,7 @@ export const marketMvaOverlay: OverlayDefinition = {
     caveats: [
       "Pre-pandemic data; the market has moved since.",
       "The DRR measures price growth relative to what long-time residents can afford; its exact formula is not fully documented.",
+      "DRR classes are the source's own; 579 of 1,114 block groups share the lowest class, so the layer mainly highlights the higher-risk minority. Data ends 2019/20.",
     ],
   },
 };

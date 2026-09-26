@@ -136,7 +136,7 @@ export const uspsVacancyOverlay: OverlayDefinition = {
     source: "HUD/USPS vacant address data (WPRDC, CC0)",
     sourceUrl: "https://data.wprdc.org/datastore/dump/70dd02d2-137d-43c9-b158-f7b1ec6c6d42",
     asOf: "2023 Q4",
-    geography: "Census tract share, not this parcel",
+    geography: "Census tract share (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "Vacant means the carrier reports mail uncollected for 90+ days.",
