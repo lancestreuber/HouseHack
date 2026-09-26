@@ -1,0 +1,6 @@
+pathway,rank,decider,hearing,statutory_clock,deemed_denial_on_missed_deadline,extra_fee_usd,section,note
+by_right,0,Zoning staff (BDA review via OneStopPGH),no,none,n/a,,§922.02,Site Plan Review §922.04 still applies at >=4 units or any construction in H
+za,1,Zoning Administrator (Administrator Exception),no,decision 21 days after complete application,yes (may go to ZBA),,§922.08,
+zbe_special_exception,2,Zoning Board of Adjustment,"yes, >=21-day notice",hearing within 45 days of complete application; decision within 45 days of hearing,yes,400,§922.07,Seven 'no detrimental impact' tests; ZBA handout Dec 2024 for fee
+conditional_use,3,"Planning Commission recommends, City Council decides","yes, two (PC and Council)",up to 4 x 45 days (~6 months) before deemed denial,yes,,§922.06,Council needs >=7 votes if PC recommended denial
+not_permitted,4,"Only via use variance (ZBA, §922.09 five findings incl. hardship) or rezoning (Council map amendment)",yes,variance as ZBA; rezoning not bounded,yes (variance),400 (variance),§922.09 / map amendment,2026 ZBA sample: use variances 7 of 10 approved; two-unit in single-unit/H districts 3 of 5 (n small)
