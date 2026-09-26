@@ -407,6 +407,10 @@ function Composer({
 }) {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
+  // Checked after mount: the server can't know, and guessing there makes the
+  // server HTML differ from the browser's (a hydration error).
+  const [micSupported, setMicSupported] = useState(false);
+  useEffect(() => setMicSupported(canListen()), []);
   const stopListening = useRef<(() => void) | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
@@ -460,7 +464,7 @@ function Composer({
           aria-label="Your question"
           className="max-h-[180px] min-h-7 flex-1 resize-none bg-transparent py-1 text-xs outline-none placeholder:text-muted-foreground"
         />
-        {canListen() && (
+        {micSupported && (
           <Button
             type="button"
             variant="ghost"

@@ -32,9 +32,8 @@ import { client } from "@/utils/orpc";
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
 import { BreakdownPanel } from "./map/breakdown-panel";
-import { useChatContext } from "./chat/chat-context-store";
-import { SAMPLE } from "./chat/chat-launcher";
 import { ChatPane } from "./chat/chat-pane";
+import { useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
 import {
   INITIAL_OVERLAY_STATE,
@@ -286,7 +285,8 @@ export function ParcelMap() {
   const breakdownPane = usePaneCollapse();
   const typologyPane = usePaneCollapse();
   const chatPane = usePaneCollapse();
-  const chatContext = useChatContext() ?? SAMPLE;
+  // The chat explains exactly what the panes show for the selected parcel.
+  const chatContext = useParcelChatContext(selectedPin) ?? undefined;
 
   const handleAddressSelect = (result: AddressResult) => {
     mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });

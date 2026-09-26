@@ -61,7 +61,7 @@ const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
 const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
 const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Golden Triangle (GT-A…E) pooled" };
 
-function zbaLine(zone: string, typology: string) {
+export function zbaLine(zone: string, typology: string) {
   const base = zbaBase(zone);
   if (ZBA_POOLED_SKIP.has(base)) return "";
   const byType = ZBA_OUTCOMES[base];

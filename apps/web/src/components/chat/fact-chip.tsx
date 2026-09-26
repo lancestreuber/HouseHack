@@ -14,7 +14,8 @@ const KIND_LABEL: Record<ChatFact["kind"], string> = {
 function chipLabel(fact: ChatFact): string {
   if (fact.kind === "definition") return "Definition";
   const head = fact.text.split(":")[0]?.trim() ?? "";
-  return head && head.length <= 24 ? head : fact.source;
+  if (!head) return fact.source;
+  return head.length <= 24 ? head : `${head.slice(0, 22).trimEnd()}…`;
 }
 
 export function FactChip({ fact }: { fact: ChatFact }) {
