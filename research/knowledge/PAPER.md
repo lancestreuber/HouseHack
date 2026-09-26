@@ -106,9 +106,14 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
    - **SS-O steep slope (≥25%):** *"all uses and structures permitted in the base underlying district shall be reviewed and approved by the Planning Commission"*.
    - **UM-O undermined:** a single-unit dwelling can be approved with >100 ft of overburden and no subsidence history. *"Other Development Prohibited"* until a site investigation clears the plans.
 
-   Still mirror-only `[skimmed]`:
-   - the SS-O 50 ft ridge setback
-   - the FP-O floodway rule, under which new construction is effectively excluded
+   Also confirmed on eCode360 in round 5:
+   - **SS-O setback:** 50 ft "in both directions" from the overlay edge at the ridgeline or base. The Planning Commission may waive it.
+   - **FP-O floodway:** no construction without a no-rise hydraulic analysis **and** a DEP permit.
+   - **Regulatory flood elevation:** base flood elevation + 1.5 ft.
+   - **Missed deadlines:** if the deciding body misses its deadline, the code treats the application as **denied**.
+   - **Parking:** a shortfall is not automatically a variance. It goes through an Alternative Access and Parking Plan (§914.07.D), decided by the Zoning Administrator if 10 or fewer spaces are required, or by the ZBA as a Special Exception above 10.
+   - **No "40% no-disturbance" rule** in Ch. 906 or 915.
+   - → [re-read sweep](../sweeps/r5-ecode360-reread-ch906-914-915-922.md)
 
    Bill 2026-0834 would amend Ch. 906.
    → [environmental overlays](policy/environmental-overlays-ch906.md)
@@ -412,8 +417,7 @@ Cut lines are defined at hours 8, 12, 16, 18 and 20. All times are estimates.
 - **That any user wants the tool.** No practitioner, planner or Land Bank staffer has been asked. The office-hours questions in [`../docs/03-open-questions.md`](../docs/03-open-questions.md) are the fastest test.
 - **That our reading of the code is complete or current.**
   - Read on eCode360: §903.03, and SS-O/UM-O in Ch. 906.
-  - Transcribed once: §911.02.
-  - Mirror-only: Ch. 914, 915 and 922.
+  - Read on eCode360 in round 5: Ch. 914, 915 and 922, with §911.02 columns verified. Not read: Ch. 916 and the district chapters that may set PDP thresholds.
   - Not read: Ch. 921 (nonconformities).
   - Two pending bills would amend much of this.
 - **How often variances are granted, beyond one 2026 sample.** 90 decisions, about two-thirds coverage, withdrawals missing. About 1,000 older decisions on the Internet Archive are unpulled.

@@ -39,6 +39,13 @@ More framings and their evidence: [framings](knowledge/landscape/framings.md)
   - 1 m slope per parcel (USGS 3DEP)
 
   → [environmental](knowledge/data/environmental-constraints.md) · [slope](knowledge/data/lidar-slope.md)
+- **Approval rules the engine needs, read on eCode360 in round 5:**
+  - **Parking shortfall:** an Alternative Access and Parking Plan, not a variance. The Zoning Administrator decides at 10 or fewer spaces; above that it is a ZBA Special Exception.
+  - **Missed decision deadlines:** treated as denial.
+  - **Site Plan Review:** triggered by ≥4 units or any construction in the H district.
+  - **Floodway:** no-rise analysis + DEP permit.
+
+  → [re-read](sweeps/r5-ecode360-reread-ch906-914-915-922.md) · [saved code text](sources/)
 - **Overlay consequences, read on eCode360:**
   - Steep slope → Planning Commission review.
   - Undermined land → only single-unit homes, and only with more than 100 ft of rock or soil above the mine workings; anything else is prohibited until a site investigation clears it.

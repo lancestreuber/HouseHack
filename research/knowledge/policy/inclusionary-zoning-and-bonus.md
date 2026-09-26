@@ -24,15 +24,15 @@ From the June 2026 draft on the EngagePgh IZ page `[read]`:
 
 - Applies where **4+ units are allowed**, excluding the Golden Triangle zoning district.
 - **10–20%** of units affordable: at or below **50% AMI for rentals** and **80% AMI for owner units**, for **20 years**.
-- Bonus: **1 point = 15 ft of extra height**, 2–6 points; or a **payment in lieu of $25 per sq ft**.
+- Bonus: **1 point = 15 ft of extra height**, 2–6 points; or a **payment in lieu of $25 per sq ft**. The June 2, 2026 PC redline on Legistar builds the bonus on §915.07 Performance Points and says "each point equates to 15 feet" (critique's text extraction, 2026-09-26).
 - This is a pending bill, not the code. Claims here are about the bill's draft, not current law.
 
 ## How it got here: mandatory citywide IZ became an optional bonus
 
-- Bill 2025-1545 originally proposed citywide mandatory inclusionary zoning alongside ADUs and parking reform. At the Sept 11, 2025 Council hearing, CDCs (Lawrenceville United, OPDC) supported IZ; Pro-Housing Pittsburgh and the building trades opposed it as an unfunded cost `[read]` (citizenportal.ai summary, a third-party summary not checked against the primary record).
-- In October 2025 Council voted **5–4** to rewrite the proposal into an optional bonus `[skimmed]` ([WESA 2025-10-15](https://www.wesa.fm/politics-government/2025-10-15/inclusionary-zoning-debate-rages-on-as-pittsburgh-city-council-votes-to-rewrite-proposed-policy); the sweep lists the article but does not tag the vote count).
+- Bill 2025-1545 originally proposed citywide mandatory inclusionary zoning alongside ADUs and parking reform. At the September 2025 Council hearing (⚠ Legistar dates it **9/10/25**, not Sept 11 *(corrected 2026-09-26 per docs/04-critique.md row 9)*), CDCs (Lawrenceville United, OPDC) supported IZ; Pro-Housing Pittsburgh and the building trades opposed it as an unfunded cost `[read]` (citizenportal.ai summary, a third-party summary not checked against the primary record).
+- ⚠ On **10/15/25** Legistar records **"AMENDED BY SUBSTITUTE" in Standing Committees**, plus referral to the Planning Commission. That is a committee action, **not a full-Council vote** *(corrected 2026-09-26 per docs/04-critique.md row 9)*. WESA reported a **5–4** vote to rewrite the proposal into an optional bonus `[skimmed]` ([WESA 2025-10-15](https://www.wesa.fm/politics-government/2025-10-15/inclusionary-zoning-debate-rages-on-as-pittsburgh-city-council-votes-to-rewrite-proposed-policy)); the tally was not retrievable from Legistar and **remains unverified**.
 - The alternative-framings sweep summarizes the arc as "moved from a mandatory policy to a voluntary bonus", with a June 2026 draft still under revision `[read]` ([WESA 2025-09-12](https://www.wesa.fm/politics-government/2025-09-12/pittsburgh-inclusionary-zoning-debates-housing-affordability) for the debate; [EngagePgh IZ page](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment/inclusionary-zoning-iz) for the June 2026 draft).
-- Planning Commission recommended the voluntary version, and a Council public hearing was held Sept 23, 2026. **No Council vote found as of 2026-09-26.** See [reforms in flux](reforms-in-flux-2025-2026.md).
+- Planning Commission recommended the voluntary version (June 2, 2026). ⚠ Legistar (checked 2026-09-26): **Held In Council**; public hearings 9/10/25 and 9/23/26; committee substitute and PC referral 10/15/25; PC report received 6/12/26; **no final vote** *(corrected 2026-09-26 per docs/04-critique.md row 9)*. See [reforms in flux](reforms-in-flux-2025-2026.md).
 - The Mayor has reportedly said citywide inclusionary zoning is "off the table" `[skimmed]` (search snippet only).
 
 **Contradiction (date of PC recommendation):** the approval and stakeholder sweeps give **June 2, 2026**; WESA's article is dated June 3, 2026 and the prior-art sweep says the PC recommended the voluntary version "on June 3". Likely a meeting-date vs. article-date difference; we use June 2 (the date the stakeholder sweep took from the City's Sept 23 hearing page) and flag it.
@@ -52,8 +52,8 @@ From the June 2026 draft on the EngagePgh IZ page `[read]`:
 ## Open questions
 
 - Read the IZ-O text in eCode360: unit threshold, set-aside, AMI level, and whether owner units differ.
-- Final text and status of the bonus after the Sept 23, 2026 hearing.
-- Would the bonus replace IZ-O in the four neighborhoods or sit alongside it?
+- Final text of the bonus, and when Council will take a final vote (Held In Council as of 2026-09-24 per Legistar).
+- Would the bonus replace IZ-O in the four neighborhoods or sit alongside it? ⚠ **Primary texts conflict** *(corrected 2026-09-26 per docs/04-critique.md row 25)*: the Legistar matter title says Bill 2025-1545 would "add a sunset clause to 907.04.A IZ-O"; the June 2, 2026 PC redline amends §907.04.A7 (off-site inclusionary standards) rather than sunsetting IZ-O, and no "sunset" text was found in it (text extraction), so the title may describe the original bill. Resolve from the substitute text before claiming either.
 - Which AMI table (HUD FY2026) and rent-affordability convention does the City use? See [market and affordability](../data/market-and-affordability.md).
 
 ## Connects to
@@ -69,9 +69,11 @@ From the June 2026 draft on the EngagePgh IZ page `[read]`:
 
 - [EngagePgh, Inclusionary Zoning](https://engage.pittsburghpa.gov/implementing-housing-needs-assessment/inclusionary-zoning-iz) `[read]` *(accessed 2026-09-26)*: 35-year term; June 2026 bonus draft
 - [WESA, 2026-06-03, Planning Commission voluntary IZ](https://www.wesanews.org/development-transportation/2026-06-03/pittsburgh-planning-commission-vountary-inclusionary-zoning) `[read]` *(accessed 2026-09-26)*: PC recommendation of the voluntary version
-- [WESA, 2025-10-15, Council votes to rewrite IZ](https://www.wesa.fm/politics-government/2025-10-15/inclusionary-zoning-debate-rages-on-as-pittsburgh-city-council-votes-to-rewrite-proposed-policy) `[skimmed]` *(accessed 2026-09-26)*: 5–4 vote
+- [WESA, 2025-10-15, Council votes to rewrite IZ](https://www.wesa.fm/politics-government/2025-10-15/inclusionary-zoning-debate-rages-on-as-pittsburgh-city-council-votes-to-rewrite-proposed-policy) `[skimmed]` *(accessed 2026-09-26)*: reported 5–4 vote (⚠ Legistar shows a Standing Committee substitute that day; tally unverified)
+- [Pittsburgh Legistar](https://pittsburgh.legistar.com/) and [web API](https://webapi.legistar.com/v1/pittsburgh/matters) `[read]` *(accessed 2026-09-26, via the critique's live check)*: Bill 2025-1545 status, history and title (IZ-O sunset clause)
+- June 2, 2026 PC recommendation redline of Bill 2025-1545 (Legistar attachment) `[skimmed]` *(accessed 2026-09-26, text extraction by the critique)*: §907.04.A7 amendment, §915.07 points
 - [WESA, 2025-09-12, IZ debates](https://www.wesa.fm/politics-government/2025-09-12/pittsburgh-inclusionary-zoning-debates-housing-affordability) `[read]` *(accessed 2026-09-26)*
-- [citizenportal.ai, Council hearing on Bill 1545](https://citizenportal.ai/articles/6465695/Pennsylvania/Allegheny-County/Pittsburgh/City-Council-hears-hours-of-testimony-on-Bill-1545-citywide-inclusionary-zoning-ADUs-and-parking-reform) `[read]` *(accessed 2026-09-26)*: third-party summary of the Sept 11, 2025 testimony
+- [citizenportal.ai, Council hearing on Bill 1545](https://citizenportal.ai/articles/6465695/Pennsylvania/Allegheny-County/Pittsburgh/City-Council-hears-hours-of-testimony-on-Bill-1545-citywide-inclusionary-zoning-ADUs-and-parking-reform) `[read]` *(accessed 2026-09-26)*: third-party summary of the September 2025 testimony (Legistar hearing date 9/10/25)
 - [City Council Public Hearing, Sept 23, 2026](https://www.pittsburghpa.gov/Business-Development/City-Planning/City-Planning-Meetings/Council-Public-Hearings/City-Council-Public-Hearing-September-23-2026) `[read]` *(accessed 2026-09-26)*
 - [City GIS, InclusionaryHousingOverlayDistrict](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/) `[read]` *(accessed 2026-09-26)*
 - [Axios, 2025-05-14, zoning rules slow housing](https://www.axios.com/local/pittsburgh/2025/05/14/zoning-rules-slow-housing-pittsburgh) `[skimmed]` *(accessed 2026-09-26)*

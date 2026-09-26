@@ -156,6 +156,14 @@ Being wrong in the open is the point of this table. When a closer read overturns
 | 2026-09-26 | County HNA contradiction "unresolved" | The catalog's County HNA link returns **404**, and no such report was found. The executive order's "first" is better supported. → [critique row 27](../docs/04-critique.md) |
 | 2026-09-26 | Bibliography "strongest tag wins"; 136 `[read]` | ⚠ **This inflated verification.** Tags are agent-reported, and several sources carry conflicting tags (Lenze 2024, CivCheck, PHFA QAP). The rule is now **weakest tag wins** unless the node names the artefact. Counts were regenerated. → [critique rows 29, 30, 34](../docs/04-critique.md) |
 
+| 2026-09-26 | Parking shortfall → "Variance / ZBA" in the rules table | ⚠ **Wrong for the rules engine.** Under §914.07.D (eCode360, read 2026-09-26), fewer spaces than required means an **Alternative Access and Parking Plan**. The Zoning Administrator decides it if 10 or fewer spaces are required; above 10, the ZBA decides it as a **Special Exception**. The transit-stop reduction is capped at 20%. → [sweep](../sweeps/r5-ecode360-reread-ch906-914-915-922.md), [source](../sources/ecode360-2026-09-26-pittsburgh-914-parking.md) |
+| 2026-09-26 | Deadlines for SS-O / CU / SE / variance / AE decisions treated as timing only | ⚠ The code says a missed deadline counts as a **denial**. This was absent from the base. → [source](../sources/ecode360-2026-09-26-pittsburgh-922-procedures.md) |
+| 2026-09-26 | PDP threshold "≥15,000 sf GFA or ≥40 structured parking spaces" (§922.10) | ⚠ **Not in §922.10**, which sets no size trigger. Any threshold would be in a district chapter we have not read. |
+| 2026-09-26 | "40% slope no-disturbance" rule (snippet) | Not in §906.08, §915.01 or §915.02; the only thresholds there are 15% and 25%. It may be in the Subdivision Regulations' Hillside Development Standards, which have not been read. |
+| 2026-09-26 | §911.02 use-table columns past RM "unreliable" | ✅ **Verified.** Column order is correct. The header groups are Residential / Mixed Use (10) / Special (P, H, EMI) / DT (GT, blank) / RIV (5). Seven rows were checked cell by cell. Multi-unit is not permitted in H; single-unit detached is an Administrator Exception there. |
+| 2026-09-26 | Tree replacement "trees ≥12\" DBH replaced" | Sharpened: replacement must equal the **total diameter** of the trees removed, measured 4 ft above grade. It is not one-for-one. |
+| 2026-09-26 | Regulatory flood elevation undefined | It is the **base flood elevation + 1.5 ft** (§906.02). |
+
 ⚠ **A short corrections table is not a sign of accuracy.** Expect it to grow with every reading pass, and expect most corrections to make a claim weaker and more specific.
 
 ## Source status
