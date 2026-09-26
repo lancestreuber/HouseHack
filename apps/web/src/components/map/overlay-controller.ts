@@ -7,7 +7,7 @@ import type { OverlayDefinition, OverlayMetric } from "./overlays/types";
 export type OverlayState = {
   // The single active "heat" overlay, or null.
   heatId: string | null;
-  // Checked "infrastructure" overlays (stackable).
+  // Checked stackable overlays ("hazard" and "infrastructure" groups).
   infraIds: string[];
   // Selected metric per overlay id, for overlays with sub-selectors.
   metricByOverlay: Record<string, string>;
@@ -26,10 +26,10 @@ export function selectedMetric(def: OverlayDefinition, state: OverlayState): Ove
   return def.metrics.find((m) => m.id === state.metricByOverlay[def.id]) ?? def.metrics[0];
 }
 
-// Heat fills draw beneath the zoning/parcel layers so outlines stay readable;
-// infrastructure draws on top of everything.
+// Area fills (heat, hazard) draw beneath the zoning/parcel layers so outlines
+// stay readable; infrastructure draws on top of everything.
 function beforeIdFor(map: MapLibreMap, def: OverlayDefinition, underLayerIds: string[]) {
-  if (def.group !== "heat") return undefined;
+  if (def.group === "infrastructure") return undefined;
   return underLayerIds.find((id) => map.getLayer(id));
 }
 

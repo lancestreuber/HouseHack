@@ -5,6 +5,7 @@
 // The layers panel, legend, tooltips and composite indicators all read from here.
 
 import { airQualityOverlay } from "./air-quality";
+import { floodZonesOverlay } from "./flood-zones";
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { sewerLinesOverlay } from "./sewer-lines";
 import type { Indicator, OverlayDefinition } from "./types";
@@ -13,11 +14,13 @@ import { weatherRiskOverlay } from "./weather-risk";
 export const OVERLAYS: OverlayDefinition[] = [
   airQualityOverlay,
   weatherRiskOverlay,
+  floodZonesOverlay,
   leadServiceLinesOverlay,
   sewerLinesOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
+export const HAZARD_OVERLAYS = OVERLAYS.filter((o) => o.group === "hazard");
 export const INFRA_OVERLAYS = OVERLAYS.filter((o) => o.group === "infrastructure");
 
 // Every normalized indicator the registry offers, for future composite scores

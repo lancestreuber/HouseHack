@@ -3,8 +3,9 @@ import type { AddLayerObject, LngLatBounds } from "maplibre-gl";
 // How an overlay is drawn relative to the others:
 // - "heat": area choropleths (block groups, tracts). Only one is shown at a time
 //   so colors never mix.
+// - "hazard": mapped hazard areas (flood zones, ...), stackable.
 // - "infrastructure": points/lines that can be stacked on top of anything.
-export type OverlayGroup = "heat" | "infrastructure";
+export type OverlayGroup = "heat" | "hazard" | "infrastructure";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.

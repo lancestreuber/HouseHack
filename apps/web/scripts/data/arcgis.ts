@@ -24,11 +24,13 @@ type QueryOptions = {
   // Vertex simplification tolerance in degrees (outSR=4326).
   maxAllowableOffset?: number;
   pageSize?: number;
+  // Additional query params, e.g. a spatial filter (geometry/geometryType/inSR).
+  extraParams?: Record<string, string>;
 };
 
 export async function fetchAllGeoJSON(
   layerUrl: string,
-  { where = "1=1", outFields, geometryPrecision = 5, maxAllowableOffset, pageSize = 1000 }: QueryOptions,
+  { where = "1=1", outFields, geometryPrecision = 5, maxAllowableOffset, pageSize = 1000, extraParams = {} }: QueryOptions,
 ): Promise<GeoJSONFeature[]> {
   const features: GeoJSONFeature[] = [];
   for (let offset = 0; ; offset += pageSize) {
@@ -41,6 +43,7 @@ export async function fetchAllGeoJSON(
       resultOffset: String(offset),
       resultRecordCount: String(pageSize),
       f: "geojson",
+      ...extraParams,
     });
     if (maxAllowableOffset) params.set("maxAllowableOffset", String(maxAllowableOffset));
 

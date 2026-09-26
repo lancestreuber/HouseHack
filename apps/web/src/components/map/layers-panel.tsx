@@ -1,6 +1,6 @@
 import type { OverlayState } from "./overlay-controller";
 import { selectedMetric } from "./overlay-controller";
-import { HEAT_OVERLAYS, INFRA_OVERLAYS } from "./overlays";
+import { HAZARD_OVERLAYS, HEAT_OVERLAYS, INFRA_OVERLAYS } from "./overlays";
 import type { LegendItem, OverlayDefinition } from "./overlays/types";
 
 const EVIDENCE_LABEL = {
@@ -57,6 +57,46 @@ function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState })
   );
 }
 
+function minZoomOf(def: OverlayDefinition) {
+  return "minZoom" in def.source ? (def.source.minZoom ?? 0) : 0;
+}
+
+// Checkbox list for stackable groups (hazards, infrastructure).
+function StackableSection({
+  title,
+  overlays,
+  state,
+  toggle,
+  zoom,
+}: {
+  title: string;
+  overlays: OverlayDefinition[];
+  state: OverlayState;
+  toggle: (id: string) => void;
+  zoom: number;
+}) {
+  if (!overlays.length) return null;
+  return (
+    <>
+      <p className="mt-2 mb-1 font-medium">{title}</p>
+      {overlays.map((def) => {
+        const checked = state.infraIds.includes(def.id);
+        const minZoom = minZoomOf(def);
+        return (
+          <div key={def.id}>
+            <label className="flex items-center gap-1.5" title={def.description}>
+              <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
+              {def.label}
+              {checked && zoom < minZoom && <span className="text-muted-foreground">(zoom in to {minZoom}+)</span>}
+            </label>
+            {checked && <Legend def={def} state={state} />}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
 type Props = {
   state: OverlayState;
   onChange: (next: OverlayState) => void;
@@ -67,14 +107,14 @@ export function LayersPanel({ state, onChange, zoom }: Props) {
   const setHeat = (heatId: string | null) => onChange({ ...state, heatId });
   const setMetric = (overlayId: string, metricId: string) =>
     onChange({ ...state, metricByOverlay: { ...state.metricByOverlay, [overlayId]: metricId } });
-  const toggleInfra = (id: string) =>
+  const toggleStackable = (id: string) =>
     onChange({
       ...state,
       infraIds: state.infraIds.includes(id) ? state.infraIds.filter((x) => x !== id) : [...state.infraIds, id],
     });
 
   return (
-    <div className="max-h-[calc(100%-1rem)] w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
+    <div className="max-h-full w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
       <p className="mb-1 font-medium">Heat overlay</p>
       <label className="flex items-center gap-1.5">
         <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />
@@ -107,22 +147,20 @@ export function LayersPanel({ state, onChange, zoom }: Props) {
         </div>
       ))}
 
-      <p className="mt-2 mb-1 font-medium">Infrastructure</p>
-      {INFRA_OVERLAYS.map((def) => {
-        const needsZoom = def.source.kind === "viewport" && zoom < def.source.minZoom;
-        return (
-          <div key={def.id}>
-            <label className="flex items-center gap-1.5" title={def.description}>
-              <input type="checkbox" checked={state.infraIds.includes(def.id)} onChange={() => toggleInfra(def.id)} />
-              {def.label}
-              {needsZoom && def.source.kind === "viewport" && state.infraIds.includes(def.id) && (
-                <span className="text-muted-foreground">(zoom in to {def.source.minZoom}+)</span>
-              )}
-            </label>
-            {state.infraIds.includes(def.id) && <Legend def={def} state={state} />}
-          </div>
-        );
-      })}
+      <StackableSection
+        title="Hazards"
+        overlays={HAZARD_OVERLAYS}
+        state={state}
+        toggle={toggleStackable}
+        zoom={zoom}
+      />
+      <StackableSection
+        title="Infrastructure"
+        overlays={INFRA_OVERLAYS}
+        state={state}
+        toggle={toggleStackable}
+        zoom={zoom}
+      />
     </div>
   );
 }
