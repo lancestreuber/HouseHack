@@ -92,6 +92,7 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
 
   → [sweep](sweeps/r5-zba-decisions-sample.md) · [CSV](sources/pittsburghpa-2026-09-26-zba-decisions-sample.csv)
 - **Approval timelines from OneStopPGH:** alterations take a median of 8 days. New construction takes a median of 153 days, but that includes applicant time and counts only the 35% of cases already issued. → [timelines](knowledge/policy/permit-timelines.md)
+- **Legal feasibility by housing type (new):** a typology × zoning-district pathway matrix (912 cells), 1,088 permits, 476 ZBA decisions, 284 Council actions and 124 existing senior/care sites. In R1D/R1A/R2, **apartments are not permitted but senior housing is a ZBA special exception**. Boards approve most requests that reach them (ZBA 85%, n=470), so the use table is the real gate. ⚠ The City code's "deemed denial" conflicts with PA MPC "deemed approval". → [legal feasibility](knowledge/data/legal-feasibility-datasets.md)
 - **City-owned vacant lots:** 5,786 in total, 3,260 "Available for Sale", with status and inventory type. → [land](knowledge/data/land-availability-and-title.md)
 - **Track 3 layers:**
   - MVA market types and the displacement risk ratio (block group)
