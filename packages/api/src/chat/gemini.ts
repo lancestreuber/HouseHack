@@ -80,19 +80,29 @@ export function geminiGenerate(apiKey: string): GenerateFn {
   };
 }
 
-/** Natural-sounding speech models, best first. */
+/** Speech models, best-sounding first; the lite model (larger free quota) is the backup. */
 export const TTS_MODELS = ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts-preview"] as const;
 export const DEFAULT_VOICE = "Aoede";
 
-/** Speak `text` with a Gemini voice. Returns WAV audio as base64. */
-export async function geminiSpeak(apiKey: string, text: string, voice = DEFAULT_VOICE): Promise<{ mimeType: string; data: string }> {
+export interface AudioChunk {
+  mimeType: string;
+  data: string;
+}
+
+/**
+ * Stream speech for `text` from a Gemini voice as it's generated (first audio
+ * in well under a second). Falls through the models only if one fails before
+ * producing any audio. Chunks are raw PCM, e.g. `audio/l16; rate=24000`.
+ */
+export async function* geminiSpeakStream(apiKey: string, text: string, voice = DEFAULT_VOICE): AsyncGenerator<AudioChunk> {
   let last: unknown;
   for (const model of TTS_MODELS) {
+    let produced = false;
     try {
-      const res = await fetch(`${ENDPOINT}/${model}:generateContent`, {
+      const res = await fetch(`${ENDPOINT}/${model}:streamGenerateContent?alt=sse`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-        signal: AbortSignal.timeout(25_000),
+        signal: AbortSignal.timeout(30_000),
         body: JSON.stringify({
           // Send only the words to speak: TTS models sometimes read style instructions aloud.
           contents: [{ parts: [{ text }] }],
@@ -102,14 +112,33 @@ export async function geminiSpeak(apiKey: string, text: string, voice = DEFAULT_
           },
         }),
       });
-      if (!res.ok) throw new GeminiError(`TTS ${model} ${res.status}`, res.status);
-      const body = (await res.json()) as {
-        candidates?: { content?: { parts?: { inlineData?: { mimeType: string; data: string } }[] } }[];
-      };
-      const audio = body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
-      if (!audio) throw new GeminiError(`TTS ${model} returned no audio`, 502);
-      return audio;
+      if (!res.ok || !res.body) throw new GeminiError(`TTS ${model} ${res.status}`, res.status);
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const event = JSON.parse(line.slice(6)) as {
+            candidates?: { content?: { parts?: { inlineData?: AudioChunk }[] } }[];
+          };
+          for (const part of event.candidates?.[0]?.content?.parts ?? []) {
+            if (part.inlineData?.data) {
+              produced = true;
+              yield part.inlineData;
+            }
+          }
+        }
+      }
+      if (produced) return;
+      throw new GeminiError(`TTS ${model} returned no audio`, 502);
     } catch (err) {
+      if (produced) throw err; // Mid-stream failure: don't restart with a different voice.
       last = err;
       if (err instanceof GeminiError && !RETRYABLE.has(err.status)) break;
     }

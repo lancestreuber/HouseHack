@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { client } from "@/utils/orpc";
 
-import { speakNatural as speak, stopNatural as stopSpeaking } from "./voice";
+import { speakNatural as speak, stopNatural as stopSpeaking, unlockAudio } from "./voice";
 
 export type ChatTurn =
   | { id: number; role: "user"; text: string }
@@ -60,6 +60,7 @@ export function useChat(context: ChatContext | undefined) {
     async (text: string) => {
       const question = text.trim();
       if (!question || thinking) return;
+      unlockAudio();
       stopSpeaking();
       setSpeaking(false);
       const history = turns.map((t) => ({
@@ -104,6 +105,7 @@ export function useChat(context: ChatContext | undefined) {
   );
 
   const toggleReadAloud = useCallback(() => {
+    unlockAudio();
     setReadAloud((on) => {
       if (on) {
         stopSpeaking();
@@ -114,6 +116,7 @@ export function useChat(context: ChatContext | undefined) {
   }, []);
 
   const speakTurn = useCallback((result: ChatResult) => {
+    unlockAudio();
     setSpeaking(true);
     speak(replyText(result), () => setSpeaking(false));
   }, []);

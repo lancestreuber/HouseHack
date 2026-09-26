@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { createChat } from "../chat/engine";
-import { geminiGenerate, geminiSpeak } from "../chat/gemini";
+import { type AudioChunk, geminiGenerate, geminiSpeakStream } from "../chat/gemini";
 import { publicProcedure } from "../index";
 
 const factKind = z.enum(["evidence", "assumption", "observed", "policy", "value", "definition"]);
@@ -55,29 +55,39 @@ function chatFor(apiKey: string | undefined) {
 
 // Spoken replies, cached by text so replays and repeated demo answers are free.
 // Bump VOICE_VERSION when the TTS request changes so stale clips aren't reused.
-const VOICE_VERSION = 2;
-const speechCache = new Map<string, { mimeType: string; data: string }>();
+const VOICE_VERSION = 3;
+const speechCache = new Map<string, AudioChunk[]>();
 const SPEECH_CACHE_LIMIT = 100;
 
 export const chatRouter = {
   /** Explain-only assistant grounded in the facts the screen is showing. */
   ask: publicProcedure.input(askInput).handler(({ input, context }) => chatFor(context.geminiApiKey)(input)),
 
-  /** A natural voice for one or two sentences of a reply. `null` means use the browser voice. */
+  /**
+   * Stream a natural voice reading `text`, chunk by chunk, so playback can start
+   * almost immediately. Yields nothing if there's no key or the voice fails before
+   * any audio; the client then uses the browser voice.
+   */
   speak: publicProcedure
-    .input(z.object({ text: z.string().min(1).max(1200) }))
-    .handler(async ({ input, context }) => {
-      if (!context.geminiApiKey) return null;
+    .input(z.object({ text: z.string().min(1).max(2400) }))
+    .handler(async function* ({ input, context }) {
+      if (!context.geminiApiKey) return;
       const cacheKey = `${VOICE_VERSION}:${input.text}`;
       const cached = speechCache.get(cacheKey);
-      if (cached) return cached;
-      try {
-        const audio = await geminiSpeak(context.geminiApiKey, input.text);
-        if (speechCache.size >= SPEECH_CACHE_LIMIT) speechCache.delete(speechCache.keys().next().value as string);
-        speechCache.set(cacheKey, audio);
-        return audio;
-      } catch {
-        return null;
+      if (cached) {
+        yield* cached;
+        return;
       }
+      const chunks: AudioChunk[] = [];
+      try {
+        for await (const chunk of geminiSpeakStream(context.geminiApiKey, input.text)) {
+          chunks.push(chunk);
+          yield chunk;
+        }
+      } catch {
+        return;
+      }
+      if (speechCache.size >= SPEECH_CACHE_LIMIT) speechCache.delete(speechCache.keys().next().value as string);
+      speechCache.set(cacheKey, chunks);
     }),
 };

@@ -1,7 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
 import { clampRect } from "./floating";
-import { chunkForSpeech } from "./speech";
 
 describe("clampRect", () => {
   test("keeps a window dragged off-screen fully visible", () => {
@@ -15,17 +14,5 @@ describe("clampRect", () => {
 
   test("fits small phone screens", () => {
     expect(clampRect({ x: 0, y: 0, w: 460, h: 640 }, 360, 600)).toEqual({ x: 8, y: 8, w: 344, h: 584 });
-  });
-});
-
-describe("chunkForSpeech", () => {
-  test("speaks the first sentence on its own so audio starts quickly", () => {
-    const chunks = chunkForSpeech("A duplex fits. The bus is 180 m away. Parks are close. Schools too.");
-    expect(chunks[0]).toBe("A duplex fits.");
-    expect(chunks.slice(1).join(" ")).toBe("The bus is 180 m away. Parks are close. Schools too.");
-  });
-
-  test("keeps decimals intact", () => {
-    expect(chunkForSpeech("Emissions are 14.2 tons a year.")).toEqual(["Emissions are 14.2 tons a year."]);
   });
 });

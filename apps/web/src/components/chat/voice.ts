@@ -1,73 +1,104 @@
-// Natural read-aloud: Gemini voices via `chat.speak`, played sentence by
-// sentence so speech starts quickly. Any piece that can't be fetched falls back
-// to the browser's own voice, so reading never just stops.
+// Natural read-aloud: a Gemini voice streamed through `chat.speak` and played
+// with the Web Audio API as chunks arrive, so speech starts in well under a
+// second. If no audio comes back, it falls back to the browser's own voice.
 import { client } from "@/utils/orpc";
 
-import { speak as browserSpeak, chunkForSpeech, stopSpeaking as stopBrowser } from "./speech";
+import { speak as browserSpeak, stopSpeaking as stopBrowser } from "./speech";
 
+let ctx: AudioContext | null = null;
 let session = 0;
-let current: HTMLAudioElement | null = null;
-const urls: string[] = [];
+let sources: AudioBufferSourceNode[] = [];
 
-/** Wrap raw 16-bit PCM (e.g. `audio/L16;rate=24000`) in a WAV header so browsers can play it. */
-function toPlayableBlob(mimeType: string, base64: string): Blob {
-  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
-  if (!/audio\/(l16|pcm)/i.test(mimeType)) return new Blob([bytes], { type: mimeType });
-  const rate = Number(/rate=(\d+)/.exec(mimeType)?.[1] ?? 24000);
-  const header = new DataView(new ArrayBuffer(44));
-  const write = (o: number, s: string) => [...s].forEach((c, i) => header.setUint8(o + i, c.charCodeAt(0)));
-  write(0, "RIFF");
-  header.setUint32(4, 36 + bytes.length, true);
-  write(8, "WAVEfmt ");
-  header.setUint32(16, 16, true);
-  header.setUint16(20, 1, true);
-  header.setUint16(22, 1, true);
-  header.setUint32(24, rate, true);
-  header.setUint32(28, rate * 2, true);
-  header.setUint16(32, 2, true);
-  header.setUint16(34, 16, true);
-  write(36, "data");
-  header.setUint32(40, bytes.length, true);
-  return new Blob([header.buffer, bytes], { type: "audio/wav" });
+function audioContext(): AudioContext {
+  ctx ??= new AudioContext();
+  return ctx;
 }
 
-function play(blob: Blob, id: number): Promise<void> {
-  return new Promise((resolve) => {
-    if (id !== session) return resolve();
-    const url = URL.createObjectURL(blob);
-    urls.push(url);
-    const audio = new Audio(url);
-    current = audio;
-    audio.onended = () => resolve();
-    audio.onerror = () => resolve();
-    audio.play().catch(() => resolve());
-  });
+/** Call from a click or key press so browsers allow audio to play later. */
+export function unlockAudio() {
+  const c = audioContext();
+  if (c.state === "suspended") void c.resume();
 }
 
-function sayWithBrowser(text: string, id: number): Promise<void> {
-  return new Promise((resolve) => (id === session ? browserSpeak(text, resolve) : resolve()));
+/** Turns streamed 16-bit little-endian PCM into AudioBuffers, carrying odd bytes between chunks. */
+function pcmDecoder(c: AudioContext) {
+  let carry: Uint8Array | null = null;
+  return (mimeType: string, base64: string): AudioBuffer | null => {
+    const rate = Number(/rate=(\d+)/i.exec(mimeType)?.[1] ?? 24000);
+    let bytes = Uint8Array.from(atob(base64), (ch) => ch.charCodeAt(0));
+    if (carry) {
+      const joined = new Uint8Array(carry.length + bytes.length);
+      joined.set(carry);
+      joined.set(bytes, carry.length);
+      bytes = joined;
+      carry = null;
+    }
+    if (bytes.length % 2) {
+      carry = bytes.slice(-1);
+      bytes = bytes.slice(0, -1);
+    }
+    const samples = bytes.length / 2;
+    if (!samples) return null;
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const buffer = c.createBuffer(1, samples, rate);
+    const channel = buffer.getChannelData(0);
+    for (let i = 0; i < samples; i++) channel[i] = view.getInt16(i * 2, true) / 32768;
+    return buffer;
+  };
 }
 
-/** Read `text` aloud. Resolves `onEnd` when finished or stopped. */
+/** Read `text` aloud. `onEnd` runs when it finishes (not when stopped). */
 export async function speakNatural(text: string, onEnd?: () => void) {
   stopNatural();
   const id = ++session;
-  const chunks = chunkForSpeech(text);
-  // Request every chunk now; they generate in parallel while earlier ones play.
-  const pending = chunks.map((chunk) => client.chat.speak({ text: chunk }).catch(() => null));
-  for (const [i, chunk] of chunks.entries()) {
-    const audio = await pending[i];
-    if (id !== session) return;
-    if (audio) await play(toPlayableBlob(audio.mimeType, audio.data), id);
-    else await sayWithBrowser(chunk, id);
+  const c = audioContext();
+  await c.resume().catch(() => {});
+  const decode = pcmDecoder(c);
+  let next = c.currentTime + 0.05;
+  let last: AudioBufferSourceNode | null = null;
+
+  try {
+    const stream = await client.chat.speak({ text });
+    for await (const chunk of stream) {
+      if (id !== session) return;
+      const buffer = decode(chunk.mimeType, chunk.data);
+      if (!buffer) continue;
+      const source = c.createBufferSource();
+      source.buffer = buffer;
+      source.connect(c.destination);
+      next = Math.max(next, c.currentTime + 0.02);
+      source.start(next);
+      next += buffer.duration;
+      sources.push(source);
+      last = source;
+    }
+  } catch {
+    // Fall through: whatever played already stays; nothing played means browser voice.
   }
-  if (id === session) onEnd?.();
+  if (id !== session) return;
+
+  if (!last) {
+    browserSpeak(text, () => id === session && onEnd?.());
+    return;
+  }
+  const finish = () => {
+    if (id !== session) return;
+    sources = [];
+    onEnd?.();
+  };
+  if (c.currentTime >= next) finish();
+  else last.onended = finish;
 }
 
 export function stopNatural() {
   session++;
-  current?.pause();
-  current = null;
+  for (const source of sources) {
+    try {
+      source.stop();
+    } catch {
+      // Already stopped.
+    }
+  }
+  sources = [];
   stopBrowser();
-  for (const url of urls.splice(0)) URL.revokeObjectURL(url);
 }

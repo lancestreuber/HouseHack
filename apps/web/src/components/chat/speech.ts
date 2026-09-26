@@ -80,16 +80,3 @@ export function speak(text: string, onEnd?: () => void) {
 export function stopSpeaking() {
   if (canSpeak()) window.speechSynthesis.cancel();
 }
-
-/** First sentence alone (so audio starts fast), then chunks of up to ~280 characters. */
-export function chunkForSpeech(text: string): string[] {
-  // Split only where end punctuation is followed by a space, so "14.2" stays whole.
-  const sentences = text.split(/(?<=[.!?]["')\]]?)\s+/).map((s) => s.trim()).filter(Boolean);
-  const chunks: string[] = [];
-  for (const s of sentences) {
-    const last = chunks.at(-1);
-    if (chunks.length > 1 && last && last.length + s.length < 280) chunks[chunks.length - 1] = `${last} ${s}`;
-    else chunks.push(s);
-  }
-  return chunks;
-}
