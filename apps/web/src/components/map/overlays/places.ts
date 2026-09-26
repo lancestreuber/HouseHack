@@ -333,6 +333,64 @@ export const clinicsOverlay = pointOverlay({
   },
 });
 
+const OSM_MERGE_META = {
+  source: "OpenStreetMap contributors (ODbL) merged with Allegheny County Assets (WPRDC)",
+  sourceUrl: "https://www.openstreetmap.org/copyright",
+  asOf: "OSM pulled Sep 2026; Assets entries date from 2017–2020",
+  geography: "Listed locations",
+};
+
+const osmOverlay = (id: string, label: string, description: string, file: string, color: string, caveats: string[]) =>
+  pointOverlay({
+    id,
+    label,
+    description,
+    file,
+    color,
+    radius: [2.5, 6],
+    tooltip: (p) => [String(p.name), p.address && String(p.address)],
+    meta: { ...OSM_MERGE_META, caveats: ["Listed, not verified open today.", ...caveats] },
+  });
+
+export const foodAssistanceOverlay = pointOverlay({
+  id: "places-food-banks",
+  label: "Food pantries & distributions",
+  description: "Greater Pittsburgh Community Food Bank partner pantries, markets and distributions.",
+  file: "places-food-banks.geojson",
+  // Program types as published; food-bank-led and agency-led distributions share a color.
+  color: {
+    property: "type",
+    colors: {
+      "Food Pantry": "#65a30d",
+      "The Market Food Pantry": "#65a30d",
+      "Fresh Market": "#a3e635",
+      "Walk-up Distribution - Food Bank Led": "#16a34a",
+      "Walk-up Distribution - Agency Led": "#16a34a",
+      "Drive-up Distribution - Food Bank Led": "#0d9488",
+      "Drive-up Distribution - Agency Led": "#0d9488",
+    },
+    labels: {
+      "Food Pantry": "Food pantry",
+      "The Market Food Pantry": "Food pantry (The Market)",
+      "Fresh Market": "Fresh market",
+      "Walk-up Distribution - Food Bank Led": "Walk-up distribution",
+      "Walk-up Distribution - Agency Led": "Walk-up distribution (agency)",
+      "Drive-up Distribution - Food Bank Led": "Drive-up distribution",
+      "Drive-up Distribution - Agency Led": "Drive-up distribution (agency)",
+    },
+  },
+  radius: [2.5, 6],
+  tooltip: (p) => [String(p.name), p.type && String(p.type), p.address && String(p.address)],
+  meta: {
+    source: "Greater Pittsburgh Community Food Bank partner programs (hosted by Pittsburgh Regional Transit)",
+    sourceUrl:
+      "https://services3.arcgis.com/544gNI3xxlFIWuTc/arcgis/rest/services/Food_Banks__Greater_Pittsburgh_Community_Food_Bank_/FeatureServer/8",
+    asOf: "Data gathered Apr 2025",
+    geography: "Program locations",
+    caveats: ["Hours and eligibility change often; check the Food Bank's locator (pittsburghfoodbank.org) before going."],
+  },
+});
+
 export const AMENITY_OVERLAYS = [
   groceriesOverlay,
   foodOtherOverlay,
@@ -355,10 +413,16 @@ export const AMENITY_OVERLAYS = [
     },
   }),
   banksOverlay,
-  assetOverlay("places-post-offices", "Post offices", "places-post-offices.geojson", "#0ea5e9"),
+  osmOverlay("places-post-offices", "Post offices", "USPS post offices (private shipping stores excluded).", "places-post-offices.geojson", "#0ea5e9", []),
   assetOverlay("places-senior-centers", "Senior centers", "places-senior-centers.geojson", "#d97706"),
-  assetOverlay("places-food-banks", "Food banks & pantries", "places-food-banks.geojson", "#65a30d"),
-  assetOverlay("places-laundromats", "Laundromats", "places-laundromats.geojson", "#94a3b8"),
+  foodAssistanceOverlay,
+  osmOverlay("places-laundromats", "Laundromats", "Self-service laundromats (dry cleaners excluded).", "places-laundromats.geojson", "#94a3b8", [
+    "Some County Assets entries (2017–20) may have closed.",
+  ]),
+  osmOverlay("places-dentists", "Dentists", "Dental offices.", "places-dentists.geojson", "#fda4af", [
+    "Doesn't say which dentists take Medicaid. Pair with the dental shortage areas layer.",
+  ]),
+  osmOverlay("places-community-centers", "Community centers", "Community and recreation centers.", "places-community-centers.geojson", "#c084fc", []),
 ];
 
 export const PLACE_OVERLAYS = [

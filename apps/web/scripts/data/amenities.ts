@@ -1,8 +1,8 @@
 // Everyday amenities (county-wide points).
 // - Restaurant/shop density: ACHD food facility permits (WPRDC, CC0).
-// - Post offices, senior centers, food banks, laundromats: Allegheny County
-//   Assets (WPRDC, CC0). Groceries, pharmacies, banks and health centers now
-//   come from places-multisource.ts.
+// - Senior centers: Allegheny County Assets (WPRDC, CC0). Groceries,
+//   pharmacies, banks, health centers, food banks, post offices and
+//   laundromats now come from places-multisource.ts.
 //   Rows flagged do_not_display or sensitive are dropped; contact fields never kept.
 
 import { fetchAllGeoJSON, writeOverlay } from "./arcgis";
@@ -22,10 +22,7 @@ const SHOP = /^(chain )?retail\/convenience store$/i;
 
 // Asset type -> output file (and optional name exclusions).
 const ASSET_LAYERS: Record<string, { file: string; exclude?: RegExp }> = {
-  post_offices: { file: "places-post-offices.geojson" },
   senior_centers: { file: "places-senior-centers.geojson" },
-  food_banks: { file: "places-food-banks.geojson" },
-  laundromats: { file: "places-laundromats.geojson" },
 };
 
 async function buildFood() {

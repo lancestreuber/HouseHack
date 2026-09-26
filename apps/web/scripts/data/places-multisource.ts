@@ -5,6 +5,9 @@
 // - Pharmacies: CMS NPPES pharmacy NPIs (Rite Aid family removed; it closed in 2025).
 // - Banks: FDIC BankFind branch locations.
 // - Health centers: HRSA health-center sites; clinics: NPPES clinic NPIs.
+// - Food assistance: Greater Pittsburgh Community Food Bank partner programs.
+// - Post offices, laundromats, dentists, community centers: OpenStreetMap
+//   (ODbL) merged with the County Assets list by proximity.
 // Everything is clipped to the county line, since ZIP codes cross it.
 
 import path from "node:path";
@@ -99,6 +102,25 @@ export async function buildPlacesMultisource() {
     (r) => ({ name: r.name, kind: r.kind, address: [r.address, r.city].filter(Boolean).join(", ") || null }),
     "CMS NPPES NPI Registry, clinic taxonomies (inputs/places/allegheny_clinics_nppes_2026.csv)",
   );
+
+  await write(
+    "places-food-banks.geojson",
+    await read("gpcfb_food_assistance_2025.csv"),
+    "Longitude",
+    "Latitude",
+    (r) => ({ name: r.Program_Na, type: r.Program_Ty || null, address: [r.Street, r.City].filter(Boolean).join(", ") || null }),
+    "Greater Pittsburgh Community Food Bank partner programs, Apr 2025 (inputs/places/gpcfb_food_assistance_2025.csv)",
+  );
+
+  const osmProps = (r: Row) => ({ name: r.name, address: r.address || null, sources: r.sources || null });
+  for (const [file, input] of [
+    ["places-post-offices.geojson", "allegheny_post_offices_merged.csv"],
+    ["places-laundromats.geojson", "allegheny_laundromats_merged.csv"],
+    ["places-dentists.geojson", "allegheny_dentists_merged.csv"],
+    ["places-community-centers.geojson", "allegheny_community_centers_merged.csv"],
+  ]) {
+    await write(file, await read(input), "lon", "lat", osmProps, `OpenStreetMap (ODbL) + Allegheny County Assets (inputs/places/${input})`);
+  }
 }
 
 if (import.meta.main) await buildPlacesMultisource();
