@@ -5,6 +5,7 @@
 // The layers panel, legend, tooltips and composite indicators all read from here.
 
 import { airQualityOverlay } from "./air-quality";
+import { chasOverlay } from "./chas";
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
 import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
@@ -28,6 +29,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   weatherRiskOverlay,
   housingCostsOverlay,
   uspsVacancyOverlay,
+  chasOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
