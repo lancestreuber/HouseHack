@@ -109,7 +109,7 @@ export const locationAffordabilityOverlay: OverlayDefinition = {
   },
   meta: {
     source: "HUD / DOT Location Affordability Index v3",
-    sourceUrl: "https://www.hudexchange.info/programs/location-affordability-index/",
+    sourceUrl: "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Location_Affordability_Index_v3/FeatureServer/0",
     asOf: "LAI v3 (built on 2012–2016 ACS inputs; HUD's latest release)",
     geography: "Census tract (2010 boundaries)",
     evidence: "observed",
