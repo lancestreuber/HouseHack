@@ -1,37 +1,54 @@
-# Briefing: what we can build, what works, what doesn't
+# Briefing: Track 3, with what works and what doesn't
 
 *A 2-minute read. Last updated 2026-09-26. Every line links to where the evidence lives. For the full argument, see [`knowledge/PAPER.md`](knowledge/PAPER.md). To look up one fact, see [`knowledge/INDEX.md`](knowledge/INDEX.md).*
 
-## TL;DR
+## TL;DR: we're building for Track 3
 
-- **Tracks 1 and 3 combine naturally.** Track 1 decides what *can* be built on a parcel and how hard it is. Track 3 ranks the options by need, equity and climate, using weights the user can change. **The form takes one track**, so we must pick a primary one. → [combining](knowledge/track3/combining-with-track1.md)
-- **The data works.** Parcels, zoning, hazards, permits, city-owned lots and the market/displacement layers are all live and mostly keyless. The organizers gave every team the same catalog, so **data access alone won't set us apart.** → [catalog](knowledge/data/organizer-data-catalog.md)
-- **The hard part is the rules, not the data.** The zoning code has to be hand-encoded, and it is changing:
-  - Bill 2025-1545 (ADUs, parking) is *Held In Council*.
-  - Bill 2026-0834 would amend overlays, nonconformities and procedures; its hearing is 10/13.
+**Brief:** [Housing Typology, Equity & Climate Matchmaker](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/typology-equity-climate) · **Idea bank:** [track3/ideas-and-considerations.md](knowledge/track3/ideas-and-considerations.md)
 
-  → [reforms](knowledge/policy/reforms-in-flux-2025-2026.md)
-- **What users actually complain about may not be "which site".** We counted 42 practitioner appearances in public hearing testimony (round 6; a count of testimony, not a survey). The problems raised most were:
-  - the **financing gap and cost to build**, quoted at $350k–$568k per unit
-  - **process complexity and delay**, including PWSA
-  - **parking minimums**, including parking lenders require
-  - **variances forced by minimum lot size**
+- **The four acceptance tests** (quoted from the brief). A user can:
+  - *"compare at least two housing scenarios for a real place"*
+  - *"see why the tool ranked them differently"*
+  - *"change normative weights"*
+  - *"understand which conclusions are data-driven versus value judgments"*
 
-  City staff said residential-compatibility setbacks leave some lots where you "can't build anything". Land Bank minutes cite **title and acquisition** taking years. Practitioners asked for current neighborhood cost/rent inputs, predictable rules, and a permit-pipeline dashboard that the City promised but hasn't released. **Ask mentors which of these our tool should serve.** → [testimony sweep](sweeps/r6-council-testimony-practitioner-voice.md) · [open questions](docs/03-open-questions.md)
-- **Build approach:** do all the geo work offline (Python/DuckDB → PMTiles + JSON). Score in the browser. Use the server only for LLM explanations and a planner-override log. **Remove the login wall.** → [architecture](knowledge/build-plan/architecture-options.md)
+  The demo must visibly pass all four.
+- **Seven axes:** demand, physical feasibility, affordability, displacement risk, infrastructure capacity, access to opportunity, marginal carbon.
+- **The brief's closing line doubles as a labeling scheme:** *"separate observed evidence from policy choices, assumptions, and value judgments."* Tag every number with one of those four, plus "unknown".
+- **Our Track 1 work becomes the feasibility axis:** zoning gates, lot rules, overlays, city lots, and the ZBA approval sample. It answers the brief's *"or whether current zoning allows it"*. It is **not** a second headline score. The form takes one track.
+- **Strongest data:** feasibility, opportunity access, affordability (CHAS). **Weakest:** demand, and carbon for Pittsburgh specifically. **Unknown:** infrastructure capacity, which is not public, so we say so.
+- **The biggest trap is equity framing.** A "densify here" ranking lands in Transitional and Stressed markets, where Black residents are concentrated. The published displacement metric does *not* flag those markets. Never output "this neighborhood should get X". → [displacement](knowledge/track3/displacement-and-equity.md)
+- **Build approach (unchanged):**
+  - geo work offline (Python/DuckDB → PMTiles + JSON)
+  - scoring and weights in the browser, so sliders are instant
+  - the server only for LLM explanations
+  - remove the login wall
 
-## What we could build (options, none picked)
+  → [architecture](knowledge/build-plan/architecture-options.md)
 
-| Option | One line | Feasibility (36h) | Main risk |
-|---|---|---|---|
-| **A. Buildable → Fit** (T1 + T3) | Per parcel: which housing types are legal and physically possible, how hard each is, then rank them under adjustable weights | Medium | Scope; two headline numbers; one-track form |
-| **B. Policy what-if** (T1 + T3) | Toggle current code vs. the pending bills, and see which parcels and typologies open up | Medium, if built on A's engine | The bills keep changing; label them "proposed, not law" |
-| **C. Area scenarios** (T3-led) | Neighborhood/tract housing-mix scenarios, with T1 feasibility as the supply limit | Medium | Uses less of the parcel work |
-| Parcel scorecard + map (literal T1) | The brief as written | High | Probably the most crowded option; the pain it targets is weakly evidenced |
-| City-lot / Land Bank prioritizer | Rank the 3,260 lots for sale by what could be built on each | High | Half the lots are under 2,400 sf; the Land Bank's own priorities may differ |
-| Variance-packet / pre-application drafter | Required relief plus precedent ZBA cases plus a draft application | Medium | ZBA PDFs are hard to get at scale |
+## Ideas for the product (options, none picked)
 
-More framings and their evidence: [framings](knowledge/landscape/framings.md)
+**What a "scenario" could mean.** Each option answers a different persona in the brief:
+
+| Scenario type | Example | Serves |
+|---|---|---|
+| Typology vs typology, same land | Duplexes vs townhomes vs a small apartment on these 12 city lots | CDCs, developers |
+| Growth pattern vs growth pattern | 200 homes as scattered ADUs and duplexes vs one building near the busway | Residents, officials |
+| Policy vs policy | Current code vs Bill 2025-1545 (ADUs by right, no parking minimums), labeled *proposed* | Planners |
+| Place vs place | Triplex in neighborhood A vs B | CDCs. ⚠ Riskiest for equity. |
+
+**Features that map to the tests:**
+- **Consequence table:** axes × scenarios, each cell showing a value, a range, a label and a source.
+- **Contribution bars and a one-line "why B beats A".** An LLM can write the sentence from the deterministic numbers; it never computes them.
+- **Weight sliders and persona lenses** (planner / CDC / developer / resident / climate-first / anti-displacement-first).
+- **Tipping points,** e.g. "A overtakes B if carbon weight > 0.35".
+- ⭐ **Robust vs contested:** a ranking that holds under every lens is data-driven. One that flips is a value judgment. This speaks directly to the fourth test.
+- **"Who benefits / who bears risk" panel,** plus displacement as a *guardrail* (warning) and optionally as a weight.
+- **Community input:** saved stakeholder weight profiles shown side by side, not averaged. The brief's owner line asks for "community-stakeholder input".
+- **Carbon toggle:** per unit / per person / per m², labeled **value judgment**. A rehab-vs-new scenario could matter given Pittsburgh's 20k+ vacant units.
+- **One-page scenario memo** for a community meeting.
+
+The prototype menu from the brief, assessed, and persona needs: → [idea bank §5–6](knowledge/track3/ideas-and-considerations.md)
 
 ## What works (verified, usable now)
 
@@ -116,6 +133,15 @@ More framings and their evidence: [framings](knowledge/landscape/framings.md)
 - **The scaffold's login wall** is a demo risk for judges.
 
 ## Unknown (would change the plan)
+
+**Track 3-specific:**
+- which real place to demo
+- displacement as weight, guardrail, or both
+- default carbon normalization
+- whether judges expect all seven axes or depth on some
+- which personas the City and County partners care about
+
+**Carried over:**
 
 1. Who the primary user is, and whether "which site is easiest" is a real pain for them.
 2. How judges treat a T1 + T3 combination, and whether "Policy-to-Permit" was merged into Track 1.

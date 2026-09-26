@@ -68,6 +68,7 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 | [carbon-by-typology](track3/carbon-by-typology.md) ⚠ | The published numbers we have for operational energy, embodied carbon and driving by housing type, and why the normalization choice decides which typology "wins". |
 | [combining-with-track1](track3/combining-with-track1.md) | Three ways to join Track 1's parcel feasibility work with Track 3's typology/equity/climate matching, the shared data model they would use, and where combining could hurt. |
 | [displacement-and-equity](track3/displacement-and-equity.md) ⚠ | The displacement and equity data available for Pittsburgh (MVA 2021, the Displacement Risk Ratio, UDP), what is missing from each, and the framing risk of a "densify here" ranking. |
+| [ideas-and-considerations](track3/ideas-and-considerations.md) ⚠ | A structured idea bank for Track 3, organized line by line against the brief, covering what to build, what each axis needs, what to watch out for, and what we already hold. These are options to discuss, not decisions. |
 | [indicators-and-data](track3/indicators-and-data.md) ⚠ | Every Track 3 indicator we have located, with its source, the geography it comes at, its vintage, and what breaks when you try to download it. |
 | [typology-prototypes](track3/typology-prototypes.md) ⚠ | How to turn "duplex", "townhomes", "ADU" and the rest into comparable objects with parameters, and which of those parameters are observed data, legal gates, or our assumptions. |
 

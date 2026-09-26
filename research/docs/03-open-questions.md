@@ -6,6 +6,17 @@ These are ranked by **how much the answer would change what we build**. The fast
 
 ---
 
+## Track 3 focus (pivot 2026-09-26): ask these first
+
+| # | Question | Why it matters |
+|---|---|---|
+| T3-1 | Which real Pittsburgh place makes the most useful demo? | The brief requires "a real place". The choice shapes data, equity optics, and continuation. Candidates: a neighborhood with an active neighborhood plan, city-owned lots, and mixed market types. |
+| T3-2 | Should displacement be a weight, a guardrail (warning), or both? | This is itself a value judgment. The published DRR flags Robust markets, not Transitional or Stressed ones. → [displacement](../knowledge/track3/displacement-and-equity.md) |
+| T3-3 | Default carbon normalization: per unit, per person, or per m²? | The ranking can flip with the choice. → [carbon](../knowledge/track3/carbon-by-typology.md) |
+| T3-4 | Do judges expect all seven axes, or depth on a few? | Scope. Shallow coverage of seven axes risks weak numbers. |
+| T3-5 | Should "demand" mean need (CHAS, household mix) or market (prices, rents), and would the partners accept both shown side by side? | Need and market point to different typologies. |
+| T3-6 | Which personas do the City and County partners care about most: planners, CDCs, developers, or residents? | Sets the default lens and the demo story |
+
 ## Tier 1: would change what we build
 
 | # | Question | Why it matters | Who or what could answer it |

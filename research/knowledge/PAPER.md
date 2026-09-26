@@ -1,14 +1,20 @@
-# Where Housing Can Be Built, and What Should Be Built There
+# What Should Be Built Where: Housing Typology, Equity and Climate in Pittsburgh
 
-**A survey for the Pittsburgh AI for Housing Hackathon: site feasibility, approval friction, housing typology, equity, and climate in the City of Pittsburgh and Allegheny County**
+**A survey for the Pittsburgh AI for Housing Hackathon, Track 3 ("Housing Typology, Equity & Climate Matchmaker"), including the site-feasibility research that feeds it**
 
-*Compiled 2026-09-26, during the build window. Entry point to the [knowledge brain](README.md). Revised the same day after an adversarial audit ([`../docs/04-critique.md`](../docs/04-critique.md)) disputed 34 claims in the first draft.*
+*Compiled 2026-09-26, during the build window. Entry point to the [knowledge brain](README.md).*
+
+*Revision history:*
+- *Revised after an adversarial audit ([`../docs/04-critique.md`](../docs/04-critique.md)) that disputed 34 claims.*
+- *Re-centered on Track 3 when the team pivoted on 2026-09-26. The earlier Track 1 findings are kept below as **supporting findings**, because they supply Track 3's "physical feasibility" and "does current zoning allow it" inputs.*
+
+**Brief:** [Track 3 challenge page](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/typology-equity-climate) `[read]`. **Idea bank:** [track3/ideas-and-considerations.md](track3/ideas-and-considerations.md).
 
 ---
 
 ## How to read this
 
-This survey exists to inform two decisions a 4–5 person team has to make in about 36 hours: **what to build** and **how to build it**. It covers:
+This survey exists to inform two decisions a 4–5 person team has to make in about 36 hours: **what to build for Track 3** and **how to build it**. It covers:
 - what the challenge actually asks
 - what constrains housing construction in Pittsburgh
 - what agencies and practitioners say they need
@@ -45,7 +51,45 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
 
 ---
 
-## Executive summary
+## Track 3 summary: what the brief asks, and what we have for each part
+
+The brief sets **four acceptance tests**. A user can:
+1. *"compare at least two housing scenarios for a real place"*
+2. *"see why the tool ranked them differently"*
+3. *"change normative weights"*
+4. *"understand which conclusions are data-driven versus value judgments"*
+
+It names **seven axes**: demand, physical feasibility, affordability, displacement risk, infrastructure capacity, access to opportunity, marginal carbon. It closes by asking submissions to *"separate observed evidence from policy choices, assumptions, and value judgments"*. That gives a four-category labeling scheme we can use directly.
+
+The full idea bank, organized line by line against the brief, is in → [ideas and considerations](track3/ideas-and-considerations.md).
+
+**Where each axis stands:**
+
+| Axis | What we hold | Strength | Main caveat | Node |
+|---|---|---|---|---|
+| **Physical feasibility and "does current zoning allow it"** | Use table (§911.02, verified); lot, setback and height rules (§903.03); undersized-lot relief (§921.04); overlays (Ch. 906); slope, flood, landslide, undermining layers; 3,260 city lots for sale; ZBA sample (81% of relief requests approved) | **Strong.** This is the Track 1 work. | ADUs depend on Bill 2025-1545, which is Held In Council | [typology prototypes](track3/typology-prototypes.md), supporting findings below |
+| **Demand** | Market proxies (Zillow ZORI/ZHVI by ZIP; MVA market types; new-construction sale prices); CHAS cost burden by household type; ACS household composition (tables to confirm; the Census API needs a key) | **Weakest** | Need-based and market-based demand point to different answers. Choosing between them is a value judgment. | [indicators](track3/indicators-and-data.md) |
+| **Affordability** | CHAS 2018–22 by tract; HUD FY2026 AMI $110,400; practitioner cost testimony ($350k–$568k per unit); PHFA per-unit caps | Good | Hard-cost data is thin; the AMI target is a policy choice | [pro forma](methods/pro-forma.md) |
+| **Displacement risk** | MVA 2021 (10 market types); block-group Displacement Risk Ratio (DRR) | Usable with care | The DRR flags *Robust* markets, not Transitional or Stressed ones, and its base year is unconfirmed. Placement is an equity hazard (Summary §12 below). | [displacement](track3/displacement-and-equity.md) |
+| **Infrastructure capacity** | Not public. Proxies: infill vs extension, sewershed CSO rank, lead-line areas. PWSA capacity process documented. | **Unknown** | Say "unknown", not "bad"; the packet scores that honesty | [infrastructure](data/infrastructure.md) |
+| **Access to opportunity** | City Community Need layer (ACS 2022 plus Opportunity Atlas, keyless); high-frequency transit (742 stops); GTFS; LODES; EPA Smart Location | Good | Which destinations count, and the travel-time threshold, are value judgments | [indicators](track3/indicators-and-data.md) |
+| **Marginal carbon** (building form, embodied, transport, infrastructure extension) | Dublin embodied carbon per m²; RECS 2020 per household; TRB VMT range; BfCA metric-flip study | Thin | The data is national or foreign. **Normalization (per unit / person / m²) is a value judgment.** | [carbon](track3/carbon-by-typology.md) |
+| *Resilience* (the brief's "environmental resilience layers") | FEMA NRI by tract; City flood, landslide and undermining layers; tree canopy | Good | NRI's resilience score looks county-level | [indicators](track3/indicators-and-data.md) |
+
+**Considerations that cut across the axes** (details in the idea bank):
+- **"Robust vs contested" may be the most direct answer to the brief's hardest test.** A ranking that holds under every weight lens is data-driven. A ranking that flips between lenses is a value judgment, and the tool can say so.
+- **"Scenario" has four defensible meanings,** and each serves a different persona:
+  - typology vs typology on the same land
+  - growth pattern vs growth pattern
+  - policy vs policy
+  - place vs place, the riskiest for equity
+- **The owner line asks for "community-stakeholder input".** Stakeholder weight profiles can be shown side by side instead of averaged.
+- **Track 1 becomes the feasibility axis, not a second headline number.** The form takes one track.
+
+---
+
+## Supporting findings (from the Track 1 phase; these feed Track 3's feasibility axis)
+
 
 1. **The challenge asks for one track, and Tracks 1 and 3 fit together as filter-then-rank.**
    - The submission form asks *"Which of the three you're entering"* `[read]`.
@@ -218,7 +262,7 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
 
 ---
 
-## Part I — What the challenge asks
+## Part I — What the challenge asks (all tracks)
 
 The hackathon has three tracks. The packet asks each team to pick one and to demonstrate it on at least one Pittsburgh or Allegheny County case.
 

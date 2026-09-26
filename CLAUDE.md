@@ -1,6 +1,6 @@
 # HouseHack
 
-Our entry for the AI Horizons 2026 AI for Housing Hackathon (Pittsburgh). The build window closes **Sun Sept 27, 2026, 11:59 p.m. ET** and there are no extensions.
+Our entry for the AI Horizons 2026 AI for Housing Hackathon (Pittsburgh). **Focus: Track 3, the Housing Typology, Equity & Climate Matchmaker** ([brief](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/typology-equity-climate)). The Track 1 feasibility research feeds its feasibility axis. The build window closes **Sun Sept 27, 2026, 11:59 p.m. ET** and there are no extensions.
 
 ## Research: read this before building or answering questions about the domain
 
