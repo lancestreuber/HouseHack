@@ -81,7 +81,7 @@ Our all-BDA medians (25 → 21 → 9 days by start year) are directionally consi
 ## Sources
 
 - [OneStopPGH OSPI_H FeatureServer](https://pghbridgis.pittsburghpa.gov/hosting/rest/services/Hosted/OSPI_H/FeatureServer/0) `[read]` *(accessed 2026-09-26)*: queried and paginated; all computed figures above
-- [PublicSource, 2026-09-23, "Pittsburgh building permits faster under O'Connor"](https://www.publicsource.org/pittsburgh-building-permits-faster-under-oconnor/) `[read]` *(accessed 2026-09-26)*: City-reported 27 → 11 days, 11 → 5 days, EZ Permits, remaining obstacles
+- [PublicSource, 2026-09-23, permits faster](https://www.publicsource.org/pittsburgh-building-permits-faster-under-oconnor/) `[read]` *(accessed 2026-09-26)*: City-reported 27 → 11 days, 11 → 5 days, EZ Permits, remaining obstacles
 - [OneStopPGH Insights dashboard](https://experience.arcgis.com/experience/89d500285ecd4804ae9945d93d424569) `[skimmed]` *(accessed 2026-09-26)*: City's own permitting dashboard, not used for these numbers
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
