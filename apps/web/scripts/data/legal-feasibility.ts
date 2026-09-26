@@ -4,6 +4,8 @@
 //   written as a small typed lookup the map colors zoning polygons with.
 // - Senior, care and supportive housing that exists today (facility-level public
 //   data; operator contacts already dropped upstream).
+// - New residential permits 2019–2026 classified by housing type (owner names
+//   dropped upstream).
 
 import path from "node:path";
 
@@ -59,9 +61,29 @@ async function buildSeniorHousing() {
   });
 }
 
+const PERMIT_KEEP = ["permit_id", "address", "issue_date", "completed_date", "status", "typology", "units", "classification_confidence", "zon_new", "neighborhood", "days_to_issue", "days_elapsed_if_open", "censored", "same_parcel_n"];
+
+async function buildPermitsByType() {
+  const src = (await Bun.file(`${DIR}/permits-new-residential.geojson`).json()) as { features: GeoJSONFeature[] };
+  const features = src.features.map((f) => ({
+    type: "Feature" as const,
+    geometry: f.geometry,
+    properties: {
+      ...Object.fromEntries(PERMIT_KEEP.map((k) => [k, f.properties[k] ?? null])),
+      work_desc: f.properties.work_desc ? String(f.properties.work_desc).slice(0, 160) : null,
+    },
+  }));
+  await writeOverlay("permits-by-type.geojson", {
+    type: "FeatureCollection",
+    features,
+    metadata: { source: "research/datasets/legal-feasibility/permits-new-residential.geojson (pulled 2026-09-26)", builtAt: new Date().toISOString() },
+  });
+}
+
 export async function buildLegalFeasibility() {
   await buildMatrix();
   await buildSeniorHousing();
+  await buildPermitsByType();
 }
 
 if (import.meta.main) await buildLegalFeasibility();

@@ -155,3 +155,78 @@ export const seniorHousingOverlay: OverlayDefinition = {
     ],
   },
 };
+
+const PERMIT_TYPES: Record<string, { color: string; label: string }> = {
+  single_detached: { color: "#94a3b8", label: "Single-unit detached" },
+  single_attached: { color: "#38bdf8", label: "Single-unit attached (rowhouse)" },
+  two_unit: { color: "#a78bfa", label: "Two-unit" },
+  three_unit: { color: "#c084fc", label: "Three-unit" },
+  multi_unit_4_19: { color: "#f472b6", label: "Apartments, 4–19 units" },
+  multi_unit_20plus: { color: "#fb7185", label: "Apartments, 20+ units" },
+  multi_unit_size_unknown: { color: "#fda4af", label: "Apartments, size unknown" },
+  senior: { color: "#facc15", label: "Senior housing" },
+  other_group: { color: "#fb923c", label: "Other group living" },
+  adu: { color: "#4ade80", label: "Accessory dwelling unit" },
+};
+
+export const permitsByTypeOverlay: OverlayDefinition = {
+  id: "permits-by-type",
+  label: "Where each housing type got permitted (2019–26)",
+  group: "legal",
+  description: "New residential construction permits in the City, classified by housing type (unclassified permits hidden).",
+  source: { kind: "static", url: "/data/overlays/permits-by-type.geojson" },
+  layers: (sourceId) => [
+    {
+      id: "permits-by-type-dots",
+      type: "circle",
+      source: sourceId,
+      filter: ["!=", ["get", "typology"], "unknown"] as never,
+      paint: {
+        "circle-color": matchColor("typology", Object.fromEntries(Object.entries(PERMIT_TYPES).map(([k, v]) => [k, v.color])), "#a3a3a3") as never,
+        "circle-radius": [
+          "interpolate",
+          ["linear"],
+          ["zoom"],
+          10,
+          ["interpolate", ["linear"], ["sqrt", ["coalesce", ["get", "units"], 1]], 1, 2.5, 10, 7],
+          16,
+          ["interpolate", ["linear"], ["sqrt", ["coalesce", ["get", "units"], 1]], 1, 5, 10, 14],
+        ] as never,
+        // Open applications are drawn hollow.
+        "circle-opacity": ["case", ["==", ["get", "censored"], true], 0.15, 0.85] as never,
+        "circle-stroke-color": ["case", ["==", ["get", "censored"], true], "#ffffff", "#111111"] as never,
+        "circle-stroke-width": 1,
+      },
+    },
+  ],
+  tooltipLayerIds: ["permits-by-type-dots"],
+  tooltip: (p) =>
+    [
+      `${PERMIT_TYPES[String(p.typology)]?.label ?? String(p.typology)}${p.units ? ` · ${p.units} units` : ""}`,
+      String(p.address ?? "").replace(/, Pittsburgh.*$/i, ""),
+      p.censored
+        ? `Open application${p.days_elapsed_if_open != null ? `, ${p.days_elapsed_if_open} days so far` : ""}`
+        : `${p.status ?? "Issued"}${p.issue_date ? ` ${String(p.issue_date).slice(0, 10)}` : ""}${p.days_to_issue != null ? ` · ${p.days_to_issue} days to issue` : ""}`,
+      p.zon_new ? `Zoning ${p.zon_new}${p.neighborhood ? ` · ${p.neighborhood}` : ""}` : "",
+      p.classification_confidence === "low" ? "Housing type guessed from the permit text (low confidence)" : "",
+      Number(p.same_parcel_n) > 1 ? `${p.same_parcel_n} permits on this parcel (one project may have several)` : "",
+      p.work_desc ? `“${p.work_desc}”` : "",
+    ].filter(Boolean),
+  legend: () => [
+    ...Object.values(PERMIT_TYPES).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+    { color: "#ffffff", label: "Hollow = application still open", shape: "dot" as const },
+  ],
+  meta: {
+    source: "City of Pittsburgh OneStopPGH permits and Development & Construction Projects (compiled by the research team)",
+    sourceUrl: "https://data.wprdc.org/dataset/pli-permits",
+    asOf: "Permits May 2019 – Sep 2026, pulled 2026-09-26",
+    geography: "Permit locations, City of Pittsburgh only",
+    evidence: "observed",
+    caveats: [
+      "Housing type is classified from permit text by keyword; 129 unclassified permits are hidden.",
+      "Zoning is today's district, which may differ from the one at permit time.",
+      "One project can have several permits; don't count points as projects.",
+      "Dot size = units where known.",
+    ],
+  },
+};
