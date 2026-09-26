@@ -200,7 +200,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       };
     }
     case "nearest_attr": {
-      const map = src.map as Record<string, number>;
+      const map = src.map as unknown as Record<string, number>;
       const pts = (await features(files[0]))
         .filter((f) => f.geometry?.type === "Point")
         .map((f) => {
@@ -222,12 +222,16 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
 }
 
 const columns: Record<string, string> = {};
+const rawColumns: (number | null)[][] = [];
+const normColumns: Uint8Array[] = [];
 const summary: Record<string, unknown>[] = [];
 for (const ind of config.indicators) {
   console.time(ind.id);
   const { raw, units } = await computeRaw(ind);
   const norm = normalize(raw, units, ind.normalize as Normalize);
   columns[ind.id] = Buffer.from(norm).toString("base64");
+  rawColumns.push(raw);
+  normColumns.push(norm);
   const present = norm.filter((v) => v !== MISSING);
   const sorted = [...present].sort((a, b) => a - b);
   summary.push({
@@ -255,3 +259,26 @@ await Bun.write(
   }),
 );
 console.table(summary);
+
+// Per-parcel detail for the map panel, sharded by the first 4 characters of the
+// PIN (~140 files) so a click loads one small file. Each parcel row is
+// [zoning, normalized values (null = missing), raw values (3 significant digits)].
+const sig = (v: number | null) => (v == null || !Number.isFinite(v) ? null : Number(v.toPrecision(3)));
+const shards = new Map<string, Record<string, unknown>>();
+spine.forEach((p, i) => {
+  const key = p.pin.slice(0, 4);
+  let shard = shards.get(key);
+  if (!shard) shards.set(key, (shard = {}));
+  shard[p.pin] = [
+    p.zoning,
+    normColumns.map((c) => (c[i] === MISSING ? null : c[i])),
+    rawColumns.map((c) => sig(c[i])),
+  ];
+});
+await mkdir(`${OUT_DIR}parcels/`, { recursive: true });
+for (const [key, shard] of shards) await Bun.write(`${OUT_DIR}parcels/${key}.json`, JSON.stringify(shard));
+await Bun.write(
+  `${OUT_DIR}parcels/index.json`,
+  JSON.stringify({ config_version: config.version, built: new Date().toISOString(), indicators: config.indicators.map((i) => i.id), shards: [...shards.keys()].sort() }),
+);
+console.log(`wrote ${shards.size} parcel shards`);

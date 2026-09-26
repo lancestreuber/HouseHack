@@ -12,15 +12,21 @@ export type PillarsConfig = typeof config;
 // User edits layered on top of the published defaults.
 export type WeightOverrides = {
   pillars?: Partial<Record<PillarId, number>>;
+  subscores?: Record<string, number>;
   indicators?: Record<string, number>;
   overall?: "arithmetic" | "geometric";
 };
 
-export type Contribution = { indicator: string; value: number; weight: number; share: number };
+// `share` is the points this indicator adds to its pillar score; the shares of
+// one pillar sum to the pillar score (before any gate cap).
+export type Contribution = { indicator: string; sub: string | null; value: number; weight: number; share: number };
+
+export type SubScore = { id: string; score: number | null; coverage: number; weight: number };
 
 export type PillarScore = {
   score: number | null;
   coverage: number;
+  subscores: SubScore[];
   contributions: Contribution[];
   flags: string[];
 };
@@ -30,35 +36,52 @@ export type ParcelScore = {
   overall: number | null;
 };
 
+type Gate = { indicator: string; below: number; cap: number; flag: string };
+type SubDef = { id: string; weight: number };
+
 export const PILLAR_IDS = config.pillars.map((p) => p.id) as PillarId[];
 
+// Within a pillar: a weighted mean of indicators per sub-score (missing values
+// excluded and the remaining weights renormalized; a sub-score needs at least
+// `min_coverage` of its weight present), then a weighted mean of the sub-scores.
+// Pillars without sub-scores are one implicit sub-score.
 export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): ParcelScore {
   const pillars = {} as Record<PillarId, PillarScore>;
 
   for (const pillar of cfg.pillars) {
     const id = pillar.id as PillarId;
-    const indicators = cfg.indicators.filter((i) => i.pillar === id);
+    const subDefs: SubDef[] = (pillar as { subscores?: SubDef[] }).subscores ?? [{ id: "", weight: 1 }];
     let totalWeight = 0;
     let availableWeight = 0;
-    let sum = 0;
-    const used: { indicator: string; value: number; weight: number }[] = [];
+    const groups = subDefs.map((sub) => {
+      let total = 0;
+      let available = 0;
+      let sum = 0;
+      const used: Omit<Contribution, "share">[] = [];
+      for (const ind of cfg.indicators) {
+        if (ind.pillar !== id || ((ind as { sub?: string }).sub ?? "") !== sub.id) continue;
+        const weight = overrides.indicators?.[ind.id] ?? ind.weight;
+        if (weight <= 0) continue;
+        total += weight;
+        const value = values[ind.id];
+        if (value == null || Number.isNaN(value)) continue;
+        available += weight;
+        sum += weight * value;
+        used.push({ indicator: ind.id, sub: sub.id || null, value, weight });
+      }
+      totalWeight += total;
+      availableWeight += available;
+      const coverage = total > 0 ? available / total : 0;
+      const score = available > 0 && coverage >= cfg.missing.min_coverage ? sum / available : null;
+      return { id: sub.id, weight: overrides.subscores?.[sub.id] ?? sub.weight, score, coverage, used, available };
+    });
 
-    for (const ind of indicators) {
-      const weight = overrides.indicators?.[ind.id] ?? ind.weight;
-      if (weight <= 0) continue;
-      totalWeight += weight;
-      const value = values[ind.id];
-      if (value == null || Number.isNaN(value)) continue;
-      availableWeight += weight;
-      sum += weight * value;
-      used.push({ indicator: ind.id, value, weight });
-    }
-
-    const coverage = totalWeight > 0 ? availableWeight / totalWeight : 0;
-    let score = availableWeight > 0 && coverage >= cfg.missing.min_coverage ? sum / availableWeight : null;
+    const scored = groups.filter((g) => g.score != null && g.weight > 0);
+    const subWeight = scored.reduce((a, g) => a + g.weight, 0);
+    let score = subWeight > 0 ? scored.reduce((a, g) => a + g.weight * (g.score as number), 0) / subWeight : null;
 
     const flags: string[] = [];
-    for (const gate of (pillar as { gates?: { indicator: string; below: number; cap: number; flag: string }[] }).gates ?? []) {
+    for (const gate of (pillar as { gates?: Gate[] }).gates ?? []) {
       const value = values[gate.indicator];
       if (value != null && value < gate.below) {
         flags.push(gate.flag);
@@ -66,11 +89,17 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
       }
     }
 
-    const contributions = used
-      .map((u) => ({ ...u, share: availableWeight > 0 ? (u.weight * u.value) / availableWeight : 0 }))
+    const contributions = scored
+      .flatMap((g) => g.used.map((u) => ({ ...u, share: ((g.weight / subWeight) * u.weight * u.value) / g.available })))
       .sort((a, b) => b.share - a.share);
 
-    pillars[id] = { score, coverage, contributions, flags };
+    pillars[id] = {
+      score,
+      coverage: totalWeight > 0 ? availableWeight / totalWeight : 0,
+      subscores: groups.filter((g) => g.id).map((g) => ({ id: g.id, score: g.score, coverage: g.coverage, weight: g.weight })),
+      contributions,
+      flags,
+    };
   }
 
   return { pillars, overall: overallScore(pillars, overrides, cfg) };

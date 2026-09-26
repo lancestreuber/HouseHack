@@ -13,6 +13,7 @@ setWorkerUrl(maplibreWorkerUrl);
 import { client } from "@/utils/orpc";
 
 import { LayersPanel } from "./map/layers-panel";
+import { PillarsPanel } from "./map/pillars-panel";
 import {
   INITIAL_OVERLAY_STATE,
   loadingOverlayIds,
@@ -45,6 +46,9 @@ const OSM_RASTER_STYLE: StyleSpecification = {
 
 const PARCEL_SOURCE_ID = "parcels";
 const PARCEL_LAYER_ID = "parcels-outline";
+// Invisible fill so a click anywhere inside a parcel selects it.
+const PARCEL_HIT_LAYER_ID = "parcels-hit";
+const PARCEL_SELECTED_LAYER_ID = "parcels-selected";
 
 // Pittsburgh CITY zoning only (not county-wide) -- static file, small enough
 // (1068 features) to ship as one asset instead of a DB-backed bbox query.
@@ -119,6 +123,12 @@ function addParcelLayer(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
   map.addLayer({
+    id: PARCEL_HIT_LAYER_ID,
+    type: "fill",
+    source: PARCEL_SOURCE_ID,
+    paint: { "fill-color": "#000000", "fill-opacity": 0 },
+  });
+  map.addLayer({
     id: PARCEL_LAYER_ID,
     type: "line",
     source: PARCEL_SOURCE_ID,
@@ -127,6 +137,13 @@ function addParcelLayer(map: MapLibreMap) {
       "line-width": 1,
       "line-opacity": 0.85,
     },
+  });
+  map.addLayer({
+    id: PARCEL_SELECTED_LAYER_ID,
+    type: "line",
+    source: PARCEL_SOURCE_ID,
+    filter: ["==", ["get", "pin"], ""],
+    paint: { "line-color": "#F2C230", "line-width": 3 },
   });
 }
 
@@ -162,6 +179,7 @@ export function ParcelMap() {
   overlayStateRef.current = overlayState;
   const [zoom, setZoom] = useState(0);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  const [selectedPin, setSelectedPin] = useState<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -209,6 +227,13 @@ export function ParcelMap() {
     map.on("idle", updateLoading);
     registerTooltips(map, () => overlayStateRef.current);
 
+    map.on("click", PARCEL_HIT_LAYER_ID, (e) => {
+      const pin = e.features?.[0]?.properties?.pin;
+      if (typeof pin === "string") setSelectedPin(pin);
+    });
+    map.on("mouseenter", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = ""));
+
     return () => {
       map.remove();
       mapRef.current = null;
@@ -252,6 +277,18 @@ export function ParcelMap() {
     );
   }, [overlayState]);
 
+  // Highlight the selected parcel; re-applied after basemap swaps.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.getLayer(PARCEL_SELECTED_LAYER_ID)) return;
+    map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
+  }, [selectedPin, basemap]);
+
+  // The map canvas changes width when the panel opens or closes.
+  useEffect(() => {
+    mapRef.current?.resize();
+  }, [selectedPin === null]);
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
@@ -262,45 +299,48 @@ export function ParcelMap() {
   }, [showZoning, basemap]);
 
   return (
-    <div className="relative h-[640px] w-full overflow-hidden rounded-lg border">
-      <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
-        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
-      </div>
-      <div ref={containerRef} className="h-full w-full" />
-      <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
-        <button
-          type="button"
-          onClick={() => setBasemap("carto-dark")}
-          className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
-        >
-          Dark Matter
-        </button>
-        <button
-          type="button"
-          onClick={() => setBasemap("osm-inverted")}
-          className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
-        >
-          OSM (inverted)
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowZoning((v) => !v)}
-          className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-        >
-          Zoning
-        </button>
-      </div>
-      <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
-        <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-          Zoom in to see parcel boundaries
-        </p>
-        {showZoning && (
-          <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-            <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
-            Zoning excludes housing (Pittsburgh city only)
+    <div className="flex h-[640px] w-full overflow-hidden rounded-lg border">
+      <div className="relative h-full min-w-0 flex-1">
+        <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
+          <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
+        </div>
+        <div ref={containerRef} className="h-full w-full" />
+        <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
+          <button
+            type="button"
+            onClick={() => setBasemap("carto-dark")}
+            className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
+          >
+            Dark Matter
+          </button>
+          <button
+            type="button"
+            onClick={() => setBasemap("osm-inverted")}
+            className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
+          >
+            OSM (inverted)
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowZoning((v) => !v)}
+            className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
+          >
+            Zoning
+          </button>
+        </div>
+        <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
+          <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+            Zoom in to see parcel boundaries
           </p>
-        )}
+          {showZoning && (
+            <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+              <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
+              Zoning excludes housing (Pittsburgh city only)
+            </p>
+          )}
+        </div>
       </div>
+    {selectedPin && <PillarsPanel pin={selectedPin} onClose={() => setSelectedPin(null)} />}
     </div>
   );
 }
