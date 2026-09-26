@@ -137,7 +137,7 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
    - contamination layers
    - 1 m elevation
    - OneStopPGH permits and new-construction outcomes
-   - 5,786 city-owned vacant parcels, of which **3,260 are "Available for Sale"**. **Buildability is unassessed.** About half of the 3,260 are under 2,400 sf, roughly a third of the residential-district ones are below their district's minimum lot size, and 298 are in the Hillside district. Lot-of-record relief under Ch. 921 was not checked, so "below minimum" does not mean "unbuildable".
+   - 5,786 city-owned vacant parcels, of which **3,260 are "Available for Sale"**. **Buildability is unassessed.** About half of the 3,260 are under 2,400 sf, roughly a third of the residential-district ones are below their district's minimum lot size, and 298 are in the Hillside district. **Round 6, Ch. 921 read on eCode360:** a vacant lot below the minimum can hold **one house via an Administrator Exception the Zoning Administrator "shall approve"** if it is in separate ownership from abutting lots. Two or more units need a ZBA special exception. The code gives **no path when the same owner holds an abutting parcel**, which is common among public lots, so any analysis needs an owner-adjacency check → [sweep](../sweeps/r6-ch921-hillside-916.md).
 
    What needs more than an anonymous request:
    - the ACS API needs a key
@@ -249,7 +249,7 @@ The sources conflict on team size: the packet says 1–5, the landing page says 
 - Setbacks and height vary by combination. For example, RM-H allows 85 ft and 9 stories, and RM-VH allows 180 ft.
 - Party-wall construction sets the interior side yard to zero.
 - Contextual standards (§925.06–.07) and residential compatibility (Ch. 916) can modify these.
-- Nonconforming lots are governed by Ch. 921, which we have not read and which Bill 2026-0834 would amend. That matters directly for the many small city lots.
+- Nonconforming lots are governed by Ch. 921 (§921.04; read in round 6, and Bill 2026-0834 would amend it). An undersized vacant lot gets one house via an Administrator Exception if it is in separate ownership from abutting lots. Two or more units need a ZBA special exception. Same-owner abutting lots have no stated path.
 → [dimensional standards and use table](policy/dimensional-standards-and-use-table.md)
 
 **Uses.** Among residential districts:
