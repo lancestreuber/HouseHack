@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { phraseFor } from "@/lib/pillars/phrases";
+import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
 
 type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
@@ -20,6 +20,7 @@ const EVIDENCE_LABEL: Record<string, string> = {
   assumption: "Assumption",
   policy: "Policy",
   value: "Value judgment",
+  modeled: "Modeled estimate",
 };
 
 const INDICATORS = config.indicators as Indicator[];
@@ -199,7 +200,7 @@ function sourceLabel(ind: Indicator) {
   return `${files}${prop} (${src.kind})`;
 }
 
-function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; data: ParcelData }) {
+function PillarCard({ id, score, data, phrase }: { id: PillarId; score: PillarScore; data: ParcelData; phrase: string | null }) {
   const [open, setOpen] = useState(false);
   const pillar = config.pillars.find((p) => p.id === id) as (typeof config.pillars)[number] & {
     subscores?: { id: string; label: string; description: string }[];
@@ -218,7 +219,7 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
           </span>
         </div>
         <ScoreBar score={score.score} />
-        {phraseFor(id, score.score, data.norm) && <p className="text-foreground/90">{phraseFor(id, score.score, data.norm)}</p>}
+        {phrase && <p className="text-foreground/90">{phrase}</p>}
         {percentileRank(data.quantiles?.[id], score.score) != null && (
           <p className="text-muted-foreground">Better than {percentileRank(data.quantiles?.[id], score.score)}% of City parcels</p>
         )}
@@ -329,12 +330,14 @@ function WeightsControl({ weights, onChange }: { weights: Record<PillarId, numbe
               </label>
             );
           })}
+          <p className="text-muted-foreground">Presets are starting points; each is a different view of what matters.</p>
           <div className="flex flex-wrap gap-1 pt-1">
             {Object.entries(config.presets).map(([name, w]) => (
               <button
                 key={name}
                 type="button"
                 onClick={() => onChange({ ...DEFAULT_WEIGHTS, ...(w as Partial<Record<PillarId, number>>) })}
+                title={(config.preset_notes as Record<string, string>)[name]}
                 className="rounded border px-1.5 py-0.5 hover:bg-foreground/10"
               >
                 {name.replace(/_/g, " ")}
@@ -368,8 +371,7 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
     return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
   }, [result, overrides]);
   const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
-  const overallPhrase =
-    result?.availability && result.availability.multiplier < 1 ? result.availability.label : phraseFor("overall", rank);
+  const overallPhrase = result ? overallPhraseFor(result, rank) : null;
 
   return (
     <aside className="flex h-full w-[22rem] shrink-0 flex-col border-l bg-background text-xs">
@@ -403,7 +405,7 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
               {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
                 <p className="mt-1 text-amber-400/90">
                   Not enough data for {config.pillars.filter((p) => result.pillars[p.id as PillarId].score == null).map((p) => p.label).join(", ")};
-                  counted as a neutral 50.
+                  counted as a below-typical score (the City's 25th percentile for that pillar).
                 </p>
               )}
               {rank != null && (
@@ -443,7 +445,13 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
               </p>
             </section>
             {config.pillars.map((p) => (
-              <PillarCard key={p.id} id={p.id as PillarId} score={result.pillars[p.id as PillarId]} data={data} />
+              <PillarCard
+                key={p.id}
+                id={p.id as PillarId}
+                score={result.pillars[p.id as PillarId]}
+                data={data}
+                phrase={pillarPhrase(result, p.id as PillarId, data.norm)}
+              />
             ))}
             <p className="text-muted-foreground">
               All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Default weights and every rule are

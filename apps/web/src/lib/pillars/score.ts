@@ -97,12 +97,16 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
         sum += weight * value;
         used.push({ indicator: ind.id, sub: sub.id || null, value, weight });
       }
-      totalWeight += total;
-      availableWeight += available;
+      const subWeight = overrides.subscores?.[sub.id] ?? sub.weight;
+      // Sub-scores shown but not scored (weight 0) don't count toward coverage.
+      if (subWeight > 0) {
+        totalWeight += total;
+        availableWeight += available;
+      }
       const coverage = total > 0 ? available / total : 0;
       const minCoverage = (pillar as { min_coverage?: number }).min_coverage ?? cfg.missing.min_coverage;
       const score = available > 0 && coverage >= minCoverage ? sum / available : null;
-      return { id: sub.id, weight: overrides.subscores?.[sub.id] ?? sub.weight, score, coverage, used, available };
+      return { id: sub.id, weight: subWeight, score, coverage, used, available };
     });
 
     const scored = groups.filter((g) => g.score != null && g.weight > 0);
@@ -135,7 +139,8 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
   const overallBeforeMultipliers = overallScore(pillars, overrides, cfg);
   const legal = legalStatus(values, overrides, cfg);
   const availability = levelStatus(cfg.availability, values, overrides.legal);
-  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
+  const multiplier = (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
+  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * multiplier;
   return { pillars, overall, overallBeforeMultipliers, legal, availability };
 }
 
@@ -166,7 +171,9 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
     const weight = overrides.pillars?.[id] ?? pillar.weight;
     const score = pillars[id].score;
     if (weight <= 0) continue;
-    const impute = (cfg.overall as { missing_pillar?: { impute: number } }).missing_pillar?.impute;
+    // A missing pillar counts as that pillar's typical (City median) value if
+    // the config gives one, else the global neutral value.
+    const impute = (pillar as { impute?: number }).impute ?? (cfg.overall as { missing_pillar?: { impute: number } }).missing_pillar?.impute;
     if (score == null && impute == null) continue;
     const value = score ?? (impute as number);
     weightSum += weight;

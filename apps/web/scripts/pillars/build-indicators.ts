@@ -304,25 +304,50 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
     case "parcel_attr":
       return { raw: spine.map((p) => num(p.props[src.property as string])), units: null };
     case "parcel_use": {
-      // Categorical code for parcels that aren't development sites, from the
-      // assessor land-use description plus overlap with mapped parks.
-      const rules = src.rules as { code: number; usedesc?: string[]; usedesc_prefix?: string[]; overlap?: { file: string; min: number } }[];
+      // Categorical site-availability code from the County assessor land use,
+      // class, owner, the City vacancy flag, zoning and overlap with mapped
+      // parks. Rules are tried in order; the first whose conditions all hold wins.
+      type Match = {
+        usedesc?: string[];
+        usedesc_prefix?: string[];
+        classdesc?: string[];
+        owner?: string[];
+        zoning?: string[];
+        zoning_prefix?: string[];
+        vacant?: string;
+        not_classdesc?: string[];
+      };
+      const rules = src.rules as { code: number; match?: Match; overlap?: { file: string; min: number } }[];
       const overlapLookups = new Map<string, (x: number, y: number) => true | undefined>();
       for (const r of rules)
         if (r.overlap && !overlapLookups.has(r.overlap.file))
           overlapLookups.set(r.overlap.file, polygonLookup((await features(r.overlap.file)).map((f) => ({ value: true as const, geometry: f.geometry }))));
+      const holds = (m: Match, p: (typeof spine)[number]) => {
+        const use = String(p.props.usedesc ?? "");
+        const cls = String(p.props.classdesc ?? "");
+        return (
+          (!m.usedesc || m.usedesc.includes(use)) &&
+          (!m.usedesc_prefix || m.usedesc_prefix.some((pre) => use.startsWith(pre))) &&
+          (!m.classdesc || m.classdesc.includes(cls)) &&
+          (!m.not_classdesc || !m.not_classdesc.includes(cls)) &&
+          (!m.owner || m.owner.includes(String(p.props.OwnerCateg ?? ""))) &&
+          (!m.zoning || m.zoning.includes(p.zoning)) &&
+          (!m.zoning_prefix || m.zoning_prefix.some((pre) => p.zoning.startsWith(pre))) &&
+          (m.vacant == null || String(p.props.Vacant ?? "") === m.vacant)
+        );
+      };
       return {
         raw: spine.map((p) => {
-          const use = String(p.props.usedesc ?? "");
           for (const r of rules) {
-            if (r.usedesc?.includes(use) || r.usedesc_prefix?.some((pre) => use.startsWith(pre))) return r.code;
+            if (r.match && !holds(r.match, p)) continue;
             if (r.overlap) {
               const lookup = overlapLookups.get(r.overlap.file)!;
               const pts = samplePoints(p.polys, [p.x, p.y], 4);
-              if (pts.filter(([x, y]) => lookup(x, y)).length / pts.length >= r.overlap.min) return r.code;
+              if (pts.filter(([x, y]) => lookup(x, y)).length / pts.length < r.overlap.min) continue;
             }
+            return r.code;
           }
-          return 0;
+          return null;
         }),
         units: null,
       };
@@ -373,13 +398,34 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
   }
 }
 
+// Blanks an indicator for parcels whose tract/bg row in another table exceeds a
+// threshold, e.g. income-based need measures in tracts that are mostly students.
+type Mask = { file: string; key: string; join: "tract" | "bg" | "zip" | "pin"; property: string; above: number };
+const maskCache = new Map<string, Map<string, number | null>>();
+async function applyMask(raw: (number | null)[], mask: Mask) {
+  let rows = maskCache.get(mask.file);
+  if (!rows) {
+    rows = new Map(parseCSV(await Bun.file(`${ROOT}${mask.file}`).text()).map((r) => [r[mask.key], num(r[mask.property])]));
+    maskCache.set(mask.file, rows);
+  }
+  const lookup = rows;
+  return raw.map((v, i) => {
+    const key = spine[i][mask.join];
+    const m = key ? lookup.get(key as string) : null;
+    return m != null && m > mask.above ? null : v;
+  });
+}
+
 const columns: Record<string, string> = {};
 const rawColumns: (number | null)[][] = [];
 const normColumns: Uint8Array[] = [];
 const summary: Record<string, unknown>[] = [];
 for (const ind of config.indicators) {
   console.time(ind.id);
-  const { raw, units } = await computeRaw(ind);
+  const computed = await computeRaw(ind);
+  const mask = (ind.source as Source).mask as Mask | undefined;
+  const raw = mask ? await applyMask(computed.raw, mask) : computed.raw;
+  const units = computed.units;
   const norm = normalize(raw, units, ind.normalize as Normalize);
   columns[ind.id] = Buffer.from(norm).toString("base64");
   rawColumns.push(raw);
