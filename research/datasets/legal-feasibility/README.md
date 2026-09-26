@@ -48,6 +48,7 @@ These are raw, coded facts. There are no composite scores and no weights; scorin
 | `senior-and-group-housing.*` | 124 existing senior, assisted-living, personal-care, nursing and HUD/LIHTC/HACP senior sites (~101 distinct) with district pathways | L2 |
 | `permits-new-residential.*`, `permits-by-typology-district.csv` | 1,088 new-residential permits, 2019–2026, by typology × district/neighborhood, with days to issue | L3 |
 | `council-land-use-actions.*`, `planning-commission-actions-parsed.csv` | 284 Council rezonings, conditional uses and SP/PUD actions (Legistar, 2000–2026; 183 geocoded) and 223 Planning Commission motions (2020–2025) | L4 |
+| `care-facility-spacing-800ft.geojson` | 24 circles of 800 ft around known licensed personal care, assisted living and nursing facilities. New Assisted Living (§911.04.A.66) and Personal Care Residences (§911.04.A.95A/B) must be at least 800 ft from such facilities, a parcel-level gate that the district matrix cannot show. **Partial**: unlicensed group residences and group homes are not included. Built by `scripts/build_spacing_buffers.py` | L6 |
 | `zba-decisions.*` | ZBA decisions over multiple years with outcomes by district × typology × relief type (in progress) | L5 |
 
 Each dataset's `.md` has its method, exact queries, live counts, field dictionary and caveats.
