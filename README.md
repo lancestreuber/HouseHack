@@ -15,60 +15,22 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 
 ## Our project
 
-> **Team: start here.** This branch (`vid-branch`) holds the plan and research for our entry. No app code has been written yet. It's the groundwork, so the build goes fast once we split up.
-> Shared plan doc (comment there): https://claude.ai/code/artifact/fdc6bb41-5dda-4a0a-a185-f8062534171a
+> **Team: start here.** This branch (`vid-branch`) holds the plan and research. The app's starting point (map, parcels in PostGIS, zoning layer) is on the `zoning-parcels` branch, which gets merged into `main` first. See [PLAN.md](PLAN.md) §0.
 
 ### What we're building
-**Track 3 only: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. About 60% of teams are on Track 1, so we stand out here. Enter any address, ZIP or neighborhood. For any of the city's ~142k parcels you get:
-- the **housing types that fit** (ADU, duplex, triplex, townhomes, small multifamily, mid-rise), each with a fit score and a confidence range;
-- the **tradeoffs** of each type across demand, access (jobs, schools, transit, healthcare, parks, shops), equity and displacement risk, and climate (heat, flood, air quality, carbon), weighted by sliders the user controls. Every number is labeled as evidence, assumption or value choice;
-- a **household lens**: pick who will live there (family with kids, senior, young worker without a car, and so on) and optionally a workplace. The map re-weights for that household, including commute time to job centers in the suburbs;
-- a **reality check**: zoning permission, hazards, and the funding gap per unit, plus which subsidies could close it;
-- a **policy simulation** that applies Pittsburgh's pending 2026 zoning reform (ADUs by right, no parking minimums, affordable-housing bonus) and shows what changes;
-- an **AI companion** (Claude), a conversational guide beside the map. It answers questions like "why is this better for my mom?" by calling our data tools live, cites every fact, says who benefits and who could be harmed, and explains terms as you go.
+**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. Sliders reweight Demand, Site and Access. You can show city-owned lots, compare up to 3 parcels, and print a one-page brief. There's no LLM: a transparent, rule-based engine suggests, and people decide.
 
-**The experience:**
-1. Pick an area and, optionally, who you're planning for.
-2. The dashboard shows **scenario cards**, each one "this housing type, here, for this household", with fit, confidence, top tradeoffs, and who benefits and who might be harmed.
-3. Ask the companion to explain, compare or find alternatives.
+### Read these, in order
+1. **[PLAN.md](PLAN.md)**: lanes, contracts, tasks, milestones and the cut order. This is the source of truth for the 30-hour build.
+2. **[Design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md)**: typologies, factors (from the whiteboard), engine, and what's cut.
+3. **[docs/research/](docs/research/)**: background reference only. It covers more than we will build.
 
-**The engine underneath:** fit = benefits − (place exposure × household sensitivity × (1 − what the housing type mitigates)). For example, poor air matters most for seniors, and a filtered, elevator building reduces that harm. See [track3-methodology.md](docs/research/track3-methodology.md).
+### Get set up
+- Install bun: `curl -fsSL https://bun.sh/install | bash`.
+- Create `apps/web/.env` **before** running `bun install`. `DATABASE_URL` points at the shared Neon DB with PostGIS; ask the lead for it.
+- Run `bun run dev` and open http://localhost:3001.
+- **Git:** branch off `main` per lane, open PRs, and merge with merge commits, not squash. Never commit `.env` or API keys; the repo is public.
 
-The goal is a real tool a CDC, planner, small developer or resident could use on Monday. It's not just a demo. **The map and UI are the product**, so aim for Felt/Linear-level polish.
-
-### What's done
-| | |
-|---|---|
-| Design spec | [docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md). Read "Updates after research" first. |
-| Research | [docs/research/](docs/research/): UI/map, data sources, zoning rules, stack setup, pro forma. Every figure comes from live public sources, checked Sep 26. |
-| Draft issues | [docs/issues-draft.md](docs/issues-draft.md): 36 issues across 4 lanes and 4 milestones. They aren't on GitHub yet; we'll create them after your feedback. |
-| Doc index | [docs/README.md](docs/README.md) lists which doc to read for your lane. |
-
-### What we need from you
-1. **Read the plan doc** and leave comments: what's missing, what's too much, what you'd change.
-2. **Pick a lane** in Discord. There are 5 people and 5 lanes, and each lane owns its own folders so we don't collide. The full plan is in [docs/issues-draft.md](docs/issues-draft.md).
-   - **D1: Data, Land & Hazards.** GeoJSON for parcels, zoning, hazards, lead lines, infrastructure, air, flood/heat and satellite data.
-   - **D2: Data, People & Place.** GeoJSON for permits (the "people want to live here" signal), access (jobs, schools, groceries, parks, health), demand and equity (market, displacement, evictions, ACS), redlining, and household and commute data.
-   - **E: Suggestion engine + integration.** The transparent scoring algorithm, which ranks housing-type suggestions with confidence ranges, tradeoff cards and red flags. People decide; we suggest. Also the scenario API, the Claude companion (tool use, not training), policy levers, merging the lanes and deploying.
-   - **F1: Frontend, Map.** MapLibre map, layers, pick-a-place search, live recolor, companion → map actions, mobile.
-   - **F2: Frontend, Experience.** Household picker, scenario cards, companion chat, site report, policy simulation UI, landing and methodology pages, video.
-
-   **Contracts come first.** In the first hour we agree on the GeoJSON layout plus `manifest.json`, the engine types, and the suggestion output schema, so all five lanes can build against mock data.
-3. **Vote on a name**: Groundwork PGH (working name), Buildable Burgh, LotLogic, SiteLine PGH or Yinz Can Build.
-4. **Get set up** by following [stack-setup.md §1](docs/research/stack-setup.md). In short:
-   - Install bun: `curl -fsSL https://bun.sh/install | bash`.
-   - Create `apps/web/.env` **before** running `bun install`. No database is needed.
-   - Run `bun run dev` and open http://localhost:3001.
-5. **Git:** branch off `main` per lane, open PRs, and merge with merge commits, not squash, because judges check commit history. Never commit `.env` or API keys; the repo is public.
-
-### Timeline (ET)
-| When | Milestone |
-|---|---|
-| Sat 3pm | Setup done: env, contracts (GeoJSON manifest, engine types, suggestion schema), mock data |
-| Sat 8pm | Checkpoint: end-to-end on real data, deployed to Vercel |
-| Sun 2pm | Feature freeze, then bug bash and polish |
-| Sun 5–8pm | Record the 3–5 min demo video |
-| Sun 9pm | Submit (hard deadline 11:59pm) |
 
 ## Tech Stack
 
