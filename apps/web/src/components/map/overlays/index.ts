@@ -16,6 +16,7 @@ import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } fr
 import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
 import { councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
 import { cityHazardOverlaysOverlay, citySteepSlopesOverlay, landslidePublicAssistanceOverlay } from "./city-hazards";
+import { vacantBuildingsOverlay, vacantLotsOverlay } from "./vacancy";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
 import { cityOwnedLandOverlay, taxDelinquentOverlay, treasurySalesOverlay } from "./land";
@@ -94,6 +95,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   cityOwnedLandOverlay,
   treasurySalesOverlay,
   taxDelinquentOverlay,
+  vacantBuildingsOverlay,
+  vacantLotsOverlay,
   seniorHousingOverlay,
   permitsByTypeOverlay,
   councilActionsOverlay,
