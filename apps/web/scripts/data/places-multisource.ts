@@ -38,21 +38,34 @@ export async function buildPlacesMultisource() {
     return features;
   }
 
-  const food = await read("allegheny_food_retail_merged.csv");
+  // Two guards on the merged extract:
+  // - SNAP status comes from the USDA store type. The merge can relabel two
+  //   county permits merged together as "USDA_SNAP+ACHD" without a SNAP match.
+  // - Dollar stores, gas stations, pharmacies and beer distributors never count
+  //   as grocery stores, whatever their permit category says.
+  const NOT_GROCERY =
+    /dollar ?tree|dollar general|family dollar|get ?go|sheetz|sunoco|\bbp\b|7-?eleven|speedway|circle k|\bcvs\b|walgreens|uni-?mart|\bbeer\b|beverage|distributor/i;
+  // The county permit list includes test accounts, e.g. "(TEST) Nicole's Bake Shop".
+  const TEST_RECORD = /\(test\b|test client/i;
+  const food = (await read("allegheny_food_retail_merged.csv")).filter((r) => !TEST_RECORD.test(r.name)).map((r) =>
+    (r.tier === "full_grocery" || r.tier === "specialty_food") && NOT_GROCERY.test(r.name) ? { ...r, tier: "other_food_retail" } : r,
+  );
   const foodProps = (r: Row) => ({
     name: r.name,
     address: r.address || null,
     tier: r.tier,
-    snap: r.snap_authorized === "True",
+    snap: Boolean(r.snap_store_type),
     snap_type: r.snap_store_type || null,
     permit_category: r.achd_category || null,
+    last_inspected: r.achd_last_inspection || null,
   });
   const FOOD_SOURCE = "USDA FNS SNAP retailers + ACHD food permits (inputs/places/allegheny_food_retail_merged.csv)";
   // The pillars read places-groceries for grocery distance, so it keeps the
-  // grocery tiers only; everything else goes to places-food-other.
+  // grocery tiers only; everything else goes to places-food-other, except
+  // farmers markets, which come from the cleaner WPRDC list (services.ts).
   const groceryTiers = new Set(["full_grocery", "specialty_food"]);
   await write("places-groceries.geojson", food.filter((r) => groceryTiers.has(r.tier)), "lon", "lat", foodProps, FOOD_SOURCE);
-  await write("places-food-other.geojson", food.filter((r) => !groceryTiers.has(r.tier)), "lon", "lat", foodProps, FOOD_SOURCE);
+  await write("places-food-other.geojson", food.filter((r) => !groceryTiers.has(r.tier) && r.tier !== "farmers_market"), "lon", "lat", foodProps, FOOD_SOURCE);
 
   await write(
     "places-pharmacies.geojson",

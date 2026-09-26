@@ -1,0 +1,253 @@
+name,station,address,municipality,lat,lon,sources
+Forest Grove VFD,243,"2044 Ewing Mill Road Coraopolis, PA 15108",Robinson,40.48419599877078,-80.13856598182575,ConnectGovs
+Aleppo TWP VFD,101,"131 Weber Rd, Sewickley, PA 15143",Aleppo,40.53724799768109,-80.1566409692845,ConnectGovs+OSM
+Groveton VFD,244,"4596 Hayes Avenue Coraopolis, PA 15108",Robinson,40.50797998494959,-80.1415790247135,ConnectGovs
+Moon Run VFD,245,"5624 Steubenville Pike Pittsburgh, PA 15244",Robinson,40.45181201327936,-80.13099200988256,ConnectGovs+OSM
+Aspinwall VFD,102,"217 Commercial Avenue Aspinwall, PA 15212",Aspinwall,40.49040200239339,-79.90435398162522,ConnectGovs+OSM
+Evergreen VFD,246,"2127 Babcock Blvd Pittsburgh, PA 15209",Ross,40.509568983623026,-79.99183800109567,ConnectGovs+OSM
+Berkeley Hills VFD,247,"235 Seibert Road Pittsburgh, PA 15237",Ross,40.52964401910133,-80.00693003653375,ConnectGovs+OSM
+Avalon VFD,103,"629 New Brighton Road Avalon, PA 15202",Avalon,40.50332400472424,-80.06584299735728,ConnectGovs+OSM
+Perrysville VFD,248,"985 Perry Hwy Perrysville, PA 15237",Ross,40.53834799689229,-80.03687103317546,ConnectGovs+OSM
+South Baldwin VFD,104,"5311 McNulty Road Pittsburgh, PA 15236",Baldwin,40.34107723113329,-79.99800169619624,ConnectGovs+OSM
+Quaill VFD,249,"50 Gass Road Pittsburgh, PA 15229",Ross,40.52130301994108,-80.04824996952321,ConnectGovs+OSM
+Baldwin #1 VFD,105,"3049 Churchview Avenue Pittsburgh, PA 15227",Baldwin,40.386110004398155,-79.96762796311585,ConnectGovs+OSM
+Fairview VFD,250,"44 East Forest Avenue Pittsburgh, PA 15202",Ross,40.497209993545056,-80.04718898820576,ConnectGovs
+Option Independent,107,"825 Streets Run Road Pittsburgh, PA 15236",Baldwin,40.348130008698234,-79.97186996060105,ConnectGovs+OSM
+Seville VFD,251,"124 Enger Avenue Pittsburgh, PA 15214",Ross,40.49582500990204,-80.04038003233829,ConnectGovs+OSM
+Big Sewickley Creek VFD,307,"1850 Big Sewickley Creek Rd Sewickley, PA 15143",Belle Acres,40.60502498932543,-80.16767599640548,ConnectGovs+OSM
+Keating VFD,252,"39 West View Avenue Pittsburgh, PA 15229",Ross,40.50101701200925,-80.02098397343958,ConnectGovs
+Bellevue VFD,108,"537 Bayne Ave, Pittsburgh, PA 15202",Bellevue,40.496806991358106,-80.05631101340335,ConnectGovs+OSM
+Laural Gardens VFD,253,"160 6th Avenue Pittsburgh, PA 15229",Ross,40.525961011006764,-80.0218919851389,ConnectGovs+OSM
+Ben Avon VFD,109,"7219 Church Avenue Ben Avon, PA 15202",Ben Avon,40.50880199797436,-80.08484703505925,ConnectGovs+OSM
+Ross Twp. Fire Police,254,"235 Cemetery Lane Pittsburgh, PA 15237",Ross,40.50970099870554,-80.01704900484714,ConnectGovs
+Bethel Park VFD,110,"5213 Brightwood Road Bethel Park, PA 15102",Bethel Park,40.32921900976458,-80.02992696170611,ConnectGovs+OSM
+Bower Hill VFD,255,"161 Vanadium Road Bridgeville, PA 15017",Scott,40.374628012172266,-80.09263700781084,ConnectGovs+OSM
+Blawnox VFD,111,"376 Freeport Road Blawnox, PA 15238",Blawnox,40.49411598178606,-79.85997901310175,ConnectGovs+OSM
+East Carnegie VFD,256,"305 Duncan Way Carnegie, PA 15106",Scott,40.414259997126386,-80.07609800474066,ConnectGovs+OSM
+Pioneer Hose Company,112,"124 Morgan Street Brackenridge, PA 15014",Brackenridge,40.604170998992856,-79.73890200220316,ConnectGovs+OSM
+Glendale VFD,257,"541 Carothers Avenue Carnegie, PA 15106",Scott,40.398256010417214,-80.08796703046639,ConnectGovs+OSM
+Rivers Edge Volunteer Fire Department,113,"1100 Braddock Avenue Braddock, PA 15104",Braddock & Rankin,40.39804901956643,-79.86199402231894,ConnectGovs+OSM
+Cochran Hose VFD,258,"601 Thorn Street Sewickley, PA 15143",Sewickley,40.53817101310263,-80.17973797396603,ConnectGovs+OSM
+Bradford Woods VFD,115,"4908 Wexford Run Road Bradford Woods, PA 15015",Bradford Woods,40.63811699432154,-80.08272901153687,ConnectGovs+OSM
+Aleppo Twp VFD,101,"131 Weber Rd, Sewickley, PA 15143",Sewickley Heights,40.53724799768109,-80.1566409692845,ConnectGovs
+Brentwood VFD,116,"2624 Brownsville Road Brentwood, PA 15227",Brentwood,40.384827991793685,-79.97844899985807,ConnectGovs
+Bauerstown VFD,259,"15 Wible Run Road Bauerstown, PA 15909",Shaler,40.498957997448215,-79.97746203073689,ConnectGovs+OSM
+Bridgeville VFD,117,"370 Commercial Drive Bridgeville, PA 15017",Bridgeville,40.36200298012583,-80.10696897329711,ConnectGovs+OSM
+Cherry City VFD,260,"309 Davis Avenue Pittsburgh, PA 15209",Shaler,40.49464701705504,-79.95908403793956,ConnectGovs+OSM
+Carnegie VFD,118,"201 W. Main St. Carnegie, PA 15106",Carnegie,40.40496501187773,-80.0903479944657,ConnectGovs+OSM
+Elfinwild VFD,261,"2817 Mt. Royal Blvd Glenshaw, PA 15116",Shaler,40.542732036426614,-79.97239451025166,ConnectGovs+OSM
+Castle Shannon VFD,119,"3600 Library Road Castle Shannon, PA 15234",Castle Shannon,40.36564600664308,-80.01739500984343,ConnectGovs+OSM
+Shaler Villa VFD,262,"960 Saxonburg Blvd, Pittsburgh, PA 15223",Shaler,40.51516298225205,-79.94448502577718,ConnectGovs+OSM
+Chalfant VFD,120,"144 Lynnwood Ave, East Pittsburgh, PA 15112",Chalfant,40.408589011283695,-79.83871303458234,ConnectGovs+OSM
+Sharps Hill VFD,263,"503 Berner Street Pittsburgh, PA 15215",Shaler,40.50234001141685,-79.93857603539902,ConnectGovs
+Cheswick VFD,121,"1411 Spruce Street Cheswick, PA 15024",Cheswick,40.542820999867345,-79.79997699142159,ConnectGovs+OSM
+Undercliff VFD,264,"700 Mt Royal Blvd Pittsburgh, PA 15223",Shaler,40.51391500096295,-79.95871297084516,ConnectGovs
+Churchill VFD,122,"2298 William Penn Hwy, Pittsburgh, PA 15235",Churchill,40.44550400271868,-79.84998996363632,ConnectGovs+OSM
+Sharpsburg VFD,265,"1611 Main St, Pittsburgh, PA 15215",Sharpsburg,40.494488012211086,-79.92478503807176,ConnectGovs+OSM
+Clairton VFD,123,"551 Ravensburg Blvd Clairton, PA 15025",Clairton,40.296223019132675,-79.89469098826856,ConnectGovs+OSM
+Kirwin Heights VFD,124,"1200 Washington Pike Collier Twp, PA 15017",Collier,40.37056999753259,-80.10022497730279,ConnectGovs+OSM
+Presto VFD,125,"837 Thoms Run Road Presto, PA 15142",Collier,40.372491145907006,-80.12018444786959,ConnectGovs+OSM
+Rennerdale VFD,126,"30 Suburban Avenue Carnegie, PA 15106",Collier,40.39768998079139,-80.1426280198101,ConnectGovs+OSM
+Coraopolis VFD,127,"1012 Fifth Avenue Coraopolis, PA 15108",Coraopolis,40.517062991919424,-80.16398502551557,ConnectGovs
+Crafton VFD,128,"100 Stotz Avenue Pittsburgh, PA 15205",Crafton,40.43484100594718,-80.06655797367841,ConnectGovs+OSM
+Crescent VFD,129,"79 McGovern Blvd, Glenwillard, PA 15046",Crescent,40.556055983193446,-80.22108699170947,ConnectGovs+OSM
+Dormont VFD,130,"1455 Hillsdale Avenue Pittsburgh, PA",Dormont,40.39444899207684,-80.0380539706742,ConnectGovs+OSM
+Dravosburg #1,131,"598 Ravine St, Dravosburg, PA 15034",Dravosburg,40.352096995369905,-79.89196896539691,ConnectGovs
+Duquesne VFD,133,"12 South 2nd Street Duquesne, PA 15110",Duquesne,40.37256199914577,-79.84705202260128,ConnectGovs+OSM
+East Deer VFD,134,"927 Freeport Rd, Creighton, PA 15030",East Deer,40.58334000000397,-79.77833600669527,ConnectGovs+OSM
+United Vol. Fire & Rescue,135,"611 Broadway Ave, East McKeesport, PA 15035",East McKeesport,40.38766199727237,-79.8046850222998,ConnectGovs+OSM
+River's Edge VFD,136,"1100 Braddock Ave Braddock, PA 15104",East Pittsburgh,40.39804901956643,-79.86199402231894,ConnectGovs
+Edgewood VFD,137,"2 Race Street Edgewood, PA 15218",Edgewood ,40.43425397963168,-79.88444201666559,ConnectGovs
+Cochran Hose Co VFD,258,"601 Thorn Street Sewickley, PA 15143",Edgeworth,40.53817101310263,-80.17973797396603,ConnectGovs
+Elizabeth VFD,139,"107 Market Street Elizabeth, PA 15037",Elizabeth Borough,40.27313100189677,-79.88764197560772,ConnectGovs
+Blaine Hill VFD Co 2,140,"409 Oxford Avenue Elizabeth, PA 15037",Elizabeth Township,40.273140012705525,-79.87505403355001,ConnectGovs+OSM
+Elizabeth Township Fd #1 Co 3,140,"1799 Blythedale Road Buena Vista, PA 15018",Elizabeth Township,40.248111985143225,-79.80262801953803,ConnectGovs
+Greenock VFD Co 4,140,"1002 Greenock Buena Vista Rd, Greenock, PA 15047",Elizabeth Township,40.31101699488312,-79.80020598456395,ConnectGovs+OSM
+Central VFD Co 7,140,"425 Scenery Drive Elizabeth, PA 15037",Elizabeth Township,40.27601701680598,-79.83746002399987,ConnectGovs+OSM
+Buena Vista VFD,145,"3333 Fire Station Street Buena Vista, PA 15018",Elizabeth Township,40.27579401613487,-79.7995599916701,ConnectGovs+OSM
+Emsworth VFD,148,"171 Center Avenue Pittsburgh, PA 15202",Emsworth ,40.513056987376466,-80.09559003605105,ConnectGovs
+Etna VFD,149,"437 Butler Street Etna, PA 15223",Etna,40.49968701355215,-79.94406199114358,ConnectGovs+OSM
+Fawn #1,150,"497 Lardintown Road Tarentum, PA 15084",Fawn,40.650573005411765,-79.79177697547206,ConnectGovs
+Fawn #2 VFD,151,"182 Fawn Drive Natrona Heights, PA 15065",Fawn,40.66135799976389,-79.7425059694612,ConnectGovs+OSM
+Imperial VFD,152,"115 Main Street Imperial, PA 15126	",Findlay,40.451913015471156,-80.25132898236185,ConnectGovs
+Forest Hills VFD,153,"2067 Ardmore Blvd Pittsburgh, PA 15221",Forest Hills,40.420735017760094,-79.8499459587638,ConnectGovs
+Gallatin-Sunnyside VFD,154,"3325 Rainbow Run Rd, Monongahela, PA 15063",Forward,40.19842100338565,-79.88414202786971,ConnectGovs+OSM
+Forward TWP VFD,155,"9019 Roberts Hollow Rd, Elizabeth, PA 15037",Forward,40.229556001734394,-79.87998200614574,ConnectGovs
+Bunola,156,"366 Bunola River Rd, Bunola, PA 15020",Forward,40.23743499048464,-79.95162397596764,ConnectGovs+OSM
+Fox Chapel VFD,157,"401 Fox Chapel Road Pittsburgh, PA 15238",Fox Chapel,40.51490901039207,-79.87983699919427,ConnectGovs
+Franklin Park VFD,158,"2360 Rochester Road Sewickley, PA 15143",Franklin Park,40.58176600399241,-80.08402803921807,ConnectGovs
+Frazer #1 VFD,159,"2020 Bakerstown Rd, Tarentum, PA 15084",Frazer,40.63023699947125,-79.80162898065268,ConnectGovs
+Frazer #2 VFD,160,"111 Frazer Number 2 Ln, Tarentum, PA 15084",Frazer,40.580467982204816,-79.79210202546771,ConnectGovs
+Citizens Vol Hose #1 VFD,161,"525 Allegheny Avenue Glassport, PA 15045",Glassport,40.32668901591929,-79.89321703075376,ConnectGovs+OSM
+Cochran Hose VFD,258,"601 Thorn Street Sewickley, PA 15143",Glen Osborne,40.53817101310263,-80.17973797396603,ConnectGovs
+Greentree VFD,163,"825 Poplar Street Greentree, PA 15220",Greentree,40.41867399112388,-80.05006498680868,ConnectGovs
+Hampton Township VFD #1,164,"2536 Duncan Avenue Allison Park, PA 15101",Hampton,40.559674995511664,-79.96396599343653,ConnectGovs+OSM
+North Hampton VFD,165,"5149 N Pioneer Rd, Gibsonia, PA 15044",Hampton,40.61266199250208,-79.9492840002981,ConnectGovs
+Harmar VFD,166,"1000 Freeport Road Cheswick, PA 15024",Harmar,40.54088201366879,-79.81482201261443,ConnectGovs
+Citizen Hose #2 VFD,167,"965 Burtner Road Natrona Heights, PA 15065",Harrison,40.628873012533546,-79.71678601530407,ConnectGovs+OSM
+Hilltop VFD,168,"1437 Cambridge St, Natrona Heights, PA 15065",Harrison,40.62148901661048,-79.73298102560419,ConnectGovs
+Harrison Hills VFD,169,"5300 Freeport Rd, Natrona Heights, PA 15065",Harrison,40.656077987646285,-79.70715302927117,ConnectGovs+OSM
+Heidlberg VFD,170,"456 First Street Heidelberg, PA 15106",Heidlberg,40.39394599388562,-80.08962698326246,ConnectGovs
+South Fayette VFD,266,"661 Millers Run Rd, Cuddy, PA 15031",South Fayette,40.34752600842068,-80.16239296649033,ConnectGovs+OSM
+Sturgeon VFD,267,"526 Main St, Sturgeon, PA 15082",South Fayette,40.382026005853,-80.21147202677949,ConnectGovs+OSM
+Fairview VFD,268,"3326 Washington Pike Bridgeville, PA 15017",South Fayette,40.34111402004827,-80.12499400454459,ConnectGovs+OSM
+Oak Ridge VFD,269,"1214 Oak Ridge Road McDonald, PA 15057",South Fayette,40.375761999600634,-80.15901899938608,ConnectGovs+OSM
+Broughton VFD,270,"1030 Cochrans Mill Road Pittsburgh, PA 15236",South Park,40.321529996538075,-79.98344302198338,ConnectGovs+OSM
+Library VFD,271,"6581 Library Road Library, PA 15129",South Park,40.286012017086236,-80.0222669913458,ConnectGovs+OSM
+Coulter Vol Fire & Rescue,272,"Railroad St, Coulter, PA 15131",South Versailles,40.29911500847923,-79.80526066183555,ConnectGovs+OSM
+Springdale Boro VFD,273,"845 Lincoln Avenue Springdale, PA 15144",Springdale Boro,40.54083000459846,-79.7783640026911,ConnectGovs
+Springdale Twp VFD,274,"845 Lincoln Ave, Springdale, PA 15144",Springdale Twp,40.54083000459846,-79.7783640026911,ConnectGovs
+Stowe Twp VFD,275,"548 Broadway Avenue McKees Rocks, PA 15136",Stowe,40.470839017249624,-80.07085503968717,ConnectGovs+OSM
+Swissvale Fire Dept,278,"7400 Irvine Street Swissvale, PA 15218",Swissvale,40.420642020179166,-79.88933796971132,ConnectGovs
+Swissvale #2 VFD,279,"7419 Washington Street Swissvale, PA 15218",Swissvale,40.420463988572095,-79.8887020352537,ConnectGovs
+Highland Hose VFD,280,"401 East 8th Avenue Tarentum, PA 15084	",Tarentum,40.6045719888037,-79.75317101914425,ConnectGovs+OSM
+Eureka Hose VFD,281,"304 Third Avenue Tarentum, PA 15084",Tarentum,40.60087401905947,-79.75373302584724,ConnectGovs+OSM
+Summit Hose VFD,282,"321 West 7th Avenue Tarentum, PA 15084",Tarentum,40.598776992404176,-79.76314598661926,ConnectGovs+OSM
+Crafton VFD,128,"100 Stotz Avenue Pittsburgh, PA 15205",Thornburg,40.43484100594718,-80.06655797367841,ConnectGovs
+Trafford VFD #1,311,"412 Brinton Ave, Trafford, PA 15085",Trafford,40.385273992938764,-79.76077499751287,ConnectGovs
+Turtle Creek VFD,283,"125 Monroeville Ave, Turtle Creek, PA 15145",Turtle Creek,40.40552701834642,-79.82463101813734,ConnectGovs
+Upper St. Clair VFD,284,"2001 Washington Rd, Pittsburgh, PA 15241",Upper St. Clair,40.34073000317837,-80.06281796824871,ConnectGovs+OSM
+Verona VFD,285,"465 Parker Street Verona, PA 15147",Verona,40.50800098114269,-79.8397300110273,ConnectGovs
+Versailles VFD,286,"4919 Third Street McKeesport, PA 15132",Versalles,40.31581701724978,-79.83266599470457,ConnectGovs+OSM
+United Vol. Fire & Rescue,287,"611 Broadway Ave, East McKeesport, PA 15035",Wall,40.38766199727237,-79.8046850222998,ConnectGovs
+West Deer #1 VFD,288,"1520 Saxonburg Blvd Tarentum, PA 15084",West Deer,40.653747986056075,-79.84051497688885,ConnectGovs+OSM
+West Deer #2 VFD,289,"2163 Saxonburg Blvd, Cheswick, PA 15024",West Deer,40.62105001425879,-79.86630399711831,ConnectGovs+OSM
+West Deer #3 VFD,290,"4418 Gibsonia Rd, Gibsonia, PA 15044",West Deer,40.61743900643815,-79.90577798292875,ConnectGovs
+West Elizabeth VFD,291,"520 5th St, West Elizabeth, PA 15088",West Elizabeth,40.27371601658549,-79.89575096437122,ConnectGovs
+West Homestead VFD,292,"447 West 8th Avenue West Homestead, PA 15120",West Homestead,40.40191299285379,-79.9178100376072,ConnectGovs
+Homeville #1 VFD,293,"3900 Greensprings Ave, West Mifflin, PA 15122",West Mifflin,40.390277989332944,-79.88266002414488,ConnectGovs+OSM
+Duquesne Annex VFD,294,"1620 Pennsylvania Avenue West Mifflin, PA 15122",West Mifflin,40.36234299225403,-79.85847999348881,ConnectGovs+OSM
+West Mifflin #3 VFD,295,"3722 Rodeo Drive West Mifflin, PA 15122",West Mifflin,40.35337699580313,-79.9149979927643,ConnectGovs+OSM
+West Mifflin #4 VFD,296,"660 Noble Road West Mifflin, PA 15122",West Mifflin,40.36081098943394,-79.92958200126478,ConnectGovs
+West View VFD,297,"340 Ridgewood Ave, West View, PA 15229",West View,40.516444994651785,-80.02780399295808,ConnectGovs+OSM
+Whitaker VFD,298,"239 Church St, Homestead, PA 15120",Whitaker,40.398795008692026,-79.88647898609818,ConnectGovs
+White Oak# 1 VFD,299,"1130 California Avenue White Oak, PA 15131",White Oak,40.35457699108645,-79.820966031017,ConnectGovs
+Rainbow VFD,300,"2916 Jacks Run Road White Oak, PA 15131	",White Oak,40.34104398963022,-79.8015699721183,ConnectGovs
+Whitehall VFD,301,"601 Weyman Road Pittsburgh, PA 15236",Whitehall,40.35898298050204,-80.00008897847128,ConnectGovs+OSM
+Wilkins #1 VFD,302,"835 Railroad St, Turtle Creek, PA 15145",Wilkins,40.417196010230306,-79.82186297906527,ConnectGovs
+Wilkins #3 VFD,303,"109 Powell St, East Pittsburgh, PA 15112",Wilkins,40.41792100285593,-79.83908896335907,ConnectGovs+OSM
+Wilkins #4 VFD,304,"205 Frazier Dr, Pittsburgh, PA 15235",Wilkins,40.43412598772889,-79.81364301422819,ConnectGovs
+City of Pittsburgh Bureau of Fire,16,"100 Grant Street Pittsburgh, PA 15219",Wilkinsburg,40.43656354444049,-79.99862814803771,ConnectGovs+OSM
+Wilmerding VFD,306,"301 Station Street Wilmerding, PA 15148",Wilmerding,40.393065013984895,-79.8073600228579,ConnectGovs+OSM
+Homestead VFD,171,"205 East 9th Street Homestead, PA 15120",Homestead,40.40672198431911,-79.90997497032666,ConnectGovs
+Dorseyville VFD,172,"100 Charles Street Dorseyville, PA 15238",Indiana,40.57754299197852,-79.88953703997154,ConnectGovs+OSM
+Middle Road VFD,174,"2034 Middle Road Glenshaw, PA 15116",Indiana,40.54475600414342,-79.93256201938773,ConnectGovs+OSM
+Rural Ridge VFD,175,"135 Little Deer Creek Valley Rd, Rural Ridge, PA 15075",Indiana,40.60862521291376,-79.83443721103511,ConnectGovs
+Ingram VFD,176,"40 W Prospect Ave, Pittsburgh, PA 15205",Ingram,40.445869998057915,-80.0668429579141,ConnectGovs
+Floreffe VFC,178,"1540 State Street Jefferson Hills, PA 15025",Jefferson Hills,40.25855897958676,-79.91777298928825,ConnectGovs
+Gill Hall VFC,179,"1228 Gill Hall Road Jefferson Hills, PA 15025",Jefferson Hills,40.29002900264406,-79.95884800290372,ConnectGovs+OSM
+Jefferson 885 VFC ,180,"380 Wray Drive Jefferson Hills, PA 15025",Jefferson Hills,40.31521800464628,-79.91852300260041,ConnectGovs
+Kennedy TWP VFD,181,"1796 Pine Hollow Road McKees Rocks, PA 15136",Kennedy,40.47834698126793,-80.10276402323254,ConnectGovs+OSM
+Ben Avon VFD,109,"7219 Church Avenue Ben Avon, PA 15202",Kilbuck,40.50880199797436,-80.08484703505925,ConnectGovs
+Fair Oaks VFD,308,"190 Ambridge Avenue Fair Oaks, PA 15003",Leet,40.58181000916945,-80.21117698410758,ConnectGovs
+Leetsdale VFD,309,"136 Broad St, Leetsdale, PA 15056",Leetsdale,40.56619498415182,-80.20937495915607,ConnectGovs
+McDonald VFD,310,"150 N McDonald St, McDonald, PA 15057",McDonald,40.37077401289639,-80.23468897721271,ConnectGovs
+Liberty Boro VFD,183,"900 Haslage St, McKeesport, PA 15133",Liberty,40.32472400487,-79.85935799786436,ConnectGovs+OSM
+Lincoln Boro VFD #1,184,"4312 Liberty Way Elizabeth, PA 15037",Lincoln,40.30364900859335,-79.85262498287608,ConnectGovs
+Marshall TWP VFD,185,"270 Northgate Dr, Warrendale, PA 15086",Marshall,40.6549499935018,-80.07980599062039,ConnectGovs
+Highland Fire Association,186,"8705 Harold Place Pittsburgh, PA 15237",McCandless,40.56417800486891,-80.04223796573815,ConnectGovs
+Ingomar VFD,187,"9695 Harmony Dr, Pittsburgh, PA 15237",McCandless,40.58193498303207,-80.05699799372867,ConnectGovs
+Peebles VFD,188,"1391 Duncan Avenue Pittsburgh, PA 15237",McCandless,40.567721999281915,-80.00783000112472,ConnectGovs
+McKees Rocks VFD,189,"340 Bell Ave, McKees Rocks, PA 15136",McKees Rocks,40.46557099102545,-80.05810297991864,ConnectGovs
+McKeesport VFD,190,"201 Lysle Blvd McKeesport, PA 15132",McKeesport,40.35162501066053,-79.86642796552583,ConnectGovs+OSM
+Millvale VFD,191,"501 Lincoln Avenue Millvale, PA 15209",Millvale,40.48111900250623,-79.9735959620284,ConnectGovs
+Monroeville #1 VFD,192,"122 Elmwood Street Monroeville, PA 15146",Monroeville,40.425803009928906,-79.78793496274857,ConnectGovs
+Monroeville #3 VFD,193,"2601 Third Street Monroeville, PA 15146",Monroeville,40.39761399840828,-79.80299196209393,ConnectGovs+OSM
+Monroeville #4 VFD,194,"4370 Northern Pike Monroeville, PA 15146",Monroeville,40.43388199082271,-79.74665098842159,ConnectGovs+OSM
+Monroeville #5 VFD,195,"100 Seco Rd, Monroeville, PA 15146",Monroeville,40.446436992421845,-79.75801802209183,ConnectGovs
+Monroeville #6 VFD,196,"600 Garden City Drive Monroeville, PA 15146",Monroeville,40.44821898487917,-79.78210099067978,ConnectGovs
+Moon TWP VFD,197,"1000 Beaver Grade Road Coraopolis, PA 15108",Moon,40.504583008580724,-80.20813401833773,ConnectGovs+OSM
+Mt. Lebanon VFD,198,"710 Washington Road Pittsburgh, PA 15228",Mt. Lebanon,40.38000500331553,-80.0452179838611,ConnectGovs
+Mt. Oliver VFD,199,"120 Brownsville Rd, Pittsburgh, PA 15210",Mt. Oliver,40.417083986358044,-79.9870139635783,ConnectGovs
+Munhall #1 VFD,200,"1300 Martha St, Munhall, PA 15120",Munhall,40.40537300057477,-79.89935803261362,ConnectGovs
+Munhall #2 VFD,201,"1900 West St, Munhall, PA 15120",Munhall,40.39906398389254,-79.90467400285192,ConnectGovs+OSM
+Munhall #3 VFD,202,"2412 Charles Street Munhall, PA 15120",Munhall,40.3936830120555,-79.8975410031019,ConnectGovs
+Munhall #4 VFD,203,"3401 Main St, Munhall, PA 15120",Munhall,40.386361000547325,-79.90249001424158,ConnectGovs+OSM
+Munhall #5 VFD,204,"1817 Whitaker Way Munhall, PA 15120",Munhall,40.404490009259575,-79.89034899481751,ConnectGovs+OSM
+Neville Island VFD,205,"5009 Grand Avenue Pittsburgh, PA 15225",Neville,40.51038304915657,-80.1260385323193,ConnectGovs
+North Braddock VFD,207,"600 Anderson Street North Braddock, PA 15104",North Braddock,40.402429988622984,-79.86087101502605,ConnectGovs
+North Fayette VFD,209,"7678 Old Steubenville Pike Oakdale, PA 15071",North Fayette,40.44159598223643,-80.20649401442917,ConnectGovs
+West Wilmerding VFD,211,"330 Kline Ave, North Versailles, PA 15137",North Versailles,40.39741698221945,-79.82082898763052,ConnectGovs
+Crestas Terrace VFD,212,"2304 Crestas Avenue North Versailles, PA 15137",North Versailles,40.38821101182404,-79.83698502182708,ConnectGovs
+Fire Dept. of North Versailles,214,"518 Oakhurst Ave, North Versailles, PA 15137",North Versailles,40.36981998489533,-79.8254589827583,ConnectGovs
+Oakdale VFD,215,"6111 Noblestown Road Oakdale, PA 15071",Oakdale,40.398062011713314,-80.18741797675717,ConnectGovs+OSM
+Oakmont VFD,216,"418 Virginia Avenue Oakmont, PA 15139",Oakmont,40.52318400284687,-79.83917496177617,ConnectGovs+OSM
+Pleasant Valley VFD,217,"154 Kittanning Pike Pittsburgh, PA 15215",O'Hara,40.50212176709301,-79.92164382715256,ConnectGovs+OSM
+Parkview VFD,218,"726 Midway Drive Pittsburgh, PA 15215",O'Hara,40.5013840136577,-79.93092302249059,ConnectGovs+OSM
+Ohio Township VFD,220,"1520 Roosevelt Road Pittsburgh, PA 15237",Ohio,40.54566497908493,-80.09824601029145,ConnectGovs
+Penn Hills #1 VFD,221,"7520 Mt. Carmel Rd. Pittsburgh, PA 15235",Penn Hills,40.46763298110572,-79.8832670409352,ConnectGovs
+Penn Hills #2 VFD,222,"5806 Verona Road Verona, PA 15147",Penn Hills,40.486781984200874,-79.83700103160209,ConnectGovs+OSM
+Penn Hills #3 VFD,223,"1701 Leechburg Road Pittsburgh, PA 15235",Penn Hills,40.49204699231108,-79.79299897351598,ConnectGovs+OSM
+Penn Hills #4 VFD,224,"1002 Center Ave Verona, PA 15147",Penn Hills,40.50603999330813,-79.83063899926657,ConnectGovs+OSM
+Penn Hills #5 VFD,225,"2797 Robinson Blvd Penn Hills, PA 15235",Penn Hills,40.46029299026543,-79.86675502684943,ConnectGovs+OSM
+Penn Hills #6 VFD,226,"2240 Main Street Penn Hills, PA 15235",Penn Hills,40.46781499444748,-79.79144304023993,ConnectGovs
+Penn Hills #7 VFD,227,"1235 Universal Road Pittsburgh, PA 15235",Penn Hills,40.46308898422115,-79.80326303232417,ConnectGovs
+Wexford VFD,228,"122 Wexford Bayne Road Wexford, PA 15090",Pine,40.625775982606825,-80.05645702556963,ConnectGovs
+Pitcairn #1 VFD,229,"100 South Center Avenue Pitcairn, PA 15140",Pitcairn,40.40084501256967,-79.77763896793373,ConnectGovs+OSM
+Pittsburgh Bureau of Fire,231,"100 Grant Street Pittsburgh, PA 15219",Pittsburgh,40.43656354444049,-79.99862814803771,ConnectGovs
+Pleasant Hills VFD,232,"73 Clairton Blvd Pittsburgh, PA 15236",Pleasant Hills,40.33956500244492,-79.96167999663412,ConnectGovs+OSM
+Unity VFD,233,"340 Old Leechburg Road Pittsburgh, PA 15239",Plum,40.490583009176504,-79.77013800297196,ConnectGovs
+Renton VFD,234,"1990 Old Mine Rd, Plum, PA 15239",Plum,40.50894201788197,-79.73096400505908,ConnectGovs+OSM
+Logans Ferry VFD,235,"1001 Summit Street New Kensington, PA 15068",Plum,40.546197020541136,-79.74974399394604,ConnectGovs+OSM
+Holiday Park VFD,236,"415 Abers Creek Road Pittsburgh, PA 15239",Plum,40.467795639535886,-79.7061375557077,ConnectGovs+OSM
+Vigilant Hose #1 VFD,237,"1800 Romine Avenue Port Vue, PA 15133",Port Vue,40.33573899897069,-79.86530898088878,ConnectGovs+OSM
+Rivers Edge Volunteer Fire Department,113,"1100 Braddock Avenue Braddock, PA 15104",Rankin & Braddock,40.39804901956643,-79.86199402231894,ConnectGovs
+Reserve Township VFD,317,"141 Jacks Run Road Pittsburgh, PA 15214",Reserve Township,40.498751006392055,-80.0286270123534,ConnectGovs
+Richland VFD,241,"5857 Meridian Rd, Gibsonia, PA 15044",Richland,40.65497798900042,-79.96148796736911,ConnectGovs
+Pittsburgh Bureau of Fire Station 34,34,3914 Perrysville Ave.,Pittsburgh,40.49007172507854,-80.01823165654261,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 38,38,198 Essen St.,Pittsburgh,40.472988449080056,-80.00283435725147,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 32,32,900 Spring Garden Ave.,Pittsburgh,40.457992891131106,-79.99516917979807,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 37,37,1124 W. North Ave.,Pittsburgh,40.453264847861035,-80.0218366555319,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 31,31,3000 Chartiers Ave.,Pittsburgh,40.45452698792729,-80.05850194452725,City_Fire_Station
+Pittsburgh Bureau of Fire Station 30,30,916 Steuben St.,Pittsburgh,40.44280150861528,-80.0421070628287,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 29,29,2150 Noblestown Rd.,Pittsburgh,40.43148706702176,-80.05353723911506,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 28,28,1428 Beechview Ave.,Pittsburgh,40.41311692805499,-80.02517207157905,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 26,26,630 Brookline Blvd.,Pittsburgh,40.39479637822191,-80.0218560200663,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 23,23,1704 Brownsville Rd.,Pittsburgh,40.39824198944762,-79.98888938634082,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 27,27,96 Virginia Ave.,Pittsburgh,40.42951697631694,-80.00698340523338,City_Fire_Station
+Pittsburgh Bureau of Fire Station 22,22,1945 Arlington Ave.,Pittsburgh,40.418206294819875,-79.97895260003109,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 20,20,514 Baldwin Rd.,Pittsburgh,40.3857829052682,-79.93298208425298,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 13,13,200 Flowers Ave.,Pittsburgh,40.41014273913578,-79.94230831447936,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 18,18,5858 Northumberland,Pittsburgh,40.44145750389357,-79.9211455548541,City_Fire_Station
+Pittsburgh Bureau of Fire Station 17,17,7601 Hamilton Ave.,Pittsburgh,40.45334605073108,-79.89075811845738,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 8,8,161 N Euclid Ave.,Pittsburgh,40.46331917126196,-79.92761767719799,City_Fire_Station
+Pittsburgh Bureau of Fire Station 15,15,7024 Lemingon Ave.,Pittsburgh,40.47059760992591,-79.89789761148448,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 6,6,3958 Penn Ave.,Pittsburgh,40.46487343527815,-79.95814314619544,City_Fire_Station
+Pittsburgh Bureau of Fire Station 4,4,1324 Forbes Ave.,Pittsburgh,40.43746523933862,-79.98722179343618,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 7,7,4603 Stanton Ave.,Pittsburgh,40.481500745385084,-79.93729692862179,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 24,24,1729 Mary St.,Pittsburgh,40.42632136026553,-79.98107867943155,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 12,12,4156 Winterburn St.,Pittsburgh,40.42346179705448,-79.94007726998895,City_Fire_Station
+Pittsburgh Bureau of Fire Station 14,14,259 McKee Place,Pittsburgh,40.43875878156458,-79.95762264716068,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 3,3,1401 Penn Ave.,Pittsburgh,40.44767307778878,-79.98977375878707,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 16,16,605 Ross Ave,Pittsburgh,40.44336603542809,-79.8858537419487,City_Fire_Station
+Pittsburgh Bureau of Fire Station 10,10,2500 Allequippa St,Pittsburgh,40.44107817302679,-79.9676902604042,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 19,19,159 Homestead St,Pittsburgh,40.42081690111706,-79.89986342434472,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 35,35,1519 Orchlee St,Pittsburgh,40.4816935658894,-80.0389565601834,City_Fire_Station+OSM
+Pittsburgh Bureau of Fire Station 33,33,3284 Central Ave,Pittsburgh,40.47665814569444,-80.02969136223483,City_Fire_Station
+Mt. Lebanon Fire Department,,555 Washington Road,,40.383505,-80.043546,OSM
+Station 2,,2400 Morton Road,,40.329977,-80.094887,OSM
+Bethel Park Volunteer Fire Company Clifton Station,,1100 Clifton Road,,40.296752,-80.04231,OSM
+Bethel Park Volunteer Fire Company Milford Station,,2310 Milford Drive,,40.348809,-80.033024,OSM
+Rankin VFD,,,,40.412801,-79.880231,OSM
+Large Volunteer Fire Department,,,,40.300147,-79.923625,OSM
+Brentwood Volunteer Fire Company,,,,40.370431,-79.981946,OSM
+Whitehall Fire Company #1,,4400 Clairton Boulevard,,40.358889,-79.982268,OSM
+McKeesport Fire Station No. 2,,,,40.340346,-79.827428,OSM
+Brentwood Volunteer Fire Company,,3433 Brownsville Road,,40.375607,-79.97504,OSM
+Clairton Works Fire Station,,,,40.300591,-79.874319,OSM
+Fire Station Number 36,,,,40.46993,-80.030184,OSM
+Imperial Volunteer Fire Department,,111 Pine Street,,40.451542,-80.246749,OSM
+West View Volunteer Fire Comany,,,,40.521047,-80.033722,OSM
+Neville Island Volunteer Fire Department,,5300 Grand Avenue,,40.511621,-80.128726,OSM
+Ingomar Volunteer Fire Company,,10176 Old Perry Highway,,40.599534,-80.047493,OSM
+Wexford Volunteer Fire Department,,,,40.628365,-80.051897,OSM
+PIA Fire Station Echo,,,,40.491543,-80.233058,OSM
+Moon Township Volunteer Fire Department Carnot Station,,565 Carnot Road,,40.517364,-80.220002,OSM
+Imperial Volunteer Fire Department Substation 3,,487 Aten Road,,40.467152,-80.211199,OSM
+Wexford Volunteer Fire Company,,,,40.639198,-80.008707,OSM
+Allegheny Valley Volunteer Fire Company,,851 Parkway Drive,,40.549659,-79.802397,OSM
+Fire Department Number 7,,,,40.452733,-79.965707,OSM
+North Hampton Volunteer Fire Department Sub Station,,,,40.590074,-79.94644,OSM
+Reserve Volunteer Fire Department,,33 Lonsdale Street,,40.474234,-79.982376,OSM
+Rural Ridge Volunteer Fire Department,,137 Little Deer Creek Road,,40.585755,-79.828438,OSM
+Penn Hills Fire Station #7,,127 Universal Road,,40.466309,-79.824588,OSM

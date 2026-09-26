@@ -44,7 +44,9 @@ export const evictionsOverlay: OverlayDefinition = {
     ...stepLegend(EVICTION_BREAKS[metric.id], RAMPS.warm, (lo, hi) => (hi ? `${lo}–${hi}` : `${lo}+`)).map((item, i) =>
       i === 0 ? { ...item, label: `Under ${EVICTION_BREAKS[metric.id][0]}` } : item,
     ),
-    { color: NO_DATA_COLOR, label: "Under 200 renter households", shape: "fill" as const },
+    ...(metric.id === "filings_per_100_renters"
+      ? [{ color: NO_DATA_COLOR, label: "Under 200 renter households", shape: "fill" as const }]
+      : []),
   ],
   meta: {
     source: "Princeton Eviction Lab, Eviction Tracking System (Pittsburgh); renter households from ACS 2024 5-year",

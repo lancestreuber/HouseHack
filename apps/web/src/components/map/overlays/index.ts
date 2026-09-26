@@ -14,7 +14,7 @@ import { floodZonesOverlay } from "./flood-zones";
 import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./everyday-access";
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
 import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
-import { councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
+import { careSpacingOverlay, councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
 import { cityHazardOverlaysOverlay, citySteepSlopesOverlay, landslidePublicAssistanceOverlay } from "./city-hazards";
 import { vacantBuildingsOverlay, vacantLotsOverlay } from "./vacancy";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
@@ -25,7 +25,7 @@ import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./lan
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { commerceDensityOverlay } from "./commerce-density";
 import { parksOverlay, trailsOverlay } from "./parks";
-import { AMENITY_OVERLAYS, PLACE_OVERLAYS } from "./places";
+import { AMENITY_OVERLAYS, PLACE_OVERLAYS, SERVICE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { schoolQualityOverlay } from "./school-quality";
 import { sewerLinesOverlay } from "./sewer-lines";
@@ -79,6 +79,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   parksOverlay,
   trailsOverlay,
   ...AMENITY_OVERLAYS,
+  ...SERVICE_OVERLAYS,
   foodAccessOverlay,
   commerceDensityOverlay,
   surfaceHeatOverlay,
@@ -102,6 +103,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   councilActionsOverlay,
   zbaHousingOverlay,
   zbaOtherOverlay,
+  careSpacingOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");

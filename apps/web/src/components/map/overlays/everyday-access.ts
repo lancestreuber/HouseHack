@@ -61,7 +61,7 @@ const INTERNET_METRICS: OverlayMetric[] = [
 ];
 const INTERNET_BREAKS: Record<string, number[]> = {
   no_internet_pct: [2, 4, 7, 11, 16],
-  broadband_pct: [70, 78, 84, 89, 93],
+  broadband_pct: [80, 85, 90, 94, 97],
 };
 
 export const homeInternetOverlay: OverlayDefinition = {

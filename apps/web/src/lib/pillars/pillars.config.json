@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.8",
+  "version": "2026-09-26.9",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -782,6 +782,90 @@
         "full": 400
       },
       "unit": "m"
+    },
+    {
+      "id": "access_food_assistance",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Walking distance to nearest food pantry or walk-up food distribution",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-food-banks.geojson",
+        "where": {
+          "type": [
+            "Food Pantry",
+            "Walk-up Distribution - Food Bank Led",
+            "Walk-up Distribution - Agency Led",
+            "Fresh Market",
+            "The Market Food Pantry"
+          ]
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Greater Pittsburgh Community Food Bank network (Apr 2025). Drive-up distributions are excluded because they are scheduled events, not places you can walk to."
+    },
+    {
+      "id": "access_dentist",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Distance to nearest dentist",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-dentists.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "OSM + County Assets. No data on which dentists accept Medicaid."
+    },
+    {
+      "id": "access_community_center",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Walking distance to nearest community center",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-community-centers.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      }
+    },
+    {
+      "id": "access_senior_center",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Distance to nearest senior center",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-senior-centers.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Matters most for older adults; the older-adult preset raises Access overall."
     },
     {
       "id": "access_jobs_transit",
