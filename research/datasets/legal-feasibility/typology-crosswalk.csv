@@ -1,0 +1,18 @@
+matrix_typology,use_911_02,mat_typology_id,zba_typology,zba_match,permits_typology,permits_match,note,as_of
+single_detached,Single-Unit Detached Residential,sfd,single_detached,exact,single_detached,exact,,2026-09-26
+single_attached,Single-Unit Attached Residential,townhome,single_attached,exact,single_attached,exact,,2026-09-26
+two_unit,Two-Unit Residential,duplex,two_unit,exact,two_unit,exact,,2026-09-26
+three_unit,Three-Unit Residential,none,three_unit,exact,three_unit,exact,,2026-09-26
+multi_unit,Multi-Unit Residential,apartments,multi_unit,exact,multi_unit_4_19|multi_unit_20plus|multi_unit_size_unknown,permits_split_by_size,Permits split 4+ units by size; union all three for the matrix row,2026-09-26
+elderly_limited,Housing for the Elderly (Limited),senior,senior/elderly,zba_broader,senior,permits_broader,ZBA and permits do not separate Limited from General; the same rate applies to both rows (n is small),2026-09-26
+elderly_general,Housing for the Elderly (General),senior,senior/elderly,zba_broader,senior,permits_broader,See elderly_limited,2026-09-26
+assisted_living_a,Assisted Living Class A,none,assisted_living/personal_care,zba_broader,other_group,permits_broader,ZBA groups assisted living with personal care; the permit label other_group also includes community homes and SROs,2026-09-26
+assisted_living_b,Assisted Living Class B,none,assisted_living/personal_care,zba_broader,other_group,permits_broader,See assisted_living_a,2026-09-26
+assisted_living_c,Assisted Living Class C,none,assisted_living/personal_care,zba_broader,other_group,permits_broader,See assisted_living_a,2026-09-26
+personal_care_small,Personal Care Residence (Small),none,assisted_living/personal_care,zba_broader,other_group,permits_broader,See assisted_living_a,2026-09-26
+personal_care_large,Personal Care Residence (Large),none,assisted_living/personal_care,zba_broader,other_group,permits_broader,See assisted_living_a,2026-09-26
+community_home,Community Home,none,other_residential,zba_broader,other_group,permits_broader,ZBA other_residential = dorms / student living / multigenerational / group; not a clean match,2026-09-26
+multi_suite_limited,Multi-Suite Residential (Limited),none,other_residential,zba_broader,other_group,permits_broader,See community_home,2026-09-26
+multi_suite_general,Multi-Suite Residential (General),none,other_residential,zba_broader,other_group,permits_broader,See community_home,2026-09-26
+interim_housing,Interim Housing,none,,no_match,,no_match,No outcome data,2026-09-26
+adu,(not a listed use; Bill 2025-1545 pending),adu,,no_match,adu,exact,Not in the matrix; permits has 2 ADU records,2026-09-26
