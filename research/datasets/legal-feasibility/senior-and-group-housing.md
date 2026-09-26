@@ -105,3 +105,7 @@ The CSV has one row per `type` × `zon_new`, with n_sites, n_with_capacity, capa
 - Radius scales with `sqrt(capacity)`.
 - Stroke or halo red where `multi_unit_pathway` = `not_permitted`. This shows the senior-vs-apartments contrast directly.
 - Popup: name, type, capacity + unit, year + year_basis, zon_new, "inferred use: label (code)", "apartments here: multi_unit_code", source.
+
+## Refresh against matrix v2 (added 2026-09-26 review)
+
+`scripts/refresh_senior_pathways.py` recomputes `permission_*` and `multi_unit_*` from `typology-district-matrix.csv`. After the special districts were filled in, 15 points in RP, AP, UPR-A, UPR-B and GPRC changed from `unknown`. For example, Housing for the Elderly (General) in RP is `conditional_use`, and apartments there are `per_plan`. In `senior-and-group-housing-by-district.csv`, `permission_codes` now lines up position by position with `inferred_uses` (`;` between uses, `|` for size-unknown alternatives), instead of being a sorted set. Rerun the script whenever the matrix changes.

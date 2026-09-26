@@ -1,22 +1,22 @@
 type,zon_new,zoning_full,n_sites,n_with_capacity,capacity_sum,capacity_unit,n_possible_cross_source_duplicates,inferred_uses,permission_codes,multi_unit_code,multi_unit_pathway
-assisted_living,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,30,beds (licensed/certified capacity),0,assisted_living_c,?,,unknown
-hud_202_disabled,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,51,dwelling units,1,multi_unit,?,,unknown
-hud_202_elderly,AP,RESIDENTIAL/COMMERCIAL PLANNED UNIT DEVELOPMENT,1,1,77,dwelling units,0,elderly_general,?,,unknown
+assisted_living,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,30,beds (licensed/certified capacity),0,assisted_living_c,S,per_plan,per_plan
+hud_202_disabled,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,51,dwelling units,1,multi_unit,per_plan,per_plan,per_plan
+hud_202_elderly,AP,RESIDENTIAL/COMMERCIAL PLANNED UNIT DEVELOPMENT,1,1,77,dwelling units,0,elderly_general,per_plan,per_plan,per_plan
 hud_202_elderly,EMI,EDUCATIONAL/MEDICAL INSTITUTION,1,1,81,dwelling units,1,elderly_general,A,A,za
-hud_202_elderly,GPRC,GRANDVIEW PUBLIC REALM DISTRICT C,1,1,56,dwelling units,0,elderly_general,?,,unknown
-hud_202_elderly,LNC,LOCAL NEIGHBORHOOD COMMERCIAL,4,4,268,dwelling units,0,elderly_general;elderly_limited,A;S,P,by_right
+hud_202_elderly,GPRC,GRANDVIEW PUBLIC REALM DISTRICT C,1,1,56,dwelling units,0,elderly_general,?,P,by_right
+hud_202_elderly,LNC,LOCAL NEIGHBORHOOD COMMERCIAL,4,4,268,dwelling units,0,elderly_general;elderly_limited,S;A,P,by_right
 hud_202_elderly,R1A-H,SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY,2,2,116,dwelling units,0,elderly_general;elderly_limited,-;S,,not_permitted
 hud_202_elderly,R1A-VH,SINGLE-UNIT ATTACHED RESIDENTIAL VERY HIGH DENSITY,2,2,82,dwelling units,0,elderly_general,-,,not_permitted
 hud_202_elderly,R1D-H,SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY,1,1,52,dwelling units,0,elderly_general,-,,not_permitted
 hud_202_elderly,R1D-M,SINGLE-UNIT DETACHED RESIDENTIAL MODERATE DENSITY,3,3,168,dwelling units,0,elderly_general;elderly_limited,-;S,,not_permitted
 hud_202_elderly,R2-H,TWO-UNIT RESIDENTIAL HIGH DENSITY,1,1,23,dwelling units,0,elderly_limited,S,,not_permitted
 hud_202_elderly,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,7,7,381,dwelling units,3,elderly_general;elderly_limited,S,P,by_right
-hud_202_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,2,2,82,dwelling units,0,elderly_general,?,,unknown
+hud_202_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,2,2,82,dwelling units,0,elderly_general,C,per_plan,per_plan
 hud_202_elderly,UI,URBAN INDUSTRIAL,1,1,25,dwelling units,0,elderly_limited,A,S,zbe_special_exception
 hud_811,R2-H,TWO-UNIT RESIDENTIAL HIGH DENSITY,1,1,21,dwelling units,0,multi_unit,-,,not_permitted
 hud_811,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,4,4,61,dwelling units,0,multi_unit,P,P,by_right
-hud_811,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,12,dwelling units,0,multi_unit,?,,unknown
-hud_811,UPR-A,UPTOWN PUBLIC REALM DISTRICT A,1,1,15,dwelling units,0,multi_unit,?,,unknown
+hud_811,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,12,dwelling units,0,multi_unit,per_plan,per_plan,per_plan
+hud_811,UPR-A,UPTOWN PUBLIC REALM DISTRICT A,1,1,15,dwelling units,0,multi_unit,P,P,by_right
 hud_mf_disabled,LNC,LOCAL NEIGHBORHOOD COMMERCIAL,1,1,18,dwelling units,0,multi_unit,P,P,by_right
 hud_mf_elderly,EMI,EDUCATIONAL/MEDICAL INSTITUTION,1,1,44,dwelling units,0,elderly_general,A,A,za
 hud_mf_elderly,GI,GENERAL INDUSTRIAL,1,1,97,dwelling units,0,elderly_general,-,,not_permitted
@@ -25,21 +25,21 @@ hud_mf_elderly,R1A-H,SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY,2,2,190,dwell
 hud_mf_elderly,R2-L,TWO-UNIT RESIDENTIAL LOW DENSITY,2,2,228,dwelling units,1,elderly_general,-,,not_permitted
 hud_mf_elderly,RM-H,MULTI-UNIT RESIDENTIAL HIGH DENSITY,1,1,56,dwelling units,0,elderly_general,S,P,by_right
 hud_mf_elderly,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,5,5,621,dwelling units,2,elderly_general,S,P,by_right
-hud_mf_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,106,dwelling units,1,elderly_general,?,,unknown
+hud_mf_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,106,dwelling units,1,elderly_general,C,per_plan,per_plan
 hud_mf_elderly,UC-MU,URBAN CENTER MIXED USE,2,2,299,dwelling units,2,elderly_general,S,P,by_right
 hud_mf_elderly,UNC,URBAN NEIGHBORHOOD COMMERCIAL,1,1,24,dwelling units,1,elderly_limited,A,P,by_right
 lihtc_disabled,EMI,EDUCATIONAL/MEDICAL INSTITUTION,1,1,40,dwelling units,0,multi_unit,A,A,za
 lihtc_disabled,R2-H,TWO-UNIT RESIDENTIAL HIGH DENSITY,1,1,40,dwelling units,0,multi_unit,-,,not_permitted
 lihtc_disabled,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,2,2,276,dwelling units,0,multi_unit,P,P,by_right
-lihtc_disabled,UPR-B,UPTOWN PUBLIC REALM DISTRICT B,1,1,43,dwelling units,0,multi_unit,?,,unknown
+lihtc_disabled,UPR-B,UPTOWN PUBLIC REALM DISTRICT B,1,1,43,dwelling units,0,multi_unit,P,P,by_right
 lihtc_elderly,EMI,EDUCATIONAL/MEDICAL INSTITUTION,1,1,79,dwelling units,1,elderly_general,A,A,za
 lihtc_elderly,GT-C,GOLDEN TRIANGLE DISTRICT C,1,1,270,dwelling units,0,elderly_general,-,P,by_right
-lihtc_elderly,LNC,LOCAL NEIGHBORHOOD COMMERCIAL,8,8,584,dwelling units,3,elderly_general;elderly_limited,A;S,P,by_right
+lihtc_elderly,LNC,LOCAL NEIGHBORHOOD COMMERCIAL,8,8,584,dwelling units,3,elderly_general;elderly_limited,S;A,P,by_right
 lihtc_elderly,R1A-H,SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY,1,1,102,dwelling units,1,elderly_general,-,,not_permitted
 lihtc_elderly,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,5,5,307,dwelling units,5,elderly_general;elderly_limited,S,P,by_right
-lihtc_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,4,4,354,dwelling units,2,elderly_general,?,,unknown
+lihtc_elderly,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,4,4,354,dwelling units,2,elderly_general,C,per_plan,per_plan
 lihtc_elderly,UC-MU,URBAN CENTER MIXED USE,3,3,457,dwelling units,3,elderly_general,S,P,by_right
-lihtc_elderly,UNC,URBAN NEIGHBORHOOD COMMERCIAL,2,2,65,dwelling units,1,elderly_general;elderly_limited,A;S,P,by_right
+lihtc_elderly,UNC,URBAN NEIGHBORHOOD COMMERCIAL,2,2,65,dwelling units,1,elderly_general;elderly_limited,S;A,P,by_right
 nursing,EMI,EDUCATIONAL/MEDICAL INSTITUTION,2,2,256,beds (licensed/certified capacity),0,assisted_living_c,S,A,za
 nursing,R1A-H,SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY,1,1,115,beds (licensed/certified capacity),1,assisted_living_c,-,,not_permitted
 nursing,R1D-H,SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY,1,1,48,beds (licensed/certified capacity),0,assisted_living_c,-,,not_permitted
@@ -60,5 +60,5 @@ public_housing_senior,R1D-L,SINGLE-UNIT DETACHED RESIDENTIAL LOW DENSITY,1,0,,dw
 public_housing_senior,R2-VH,TWO-UNIT RESIDENTIAL VERY HIGH DENSITY,1,1,70,dwelling units,0,elderly_general,-,,not_permitted
 public_housing_senior,RM-H,MULTI-UNIT RESIDENTIAL HIGH DENSITY,1,1,66,dwelling units,0,elderly_general,S,P,by_right
 public_housing_senior,RM-M,MULTI-UNIT RESIDENTIAL MODERATE DENSITY,5,4,442,dwelling units,2,elderly_general;elderly_general|elderly_limited,S;S|S,P,by_right
-public_housing_senior,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,31,dwelling units,0,elderly_general,?,,unknown
+public_housing_senior,RP,RESIDENTIAL PLANNED UNIT DEVELOPMENT,1,1,31,dwelling units,0,elderly_general,C,per_plan,per_plan
 public_housing_senior,UI,URBAN INDUSTRIAL,1,0,,dwelling units,0,elderly_general|elderly_limited,S|A,S,zbe_special_exception
