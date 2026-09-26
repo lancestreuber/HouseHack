@@ -161,4 +161,4 @@ Being wrong in the open is the point of this table. When a closer read overturns
 | `[inaccessible]` | 1 |
 | **total unique external sources** | **234** |
 
-There are 13 sweeps and 49 nodes. ⚠ **A high `[read]` count is not a high confidence count.** Most `[read]` sources are GIS endpoints and City web pages. The kinds of source we have *not* reached (practitioners, Council records, and hackathon-project archives) are listed in [`../docs/03-open-questions.md`](../docs/03-open-questions.md).
+There are 13 sweeps and 46 nodes. ⚠ **A high `[read]` count is not a high confidence count.** Most `[read]` sources are GIS endpoints and City web pages. The kinds of source we have *not* reached (practitioners, Council records, and hackathon-project archives) are listed in [`../docs/03-open-questions.md`](../docs/03-open-questions.md).
