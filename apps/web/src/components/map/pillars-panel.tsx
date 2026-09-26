@@ -78,7 +78,7 @@ function formatRaw(value: number | null, unit: string | undefined) {
     case "m":
       return value >= 10_000 ? "> 10 km" : `${Math.round(value).toLocaleString()} m`;
     case "pctile":
-      return `${Math.round(value)}th pct (PA)`;
+      return `${ordinal(Math.round(value))} percentile (PA)`;
     case "degC":
       return `${value >= 0 ? "+" : ""}${value.toFixed(1)} °C`;
     case "miles":
@@ -96,6 +96,12 @@ function formatRaw(value: number | null, unit: string | undefined) {
     default:
       return String(value);
   }
+}
+
+function ordinal(n: number) {
+  const tens = n % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[n % 10] ?? "th";
+  return `${n}${suffix}`;
 }
 
 function scoreColor(score: number | null) {
