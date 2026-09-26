@@ -2,7 +2,7 @@
 
 **The product.** A user picks a place, and optionally who they're planning for. They get **scenario cards** (housing type × place × household) and can ask the **AI companion** about them.
 
-**Decisions** come from **Jev** (TypeSafe AI). Jev returns typed choices, scores and yes/no answers, each with a calibrated probability. **Claude** writes the companion's words.
+**We suggest; people decide.** A transparent algorithm ranks housing-type options and shows exactly why: factors, weights and data. Users adjust the weights. **Claude** is only the companion's voice, and it explains the suggestions without overriding them. Nothing is trained on our data.
 
 **Data** is GeoJSON layers plus per-parcel features, described in a shared manifest.
 
@@ -10,11 +10,11 @@
 |---|---|---|---|
 | **D1: Data, Land & Hazards** | 1 | `scripts/data/land/`, `public/data/land/` | data-sources, environment-infrastructure, catalog-sweep |
 | **D2: Data, People & Place** | 1 | `scripts/data/people/`, `public/data/people/` | access-amenities, household-lens, catalog-sweep |
-| **J: Jev + engine + integration** | 1 | `packages/scoring/`, `packages/api/` | track3-methodology, interactions, zoning-rules, pro-forma |
+| **E: Suggestion engine + integration** | 1 | `packages/scoring/`, `packages/api/` | track3-methodology, interactions, zoning-rules, pro-forma |
 | **F1: Frontend, Map** | 1 | `apps/web/src/components/map/` | ui-map |
 | **F2: Frontend, Experience** | 1 | `apps/web/src/components/{scenarios,companion,report}/`, routes | ui-map, track3-methodology |
 
-**Labels:** `lane:data-land` `lane:data-people` `lane:jev-integration` `lane:map` `lane:experience` `setup` `blocker`.
+**Labels:** `lane:data-land` `lane:data-people` `lane:engine-integration` `lane:map` `lane:experience` `setup` `blocker`.
 
 **Milestones:**
 - M1 Setup: Sat 3pm
@@ -25,19 +25,21 @@
 All docs live in `docs/research/`.
 
 ## The contracts, first hour (everyone builds against these)
-1. **GeoJSON contract + `public/data/manifest.json`** (`blocker`, D1+D2+J).
+1. **GeoJSON contract + `public/data/manifest.json`** (`blocker`, D1+D2+E).
    - One file per layer.
    - Properties use snake_case.
    - Every layer lists `source`, `source_url`, `as_of`, `license` and `label` (evidence/assumption) in the manifest.
    - Parcel features are keyed by `parcel_id`; place metrics are keyed by `hood_id` and `tract_id`.
    - Mock versions go in `public/data/mock/`.
-2. **Engine types** in `packages/scoring/src/types.ts` (`blocker`, J): `Parcel`, `PlaceMetrics`, `Household`, `Typology`, `Scenario`, `Decision` (the Jev result + probability), `TradeoffCard` and `Fact`.
-3. **Jev decision schema** (`blocker`, J), written down so F2 can build the cards against it:
-   - **Choice:** best typology per place × household.
-   - **Score (low/med/high):** each tradeoff dimension.
-   - **Yes/no:** red flags and tradeoff-card triggers.
-4. **Setup for all 5**: bun, env, dev server running (stack-setup.md §1). Plus scaffold cleanup (§5), design tokens and shadcn (ui-map §4, §6), and Vercel with preview protection off (§7). The J person leads.
-5. **Confirm Jev early-access API key** (`blocker`, J). If there's no key by 3pm, J builds the deterministic fallback first (the same schema, computed by rules).
+2. **Engine types** in `packages/scoring/src/types.ts` (`blocker`, E): `Parcel`, `PlaceMetrics`, `Household`, `Typology`, `Scenario`, `Suggestion` (rank, fit, P10–P90 range, top factors), `TradeoffCard` and `Fact`.
+3. **Suggestion output schema** (`blocker`, E), written down so F2 can build the cards against it. It covers:
+   - ranked typologies per place × household
+   - fit + P10–P90 range
+   - top factors
+   - tradeoff levels
+   - red flags
+   - legal status
+4. **Setup for all 5**: bun, env, dev server running (stack-setup.md §1). Plus scaffold cleanup (§5), design tokens and shadcn (ui-map §4, §6), and Vercel with preview protection off (§7). The E person leads.
 
 ## D1: Data, Land & Hazards (`lane:data-land`)
 6. Data workspace + `bun run data:refresh` (M1)
@@ -62,14 +64,14 @@ All docs live in `docs/research/`.
 17. Household lens: 10 personas, commute times to 14 job centers (r5py; the recipe is in household-lens.md), underserved demand (M3)
 18. Climate/carbon inputs: DOE LEAD energy cost by type, BTS LATCH vehicle miles, HUD Location Affordability Index (M3)
 
-## J: Jev + engine + integration (`lane:jev-integration`)
+## E: Suggestion engine + integration (`lane:engine-integration`)
 19. `ZONING_RULES` + six sub-scores with percentile ranks and coverage suppression (M2)
 20. Sensitivity × mitigation exposure engine + red-flag rule (M2)
-21. **Jev decision layer** (M2):
-    - Send the place + household + sub-score facts as `state`.
-    - Ask the Choice, Score and yes/no questions.
-    - Return scenarios with probabilities as the confidence.
-    - Cache results, and fall back to rules if Jev is unavailable.
+21. **Suggestion ranker** (M2):
+    - fit = benefits − exposure × sensitivity × (1 − mitigation), with user weights
+    - rank typologies per place × household
+    - confidence from 300 weight/data draws (share of draws where each option ranks #1, plus a P10–P90 range)
+    - "why" = top contributing factors
 22. Scenario API (oRPC): `scenarios.forPlace(place, household)`, `site.report(parcel)`, `policy.simulate(lever)` (M2)
 23. **AI companion**:
     - Claude with tools: `find_places`, `get_site_report`, `compare_scenarios`, `explain_factor`, `simulate_policy`, `get_sources`.
@@ -88,7 +90,7 @@ All docs live in `docs/research/`.
 
 ## F2: Frontend, Experience (`lane:experience`)
 32. Household picker (10 personas + optional workplace) (M2)
-33. Scenario cards: fit + Jev confidence, top tradeoffs, benefits/harms, legal status, red flags; compare and pin (M2)
+33. Scenario cards: fit + confidence range, top tradeoffs, benefits/harms, legal status, red flags; compare and pin (M2)
 34. Companion chat panel: streaming, fact chips, Evidence/Assumption/Value tags, suggested questions, glossary (M2)
 35. Site report + next steps (zoning path, variance odds, Land Bank, RCO contacts) + policy simulation UI (M3)
 36. Landing + methodology page ("what this tool gets wrong") + community brief print (M3)
