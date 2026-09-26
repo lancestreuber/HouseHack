@@ -27,7 +27,7 @@ What "works for real" means concretely:
 - **One engine:** fit = benefits − Σ exposure × household sensitivity × (1 − typology mitigation). Six sub-scores (Feasibility, Demand, Access, Climate, Equity/Displacement, Infrastructure) sit on top of it. Details are in `docs/research/track3-methodology.md` and `docs/research/interactions.md`.
 - **Equity:** affordability, access to opportunity, displacement, environmental justice, history (the 1937 redlining layer) and accessibility. Race is shown as context only and never enters a score. Crime data never enters a score.
 - **Data:** every factor the team listed is sourced in `docs/research/access-amenities.md`, `environment-infrastructure.md`, `catalog-sweep.md` and `household-lens.md`.
-- **Work split:** `docs/issues-draft.md` defines four lanes: A Data, B Engine + AI, C Map, D Experience.
+- **Work split (5 people):** `docs/issues-draft.md` defines D1 Data: Land & Hazards, D2 Data: People & Place (incl. permits as a demand signal), J Jev + engine + integration, F1 Map, F2 Experience. **Jev** (TypeSafe AI, typed decisions with calibrated probabilities) makes the typology/tradeoff/red-flag decisions; Claude is the companion's voice. Neither is trained on our data; both read it live.
 
 ## Updates after research (Sep 26, ~12:30pm)
 Details and citations for each item are in `docs/research/` (`ui-map.md`, `data-sources.md`, `zoning-rules.md`, `stack-setup.md`, `pro-forma.md`). Where this section and the rest of the spec disagree, this section wins.

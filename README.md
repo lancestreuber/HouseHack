@@ -46,11 +46,14 @@ The goal is a real tool a CDC, planner, small developer or resident could use on
 
 ### What we need from you
 1. **Read the plan doc** and leave comments: what's missing, what's too much, what you'd change.
-2. **Pick a lane** in Discord (one person per lane; each lane owns its own folders so we don't collide). The full issue list is in [docs/issues-draft.md](docs/issues-draft.md).
-   - **A: Data.** Parcels, hazards and exposures, access, demand/equity, satellite, climate, commute. Read data-sources, access-amenities, environment-infrastructure, catalog-sweep and household-lens in [docs/research/](docs/research/).
-   - **B: Engine + AI.** Sub-scores, the sensitivity × mitigation engine, the scenario generator, tradeoff cards, personas, policy simulation, and the Claude companion with tools. Read track3-methodology, interactions, zoning-rules and pro-forma.
-   - **C: Map.** MapLibre map, layers, pick-a-place search, live recolor, companion → map actions, mobile. Read ui-map.
-   - **D: Experience.** Household picker, scenario cards, companion chat panel, site report, policy simulation UI, landing and methodology pages, video, submission. Read ui-map and track3-methodology.
+2. **Pick a lane** in Discord. There are 5 people and 5 lanes, and each lane owns its own folders so we don't collide. The full plan is in [docs/issues-draft.md](docs/issues-draft.md).
+   - **D1: Data, Land & Hazards.** GeoJSON for parcels, zoning, hazards, lead lines, infrastructure, air, flood/heat and satellite data.
+   - **D2: Data, People & Place.** GeoJSON for permits (the "people want to live here" signal), access (jobs, schools, groceries, parks, health), demand and equity (market, displacement, evictions, ACS), redlining, and household and commute data.
+   - **J: Jev + engine + integration.** Scores, and the Jev decision layer: typology choice, tradeoff scores and red flags, each with probabilities. Also the scenario API, the Claude companion (tool use, not training), policy levers, merging the lanes and deploying.
+   - **F1: Frontend, Map.** MapLibre map, layers, pick-a-place search, live recolor, companion → map actions, mobile.
+   - **F2: Frontend, Experience.** Household picker, scenario cards, companion chat, site report, policy simulation UI, landing and methodology pages, video.
+
+   **Contracts come first.** In the first hour we agree on the GeoJSON layout plus `manifest.json`, the engine types, and the Jev decision schema, so all five lanes can build against mock data. **Jev is early access**, so confirm we have an API key; if we don't, J builds a rule-based fallback with the same schema.
 3. **Vote on a name**: Groundwork PGH (working name), Buildable Burgh, LotLogic, SiteLine PGH or Yinz Can Build.
 4. **Get set up** by following [stack-setup.md §1](docs/research/stack-setup.md). In short:
    - Install bun: `curl -fsSL https://bun.sh/install | bash`.
@@ -61,8 +64,8 @@ The goal is a real tool a CDC, planner, small developer or resident could use on
 ### Timeline (ET)
 | When | Milestone |
 |---|---|
-| Sat 1:30pm | Setup done: env, shared types, mock data, design tokens |
-| Sat 7pm | Checkpoint: end-to-end on real data, deployed to Vercel |
+| Sat 3pm | Setup done: env, contracts (GeoJSON manifest, engine types, Jev schema), mock data |
+| Sat 8pm | Checkpoint: end-to-end on real data, deployed to Vercel |
 | Sun 2pm | Feature freeze, then bug bash and polish |
 | Sun 5–8pm | Record the 3–5 min demo video |
 | Sun 9pm | Submit (hard deadline 11:59pm) |

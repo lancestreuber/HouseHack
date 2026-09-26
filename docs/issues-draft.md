@@ -1,81 +1,95 @@
-# GitHub issues: draft (review before creating)
+# Work plan: 5 people, Track 3 only (draft; create the issues after lanes are picked)
 
-**Track 3 only.** The product: pick a place (and who you're planning for), then see **scenario cards** (housing type × place × household), then ask the **AI companion**. Underneath is one engine: fit = benefits − exposure × household sensitivity × (1 − mitigation from the housing type).
+**The product.** A user picks a place, and optionally who they're planning for. They get **scenario cards** (housing type × place × household) and can ask the **AI companion** about them.
 
-**Labels:** `lane:data` `lane:engine-ai` `lane:map` `lane:experience` `setup` `blocker`
-**Milestones:** M1 Setup (Sat 1:30pm) · M2 Checkpoint (Sat 7pm) · M3 Freeze (Sun 2pm) · M4 Submit (Sun 9pm)
+**Decisions** come from **Jev** (TypeSafe AI). Jev returns typed choices, scores and yes/no answers, each with a calibrated probability. **Claude** writes the companion's words.
 
-Each issue names the research doc that holds its recipe. All paths are under `docs/research/`.
+**Data** is GeoJSON layers plus per-parcel features, described in a shared manifest.
 
-## Setup (M1)
-1. **Setup runbook: bun, env, dev server running** (`setup`). Follow stack-setup.md §1. Create `apps/web/.env` before `bun install`. No database is needed.
-2. **Remove scaffold cruft** (`setup`). Delete the todos, `_auth/`, login and user-menu code. Set the page title, drop the forced dark theme, and hide devtools in production. Steps in stack-setup.md §5.
-3. **Shared contract + mock data** (`setup`, `blocker`). Create `packages/scoring/src/types.ts` with these types:
-   - `Parcel`, `PlaceMetrics`
-   - `Household`, `Typology`
-   - `Scenario`, `Factor`, `Fact`
-   - `TradeoffCard`
+| Lane | People | Owns | Main docs |
+|---|---|---|---|
+| **D1: Data, Land & Hazards** | 1 | `scripts/data/land/`, `public/data/land/` | data-sources, environment-infrastructure, catalog-sweep |
+| **D2: Data, People & Place** | 1 | `scripts/data/people/`, `public/data/people/` | access-amenities, household-lens, catalog-sweep |
+| **J: Jev + engine + integration** | 1 | `packages/scoring/`, `packages/api/` | track3-methodology, interactions, zoning-rules, pro-forma |
+| **F1: Frontend, Map** | 1 | `apps/web/src/components/map/` | ui-map |
+| **F2: Frontend, Experience** | 1 | `apps/web/src/components/{scenarios,companion,report}/`, routes | ui-map, track3-methodology |
 
-   Put mock JSON in `apps/web/public/data/mock/`.
-4. **Design tokens, fonts, shadcn components** (`setup`). Follow ui-map.md §4 and §6.
-5. **Vercel project, env vars, preview protection off** (`setup`). Follow stack-setup.md §7.
+**Labels:** `lane:data-land` `lane:data-people` `lane:jev-integration` `lane:map` `lane:experience` `setup` `blocker`.
 
-## Lane A: Data (`lane:data`), docs: data-sources, access-amenities, environment-infrastructure, catalog-sweep, household-lens
-6. **Data workspace `@HouseHack/data` + `bun run data:refresh`** (M1)
-7. **Parcels:** ParcelsPublic, then per-parcel features: zoning, lot width/depth, vacancy, owner. Output `parcels.pmtiles`. (M2)
-8. **Hazards and exposures per parcel** (M2):
-   - slope, landslide, undermined, flood
-   - lead line (PWSA / `lead-risk`)
-   - sewershed overflows
-   - highway and industrial proximity
-   - tract PM2.5
-9. **Access per parcel via kdbush** (M2):
-   - jobs by transit (Access Across America)
-   - grocery, parks, schools (growth score), health, childcare
-   - frequent transit stops
-   - sidewalks
-10. **Demand and equity per place** (M2):
-    - Market Value Analysis 2021 and the displacement risk ratio
-    - ACS 2024 via Census Reporter (income, rent, burden, household mix, zero-car)
-    - Eviction Lab filings
-    - expiring affordability
-    - 1937 redlining (HOLC) layer
-11. **Satellite per parcel** (M3): canopy, impervious surface, summer heat. Pin `geotiff@2.1.3`.
-12. **Climate and carbon inputs** (M3): FEMA National Risk Index (tract), DOE LEAD energy cost by building type, BTS LATCH vehicle miles, HUD Location Affordability Index.
-13. **Household-lens inputs** (M3): LEHD commute flows to job centers, including suburbs, and household composition. Follow household-lens.md.
+**Milestones:**
+- M1 Setup: Sat 3pm
+- M2 Checkpoint: Sat 8pm, end-to-end on real data, deployed
+- M3 Freeze: Sun 2pm
+- M4 Submit: Sun 9pm
 
-## Lane B: Engine + AI (`lane:engine-ai`), docs: track3-methodology, interactions, zoning-rules, pro-forma, household-lens
-14. **`ZONING_RULES` + tests** (M2)
-15. **Six sub-scores** (M2): Feasibility, Demand, Access, Climate, Equity/Displacement, Infrastructure. Use percentile ranks. Suppress a sub-score when coverage is below 67%.
-16. **One engine: `SENSITIVITY` × `MITIGATION` exposure-risk sub-score + red-flag rule** (M2)
-17. **Scenario generator** (M2). For a place and household, rank typologies with fit, a P10–P90 confidence range, legal status and the top tradeoffs. Each scenario becomes a card.
-18. **Tradeoff card triggers**, the 11 rules in interactions.md (M3)
-19. **Household personas + weight presets** (Balanced / CDC / Climate / Market) (M2)
-20. **Affordability gap (pro forma lite) + subsidy matches** (M3)
-21. **Policy simulation, 7 levers** (M3). The ADU reform (pending, Bill 2025-1545) comes first, with before/after deltas.
-22. **AI companion (Claude, tool use, streaming)** (M2). Tools:
-    - `find_places`, `get_site_report`
-    - `compare_scenarios`, `explain_factor`
-    - `simulate_policy`, `get_sources`
+All docs live in `docs/research/`.
 
-    It may only state facts that a tool returned. It cites fact ids, and it degrades gracefully when there is no API key.
-23. **Who benefits / who might be harmed / what the tool gets wrong**, rule-based text (M3)
+## The contracts, first hour (everyone builds against these)
+1. **GeoJSON contract + `public/data/manifest.json`** (`blocker`, D1+D2+J).
+   - One file per layer.
+   - Properties use snake_case.
+   - Every layer lists `source`, `source_url`, `as_of`, `license` and `label` (evidence/assumption) in the manifest.
+   - Parcel features are keyed by `parcel_id`; place metrics are keyed by `hood_id` and `tract_id`.
+   - Mock versions go in `public/data/mock/`.
+2. **Engine types** in `packages/scoring/src/types.ts` (`blocker`, J): `Parcel`, `PlaceMetrics`, `Household`, `Typology`, `Scenario`, `Decision` (the Jev result + probability), `TradeoffCard` and `Fact`.
+3. **Jev decision schema** (`blocker`, J), written down so F2 can build the cards against it:
+   - **Choice:** best typology per place × household.
+   - **Score (low/med/high):** each tradeoff dimension.
+   - **Yes/no:** red flags and tradeoff-card triggers.
+4. **Setup for all 5**: bun, env, dev server running (stack-setup.md §1). Plus scaffold cleanup (§5), design tokens and shadcn (ui-map §4, §6), and Vercel with preview protection off (§7). The J person leads.
+5. **Confirm Jev early-access API key** (`blocker`, J). If there's no key by 3pm, J builds the deterministic fallback first (the same schema, computed by rules).
 
-## Lane C: Map (`lane:map`), doc: ui-map
-24. **Map shell** (M1): MapLibre 6 + OpenFreeMap Positron, ClientOnly/lazy, worker URL.
-25. **Layers + combined legend/layer list**, including the redlining and exposure layers (M2)
-26. **Pick-a-place** (M2): ⌘K search (address, ZIP, neighborhood) with flyTo. Tap-to-select a neighborhood or parcel.
-27. **GPU recolor as weights and household change**, with state kept in the URL (M2)
-28. **Companion → map actions** (M3): the companion can fly to places, highlight them and filter.
-29. **Mobile bottom sheet + ranked list view (accessibility)** (M3)
-30. **3D massing preview for a scenario** (stretch, M3)
+## D1: Data, Land & Hazards (`lane:data-land`)
+6. Data workspace + `bun run data:refresh` (M1)
+7. Parcels: ParcelsPublic → zoning, lot width/depth, vacancy, owner category, city-owned / Land Bank → `parcels.pmtiles` + `parcels.geojson` sample (M2)
+8. Hazards: slope 25%, landslide, undermined, flood, plus 311 landslide/sinkhole reports, joined per parcel (M2)
+9. Infrastructure: lead lines (PWSA / `lead-risk`), hydrant and street distance, sewershed overflows, city steps (M2)
+10. Environment: tract PM2.5, highway and industrial proximity, FEMA National Risk Index (flood, heat) (M2)
+11. Satellite: canopy, impervious surface and summer heat per parcel. Pin `geotiff@2.1.3`. (M3)
+12. Historic districts + Zoning Board case history, for variance odds (M3)
 
-## Lane D: Experience (`lane:experience`), docs: ui-map, track3-methodology
-31. **Household picker** (M2): who you're planning for, plus an optional workplace.
-32. **Scenario cards** (M2): fit, confidence, top tradeoffs, benefits/harms, legal status. Compare and pin.
-33. **Companion chat panel** (M2): streaming, fact chips, Evidence/Assumption/Value tags, suggested next questions, glossary tooltips.
-34. **Site report drawer + affordability card + next steps** (M3). Next steps include the zoning path, variance odds, Land Bank and RCO contacts.
-35. **Policy simulation UX** (M3): toggle, before/after, citywide counter.
-36. **Landing page + methodology page + community brief print** (M3)
-37. **Demo video** (M4): 3–5 minutes. Open with the hackathon name and team, and say plainly what is real.
-38. **Submission** (M4): Google Form, repo public, secret scan, README.
+## D2: Data, People & Place (`lane:data-people`)
+13. **Permits as a "people want to live here" signal** (M2):
+    - PLI permits (65k) as recent residential construction and renovation per neighborhood, plus the trend.
+    - Census permits by building type.
+    - It feeds Demand, and, together with rising sale prices, displacement pressure.
+14. Access per parcel (kdbush) (M2):
+    - jobs by transit (Access Across America)
+    - grocery, parks, schools (growth), health, childcare
+    - frequent transit, sidewalks
+15. Demand + equity per place: MVA 2021, displacement ratio, ACS 2024 (income, rent, burden, household mix, zero-car), Eviction Lab, expiring affordability (M2)
+16. 1937 redlining (HOLC) layer + neighborhoods + ZIPs for search (M2)
+17. Household lens: 10 personas, commute times to 14 job centers (r5py; the recipe is in household-lens.md), underserved demand (M3)
+18. Climate/carbon inputs: DOE LEAD energy cost by type, BTS LATCH vehicle miles, HUD Location Affordability Index (M3)
+
+## J: Jev + engine + integration (`lane:jev-integration`)
+19. `ZONING_RULES` + six sub-scores with percentile ranks and coverage suppression (M2)
+20. Sensitivity × mitigation exposure engine + red-flag rule (M2)
+21. **Jev decision layer** (M2):
+    - Send the place + household + sub-score facts as `state`.
+    - Ask the Choice, Score and yes/no questions.
+    - Return scenarios with probabilities as the confidence.
+    - Cache results, and fall back to rules if Jev is unavailable.
+22. Scenario API (oRPC): `scenarios.forPlace(place, household)`, `site.report(parcel)`, `policy.simulate(lever)` (M2)
+23. **AI companion**:
+    - Claude with tools: `find_places`, `get_site_report`, `compare_scenarios`, `explain_factor`, `simulate_policy`, `get_sources`.
+    - It streams, cites fact ids, and can only state facts that tools returned.
+    - It is *not* trained on the data; it reads the data live. (M2)
+24. Policy levers (ADU reform first, labeled pending) + affordability gap + subsidy matches (M3)
+25. Integration: merge the lanes, deploy to Vercel, end-to-end checks at M2 and M3 (M2/M3)
+
+## F1: Frontend, Map (`lane:map`)
+26. Map shell: MapLibre 6 + OpenFreeMap Positron, ClientOnly/lazy (M1)
+27. Layers from the manifest + combined legend and layer list (hazards hatched, redlining toggle) (M2)
+28. Pick-a-place: ⌘K search (address/ZIP/neighborhood) + tap to select (M2)
+29. GPU recolor when the household or weights change; state in the URL (M2)
+30. Companion → map actions (fly, highlight, filter) + commute arcs to job centers (M3)
+31. Mobile bottom sheet + ranked list view; 3D massing preview (stretch) (M3)
+
+## F2: Frontend, Experience (`lane:experience`)
+32. Household picker (10 personas + optional workplace) (M2)
+33. Scenario cards: fit + Jev confidence, top tradeoffs, benefits/harms, legal status, red flags; compare and pin (M2)
+34. Companion chat panel: streaming, fact chips, Evidence/Assumption/Value tags, suggested questions, glossary (M2)
+35. Site report + next steps (zoning path, variance odds, Land Bank, RCO contacts) + policy simulation UI (M3)
+36. Landing + methodology page ("what this tool gets wrong") + community brief print (M3)
+37. Demo video (3–5 min; start with the hackathon name + team; be honest about what's real) + submission form (M4)
