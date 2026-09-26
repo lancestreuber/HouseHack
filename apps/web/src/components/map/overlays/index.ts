@@ -21,6 +21,7 @@ import { commerceDensityOverlay } from "./commerce-density";
 import { parksOverlay, trailsOverlay } from "./parks";
 import { AMENITY_OVERLAYS, PLACE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
+import { schoolQualityOverlay } from "./school-quality";
 import { sewerLinesOverlay } from "./sewer-lines";
 import { slopeOverlay } from "./slope";
 import { mineSubsidenceOverlay, minedOutAreasOverlay, tornadoPathsOverlay } from "./tornadoes-mines";
@@ -56,6 +57,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   sewerLinesOverlay,
   transitStopsOverlay,
   ...PLACE_OVERLAYS,
+  schoolQualityOverlay,
   subsidizedHousingOverlay,
   parksOverlay,
   trailsOverlay,

@@ -17,11 +17,12 @@ import { buildMarket } from "./market";
 import { buildParks } from "./parks";
 import { buildPlaces } from "./places";
 import { buildSafety } from "./safety";
+import { buildSchoolQuality } from "./school-quality";
 import { buildSubsidizedHousing } from "./subsidized-housing";
 import { buildTornadoesAndMines } from "./tornadoes-mines";
 import { buildTransitStops } from "./transit-stops";
 import { buildWeatherRisk } from "./weather-risk";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity, buildSchoolQuality]) {
   await build();
 }
