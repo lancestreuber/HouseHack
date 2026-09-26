@@ -1,6 +1,6 @@
 import type { OverlayState } from "./overlay-controller";
 import { selectedMetric } from "./overlay-controller";
-import { HAZARD_OVERLAYS, HEAT_OVERLAYS, INFRA_OVERLAYS } from "./overlays";
+import { HEAT_OVERLAYS, overlaysInGroup, STACKABLE_GROUPS } from "./overlays";
 import type { LegendItem, OverlayDefinition } from "./overlays/types";
 
 const EVIDENCE_LABEL = {
@@ -161,22 +161,17 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
         </div>
       ))}
 
-      <StackableSection
-        title="Hazards"
-        overlays={HAZARD_OVERLAYS}
-        state={state}
-        toggle={toggleStackable}
-        zoom={zoom}
-        loadingIds={loadingIds}
-      />
-      <StackableSection
-        title="Infrastructure"
-        overlays={INFRA_OVERLAYS}
-        state={state}
-        toggle={toggleStackable}
-        zoom={zoom}
-        loadingIds={loadingIds}
-      />
+      {STACKABLE_GROUPS.map(({ group, title }) => (
+        <StackableSection
+          key={group}
+          title={title}
+          overlays={overlaysInGroup(group)}
+          state={state}
+          toggle={toggleStackable}
+          zoom={zoom}
+          loadingIds={loadingIds}
+        />
+      ))}
     </div>
   );
 }

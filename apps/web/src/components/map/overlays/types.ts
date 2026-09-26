@@ -5,7 +5,8 @@ import type { AddLayerObject, LngLatBounds } from "maplibre-gl";
 //   so colors never mix.
 // - "hazard": mapped hazard areas (flood zones, ...), stackable.
 // - "infrastructure": points/lines that can be stacked on top of anything.
-export type OverlayGroup = "heat" | "hazard" | "infrastructure";
+// - "places": points of interest (hospitals, schools, parks, shops, ...), stackable.
+export type OverlayGroup = "heat" | "hazard" | "infrastructure" | "places";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.

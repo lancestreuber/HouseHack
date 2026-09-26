@@ -9,6 +9,7 @@ import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./landslides";
 import { leadServiceLinesOverlay } from "./lead-service-lines";
+import { PLACE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { sewerLinesOverlay } from "./sewer-lines";
 import { slopeOverlay } from "./slope";
@@ -30,11 +31,18 @@ export const OVERLAYS: OverlayDefinition[] = [
   leadServiceLinesOverlay,
   sewerLinesOverlay,
   transitStopsOverlay,
+  ...PLACE_OVERLAYS,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
-export const HAZARD_OVERLAYS = OVERLAYS.filter((o) => o.group === "hazard");
-export const INFRA_OVERLAYS = OVERLAYS.filter((o) => o.group === "infrastructure");
+
+// Stackable (checkbox) sections of the layers panel, in display order.
+export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: string }[] = [
+  { group: "hazard", title: "Hazards" },
+  { group: "infrastructure", title: "Infrastructure" },
+  { group: "places", title: "Places" },
+];
+export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 
 // Every normalized indicator the registry offers, for future composite scores
 // (e.g. an "infrastructure quality" heatmap built from sewers, lead, transit...).
