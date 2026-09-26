@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.6",
+  "version": "2026-09-26.7",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -651,14 +651,17 @@
       "geography": "parcel",
       "source": {
         "kind": "nearest",
-        "file": "public/data/overlays/places-groceries.geojson"
+        "file": "scripts/pillars/inputs/allegheny_food_retail_merged.csv",
+        "where": {
+          "tier": "full_grocery"
+        }
       },
       "normalize": {
         "method": "linear",
         "zero": 2400,
         "full": 400
       },
-      "rationale": "Walk Score decay: full credit within 400 m, none beyond 2.4 km (about 30 minutes' walk). Straight-line distance.",
+      "rationale": "Full-service groceries from USDA SNAP retailers + ACHD food permits (deduped, tier full_grocery). Walk Score decay: full credit within 400 m, none beyond 2.4 km. Straight-line distance.",
       "unit": "m"
     },
     {
@@ -670,14 +673,18 @@
       "geography": "parcel",
       "source": {
         "kind": "nearest",
-        "file": "public/data/overlays/places-pharmacies.geojson"
+        "file": "scripts/pillars/inputs/allegheny_pharmacies_nppes_2026.csv",
+        "where": {
+          "kind": "retail"
+        }
       },
       "normalize": {
         "method": "linear",
         "zero": 2400,
         "full": 400
       },
-      "unit": "m"
+      "unit": "m",
+      "rationale": "Retail pharmacies from the CMS NPPES registry (2026), with closed Rite Aid stores removed."
     },
     {
       "id": "access_school",
@@ -722,12 +729,13 @@
       "pillar": "access",
       "weight": 1,
       "evidence": "observed",
-      "label": "Distance to nearest health center or hospital",
+      "label": "Distance to nearest health center, clinic or hospital",
       "geography": "parcel",
       "source": {
         "kind": "nearest",
         "file": [
-          "public/data/overlays/places-health-centers.geojson",
+          "scripts/pillars/inputs/allegheny_fqhc_sites_hrsa.csv",
+          "scripts/pillars/inputs/allegheny_clinics_nppes_2026.csv",
           "public/data/overlays/places-hospitals.geojson"
         ]
       },
@@ -736,7 +744,8 @@
         "zero": 4800,
         "full": 800
       },
-      "unit": "m"
+      "unit": "m",
+      "rationale": "HRSA health-center sites, NPPES urgent-care/primary-care/community clinics, and hospitals."
     },
     {
       "id": "access_child_care",

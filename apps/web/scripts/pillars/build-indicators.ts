@@ -160,7 +160,12 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
     }
     case "nearest": {
       const pts = [];
-      for (const file of files)
+      for (const file of files) {
+        if (file.endsWith(".csv")) {
+          for (const r of parseCSV(await Bun.file(`${ROOT}${file}`).text()))
+            if (matches(r, where) && num(r.lat) != null && num(r.lon) != null) pts.push({ x: Number(r.lon), y: Number(r.lat), value: null });
+          continue;
+        }
         for (const f of await features(file)) {
           if (!f.geometry || !matches(f.properties, where)) continue;
           if (f.geometry.type === "Point") {
@@ -168,6 +173,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
             pts.push({ x, y, value: null });
           } else for (const poly of polygonsOf(f.geometry)) for (const [x, y] of poly[0]) pts.push({ x, y, value: null });
         }
+      }
       const index = pointIndex(pts);
       return { raw: spine.map((p) => index.nearest(p.x, p.y)?.distance ?? 10_000), units: null };
     }
