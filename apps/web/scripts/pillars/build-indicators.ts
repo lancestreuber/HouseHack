@@ -139,7 +139,7 @@ const spine = parcels.map((f) => {
   const ring = polys[0][0];
   const x = c?.x ?? ring.reduce((a, p) => a + p[0], 0) / ring.length;
   const y = c?.y ?? ring.reduce((a, p) => a + p[1], 0) / ring.length;
-  return { pin, zoning: (f.properties.zon_new as string) ?? "", polys, x, y, tract: c?.tract ?? null, bg: c?.bg ?? null, zip: zipLookup(x, y) ?? null };
+  return { pin, props: f.properties, zoning: (f.properties.zon_new as string) ?? "", polys, x, y, tract: c?.tract ?? null, bg: c?.bg ?? null, zip: zipLookup(x, y) ?? null };
 });
 console.timeEnd("load parcels");
 console.log(`${rawParcels.length} features → ${spine.length} unique parcels; ${spine.filter((p) => p.tract).length} matched to census geography`);
@@ -177,7 +177,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       const lookup = polygonLookup(feats.map((f) => ({ value: true, geometry: f.geometry })));
       return {
         raw: spine.map((p) => {
-          const pts = samplePoints(p.polys, [p.x, p.y]);
+          const pts = samplePoints(p.polys, [p.x, p.y], 6);
           return pts.filter(([x, y]) => lookup(x, y)).length / pts.length;
         }),
         units: null,
@@ -257,6 +257,32 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
         units: null,
       };
     }
+    case "parcel_attr":
+      return { raw: spine.map((p) => num(p.props[src.property as string])), units: null };
+    case "parcel_use": {
+      // Categorical code for parcels that aren't development sites, from the
+      // assessor land-use description plus overlap with mapped parks.
+      const rules = src.rules as { code: number; usedesc?: string[]; usedesc_prefix?: string[]; overlap?: { file: string; min: number } }[];
+      const overlapLookups = new Map<string, (x: number, y: number) => true | undefined>();
+      for (const r of rules)
+        if (r.overlap && !overlapLookups.has(r.overlap.file))
+          overlapLookups.set(r.overlap.file, polygonLookup((await features(r.overlap.file)).map((f) => ({ value: true as const, geometry: f.geometry }))));
+      return {
+        raw: spine.map((p) => {
+          const use = String(p.props.usedesc ?? "");
+          for (const r of rules) {
+            if (r.usedesc?.includes(use) || r.usedesc_prefix?.some((pre) => use.startsWith(pre))) return r.code;
+            if (r.overlap) {
+              const lookup = overlapLookups.get(r.overlap.file)!;
+              const pts = samplePoints(p.polys, [p.x, p.y], 4);
+              if (pts.filter(([x, y]) => lookup(x, y)).length / pts.length >= r.overlap.min) return r.code;
+            }
+          }
+          return 0;
+        }),
+        units: null,
+      };
+    }
     case "legal_pathway": {
       // Easiest pathway among the configured housing types for the parcel's
       // district; "not permitted" parcels within border_m of a district that
@@ -274,11 +300,15 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
         const ranked = paths.filter((p) => rank(p) >= 0).sort((a, b) => rank(a) - rank(b));
         best.set(district, ranked[0] ?? paths.find((p) => p === "per_plan" || p === "not_city_jurisdiction") ?? "unknown");
       }
+      // Border exception only counts districts that allow attached or multi-unit
+      // homes by right or with ZA approval (not P, H or EMI, which allow only a detached house).
+      const borderTypes = (legal as { border_types?: string[] }).border_types ?? legal.typologies;
+      const bordersHousing = (district: string) =>
+        borderTypes.some((t) => ["by_right", "za"].includes(matrix.districts[district]?.[t] ?? ""));
       const zoning = await features(src.zoning as string);
       const allowed = [];
       for (const f of zoning) {
-        const b = best.get(String(f.properties.zon_new));
-        if (b !== "by_right" && b !== "za") continue;
+        if (!bordersHousing(String(f.properties.zon_new))) continue;
         for (const poly of polygonsOf(f.geometry))
           for (const ring of poly)
             for (let k = 1; k < ring.length; k++) {
@@ -292,7 +322,8 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       return {
         raw: spine.map((p) => {
           const b = best.get(p.zoning);
-          if (!b || b === "unknown") return null;
+          if (!b || b === "unknown") return levelCode.unknown ?? null;
+          if (b === "za" && p.zoning === "H") return levelCode.za_hillside;
           if (b !== "not_permitted") return levelCode[b] ?? null;
           const near = p.polys.some((poly) => poly[0].some(([x, y]) => index.nearest(x, y, legal.border_m) != null));
           return near ? levelCode.not_permitted_border : levelCode.not_permitted;

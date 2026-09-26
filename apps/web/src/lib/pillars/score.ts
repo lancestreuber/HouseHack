@@ -34,6 +34,8 @@ export type PillarScore = {
 };
 
 export type LegalStatus = { code: number; id: string; label: string; multiplier: number; note?: string };
+// Same shape for "is this even a development site?" (parks, rail, condo units...).
+export type AvailabilityStatus = LegalStatus;
 
 export type ParcelScore = {
   pillars: Record<PillarId, PillarScore>;
@@ -41,11 +43,25 @@ export type ParcelScore = {
   overall: number | null;
   overallBeforeLegal: number | null;
   legal: LegalStatus | null;
+  availability: AvailabilityStatus | null;
 };
 
 export type LegalOverrides = Record<string, number>;
 
-type Gate = { indicator: string; below: number; cap: number; flag: string };
+// A gate fires when every condition holds. It caps the pillar score (cap 100 =
+// flag only). The single-indicator form { indicator, below } is shorthand.
+type Condition = { indicator: string; below?: number; atLeast?: number; equals?: number; notEquals?: number };
+type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; flag: string };
+
+function conditionHolds(values: IndicatorValues, c: Condition) {
+  const v = values[c.indicator];
+  if (v == null) return false;
+  if (c.below != null && !(v < c.below)) return false;
+  if (c.atLeast != null && !(v >= c.atLeast)) return false;
+  if (c.equals != null && v !== c.equals) return false;
+  if (c.notEquals != null && v === c.notEquals) return false;
+  return true;
+}
 type SubDef = { id: string; weight: number };
 
 export const PILLAR_IDS = config.pillars.map((p) => p.id) as PillarId[];
@@ -92,8 +108,8 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
 
     const flags: string[] = [];
     for (const gate of (pillar as { gates?: Gate[] }).gates ?? []) {
-      const value = values[gate.indicator];
-      if (value != null && value < gate.below) {
+      const when = gate.when ?? [{ indicator: gate.indicator as string, below: gate.below }];
+      if (when.every((c) => conditionHolds(values, c))) {
         flags.push(gate.flag);
         if (score != null) score = Math.min(score, gate.cap);
       }
@@ -114,18 +130,25 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
 
   const overallBeforeLegal = overallScore(pillars, overrides, cfg);
   const legal = legalStatus(values, overrides, cfg);
-  const overall = overallBeforeLegal == null ? null : overallBeforeLegal * (legal?.multiplier ?? 1);
-  return { pillars, overall, overallBeforeLegal, legal };
+  const availability = levelStatus(cfg.availability, values, overrides.legal);
+  const overall = overallBeforeLegal == null ? null : overallBeforeLegal * (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
+  return { pillars, overall, overallBeforeLegal, legal, availability };
+}
+
+type LevelBlock = { indicator: string; levels: { code: number; id: string; label: string; multiplier: number; note?: string }[] };
+
+function levelStatus(block: LevelBlock, values: IndicatorValues, overrides: Record<string, number> = {}): LegalStatus | null {
+  const code = values[block.indicator];
+  if (code == null) return null;
+  const level = block.levels.find((l) => l.code === code);
+  if (!level) return null;
+  return { code: level.code, id: level.id, label: level.label, multiplier: overrides[level.id] ?? level.multiplier, note: level.note };
 }
 
 // Zoning legality multiplies the overall score rather than being averaged in,
 // so a parcel where housing isn't permitted can't be rescued by good access.
 export function legalStatus(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): LegalStatus | null {
-  const code = values[cfg.legal.indicator];
-  if (code == null) return null;
-  const level = cfg.legal.levels.find((l) => l.code === code);
-  if (!level) return null;
-  return { code: level.code, id: level.id, label: level.label, multiplier: overrides.legal?.[level.id] ?? level.multiplier, note: (level as { note?: string }).note };
+  return levelStatus(cfg.legal as LevelBlock, values, overrides.legal);
 }
 
 // Combines the pillars. Arithmetic lets a strong pillar offset a weak one;
@@ -134,22 +157,18 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
   const method = overrides.overall ?? cfg.overall.method;
   let weightSum = 0;
   let acc = 0;
-  let missing = false;
   for (const pillar of cfg.pillars) {
     const id = pillar.id as PillarId;
     const weight = overrides.pillars?.[id] ?? pillar.weight;
     const score = pillars[id].score;
     if (weight <= 0) continue;
-    if (score == null) {
-      missing = true;
-      continue;
-    }
+    const impute = (cfg.overall as { missing_pillar?: { impute: number } }).missing_pillar?.impute;
+    if (score == null && impute == null) continue;
+    const value = score ?? (impute as number);
     weightSum += weight;
-    acc += method === "geometric" ? weight * Math.log(Math.max(score, cfg.overall.floor ?? 1)) : weight * score;
+    acc += method === "geometric" ? weight * Math.log(Math.max(value, cfg.overall.floor ?? 1)) : weight * value;
   }
   if (weightSum === 0) return null;
-  // Without every weighted pillar, the blend over-rewards whatever is left.
-  if ((cfg.overall as { require_all_pillars?: boolean }).require_all_pillars && missing) return null;
   return method === "geometric" ? Math.exp(acc / weightSum) : acc / weightSum;
 }
 

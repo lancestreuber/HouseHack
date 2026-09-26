@@ -5,6 +5,7 @@
 //   bun scripts/pillars/explain-parcel.ts 0027C00049000B00 [more pins...]
 
 import config from "../../src/lib/pillars/pillars.config.json";
+import { phraseFor } from "../../src/lib/pillars/phrases";
 import { PILLAR_IDS, scoreParcel } from "../../src/lib/pillars/score";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -23,8 +24,6 @@ const parcels = (await Bun.file(`${ROOT}.cache/pillars/parcels.geojson`).json())
   features: { properties: Record<string, unknown> }[];
 };
 const meta = new Map(parcels.features.map((f) => [f.properties.pin as string, f.properties]));
-const phrases = config.phrases as Record<string, { min: number; text: string }[]>;
-const phrase = (key: string, s: number | null) => (s == null ? "" : (phrases[key]?.find((b) => s >= b.min)?.text ?? ""));
 const f1 = (v: number | null | undefined) => (v == null ? "—" : v.toFixed(1));
 
 for (const pin of process.argv.slice(2)) {
@@ -46,13 +45,13 @@ for (const pin of process.argv.slice(2)) {
   const s = scoreParcel(norm);
   const m = meta.get(pin) ?? {};
   console.log(`\n=== ${pin} · ${m.hood ?? "?"} · zoning ${row[0]} · ${m.classdesc ?? ""} / ${m.usedesc ?? ""} · vacant=${m.Vacant ?? "?"} · owner=${m.OwnerCateg ?? "?"} · lot ${Math.round(Number(m.Shape__Area) || 0)} sq ft`);
-  console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1})`);
-  console.log(`Overall ${f1(s.overall)} (before legal ${f1(s.overallBeforeLegal)}), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${phrase("overall", rank("overall", s.overall))}`);
+  console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1}) · Availability: ${s.availability?.label ?? "?"} (×${s.availability?.multiplier ?? 1})`);
+  console.log(`Overall ${f1(s.overall)} (before legal ${f1(s.overallBeforeLegal)}), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${phraseFor("overall", rank("overall", s.overall)) ?? ""}`);
   for (const p of PILLAR_IDS) {
     const ps = s.pillars[p];
     const def = config.pillars.find((x) => x.id === p)!;
-    console.log(`\n  ${def.label}: ${f1(ps.score)} (p${rank(p, ps.score) ?? "?"}) — ${phrase(p, ps.score)}${ps.flags.length ? ` [${ps.flags.join("; ")}]` : ""}`);
-    for (const sub of ps.subscores) console.log(`    sub ${sub.id}: ${f1(sub.score)} — ${phrase(sub.id, sub.score)}`);
+    console.log(`\n  ${def.label}: ${f1(ps.score)} (p${rank(p, ps.score) ?? "?"}) — ${phraseFor(p, ps.score, norm) ?? ""}${ps.flags.length ? ` [${ps.flags.join("; ")}]` : ""}`);
+    for (const sub of ps.subscores) console.log(`    sub ${sub.id}: ${f1(sub.score)} — ${phraseFor(sub.id, sub.score, norm) ?? ""}`);
     const shares = new Map(ps.contributions.map((c) => [c.indicator, c.share]));
     for (const ind of config.indicators.filter((i) => i.pillar === p)) {
       const sub = (ind as { sub?: string }).sub;

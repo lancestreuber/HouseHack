@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.14",
+  "version": "2026-09-26.16",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -15,7 +15,10 @@
     ],
     "floor": 1,
     "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle.",
-    "require_all_pillars": true
+    "missing_pillar": {
+      "impute": 50,
+      "rationale": "A pillar without enough data counts as a neutral 50 in the overall blend and is flagged, instead of being dropped (which over-rewarded the remaining pillars) or blanking the overall score."
+    }
   },
   "pillars": [
     {
@@ -39,10 +42,102 @@
       "description": "Can this lot physically take new housing? Flooding, steep slopes, landslides, undermining and known lead service lines score low. Zoning legality is applied per housing type, not averaged in.",
       "gates": [
         {
-          "indicator": "site_floodway_share",
-          "below": 100,
-          "cap": 20,
+          "when": [
+            {
+              "indicator": "site_floodway_share",
+              "below": 51
+            }
+          ],
+          "cap": 5,
+          "flag": "Half or more of the lot is in the FEMA regulatory floodway"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_floodway_share",
+              "below": 100
+            }
+          ],
+          "cap": 40,
           "flag": "Part of the lot is in the FEMA regulatory floodway"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_sfha_share",
+              "below": 51
+            }
+          ],
+          "cap": 50,
+          "flag": "Half or more of the lot is in the 100-year floodplain (City floodplain overlay applies)"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_steep_slope_share",
+              "below": 26
+            }
+          ],
+          "cap": 50,
+          "flag": "Most of the lot is 25%+ slope (steep-slope overlay: Planning Commission review)"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_landslide_prone_share",
+              "below": 51
+            }
+          ],
+          "cap": 55,
+          "flag": "Half or more of the lot is landslide-prone (geotechnical study required)"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_steep_slope_share",
+              "below": 51
+            },
+            {
+              "indicator": "site_landslide_prone_share",
+              "below": 51
+            }
+          ],
+          "cap": 45,
+          "flag": "Steep and landslide-prone"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_undermined_share",
+              "below": 51
+            }
+          ],
+          "cap": 100,
+          "flag": "Over mapped mines: multi-unit needs a mine investigation first"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_lead_line",
+              "below": 50
+            }
+          ],
+          "cap": 100,
+          "flag": "Known lead or galvanized service line on this address"
+        },
+        {
+          "when": [
+            {
+              "indicator": "site_lot_area",
+              "below": 100
+            },
+            {
+              "indicator": "site_parcel_use",
+              "notEquals": 3
+            }
+          ],
+          "cap": 30,
+          "flag": "Sliver lot under 600 sq ft"
         }
       ]
     },
@@ -391,13 +486,16 @@
       "pillar": "site",
       "weight": 1,
       "evidence": "observed",
-      "label": "Share of lot on a mapped recent landslide deposit (county)",
+      "label": "Share of lot on mapped landslide deposits (county: recent, old or red-bed)",
       "geography": "parcel",
       "source": {
         "kind": "overlap",
         "file": "public/data/overlays/landslide-susceptibility.geojson",
         "where": {
-          "class": "recent"
+          "class": [
+            "recent",
+            "old_or_redbed"
+          ]
         }
       },
       "normalize": {
@@ -405,13 +503,13 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "County susceptibility mapping; complements the City overlay.",
+      "rationale": "County susceptibility mapping. 'Recent' alone covered 0.2% of parcels and none of the City's incident points; adding old and red-bed deposits covers half of them (round-1 review).",
       "unit": "share"
     },
     {
       "id": "site_undermined_share",
       "pillar": "site",
-      "weight": 2,
+      "weight": 1,
       "evidence": "observed",
       "label": "Share of lot over mapped mines (City undermined area)",
       "geography": "parcel",
@@ -430,7 +528,7 @@
     {
       "id": "site_lead_line",
       "pillar": "site",
-      "weight": 1,
+      "weight": 0,
       "evidence": "observed",
       "label": "Known lead or galvanized service line at this address",
       "geography": "address",
@@ -447,7 +545,7 @@
       "normalize": {
         "method": "identity"
       },
-      "rationale": "Replacement adds cost. Unknown or unmatched addresses are missing, not 'no lead'.",
+      "rationale": "Flag only (weight 0): the data has only lead/galvanized/unknown records, so it could only subtract, and it describes the existing house's line, not new construction.",
       "unit": "score"
     },
     {
@@ -486,6 +584,78 @@
         "method": "identity"
       },
       "rationale": "Not averaged into Site Feasibility. It multiplies the overall score instead (see the legal block in this file)."
+    },
+    {
+      "id": "site_parcel_use",
+      "pillar": "site",
+      "weight": 0,
+      "evidence": "observed",
+      "unit": "use",
+      "label": "Is this parcel a development site?",
+      "geography": "parcel",
+      "source": {
+        "kind": "parcel_use",
+        "rules": [
+          {
+            "code": 1,
+            "usedesc": [
+              "PUBLIC PARK",
+              "CEMETERY/MONUMENTS"
+            ]
+          },
+          {
+            "code": 2,
+            "usedesc": [
+              "R.R. - USED IN OPERATION"
+            ]
+          },
+          {
+            "code": 4,
+            "usedesc_prefix": [
+              "RIGHT OF WAY"
+            ]
+          },
+          {
+            "code": 3,
+            "usedesc": [
+              "CONDOMINIUM",
+              "CONDOMINIUM UNIT",
+              "CONDO GARAGE UNITS",
+              "CONDOMINIUM COMMON PROPERTY"
+            ]
+          },
+          {
+            "code": 1,
+            "overlap": {
+              "file": "public/data/overlays/parks.geojson",
+              "min": 0.5
+            }
+          }
+        ]
+      },
+      "normalize": {
+        "method": "identity"
+      },
+      "rationale": "Not averaged. It multiplies the overall score (see the availability block). From the County assessor land-use description and overlap with mapped parks."
+    },
+    {
+      "id": "site_lot_area",
+      "pillar": "site",
+      "weight": 0,
+      "evidence": "observed",
+      "unit": "sqft_score",
+      "label": "Lot area (for the sliver-lot check)",
+      "geography": "parcel",
+      "source": {
+        "kind": "parcel_attr",
+        "property": "Shape__Area"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 0,
+        "full": 600
+      },
+      "rationale": "Not averaged. Lots under 600 sq ft (slivers) cap Site Feasibility at 30 unless they are condo units."
     },
     {
       "id": "afford_lowinc_renter_burden",
@@ -1272,7 +1442,9 @@
     "jobs": "jobs",
     "class": "class rank (10 = A)",
     "score": "0 = lead, 40 = galvanized",
-    "count": "count"
+    "count": "count",
+    "use": "parcel use category",
+    "sqft_score": "0–100 = 0–600 sq ft"
   },
   "legal": {
     "indicator": "site_legal_pathway",
@@ -1284,7 +1456,7 @@
       "three_unit",
       "multi_unit"
     ],
-    "border_m": 100,
+    "border_m": 30,
     "description": "Whether current zoning lets you build the brief's mainstream housing types (detached, townhouse, two-unit, three-unit, multi-unit) on this parcel. The overall score is multiplied by the factor for the easiest legal pathway among them. Legality is read from the City use table (§911.02), not estimated.",
     "levels": [
       {
@@ -1315,9 +1487,9 @@
       {
         "code": 4,
         "id": "not_permitted_border",
-        "label": "Housing not permitted, but the parcel borders a district that allows it",
-        "multiplier": 0.5,
-        "note": "Exceptions happen at district edges: a use variance (73% approved, n=30) or a map amendment extending the neighboring district (Council adopted all 42 rezonings since 2015). Still a long, uncertain process."
+        "label": "Housing not permitted, but the parcel touches a district that allows attached or multi-unit homes",
+        "multiplier": 0.35,
+        "note": "Exceptions happen at district edges (a use variance or a map amendment extending the neighboring district), but few housing use variances are in districts that don't allow housing, and rezoning counts include only items that reached a vote."
       },
       {
         "code": 5,
@@ -1337,9 +1509,27 @@
         "id": "not_city_jurisdiction",
         "label": "Outside City zoning jurisdiction (Mount Oliver Borough)",
         "multiplier": 1.0
+      },
+      {
+        "code": 8,
+        "id": "unknown",
+        "label": "Zoning district not in our use table: verify with the Zoning Administrator",
+        "multiplier": 0.8
+      },
+      {
+        "code": 9,
+        "id": "za_hillside",
+        "label": "Hillside (H) district: detached house only, with ZA approval and Site Plan Review",
+        "multiplier": 0.85
       }
     ],
-    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5). Approval-path multipliers were softened in round 1 (ZA 0.98, special exception 0.94, conditional use 0.92, planned 0.96) because the pillar blend is compressed: ×0.85 was costing a median 39 percentile points for a path approved 90% of the time."
+    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5). Approval-path multipliers were softened in round 1 (ZA 0.98, special exception 0.94, conditional use 0.92, planned 0.96) because the pillar blend is compressed: ×0.85 was costing a median 39 percentile points for a path approved 90% of the time.",
+    "border_types": [
+      "single_attached",
+      "two_unit",
+      "three_unit",
+      "multi_unit"
+    ]
   },
   "phrases": {
     "overall": [
@@ -1523,5 +1713,58 @@
       }
     ]
   },
-  "phrases_note": "The overall phrase uses the parcel's City percentile rank at default weights; pillar and sub-score phrases use the 0–100 score."
+  "phrases_note": "The overall phrase uses the parcel's City percentile rank at default weights; pillar and sub-score phrases use the 0–100 score.",
+  "availability": {
+    "indicator": "site_parcel_use",
+    "description": "Some parcels aren't development sites no matter what zoning allows: parks, cemeteries, active rail and rights-of-way. Condo units are part of an existing building. The overall score is multiplied by the factor below.",
+    "levels": [
+      {
+        "code": 0,
+        "id": "site",
+        "label": "A potential development site",
+        "multiplier": 1.0
+      },
+      {
+        "code": 1,
+        "id": "park_cemetery",
+        "label": "Park or cemetery: not an available site",
+        "multiplier": 0.05,
+        "note": "Converting parkland needs court approval (PA Donated or Dedicated Property Act); cemeteries are effectively permanent."
+      },
+      {
+        "code": 2,
+        "id": "active_rail",
+        "label": "Active railroad: not an available site",
+        "multiplier": 0.05
+      },
+      {
+        "code": 3,
+        "id": "condo_unit",
+        "label": "Unit in an existing condominium building",
+        "multiplier": 0.5,
+        "note": "Scores describe the building's location. Building new housing here would mean redeveloping the whole building lot. (Simplification: the review recommends scoring at the building lot.)"
+      },
+      {
+        "code": 4,
+        "id": "right_of_way",
+        "label": "Right-of-way: not an available site",
+        "multiplier": 0.05
+      }
+    ],
+    "rationale": "Round-1 site review: Frick Park, Homewood Cemetery and active rail parcels were ranking as good places to build because §911.02 allows a detached house in the P district. Multipliers are value judgments."
+  },
+  "phrase_guards": {
+    "site": {
+      "top_band_requires": {
+        "indicators": [
+          "site_steep_slope_share",
+          "site_landslide_prone_share",
+          "site_sfha_share",
+          "site_undermined_share",
+          "site_floodway_share"
+        ],
+        "min": 75
+      }
+    }
+  }
 }

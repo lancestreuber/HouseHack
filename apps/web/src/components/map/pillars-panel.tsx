@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
+import { phraseFor } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
 
 type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
@@ -111,6 +112,10 @@ function formatRaw(value: number | null, unit: string | undefined) {
       return `${value.toLocaleString()} t/yr`;
     case "per100":
       return `${value} per 100`;
+    case "use":
+      return config.availability.levels.find((l) => l.code === value)?.label ?? "unknown";
+    case "sqft_score":
+      return `${Math.round(value).toLocaleString()} sq ft`;
     case "pathway":
       return config.legal.levels.find((l) => l.code === value)?.label ?? "unknown";
     case "ratio":
@@ -141,11 +146,6 @@ function ScoreBar({ score }: { score: number | null }) {
   );
 }
 
-function phrase(key: string, score: number | null) {
-  if (score == null) return null;
-  const bands = (config.phrases as Record<string, { min: number; text: string }[]>)[key];
-  return bands?.find((b) => score >= b.min)?.text ?? null;
-}
 
 const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
 
@@ -157,7 +157,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
     <li className="border-t border-border/40 py-1">
       <button type="button" onClick={() => setOpen((v) => !v)} className="grid w-full grid-cols-[1fr_auto] gap-x-2 text-left">
         <span className={ind.weight === 0 ? "text-muted-foreground" : ""}>{ind.label}</span>
-        <span className="tabular-nums">{norm == null || ind.unit === "pathway" ? "—" : norm}</span>
+        <span className="tabular-nums">{norm == null || ind.unit === "pathway" || ind.unit === "use" ? "—" : norm}</span>
         <span className="text-muted-foreground">{formatRaw(data.raw[ind.id], ind.unit)}</span>
         <span className="text-muted-foreground tabular-nums">
           {ind.weight === 0 ? "context" : contribution != null ? `+${contribution.toFixed(1)} pts` : "excluded"}
@@ -218,7 +218,7 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
           </span>
         </div>
         <ScoreBar score={score.score} />
-        {phrase(id, score.score) && <p className="text-foreground/90">{phrase(id, score.score)}</p>}
+        {phraseFor(id, score.score, data.norm) && <p className="text-foreground/90">{phraseFor(id, score.score, data.norm)}</p>}
         {percentileRank(data.quantiles?.[id], score.score) != null && (
           <p className="text-muted-foreground">Better than {percentileRank(data.quantiles?.[id], score.score)}% of City parcels</p>
         )}
@@ -256,7 +256,7 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
                       {g.label} <span className="tabular-nums">{fmtScore(sub?.score ?? null)}</span>
                       {sub?.score == null && <span className="text-muted-foreground"> (not enough data)</span>}
                     </p>
-                    {phrase(g.id, sub?.score ?? null) && <p className="text-foreground/90">{phrase(g.id, sub?.score ?? null)}</p>}
+                    {phraseFor(g.id, sub?.score ?? null, data.norm) && <p className="text-foreground/90">{phraseFor(g.id, sub?.score ?? null, data.norm)}</p>}
                   </>
                 )}
                 <div className="grid grid-cols-[1fr_auto] gap-x-2 text-muted-foreground">
@@ -309,22 +309,36 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
                 </span>
               </div>
               <ScoreBar score={result.overall} />
-              {result.overall == null && <p className="mt-1">Not enough data for an overall score (a pillar is missing).</p>}
+              {result.overall == null && <p className="mt-1">Not enough data for an overall score.</p>}
+              {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
+                <p className="mt-1 text-amber-400/90">
+                  Not enough data for {config.pillars.filter((p) => result.pillars[p.id as PillarId].score == null).map((p) => p.label).join(", ")};
+                  counted as a neutral 50.
+                </p>
+              )}
               {percentileRank(data.quantiles?.overall, result.overall) != null && (
                 <p className="mt-1">
                   Better than <span className="font-semibold">{percentileRank(data.quantiles?.overall, result.overall)}%</span> of City parcels
                   as a place to build (default weights).
                 </p>
               )}
-              {phrase("overall", percentileRank(data.quantiles?.overall, result.overall)) && (
-                <p className="mt-1">{phrase("overall", percentileRank(data.quantiles?.overall, result.overall))}</p>
+              {phraseFor("overall", percentileRank(data.quantiles?.overall, result.overall)) && (
+                <p className="mt-1">{phraseFor("overall", percentileRank(data.quantiles?.overall, result.overall))}</p>
               )}
               <p className="mt-1 text-muted-foreground">
                 Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeLegal)}), equal weights
-                {result.legal ? `, × ${result.legal.multiplier} for zoning` : ""}.
+                {result.legal ? `, × ${result.legal.multiplier} for zoning` : ""}
+                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
                 {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
             </section>
+            {result.availability && result.availability.multiplier < 1 && (
+              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
+                <p className="font-medium">{result.availability.label}</p>
+                <p className="text-muted-foreground">Overall score × {result.availability.multiplier}.</p>
+                {result.availability.note && <p className="text-muted-foreground">{result.availability.note}</p>}
+              </section>
+            )}
             <section
               className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
             >
