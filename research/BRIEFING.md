@@ -46,6 +46,14 @@ More framings and their evidence: [framings](knowledge/landscape/framings.md)
   - **Floodway:** no-rise analysis + DEP permit.
 
   → [re-read](sweeps/r5-ecode360-reread-ch906-914-915-922.md) · [saved code text](sources/)
+- **Undersized lots (§921.04, read on eCode360 in round 6):**
+  - **Single house:** a vacant lot below the district minimum can hold one house through an **Administrator Exception that the Zoning Administrator "shall approve"**, provided the lot is recorded or separately deeded and "in separate ownership from abutting lots".
+  - **Two or more units:** needs a ZBA special exception.
+  - ⚠ **Adjacent lots with the same owner:** the code gives no path when the owner also owns an abutting parcel. That is common for city, URA and Land Bank lots, so scoring needs an **owner-adjacency flag**.
+  - **Hillside (H) district:** 3,200 sf minimum, maximum disturbance 50% of the lot, and Site Plan Review.
+  - **Ch. 916:** steps down the height of multifamily and non-residential buildings within 100 ft of low-density residential. It does not apply to single-unit houses.
+
+  → [sweep](sweeps/r6-ch921-hillside-916.md) · [921 text](sources/ecode360-2026-09-26-pittsburgh-921-nonconformities.md)
 - **Overlay consequences, read on eCode360:**
   - Steep slope → Planning Commission review.
   - Undermined land → only single-unit homes, and only with more than 100 ft of rock or soil above the mine workings; anything else is prohibited until a site investigation clears it.

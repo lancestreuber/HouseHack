@@ -418,7 +418,7 @@ Cut lines are defined at hours 8, 12, 16, 18 and 20. All times are estimates.
 - **That our reading of the code is complete or current.**
   - Read on eCode360: §903.03, and SS-O/UM-O in Ch. 906.
   - Read on eCode360 in round 5: Ch. 914, 915 and 922, with §911.02 columns verified. Not read: Ch. 916 and the district chapters that may set PDP thresholds.
-  - Not read: Ch. 921 (nonconformities).
+  - Read in round 6: Ch. 921 (nonconformities) and Ch. 916. Not found: the Planning Commission's Hillside Development Standards and any "40% slope" rule.
   - Two pending bills would amend much of this.
 - **How often variances are granted, beyond one 2026 sample.** 90 decisions, about two-thirds coverage, withdrawals missing. About 1,000 older decisions on the Internet Archive are unpulled.
 - **Infrastructure capacity for any parcel.** Not found in public data.
