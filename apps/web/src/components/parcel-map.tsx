@@ -246,6 +246,12 @@ export function ParcelMap() {
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
   const [basemap, setBasemap] = useState<BasemapId>("carto");
+  const basemapRef = useRef(basemap);
+  basemapRef.current = basemap;
+  // OSM raster tiles have no vector building data to extrude, so 3D/tilt only
+  // makes sense on the CARTO style -- tilting a flat raster image just warps
+  // it into a distorted trapezoid with nothing "3D" to show for it.
+  const can3d = basemap === "carto";
   const { resolvedTheme } = useTheme();
   const isDark = resolvedTheme !== "light";
   const isDarkRef = useRef(isDark);
@@ -324,7 +330,7 @@ export function ParcelMap() {
       // Tilt into a 3D view when zoomed in close enough to see buildings, and
       // back out when zooming back out -- but not while spin mode is driving
       // the camera itself, or when 3D mode has been turned off entirely.
-      if (!spinningRef.current && threeDEnabledRef.current) {
+      if (!spinningRef.current && threeDEnabledRef.current && basemapRef.current === "carto") {
         const zoomedIn = map.getZoom() >= BUILDING_ZOOM_THRESHOLD;
         if (zoomedIn !== wasZoomedInRef.current) {
           wasZoomedInRef.current = zoomedIn;
@@ -333,11 +339,17 @@ export function ParcelMap() {
       }
     });
 
-    // Manually rotating/dragging is a clear signal to stop the automated spin.
-    // Only pan-drag, not rotate: MapLibre also fires "rotatestart" for our
-    // own programmatic setBearing calls in the spin loop below, which made
-    // spin mode cancel itself within a frame or two.
-    map.on("dragstart", () => setSpinning(false));
+    // Stop spin the instant the user touches the map -- not on "dragstart",
+    // which only fires after a movement threshold, during which the spin
+    // loop keeps changing bearing underneath the drag handler's own math
+    // (it converts pixel delta to lng/lat using the *current* bearing), so
+    // panning felt broken/unresponsive for that whole initial window.
+    // ("rotatestart" is deliberately not used here: MapLibre also fires it
+    // for our own programmatic setBearing calls in the spin loop, which
+    // made spin mode cancel itself within a frame or two of starting.)
+    const stopSpin = () => setSpinning(false);
+    map.on("mousedown", stopSpin);
+    map.on("touchstart", stopSpin);
 
     // Overlays (air quality, weather, lead, sewers, ...) come from the registry
     // in ./map/overlays. Re-applied after every style load, since a basemap
@@ -395,29 +407,32 @@ export function ParcelMap() {
   }, [basemap, isDark]);
 
   // Manual 3D toggle: shows/hides the building extrusions and snaps pitch to
-  // match, independent of the auto zoom-based tilt above.
+  // match, independent of the auto zoom-based tilt above. Also re-run when
+  // the basemap changes, so switching to OSM (no vector buildings) always
+  // flattens back out even if 3D mode is still "on".
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     if (map.getLayer(BUILDINGS_3D_LAYER_ID)) {
-      map.setLayoutProperty(BUILDINGS_3D_LAYER_ID, "visibility", threeDEnabled ? "visible" : "none");
+      map.setLayoutProperty(BUILDINGS_3D_LAYER_ID, "visibility", threeDEnabled && can3d ? "visible" : "none");
     }
-    if (!threeDEnabled) {
+    if (!threeDEnabled || !can3d) {
       wasZoomedInRef.current = false;
       map.easeTo({ pitch: 0, duration: 500 });
     } else if (map.getZoom() >= BUILDING_ZOOM_THRESHOLD) {
       wasZoomedInRef.current = true;
       map.easeTo({ pitch: TILTED_PITCH, duration: 500 });
     }
-  }, [threeDEnabled]);
+  }, [threeDEnabled, can3d]);
 
-  // Spin mode: continuously rotates the bearing around the current center,
-  // tilted so the (if zoomed in enough) extruded buildings actually orbit
-  // rather than just spinning flat.
+  // Spin mode: continuously rotates the bearing around the current center.
+  // Tilted so extruded buildings actually orbit rather than just spinning
+  // flat -- but only on CARTO; OSM has no buildings to show for it, and
+  // pitching a flat raster tile just warps it into a distorted trapezoid.
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !spinning) return;
-    map.easeTo({ pitch: TILTED_PITCH, duration: 500 });
+    if (can3d) map.easeTo({ pitch: TILTED_PITCH, duration: 500 });
     let frame: number;
     let last = performance.now();
     const tick = (now: number) => {
@@ -428,7 +443,7 @@ export function ParcelMap() {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [spinning]);
+  }, [spinning, can3d]);
 
   // Applied imperatively rather than via className on the container: React owns
   // the class attribute, so changing it would wipe the `maplibregl-map` (and
@@ -520,7 +535,9 @@ export function ParcelMap() {
                     <button
                       type="button"
                       onClick={() => setThreeDEnabled((v) => !v)}
-                      className={`border-l px-2 py-1 ${threeDEnabled ? "bg-foreground text-background" : ""}`}
+                      disabled={!can3d}
+                      title={can3d ? undefined : "3D buildings need the CARTO basemap"}
+                      className={`border-l px-2 py-1 disabled:opacity-40 ${threeDEnabled && can3d ? "bg-foreground text-background" : ""}`}
                     >
                       3D
                     </button>
