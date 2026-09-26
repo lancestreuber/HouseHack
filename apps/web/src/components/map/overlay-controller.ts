@@ -29,7 +29,8 @@ export function selectedMetric(def: OverlayDefinition, state: OverlayState): Ove
 // Area fills (heat, hazard) draw beneath the zoning/parcel layers so outlines
 // stay readable; infrastructure and places draw on top of everything.
 function beforeIdFor(map: MapLibreMap, def: OverlayDefinition, underLayerIds: string[]) {
-  if (def.group === "infrastructure" || def.group === "places") return undefined;
+  const onTop = def.group === "infrastructure" || def.group === "places";
+  if (onTop && !def.drawBelowOutlines) return undefined;
   return underLayerIds.find((id) => map.getLayer(id));
 }
 

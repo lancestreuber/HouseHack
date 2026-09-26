@@ -70,6 +70,9 @@ export type OverlayDefinition = {
   id: string;
   label: string;
   group: OverlayGroup;
+  // Draw beneath zoning/parcel outlines even if the group normally draws on top
+  // (e.g. park polygons in the "places" group).
+  drawBelowOutlines?: boolean;
   description: string;
   source: OverlaySource;
   metrics?: OverlayMetric[];
