@@ -1,4 +1,4 @@
-import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS } from "./legal-matrix.generated";
+import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS, ZBA_OUTCOMES } from "./legal-matrix.generated";
 import { matchColor, NO_DATA_COLOR } from "./styles";
 import type { OverlayDefinition, OverlayMetric } from "./types";
 
@@ -43,6 +43,28 @@ function pathwayFill(typology: string) {
     if (color) byZone[zone] = color;
   }
   return matchColor("zon_new", byZone, NO_DATA_COLOR);
+}
+
+// ZBA outcomes are keyed by base district: "R1D-L" -> "R1D", "UC-MU" -> "UC".
+const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
+// These bases pool subdistricts with different rules (e.g. RIV-GI bars housing,
+// RIV-MU allows apartments), so their counts would mislead. GT subdistricts
+// share rules, so GT is shown but labeled as pooled.
+const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
+const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Golden Triangle (GT-A…E) pooled" };
+
+function zbaLine(zone: string, typology: string) {
+  const base = zbaBase(zone);
+  if (ZBA_POOLED_SKIP.has(base)) return "";
+  const byType = ZBA_OUTCOMES[base];
+  const typed = byType?.[typology];
+  const all = byType?.ALL;
+  const fmt = (o: { n: number; approved: number }) => `${o.approved} of ${o.n} approved`;
+  // Counts cover any relief (setbacks, parking, use), not only permission for the use itself.
+  const where = ZBA_POOLED_LABEL[base] ?? base;
+  if (typed) return `Zoning Board cases 2023–26 for this type in ${where} (any relief sought): ${fmt(typed)}`;
+  if (all) return `Zoning Board cases 2023–26, all types in ${where} (any relief sought): ${fmt(all)}`;
+  return "";
 }
 
 // Unconfirmed readings and Mount Oliver are drawn fainter.
@@ -92,6 +114,7 @@ export const legalPathwayOverlay: OverlayDefinition = {
       info && info.clock !== "none" ? `Timeline: ${info.clock}` : "",
       info?.fee ? `Extra fee: $${info.fee}` : "",
       info ? `Code: ${info.section}${info.note ? ` · ${info.note}` : ""}` : "",
+      zbaLine(zone, metric.id),
       cell?.unconfirmed ? "⚠ Unconfirmed reading of the code" : "",
       cell ? cell.note : "",
     ].filter(Boolean);
@@ -108,6 +131,7 @@ export const legalPathwayOverlay: OverlayDefinition = {
     evidence: "policy",
     caveats: [
       "Working research, not legal advice.",
+      "Zoning Board counts cover posted decisions only (withdrawn cases have none), so approval rates skew high.",
       "Faint districts are unconfirmed readings (mostly SP-10 and the Grandview public-realm districts); the tooltip explains why.",
       "The use table is not the only gate: dimensional standards, overlays, Site Plan Review at 4+ units and historic review add steps.",
       "Housing for the elderly limited and general have different permissions; pick the one that matches the project size.",
@@ -334,3 +358,85 @@ export const councilActionsOverlay: OverlayDefinition = {
     ],
   },
 };
+
+const ZBA_OUTCOME_COLORS: Record<string, { color: string; label: string }> = {
+  approved: { color: "#4ade80", label: "Approved (incl. with conditions)" },
+  denied: { color: "#f43f5e", label: "Denied" },
+  split: { color: "#fbbf24", label: "Split decision" },
+};
+const RELIEF_LABELS: Record<string, string> = {
+  dimensional_variance: "dimensional variance",
+  use_variance: "use variance",
+  special_exception: "special exception",
+  nonconforming_review: "nonconforming-use review",
+  aapp_parking: "parking exception",
+};
+
+// One layer per scope, so housing cases show by default and the rest can be
+// switched on separately.
+function zbaOverlay(housing: boolean): OverlayDefinition {
+  const id = housing ? "zba-decisions-housing" : "zba-decisions-other";
+  return {
+    id,
+    label: housing ? "Zoning Board decisions: housing (2023–26)" : "Zoning Board decisions: other (2023–26)",
+    group: "legal",
+    description: housing
+      ? "Zoning Board of Adjustment decisions on residential cases, colored by outcome."
+      : "Zoning Board of Adjustment decisions on non-residential cases, colored by outcome.",
+    source: { kind: "static", url: "/data/overlays/zba-decisions.geojson" },
+    layers: (sourceId) => [
+      {
+        id: `${id}-dots`,
+        type: "circle",
+        source: sourceId,
+        filter: ["==", ["get", "is_housing"], housing] as never,
+        paint: {
+          "circle-color": matchColor(
+            "outcome_group",
+            Object.fromEntries(Object.entries(ZBA_OUTCOME_COLORS).map(([k, v]) => [k, v.color])),
+            "#a3a3a3",
+          ) as never,
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 3.5, 16, 8] as never,
+          // Cases that change the number of homes get a white ring.
+          "circle-stroke-color": ["case", ["==", ["get", "housing_scope"], "housing_units"], "#ffffff", "#111111"] as never,
+          "circle-stroke-width": 1.5,
+        },
+      },
+    ],
+    tooltipLayerIds: [`${id}-dots`],
+    tooltip: (p) =>
+      [
+        `${String(p.outcome ?? p.outcome_group ?? "")}${p.decision_date ? ` · ${p.decision_date}` : ""}`,
+        String(p.address ?? ""),
+        p.request ? `“${p.request}”` : "",
+        p.units_before != null || p.units_after != null ? `Units: ${p.units_before ?? "?"} → ${p.units_after ?? "?"}` : "",
+        p.relief_type
+          ? `Relief: ${String(p.relief_type).split("|").map((r) => RELIEF_LABELS[r] ?? r.replace(/_/g, " ")).join(", ")}`
+          : "",
+        p.zon_new ? `Zoning ${p.zon_new}${p.neighborhood ? ` · ${p.neighborhood}` : ""}` : "",
+        p.days_hearing_to_decision != null ? `${p.days_hearing_to_decision} days from hearing to decision` : "",
+        `ZBA case ${p.zone_case}`,
+      ].filter(Boolean),
+    legend: () => [
+      ...Object.values(ZBA_OUTCOME_COLORS).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+      { color: "#a3a3a3", label: "Appeal or no relief needed", shape: "dot" as const },
+      ...(housing ? [{ color: "#ffffff", label: "White ring = changes the number of homes", shape: "line" as const }] : []),
+    ],
+    meta: {
+      source: "City of Pittsburgh ZBA decisions (pittsburghpa.gov and Internet Archive), coded by HouseHack 2026-09-26",
+      sourceUrl: "https://www.pittsburghpa.gov/Business-Development/City-Planning/City-Planning-Meetings/ZBA-Agendas",
+      asOf: "Decisions 2023 – Aug 2026, pulled 2026-09-26",
+      geography: "Case addresses, City of Pittsburgh",
+      evidence: "observed",
+      caveats: [
+        "Covers roughly 61–73% of each year's case numbers; withdrawn cases never get a posted decision, so approval looks higher than it is.",
+        "Zoning is the district named in each decision; some name several.",
+        "Each case's decision PDF is in the data (decision_pdf); popups can't hold links.",
+        "Outcomes were read from the decision text (some scanned and OCR'd).",
+      ],
+    },
+  };
+}
+
+export const zbaHousingOverlay = zbaOverlay(true);
+export const zbaOtherOverlay = zbaOverlay(false);

@@ -14,8 +14,9 @@ import { floodZonesOverlay } from "./flood-zones";
 import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./everyday-access";
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
 import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
-import { councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay } from "./legal-feasibility";
+import { councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
 import { cityHazardOverlaysOverlay, citySteepSlopesOverlay, landslidePublicAssistanceOverlay } from "./city-hazards";
+import { vacantBuildingsOverlay, vacantLotsOverlay } from "./vacancy";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
 import { cityOwnedLandOverlay, taxDelinquentOverlay, treasurySalesOverlay } from "./land";
@@ -94,9 +95,13 @@ export const OVERLAYS: OverlayDefinition[] = [
   cityOwnedLandOverlay,
   treasurySalesOverlay,
   taxDelinquentOverlay,
+  vacantBuildingsOverlay,
+  vacantLotsOverlay,
   seniorHousingOverlay,
   permitsByTypeOverlay,
   councilActionsOverlay,
+  zbaHousingOverlay,
+  zbaOtherOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
