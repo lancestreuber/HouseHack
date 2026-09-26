@@ -31,3 +31,15 @@ For each new dataset, give:
 - **No personal data.** Drop owner names, applicant names and contact fields when building a file.
 - **Keep files small.** Request only the needed fields, use `geometryPrecision` 5 and simplify polygons. Anything over ~5 MB should load by viewport instead.
 - **Label honestly.** Every overlay states its geography (for example "tract rating, not this parcel"), its vintage and its caveats.
+- **Clip to the county line.** ZIP codes and bounding boxes cross it. Official county lists of agencies (fire, police, EMS) are the exception: an agency based just over the line still serves Allegheny municipalities.
+
+## Patterns
+
+- **Prepared extracts.** When a dataset arrives as a ready file, copy it and the script that made it into `inputs/`, and have the build script read it from there (see `places-multisource.ts`).
+- **Large point sets.** Tens of thousands of points: write a grid of tile files plus a small density summary, and let a viewport source load only the visible tiles (see `vacancy.ts`).
+- **One producer per file.** When a dataset is replaced, remove the old code that wrote it, so a full rebuild can't bring it back.
+
+## Checks
+
+- `bun scripts/data/audit-overlays.ts`: for every overlay, confirms its file exists and reports how many features have each property its styles read.
+- Type-check with `bunx tsc --noEmit -p .` (the scripts' "Cannot find name 'Bun'" errors are expected).

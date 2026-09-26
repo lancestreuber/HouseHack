@@ -44,7 +44,8 @@ for (const def of OVERLAYS) {
     }
     const sample = fc.features.find((f) => f.properties) ?? fc.features[0];
     try {
-      const tip = sample ? def.tooltip(sample.properties, metric as never) : [];
+      // Some layers (e.g. the commerce heatmap) have no tooltip by design.
+      const tip = sample && def.tooltip ? def.tooltip(sample.properties, metric as never) : [];
       if (tip.some((t) => /undefined|NaN|null|\[object/.test(String(t)))) lines.push(`   ⚠ tooltip: ${JSON.stringify(tip)}`);
     } catch (e) {
       lines.push(`   ✗ tooltip throws: ${e}`);
