@@ -51,7 +51,7 @@ const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
 // RIV-MU allows apartments), so their counts would mislead. GT subdistricts
 // share rules, so GT is shown but labeled as pooled.
 const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
-const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Grandview GT districts pooled" };
+const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Golden Triangle (GT-A…E) pooled" };
 
 function zbaLine(zone: string, typology: string) {
   const base = zbaBase(zone);
