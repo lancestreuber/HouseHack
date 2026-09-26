@@ -2325,20 +2325,6 @@ export const ZBA_OUTCOMES: Record<string, Record<string, { n: number; approved: 
       "split": 0
     }
   },
-  "RIV": {
-    "ALL": {
-      "n": 29,
-      "approved": 27,
-      "denied": 2,
-      "split": 0
-    },
-    "non_residential": {
-      "n": 24,
-      "approved": 22,
-      "denied": 2,
-      "split": 0
-    }
-  },
   "RM": {
     "ALL": {
       "n": 31,
@@ -2350,20 +2336,6 @@ export const ZBA_OUTCOMES: Record<string, Record<string, { n: number; approved: 
       "n": 13,
       "approved": 13,
       "denied": 0,
-      "split": 0
-    }
-  },
-  "SP": {
-    "ALL": {
-      "n": 12,
-      "approved": 10,
-      "denied": 2,
-      "split": 0
-    },
-    "non_residential": {
-      "n": 11,
-      "approved": 9,
-      "denied": 2,
       "split": 0
     }
   },
