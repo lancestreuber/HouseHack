@@ -156,6 +156,7 @@ const BUILDING_CLASS: Record<string, { color: string; label: string }> = {
   COMMERCIAL: { color: "#fb923c", label: "Commercial" },
   INDUSTRIAL: { color: "#a8a29e", label: "Industrial" },
   GOVERNMENT: { color: "#60a5fa", label: "Government" },
+  OTHER: { color: "#e5e7eb", label: "Other" },
 };
 
 export const vacantBuildingsOverlay: OverlayDefinition = {
@@ -186,7 +187,10 @@ export const vacantBuildingsOverlay: OverlayDefinition = {
       p.zoning ? `Zoning ${p.zoning}${p.neighborhood ? ` · ${p.neighborhood}` : ""}` : "",
       `Parcel ${p.pin}`,
     ].filter(Boolean),
-  legend: () => Object.values(BUILDING_CLASS).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+  legend: () => [
+    ...Object.values(BUILDING_CLASS).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+    { color: "#a3a3a3", label: "Class not recorded", shape: "dot" as const },
+  ],
   meta: {
     source: "City of Pittsburgh, USPS vacancy flags by parcel (Vacant_USPS_Feb_24), joined to City parcel records",
     sourceUrl: "https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/Vacant_USPS_Feb_24/FeatureServer/0",
