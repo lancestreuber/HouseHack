@@ -1,0 +1,10 @@
+// Rebuilds every static map overlay in public/data/overlays/.
+// Run from apps/web: `bun run data:overlays`. Add new datasets to this list.
+
+import { buildAirQuality } from "./air-quality";
+import { buildLeadServiceLines } from "./lead-service-lines";
+import { buildWeatherRisk } from "./weather-risk";
+
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines]) {
+  await build();
+}

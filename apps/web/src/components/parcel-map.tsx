@@ -12,6 +12,15 @@ setWorkerUrl(maplibreWorkerUrl);
 
 import { client } from "@/utils/orpc";
 
+import { LayersPanel } from "./map/layers-panel";
+import {
+  INITIAL_OVERLAY_STATE,
+  type OverlayState,
+  refreshViewportOverlays,
+  registerTooltips,
+  syncOverlays,
+} from "./map/overlay-controller";
+
 type BasemapId = "carto-dark" | "osm-inverted";
 
 // Free, no-API-key dark vector basemap.
@@ -49,6 +58,10 @@ const COUNTY_BOUNDS: [[number, number], [number, number]] = [
   [-80.36, 40.19],
   [-79.69, 40.68],
 ];
+
+// Heat overlays are inserted beneath the first of these that exists, so zoning
+// and parcel outlines stay readable on top of the color fill.
+const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PARCEL_LAYER_ID];
 
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
@@ -143,6 +156,10 @@ export function ParcelMap() {
   const isFirstRun = useRef(true);
   const [basemap, setBasemap] = useState<BasemapId>("carto-dark");
   const [showZoning, setShowZoning] = useState(true);
+  const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
+  const overlayStateRef = useRef(overlayState);
+  overlayStateRef.current = overlayState;
+  const [zoom, setZoom] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -164,7 +181,23 @@ export function ParcelMap() {
       addZoningLayer(map);
       addParcelLayer(map);
     });
-    map.on("moveend", () => void refreshParcels(map));
+    map.on("moveend", () => {
+      void refreshParcels(map);
+      void refreshViewportOverlays(map, overlayStateRef.current);
+      setZoom(map.getZoom());
+    });
+
+    // Overlays (air quality, weather, lead, sewers, ...) come from the registry
+    // in ./map/overlays. Re-applied after every style load, since a basemap
+    // swap drops all sources and layers.
+    const applyOverlays = () => {
+      addZoningLayer(map);
+      addParcelLayer(map);
+      syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
+      void refreshViewportOverlays(map, overlayStateRef.current);
+    };
+    map.on("style.load", applyOverlays);
+    registerTooltips(map, () => overlayStateRef.current);
 
     return () => {
       map.remove();
@@ -201,6 +234,13 @@ export function ParcelMap() {
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
+    void refreshViewportOverlays(map, overlayState);
+  }, [overlayState]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
     const visibility = showZoning ? "visible" : "none";
     map.setLayoutProperty(ZONING_FILL_LAYER_ID, "visibility", visibility);
@@ -209,7 +249,10 @@ export function ParcelMap() {
   }, [showZoning, basemap]);
 
   return (
-    <div className="relative h-[420px] w-full overflow-hidden rounded-lg border">
+    <div className="relative h-[640px] w-full overflow-hidden rounded-lg border">
+      <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
+        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} />
+      </div>
       <div ref={containerRef} className="h-full w-full" />
       <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
         <button
