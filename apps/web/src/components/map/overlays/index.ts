@@ -11,6 +11,7 @@ import { designationAreasOverlay, locationAffordabilityOverlay } from "./designa
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
 import { equityOverlay, holcOverlay, opportunityAtlasOverlay } from "./equity";
 import { floodZonesOverlay } from "./flood-zones";
+import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./everyday-access";
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
@@ -46,6 +47,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   opportunityAtlasOverlay,
   healthOutcomesOverlay,
   lifeExpectancyOverlay,
+  homeInternetOverlay,
+  walkabilityOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
@@ -66,6 +69,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   parksOverlay,
   trailsOverlay,
   ...AMENITY_OVERLAYS,
+  foodAccessOverlay,
   commerceDensityOverlay,
   surfaceHeatOverlay,
   treeCanopyOverlay,

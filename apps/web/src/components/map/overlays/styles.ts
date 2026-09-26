@@ -19,10 +19,12 @@ export const RAMPS = {
 };
 
 // Step choropleth on a numeric property: breaks[i] starts color i+1.
+// Missing values are checked first: `to-number` turns null into 0, which would
+// otherwise color no-data areas as the lowest bin.
 export function stepFill(property: string, breaks: number[], colors: string[]): Expression {
   const expr: Expression = ["step", ["to-number", ["get", property], -1], NO_DATA_COLOR, 0, colors[0]];
   breaks.forEach((b, i) => expr.push(b, colors[i + 1]));
-  return expr;
+  return ["case", ["==", ["get", property], null], NO_DATA_COLOR, expr];
 }
 
 export function stepLegend(breaks: number[], colors: string[], format: (lo: number, hi?: number) => string): LegendItem[] {
