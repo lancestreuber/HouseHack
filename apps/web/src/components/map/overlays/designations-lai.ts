@@ -57,11 +57,13 @@ const LAI_METRICS: OverlayMetric[] = [
   { id: "autos_per_hh", label: "Cars per household", property: "autos_per_hh" },
   { id: "pct_transit_j2w", label: "Commuters using transit", property: "pct_transit_j2w" },
   { id: "avg_h_cost", label: "Average monthly housing cost", property: "avg_h_cost" },
+  { id: "vmt_median_family", label: "Miles driven per year (modeled, median-income family)", property: "vmt_median_family" },
 ];
 const LAI_STYLES: Record<string, { breaks: number[]; format: (v: number) => string; colors: string[] }> = {
   autos_per_hh: { breaks: [0.75, 1, 1.3, 1.6, 1.9], format: (v) => v.toFixed(2), colors: RAMPS.warm },
   pct_transit_j2w: { breaks: [2, 5, 10, 20, 30], format: (v) => `${v}%`, colors: RAMPS.neutral },
   avg_h_cost: { breaks: [700, 850, 1000, 1250, 1600], format: (v) => `$${Math.round(v).toLocaleString()}`, colors: RAMPS.neutral },
+  vmt_median_family: { breaks: [18000, 21000, 24000, 27000, 31000], format: (v) => Math.round(v).toLocaleString(), colors: RAMPS.warm },
 };
 
 export const locationAffordabilityOverlay: OverlayDefinition = {
@@ -95,6 +97,9 @@ export const locationAffordabilityOverlay: OverlayDefinition = {
     return [
       `${metric.label}: ${v == null ? "no data" : style.format(Number(v))}`,
       p.pct_transit_j2w != null && metric.id !== "pct_transit_j2w" ? `Transit commuters: ${p.pct_transit_j2w}%` : "",
+      metric.id === "vmt_median_family" && p.vmt_cost_median_family != null
+        ? `≈ $${Number(p.vmt_cost_median_family).toLocaleString()}/yr in driving costs; a working individual at 50% AMI: ${Number(p.vmt_working_individual).toLocaleString()} mi`
+        : "",
       `Tract ${p.geoid} (2010 tract)`,
     ].filter(Boolean);
   },
@@ -115,7 +120,7 @@ export const locationAffordabilityOverlay: OverlayDefinition = {
     evidence: "observed",
     caveats: [
       "Old inputs (2012–2016): relative differences between tracts are the useful part.",
-      "Household vehicle-miles (VMT) is empty in HUD's published service, so it isn't shown.",
+      "Miles driven is HUD's modeled VMT for a fixed household profile (median income, 4 people, 2 commuters), so tracts differ only by location. HUD's observed VMT covers Illinois only.",
     ],
   },
 };

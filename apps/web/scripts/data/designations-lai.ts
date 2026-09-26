@@ -41,7 +41,7 @@ export async function buildDesignations() {
 
   const lai = await fetchAllGeoJSON(`${HUD}/Location_Affordability_Index_v3/FeatureServer/0`, {
     where: "GEOID LIKE '42003%'",
-    outFields: ["GEOID", "median_gross_rent", "avg_h_cost", "autos_per_hh", "pct_transit_j2w", "avg_hh_vmt"],
+    outFields: ["GEOID", "median_gross_rent", "avg_h_cost", "autos_per_hh", "pct_transit_j2w", "hh1_model_vmt_per_hh", "hh3_model_vmt_per_hh", "hh1_vmt_cost"],
     maxAllowableOffset: 0.00005,
   });
   for (const f of lai) {
@@ -49,7 +49,12 @@ export async function buildDesignations() {
     const n = (v: unknown) => (v == null || Number(v) < 0 ? null : Number(v));
     f.properties = {
       geoid: p.GEOID,
-      avg_hh_vmt: n(p.avg_hh_vmt) == null ? null : Math.round(n(p.avg_hh_vmt)!),
+      // HUD's observed avg_hh_vmt is Illinois odometer data only, so use the modeled
+      // VMT for two LAI household profiles: hh1 median-income family (4 people,
+      // 2 commuters) and hh3 working individual (50% of area median income).
+      vmt_median_family: n(p.hh1_model_vmt_per_hh) == null ? null : Math.round(n(p.hh1_model_vmt_per_hh)!),
+      vmt_working_individual: n(p.hh3_model_vmt_per_hh) == null ? null : Math.round(n(p.hh3_model_vmt_per_hh)!),
+      vmt_cost_median_family: n(p.hh1_vmt_cost) == null ? null : Math.round(n(p.hh1_vmt_cost)!),
       autos_per_hh: n(p.autos_per_hh) == null ? null : Math.round(n(p.autos_per_hh)! * 100) / 100,
       pct_transit_j2w: n(p.pct_transit_j2w) == null ? null : Math.round(n(p.pct_transit_j2w)! * 10) / 10,
       avg_h_cost: n(p.avg_h_cost) == null ? null : Math.round(n(p.avg_h_cost)!),
