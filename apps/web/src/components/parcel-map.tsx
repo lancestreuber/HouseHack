@@ -22,6 +22,9 @@ import { client } from "@/utils/orpc";
 
 import { type AddressResult, AddressSearch } from "./map/address-search";
 import { BreakdownPanel } from "./map/breakdown-panel";
+import { useChatContext } from "./chat/chat-context-store";
+import { SAMPLE } from "./chat/chat-launcher";
+import { ChatPane } from "./chat/chat-pane";
 import { LayersPanel } from "./map/layers-panel";
 import {
   INITIAL_OVERLAY_STATE,
@@ -203,6 +206,8 @@ export function ParcelMap() {
   const scoresPanelRef = useRef<PanelImperativeHandle | null>(null);
   const breakdownPanelRef = useRef<PanelImperativeHandle | null>(null);
   const typologyPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const chatPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const chatContext = useChatContext() ?? SAMPLE;
 
   const handleAddressSelect = (result: AddressResult) => {
     mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
@@ -392,7 +397,7 @@ export function ParcelMap() {
             <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
               <ResizablePanelGroup orientation="vertical" className="h-full w-full">
                 <ResizablePanel
-                  defaultSize="70%"
+                  defaultSize="45%"
                   minSize={0}
                   collapsible
                   collapsedSize={0}
@@ -407,8 +412,12 @@ export function ParcelMap() {
                   )}
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize="30%" minSize={0} collapsible collapsedSize={0} panelRef={breakdownPanelRef}>
+                <ResizablePanel defaultSize="25%" minSize={0} collapsible collapsedSize={0} panelRef={breakdownPanelRef}>
                   <BreakdownPanel pin={selectedPin} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize="30%" minSize={0} collapsible collapsedSize={0} panelRef={chatPanelRef}>
+                  <ChatPane context={chatContext} className="border-t" />
                 </ResizablePanel>
               </ResizablePanelGroup>
             </ResizablePanel>

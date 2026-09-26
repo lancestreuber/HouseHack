@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { FactChip } from "./fact-chip";
 import { type Edge, useFloatingWindow } from "./floating";
@@ -125,8 +126,13 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
     </section>
   );
 
+  // Portaled to <body>: this can be mounted arbitrarily deep (e.g. inside a
+  // resizable pane), and `position: fixed` only escapes an ancestor's bounds
+  // reliably when there's no risk of that ancestor creating its own
+  // containing block (transform/filter/contain). A portal sidesteps that
+  // regardless of where the component happens to live.
   if (!floating) return pane;
-  if (onClose) return win.rect ? pane : null;
+  if (onClose) return win.rect ? createPortal(pane, document.body) : null;
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
@@ -135,7 +141,7 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
           <PanelRightClose /> Dock it back here
         </Button>
       </div>
-      {win.rect && pane}
+      {win.rect && createPortal(pane, document.body)}
     </>
   );
 }
