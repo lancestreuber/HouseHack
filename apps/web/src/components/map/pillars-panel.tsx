@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
 
+import { PaneCollapseButton } from "./pane-collapse-button";
+
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
 type ParcelRow = [zoning: string, norm: (number | null)[], raw: (number | null)[]];
@@ -262,10 +264,14 @@ export function PillarsPanel({
   pin,
   onClose,
   onSelectPillar,
+  collapsed,
+  onToggleCollapse,
 }: {
   pin: string;
   onClose: () => void;
   onSelectPillar?: (id: PillarId) => void;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }) {
   const { data, status } = useParcelData(pin);
   const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
@@ -279,10 +285,14 @@ export function PillarsPanel({
           <p className="font-mono text-sm">{pin}</p>
           {data && <p className="text-muted-foreground">Zoning {data.zoning || "unknown"}</p>}
         </div>
-        <button type="button" onClick={onClose} className="rounded px-2 py-1 hover:bg-foreground/10" aria-label="Close parcel panel">
-          ✕
-        </button>
+        <div className="flex items-center gap-1">
+          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="scores" />}
+          <button type="button" onClick={onClose} className="rounded px-2 py-1 hover:bg-foreground/10" aria-label="Close parcel panel">
+            ✕
+          </button>
+        </div>
       </header>
+      {!collapsed && (
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {status === "loading" && <p className="text-muted-foreground">Loading scores…</p>}
         {status === "missing" && (
@@ -319,6 +329,7 @@ export function PillarsPanel({
           </>
         )}
       </div>
+      )}
     </aside>
   );
 }

@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { type PillarId, scoreParcel } from "@/lib/pillars/score";
 
+import { PaneCollapseButton } from "./pane-collapse-button";
 import { formatRaw, fmtScore, INDICATORS, scoreColor, useParcelData } from "./pillars-panel";
 
 function AlertRow({ text }: { text: string }) {
@@ -19,13 +20,25 @@ function AlertRow({ text }: { text: string }) {
  * every pillar score (e.g. "murder rate = 7.2 per 1,000"), not just the
  * rolled-up number -- with an anchor per pillar so a pillar card up top can
  * scroll straight to its section here. */
-export function BreakdownPanel({ pin }: { pin: string | null }) {
+export function BreakdownPanel({
+  pin,
+  collapsed,
+  onToggleCollapse,
+}: {
+  pin: string | null;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}) {
   const { data, status } = useParcelData(pin);
   const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
 
   return (
     <div className="flex h-full w-full flex-col text-xs">
-      <div className="border-b p-2 font-medium">Breakdowns</div>
+      <div className="flex items-center justify-between border-b p-2 font-medium">
+        Breakdowns
+        {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="breakdowns" />}
+      </div>
+      {!collapsed && (
       <div className="flex-1 space-y-3 overflow-y-auto p-2">
         {!pin && <p className="text-muted-foreground">Select a parcel to see its indicator breakdown.</p>}
         {pin && status === "loading" && <p className="text-muted-foreground">Loading…</p>}
@@ -67,6 +80,7 @@ export function BreakdownPanel({ pin }: { pin: string | null }) {
             );
           })}
       </div>
+      )}
     </div>
   );
 }

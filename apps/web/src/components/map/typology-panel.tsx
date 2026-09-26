@@ -10,6 +10,7 @@ import {
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
+import { PaneCollapseButton } from "./pane-collapse-button";
 import { useParcelData } from "./pillars-panel";
 
 // Legal pathway -> rough feasibility score, so four typologies can be
@@ -74,7 +75,15 @@ function TypologyTile({
 /** Bottom pane: side-by-side feasibility scores for a handful of housing
  * typologies on the selected parcel's zoning district. Each tile's typology
  * is independently swappable via its dropdown. */
-export function TypologyPanel({ pin }: { pin: string | null }) {
+export function TypologyPanel({
+  pin,
+  collapsed,
+  onToggleCollapse,
+}: {
+  pin: string | null;
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
+}) {
   const [typologyIds, setTypologyIds] = useState<string[]>(DEFAULT_TYPOLOGY_IDS);
   const { data, status } = useParcelData(pin);
   const zoning = data?.zoning ?? "";
@@ -100,9 +109,12 @@ export function TypologyPanel({ pin }: { pin: string | null }) {
     <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 text-xs">
       <div className="flex items-baseline justify-between">
         <span className="font-medium">Typology scores</span>
-        {zoning && <span className="text-muted-foreground">Zoning {zoning}</span>}
+        <div className="flex items-center gap-2">
+          {zoning && <span className="text-muted-foreground">Zoning {zoning}</span>}
+          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
+        </div>
       </div>
-      <div className="min-h-0 flex-1 overflow-x-auto">{body}</div>
+      {!collapsed && <div className="min-h-0 flex-1 overflow-x-auto">{body}</div>}
     </div>
   );
 }

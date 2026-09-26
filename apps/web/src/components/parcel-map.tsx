@@ -188,6 +188,22 @@ async function refreshParcels(map: MapLibreMap) {
   source.setData(data as Parameters<GeoJSONSource["setData"]>[0]);
 }
 
+/** Wires a ResizablePanel up to a header collapse button: tracks whether
+ * it's currently collapsed (via onResize, so dragging past the threshold
+ * keeps the icon in sync too, not just button clicks) and exposes a toggle. */
+function usePaneCollapse() {
+  const ref = useRef<PanelImperativeHandle | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const onResize = (size: { asPercentage: number }) => setCollapsed(size.asPercentage <= 0.5);
+  const toggle = () => {
+    const panel = ref.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) panel.expand();
+    else panel.collapse();
+  };
+  return { ref, collapsed, onResize, toggle };
+}
+
 export function ParcelMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -203,22 +219,23 @@ export function ParcelMap() {
   // breakdown and typology panes are never empty on first load -- an actual
   // click or address search just swaps this out.
   const [selectedPin, setSelectedPin] = useState<string | null>(DEMO_PIN);
-  const scoresPanelRef = useRef<PanelImperativeHandle | null>(null);
-  const breakdownPanelRef = useRef<PanelImperativeHandle | null>(null);
-  const typologyPanelRef = useRef<PanelImperativeHandle | null>(null);
-  const chatPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const mapPane = usePaneCollapse();
+  const scoresPane = usePaneCollapse();
+  const breakdownPane = usePaneCollapse();
+  const typologyPane = usePaneCollapse();
+  const chatPane = usePaneCollapse();
   const chatContext = useChatContext() ?? SAMPLE;
 
   const handleAddressSelect = (result: AddressResult) => {
     mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
     if (result.pin) {
       setSelectedPin(result.pin);
-      if (scoresPanelRef.current?.isCollapsed()) scoresPanelRef.current.expand();
+      if (scoresPane.ref.current?.isCollapsed()) scoresPane.ref.current.expand();
     }
   };
 
   const handleSelectPillar = (id: PillarId) => {
-    if (breakdownPanelRef.current?.isCollapsed()) breakdownPanelRef.current.expand();
+    if (breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current.expand();
     document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -345,9 +362,16 @@ export function ParcelMap() {
       <ResizablePanelGroup orientation="vertical" className="h-full w-full">
         <ResizablePanel defaultSize="85%" minSize="50%">
           <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-            <ResizablePanel defaultSize="75%" minSize="40%">
+            <ResizablePanel
+              defaultSize="75%"
+              minSize={0}
+              collapsible
+              collapsedSize="34px"
+              panelRef={mapPane.ref}
+              onResize={mapPane.onResize}
+            >
               <div className="flex h-full min-w-0 flex-col">
-                <ParcelTab pin={selectedPin} />
+                <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
                     <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
@@ -400,11 +424,18 @@ export function ParcelMap() {
                   defaultSize="45%"
                   minSize={0}
                   collapsible
-                  collapsedSize={0}
-                  panelRef={scoresPanelRef}
+                  collapsedSize="80px"
+                  panelRef={scoresPane.ref}
+                  onResize={scoresPane.onResize}
                 >
                   {selectedPin ? (
-                    <PillarsPanel pin={selectedPin} onClose={() => setSelectedPin(null)} onSelectPillar={handleSelectPillar} />
+                    <PillarsPanel
+                      pin={selectedPin}
+                      onClose={() => setSelectedPin(null)}
+                      onSelectPillar={handleSelectPillar}
+                      collapsed={scoresPane.collapsed}
+                      onToggleCollapse={scoresPane.toggle}
+                    />
                   ) : (
                     <p className="p-2 text-xs text-muted-foreground">
                       Click a parcel on the map to see its scores &amp; considerations.
@@ -412,20 +443,47 @@ export function ParcelMap() {
                   )}
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize="25%" minSize={0} collapsible collapsedSize={0} panelRef={breakdownPanelRef}>
-                  <BreakdownPanel pin={selectedPin} />
+                <ResizablePanel
+                  defaultSize="25%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize="34px"
+                  panelRef={breakdownPane.ref}
+                  onResize={breakdownPane.onResize}
+                >
+                  <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
                 </ResizablePanel>
                 <ResizableHandle withHandle />
-                <ResizablePanel defaultSize="30%" minSize={0} collapsible collapsedSize={0} panelRef={chatPanelRef}>
-                  <ChatPane context={chatContext} className="border-t" />
+                <ResizablePanel
+                  defaultSize="30%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize="48px"
+                  panelRef={chatPane.ref}
+                  onResize={chatPane.onResize}
+                >
+                  <ChatPane
+                    context={chatContext}
+                    className="border-t"
+                    collapsed={chatPane.collapsed}
+                    onToggleCollapse={chatPane.toggle}
+                  />
                 </ResizablePanel>
               </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize="15%" minSize="8%" maxSize="30%" collapsible collapsedSize={0} panelRef={typologyPanelRef}>
-          <TypologyPanel pin={selectedPin} />
+        <ResizablePanel
+          defaultSize="15%"
+          minSize="8%"
+          maxSize="30%"
+          collapsible
+          collapsedSize="34px"
+          panelRef={typologyPane.ref}
+          onResize={typologyPane.onResize}
+        >
+          <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>
