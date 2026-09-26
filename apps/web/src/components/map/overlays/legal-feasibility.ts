@@ -1,4 +1,4 @@
-import { DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS } from "./legal-matrix.generated";
+import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS } from "./legal-matrix.generated";
 import { matchColor, NO_DATA_COLOR } from "./styles";
 import type { OverlayDefinition, OverlayMetric } from "./types";
 
@@ -21,12 +21,16 @@ const TYPOLOGIES: [string, string][] = [
   ["interim_housing", "Interim housing"],
 ];
 
+// Ranked pathways run cyan (easiest) to red (hardest). The non-ranked states sit
+// off that ramp: planned-unit districts purple, Mount Oliver light grey.
 const PATHWAY_META: Record<string, { color: string; label: string }> = {
-  by_right: { color: "#67e8f9", label: "By right (staff review)" },
+  by_right: { color: "#22d3ee", label: "By right (staff review)" },
   za: { color: "#60a5fa", label: "Administrator exception" },
-  zbe_special_exception: { color: "#a78bfa", label: "Special exception (Zoning Board hearing)" },
-  conditional_use: { color: "#e879f9", label: "Conditional use (Planning Commission + Council)" },
+  zbe_special_exception: { color: "#fbbf24", label: "Special exception (Zoning Board hearing)" },
+  conditional_use: { color: "#fb923c", label: "Conditional use (Planning Commission + Council)" },
   not_permitted: { color: "#f43f5e", label: "Not permitted (variance or rezoning only)" },
+  per_plan: { color: "#a855f7", label: "Set by the site's approved plan (planned-unit district)" },
+  not_city_jurisdiction: { color: "#e4e4e7", label: "Mount Oliver Borough (not City zoning)" },
 };
 
 const METRICS: OverlayMetric[] = TYPOLOGIES.map(([id, label]) => ({ id, label, property: id }));
@@ -41,6 +45,16 @@ function pathwayFill(typology: string) {
   return matchColor("zon_new", byZone, NO_DATA_COLOR);
 }
 
+// Unconfirmed readings and Mount Oliver are drawn fainter.
+function pathwayOpacity(typology: string) {
+  const faint: Record<string, string> = {};
+  for (const [zone, row] of Object.entries(DISTRICT_PATHWAYS)) {
+    if (CELL_NOTES[zone]?.[typology]?.unconfirmed || row[typology] === "not_city_jurisdiction") faint[zone] = "faint";
+  }
+  const zones = Object.keys(faint);
+  return zones.length ? ["match", ["get", "zon_new"], zones, 0.25, 0.55] : 0.55;
+}
+
 export const legalPathwayOverlay: OverlayDefinition = {
   id: "legal-pathway",
   label: "Legal pathway by housing type",
@@ -53,7 +67,14 @@ export const legalPathwayOverlay: OverlayDefinition = {
       id: "legal-pathway-fill",
       type: "fill",
       source: sourceId,
-      paint: { "fill-color": pathwayFill(metric.id) as never, "fill-opacity": 0.55 },
+      paint: { "fill-color": pathwayFill(metric.id) as never, "fill-opacity": pathwayOpacity(metric.id) as never },
+    },
+    {
+      id: "legal-pathway-plan-outline",
+      type: "line",
+      source: sourceId,
+      filter: ["in", ["get", "zon_new"], ["literal", ["AP", "CP", "RP"]]] as never,
+      paint: { "line-color": PATHWAY_META.per_plan.color, "line-width": 1.5, "line-dasharray": [3, 2] },
     },
   ],
   tooltipLayerIds: ["legal-pathway-fill"],
@@ -62,19 +83,22 @@ export const legalPathwayOverlay: OverlayDefinition = {
     const row = DISTRICT_PATHWAYS[zone];
     const pathway = row?.[metric.id] ?? "unknown";
     const info = PATHWAYS[pathway];
+    const cell = CELL_NOTES[zone]?.[metric.id];
     return [
       `${metric.label} in ${zone}${row?.full_zoning_type ? ` (${row.full_zoning_type.toLowerCase()})` : ""}`,
-      PATHWAY_META[pathway]?.label ?? "Not in the §911.02 use table (special or planned district)",
+      PATHWAY_META[pathway]?.label ?? "Unresolved: the code doesn't clearly say",
       info ? `Decided by: ${info.decider}` : "",
       info && info.hearing !== "no" ? `Hearing: ${info.hearing}` : "",
       info && info.clock !== "none" ? `Timeline: ${info.clock}` : "",
       info?.fee ? `Extra fee: $${info.fee}` : "",
       info ? `Code: ${info.section}${info.note ? ` · ${info.note}` : ""}` : "",
+      cell?.unconfirmed ? "⚠ Unconfirmed reading of the code" : "",
+      cell ? cell.note : "",
     ].filter(Boolean);
   },
   legend: () => [
     ...Object.values(PATHWAY_META).map(({ color, label }) => ({ color, label, shape: "fill" as const })),
-    { color: NO_DATA_COLOR, label: "Special / planned district (not in the use table)", shape: "fill" as const },
+    { color: NO_DATA_COLOR, label: "Unresolved in the code", shape: "fill" as const },
   ],
   meta: {
     source: "City of Pittsburgh Zoning Code §911.02 use table, transcribed by the research team; zoning from PGHWebZoning",
@@ -84,6 +108,7 @@ export const legalPathwayOverlay: OverlayDefinition = {
     evidence: "policy",
     caveats: [
       "Working research, not legal advice.",
+      "Faint districts are unconfirmed readings (mostly SP-10 and the Grandview public-realm districts); the tooltip explains why.",
       "The use table is not the only gate: dimensional standards, overlays, Site Plan Review at 4+ units and historic review add steps.",
       "Housing for the elderly limited and general have different permissions; pick the one that matches the project size.",
       "Pending Bills 2025-1545 (ADUs, parking) and 2026-0834 (Ch. 922 procedures) would change some cells.",
@@ -227,6 +252,85 @@ export const permitsByTypeOverlay: OverlayDefinition = {
       "Zoning is today's district, which may differ from the one at permit time.",
       "One project can have several permits; don't count points as projects.",
       "Dot size = units where known.",
+    ],
+  },
+};
+
+const COUNCIL_STATUS: Record<string, { color: string; label: string }> = {
+  adopted: { color: "#4ade80", label: "Adopted" },
+  pending: { color: "#facc15", label: "Pending / held" },
+  held: { color: "#facc15", label: "Pending / held" },
+  failed: { color: "#f43f5e", label: "Failed or withdrawn" },
+  withdrawn: { color: "#f43f5e", label: "Failed or withdrawn" },
+};
+const COUNCIL_CATEGORY: Record<string, string> = {
+  map_amendment: "Rezoning (map amendment)",
+  conditional_use: "Conditional use",
+  sp_pud: "Specially planned / PUD",
+};
+const RELEVANCE: Record<string, string> = {
+  enables_more_housing_byright: "Allows more housing by right",
+  reduces_housing_byright: "Allows less housing by right",
+  area_wide_remap_mixed: "Area-wide remap (mixed effects)",
+  no_change_in_residential_ceiling: "No change in housing allowed by right",
+  mixed_up_and_down: "Mixed: up in places, down in others",
+  tdr_dwelling_units: "Transfer of development rights (dwelling units)",
+  residential_use: "Residential use",
+  group_quarters_use: "Group living use",
+};
+
+export const councilActionsOverlay: OverlayDefinition = {
+  id: "council-land-use-actions",
+  label: "City Council land-use votes (2000–26)",
+  group: "legal",
+  description: "Rezonings, conditional uses and planned-district actions from Legistar, colored by outcome (non-residential hidden).",
+  source: { kind: "static", url: "/data/overlays/council-land-use-actions.geojson" },
+  layers: (sourceId) => [
+    {
+      id: "council-land-use-actions-dots",
+      type: "circle",
+      source: sourceId,
+      filter: ["!=", ["get", "residential_relevance"], "non_residential"] as never,
+      paint: {
+        "circle-color": matchColor("status", Object.fromEntries(Object.entries(COUNCIL_STATUS).map(([k, v]) => [k, v.color])), "#a3a3a3") as never,
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 4, 16, 9] as never,
+        // Rezonings get a white ring, conditional uses a dark one.
+        "circle-stroke-color": ["match", ["get", "action_category"], "conditional_use", "#111111", "sp_pud", "#a855f7", "#ffffff"] as never,
+        "circle-stroke-width": 2,
+      },
+    },
+  ],
+  tooltipLayerIds: ["council-land-use-actions-dots"],
+  tooltip: (p) =>
+    [
+      `${COUNCIL_CATEGORY[String(p.action_category)] ?? String(p.action_category)} · ${String(p.status ?? "").replace(/_/g, " ")}${p.final_action_date ? ` ${p.final_action_date}` : ""}`,
+      p.from_districts || p.to_districts ? `${p.from_districts ?? "?"} → ${p.to_districts ?? "?"}` : p.cu_district_zoned ? `In ${p.cu_district_zoned}` : "",
+      RELEVANCE[String(p.residential_relevance)] ?? "",
+      p.housing_typology ? `Housing: ${String(p.housing_typology).replace(/_/g, " ")}${p.units_stated ? ` · ${p.units_stated} units` : ""}` : "",
+      p.days_intro_to_final != null ? `${p.days_intro_to_final} days from introduction to final action` : "",
+      p.votes_aye != null ? `Vote: ${p.votes_aye}–${p.votes_nay ?? 0}` : "",
+      p.passed_pursuant_to_case_law ? "Passed “pursuant to case law” (likely a missed Council deadline; unverified)" : "",
+      p.title ? String(p.title) : "",
+      `Legistar file ${p.file_number}`,
+    ].filter(Boolean),
+  legend: () => [
+    { color: "#4ade80", label: "Adopted", shape: "dot" },
+    { color: "#facc15", label: "Pending / held", shape: "dot" },
+    { color: "#f43f5e", label: "Failed or withdrawn", shape: "dot" },
+    { color: "#a3a3a3", label: "Expired, tabled or filed", shape: "dot" },
+    { color: "#ffffff", label: "White ring = rezoning; dark ring = conditional use", shape: "line" },
+  ],
+  meta: {
+    source: "City of Pittsburgh Legistar (City Council), compiled and geocoded by the research team",
+    sourceUrl: "https://pittsburgh.legistar.com/",
+    asOf: "2000 – Sep 2026, pulled 2026-09-26",
+    geography: "Action locations, City of Pittsburgh",
+    evidence: "observed",
+    caveats: [
+      "101 of 284 matters had no mappable address and aren't shown.",
+      "Area-wide remaps are shown as a single point.",
+      "Whether a change adds or removes housing is our coding of the district change, not the City's.",
+      "Non-residential actions are hidden.",
     ],
   },
 };
