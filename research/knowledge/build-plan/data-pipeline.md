@@ -45,7 +45,7 @@ The 3DEP ImageServer supports `exportImage`, `getSamples` and `computeStatistics
 |---|---|---|
 | **Tile then compute locally** (build sweep's plan) | Tile the city at ~1500² px, 3 m (roughly 20–40 tiles); `gdalbuildvrt`; `gdaldem slope`; `rasterstats.zonal_stats(parcels, slope.tif, stats=['mean','max','percentile_90'])` | Estimate: tiles ~2–5 min; zonal stats 10–30 min for 140k parcels |
 | **Server-side histogram per parcel** (deeper data sweep, verified on one parcel) | POST `computeStatisticsHistograms` with the parcel polygon in UTM 17N (`outSR=26917`), 1 m pixel size, and a `Remap` over a `Slope` raster function into bins 0–15 / 15–25 / 25–40 / 40+ % | Exact per parcel, but ~140k × 1–2 s ≈ 40–80 h serial, or 5–10 h with 8 workers, with throttling risk (estimate). Good for spot checks, not the whole city |
-| **Precomputed fallback** | ETHOS Lot Suitability layer: 142,806 city parcels (2024) with a `SteepSlope` fraction | Fast; the threshold behind `SteepSlope` is unverified (probably share over 25%) |
+| **Precomputed fallback** | ETHOS Lot Suitability layer: 142,806 city parcels ("2024" ⚠ ETHOS date unverified; per the corrections log it is a stormwater/green-infrastructure suitability analysis *(corrected 2026-09-26 per docs/04-critique.md row 31)*) with a `SteepSlope` fraction | Fast; the threshold behind `SteepSlope` is unverified (probably share over 25%) |
 
 **Gotchas:**
 - Use UTM (EPSG 26917), not Web Mercator: 3857 stretches distances by about 1.31× at this latitude, so slope comes out too low.

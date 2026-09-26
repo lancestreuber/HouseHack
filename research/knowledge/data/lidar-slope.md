@@ -41,7 +41,7 @@ Buildable area ≈ pixels under 25% (an inference from the sweep, not a code rul
 ## Fallbacks
 | Source | What | Tag |
 |---|---|---|
-| `C/ETHOS_Lot_Suitability/FeatureServer/0` | 142,806 city parcels (Dec 2024) with `SteepSlope` fraction 0–1 | `[read]`; **threshold unverified**, probably share over 25% |
+| `C/ETHOS_Lot_Suitability/FeatureServer/0` | 142,806 city parcels ("Dec 2024" ⚠ ETHOS date unverified; per the corrections log it is a stormwater/green-infrastructure suitability analysis *(corrected 2026-09-26 per docs/04-critique.md row 31)*) with `SteepSlope` fraction 0–1 | `[read]`; **threshold unverified**, probably share over 25% |
 | `C/PGHWebSlope25/FeatureServer/0` | 1,714 polygons, ≥25% | `[read]`; intersect polygon, not centroid |
 | USDA SDA soils | map-unit slope_r (e.g. 30/45) | `[read]`; map-unit scale, not parcel scale |
 | PASDA | LiDAR listed in organizer catalog | `[found]` |
@@ -67,6 +67,7 @@ The r3 reality-check sweep found no housing feasibility tool using LiDAR-derived
 ## Sources
 - [USGS 3DEP ImageServer](https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer) `[read]` *(accessed 2026-09-26)*: getSamples and computeStatisticsHistograms tested
 - [ETHOS lot suitability](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/ETHOS_Lot_Suitability/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
+- [Adversarial critique](../../docs/04-critique.md) — row 31
 - [City PGHWebSlope25](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/PGHWebSlope25/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
 - [USGS 3DEP program page (organizer catalog URL)](https://www.usgs.gov/3d-elevation-program) `[found]` *(accessed 2026-09-26)*
 - [PASDA (organizer catalog URL)](https://www.pasda.psu.edu/) `[found]` *(accessed 2026-09-26)*

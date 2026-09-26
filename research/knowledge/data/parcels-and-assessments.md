@@ -1,7 +1,7 @@
 # Parcels and assessments
 
 **Type:** data
-**One line:** The parcel spine: Allegheny County assessment records, parcel polygons, owner name, parcel-ID formats, and the city's lot-dimension and building-footprint layers that hang off them.
+**One line:** The parcel spine: Allegheny County assessment records, parcel polygons, owner category (⚠ not owner names), parcel-ID formats, and the city's lot-dimension and building-footprint layers that hang off them.
 **Why we care:** Every Track 1 score starts from a parcel ID. The assessment table gives lot area, use and value; the polygon is what gets intersected with every constraint layer; the ID format decides whether joins work at all.
 **Last checked:** 2026-09-26
 
@@ -44,10 +44,9 @@ https://data.wprdc.org/api/3/action/datastore_search?resource_id=65855e14-549e-4
 
 Organizer catalog caveat: geometry and assessment records update on different schedules, so validate IDs across them.
 
-## Owner name: County Real Estate Portal
-- `https://realestate.alleghenycounty.us/GeneralInfo?ID=<PARID>`: plain GET, no captcha, ASP.NET page with `__VIEWSTATE` `[read]`.
-- Returns the **owner name**, which WPRDC omits.
-- Scrape gently and cache. A disclaimer page exists; **terms of use were not reviewed**.
+## Owner name: County Real Estate Portal (do not ingest)
+- ⚠ **Owner names exist on the County portal; do not ingest them. Use OWNERDESC (category) only** *(corrected 2026-09-26 per docs/04-critique.md row 32)*. Owner names of private individuals are PII under the project's hard rule. `ParcelsPublicCityVacant` also carries owner fields; request only non-owner fields from it.
+- For reference only: `https://realestate.alleghenycounty.us/GeneralInfo?ID=<PARID>` is a plain GET ASP.NET page `[read]` that shows the owner name, which WPRDC omits. **Terms of use were not reviewed.** This is not a pipeline input.
 
 ## Address to parcel
 Census geocoder `onelineaddress` → point query on county parcels. Both free, marked [V] in the [working notes](../../archive/working-notes-2026-09-26/01-data-sources.md); the exact geocoder URL was not recorded.
@@ -58,13 +57,13 @@ City ArcGIS base `C = https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/
 | Layer | Count | Key fields | Vintage | Tag |
 |---|---|---|---|---|
 | `C/Parcels_Exp_02052025_Residential_Lot_Dimensions/FeatureServer/0` | 105,488 | Parcel_Width, Parcel_Len, Bldg_Width, zone_short | 2025 | `[read]` |
-| `C/ETHOS_Lot_Suitability/FeatureServer/0` | 142,806 | pin, SteepSlope (0–1), Vacant, Housing, Best_Suit | Dec 2024 | `[read]` |
+| `C/ETHOS_Lot_Suitability/FeatureServer/0` | 142,806 | pin, SteepSlope (0–1), Vacant, Housing, Best_Suit | ⚠ unverified (working notes said Dec 2024) | `[read]` |
 | `C/Buildings_Elevation/FeatureServer/33` | 87,831 | lotblock, bldg_heigh, bldg_heigh_new (ft) | last edited 2023 | `[read]` |
 | `C/Building_Footprints_Adjacency` | 117,506 | flags attached/row buildings | not stated | `[read]` |
 | County `https://gisdata.alleghenycounty.us/arcgis/rest/services/EGIS/Buildings/MapServer/0` | 573,908 | FEATURECODE, CLASS, LUC, status, prev_area, pct_change; **no heights**; spatial query, 1,000/request | not stated | `[read]` |
 
 - County footprints bulk shapefile on WPRDC is 88.7 MB. The `OPENDATA/Buildings` URL listed on WPRDC is **dead (404)** `[read]`.
-- ETHOS is the City's own vacant-lot reuse model; it is prior art as well as a possible input ([lidar slope](lidar-slope.md)).
+- ⚠ ETHOS is **narrower than we said** *(corrected 2026-09-26 per docs/04-critique.md row 31)*. A Pittsburgh Water press release (2026-01-14, `[skimmed]`) describes it as a City/Ethos Collaborative **stormwater and green-infrastructure** suitability analysis of vacant lots, not a housing-reuse model. The layer does carry a `Housing` field. Its methodology and the "Dec 2024" date are unverified. It is a possible input (e.g. the `SteepSlope` fallback, see [lidar slope](lidar-slope.md)) and related prior art, not the City's housing-suitability model. See [Pittsburgh civic tools](../landscape/pittsburgh-civic-tools.md).
 - Lot dimensions let a rule check lot width against a district minimum, but whether §903.03 sets a minimum lot width is itself unverified ([zoning code text](zoning-code-text.md)).
 
 ## Pipeline sketch (from the r1 sweep)
@@ -92,7 +91,7 @@ City ArcGIS base `C = https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/
 - [WPRDC parcel boundaries resource 858bbc0f](https://data.wprdc.org/api/3/action/datastore_search?resource_id=858bbc0f-b949-4e22-b4bb-1a78fef24afc) `[read]` *(accessed 2026-09-26)*: WKT polygons, EPSG:2272
 - PASDA AlleghenyCounty MapServer/25 (`maps.pasda.psu.edu/…`) `[inaccessible]` *(accessed 2026-09-26)*: Application Error
 - [WPRDC parcel centroids resource 3fab7152](https://data.wprdc.org/api/3/action/datastore_search?resource_id=3fab7152-3f11-4788-8372-4c33f86ea813) `[read]` *(accessed 2026-09-26)*: PIN to tract/block group/neighborhood
-- [County Real Estate Portal](https://realestate.alleghenycounty.us/GeneralInfo?ID=0001D00128000000) `[read]` *(accessed 2026-09-26)*: owner name
+- [County Real Estate Portal](https://realestate.alleghenycounty.us/GeneralInfo?ID=0001D00128000000) `[read]` *(accessed 2026-09-26)*: shows owner name; ⚠ do not ingest (PII)
 - [Residential lot dimensions](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/Parcels_Exp_02052025_Residential_Lot_Dimensions/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
 - [ETHOS lot suitability](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/ETHOS_Lot_Suitability/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
 - [City building heights](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/Buildings_Elevation/FeatureServer/33) `[read]` *(accessed 2026-09-26)*
@@ -103,3 +102,5 @@ City ArcGIS base `C = https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/
 - Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Pittsburgh Water, Rain Reclaim press release, 2026-01-14](https://www.pgh2o.com/news-events/news/press-release/2026-01-14-rain-reclaim-turning-vacant-lots-green-solutions) `[skimmed]` *(accessed 2026-09-26)*: ETHOS as a stormwater analysis
+- [Adversarial critique](../../docs/04-critique.md) — rows 31, 32

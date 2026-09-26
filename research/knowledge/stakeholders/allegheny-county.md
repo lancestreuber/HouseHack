@@ -7,7 +7,7 @@
 
 ## Stated framing: preservation over supply
 
-- From 2019 to 2024 the county lost **44,000+ apartments renting under $1,000 a month** `[read]` ([WESA 2026-02-05](https://www.wesanews.org/politics-government/2026-02-05/allegheny-county-housing-study)).
+- ⚠ The count of apartments renting **under $1,000 a month (nominal)** fell by **44,000+** from 2019 to 2024, per the County as reported by WESA `[read]` ([WESA 2026-02-05](https://www.wesanews.org/politics-government/2026-02-05/allegheny-county-housing-study)). A fixed nominal threshold across five years of rent inflation counts units that re-priced above $1,000 as "lost"; how much is rent inflation vs physical loss (demolition, conversion) is unknown *(corrected 2026-09-26 per docs/04-critique.md row 14)*.
 - The County Executive: "We can build all we want, but if we continue to lose units, we will still wind up in a negative situation." `[read]` ([Keystone Newsroom](https://keystonenewsroom.com/news/housing/allegheny-county-officials-tell-pa-lawmakers-that-building-alone-wont-fix-housing-shortage/)).
 - The County prefers incentives to penalties: funding priority to multi-municipal applications with pro-housing policies `[skimmed]` (snippet).
 
@@ -29,11 +29,12 @@ From the County's Housing for All page ([allin.alleghenycounty.us](https://allin
 - A county comprehensive plan is to include a **library of zoning text amendments and model ordinances** for municipalities, worked through the InterCOG Council.
 - Lead-safe and home-repair programs, and a one-stop repair resource portal.
 
-## ⚠ Unresolved contradiction: is there already a County HNA?
+## ⚠ Contradiction, now leaning one way: is there already a County HNA?
 
 - The organizer data catalog lists an existing **"Allegheny County Housing Needs Assessment."**
 - The Feb 2026 executive order, as reported by WESA `[read]`, orders the county's **"first"** housing needs assessment.
 - Both cannot be true as stated. Possibilities (guesses, not findings): the catalog entry is a City or regional document mislabeled; it is an older study the County does not count as an HNA; or WESA's "first" is loose wording. **Unresolved.** Check the catalog entry's actual file and date before citing either. See [organizer data catalog](../data/organizer-data-catalog.md).
+- ⚠ **Tested by the critique** *(corrected 2026-09-26 per docs/04-critique.md row 27)*: the catalog's County HNA link is **dead** (WebFetch 404; curl 403), and a web search found no Allegheny County HNA "with 13 subregions", only DHS's unrelated "Allegheny Housing Assessment" tool. We found no such report, so the executive order's "first" is currently better supported. Ask the organizers which document they meant.
 
 ## Data gap: no county-wide zoning
 
@@ -49,7 +50,7 @@ From the County's Housing for All page ([allin.alleghenycounty.us](https://allin
 
 ## Open questions
 
-- Does a County HNA already exist (see contradiction above)? When is the new one due?
+- Which document did the organizers mean by the catalog's County HNA entry (link dead)? When is the new County HNA due?
 - Was the Dec 2025 land bank feasibility report published? What did it recommend?
 - Would the County use a municipality-level zoning barrier index?
 - What are the actual criteria for the pro-housing incentive funding priority?
@@ -70,7 +71,8 @@ From the County's Housing for All page ([allin.alleghenycounty.us](https://allin
 - [Keystone Newsroom, County officials tell PA lawmakers building alone won't fix shortage](https://keystonenewsroom.com/news/housing/allegheny-county-officials-tell-pa-lawmakers-that-building-alone-wont-fix-housing-shortage/) `[read]` *(accessed 2026-09-26)*
 - [WESA, 2026-09-25, housing policy priority, Pittsburgh and Allegheny County](https://www.wesanews.org/politics-government/2026-09-25/housing-policy-priority-pittsburgh-allegheny-county) `[read]` *(accessed 2026-09-26)*
 - [National Zoning Atlas, Pennsylvania](https://www.zoningatlas.org/pennsylvania) `[read]` *(accessed 2026-09-26)*
-- Organizer data catalog listing of an "Allegheny County Housing Needs Assessment" `[found]` *(accessed 2026-09-26)*: listed, not opened; see [../data/organizer-data-catalog.md](../data/organizer-data-catalog.md)
+- Organizer data catalog listing of an "Allegheny County Housing Needs Assessment" `[inaccessible]` ⚠ *(accessed 2026-09-26)*: the listed URL returns 404 (WebFetch) / 403 (curl) per the critique's check; no such report found; see [../data/organizer-data-catalog.md](../data/organizer-data-catalog.md)
 - Sweep: [../../sweeps/r3-stakeholder-needs.md](../../sweeps/r3-stakeholder-needs.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Working notes: [../../archive/working-notes-2026-09-26/04-stakeholders.md](../../archive/working-notes-2026-09-26/04-stakeholders.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 14, 27

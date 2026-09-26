@@ -1,7 +1,7 @@
 # Organizer data catalog
 
 **Type:** data
-**One line:** The organizers' "AI Hackathon for Housing — Public Data Catalog" spreadsheet: 60 datasets rated Core or Useful and tagged to problem briefs, plus a Read Me and a Brief Source Map.
+**One line:** The organizers' "AI Hackathon for Housing — Public Data Catalog" spreadsheet: ⚠ 60 rows (58 distinct sources) rated Core or Useful and tagged to problem briefs, plus a Read Me and a Brief Source Map.
 **Why we care:** It shows which sources the organizers expect a Track 1 or Track 3 entry to use, and it sets explicit quality and privacy rules that bear on the Data & AI Integrity criterion.
 **Last checked:** 2026-09-26
 
@@ -11,6 +11,7 @@
 
 ## Counts
 - 60 rows: **31 Core, 29 Useful**. "City-owned property" appears twice (Core under Vacancy & distress; Useful under Housing production).
+- ⚠ **60 rows (58 distinct sources)** *(corrected 2026-09-26 per docs/04-critique.md row 19)*: two pairs share a URL ("City-Owned Properties" / "City-owned property"; "PLI Permits" / "Historical PLI Permits"), so there are 58 distinct URLs.
 - The catalog's own definitions (Read Me): "Core sources are likely to support a central prototype workflow. Useful sources add context, validation, or specialized features."
 - Brief tags per row (a row can carry several; 5 rows say "All briefs", counted in every column below; 4 Core rows, the Vacancy & distress block, have no brief tag):
 
@@ -43,7 +44,7 @@ The catalog's brief names are "Development Feasibility & Pro Forma Navigator", "
 - Sources in the catalog that we have queried live: assessments, sales, parcel boundaries, PLI permits, OneStopPGH (via the `OSPI_H` FeatureServer, not the portal), zoning districts, FEMA NFHL, steep slopes, undermined areas, 3DEP, eMapPA, GTFS, LIHTC, HUD income limits, Zillow, LODES, delinquency, city-owned, condemned, violations. Details in the linked nodes.
 - The catalog lists the zoning code via `pittsburghpa.gov/dcp/zoning-code`; the text itself is on eCode360, which blocks scripted fetches ([zoning code text](zoning-code-text.md)).
 - The catalog lists ZBA decisions and municipal codes but not how to get structured data from them; see [ZBA decisions](zba-decisions.md) and [municipal zoning](municipal-zoning-outside-city.md).
-- Sources we use that are **not** in the catalog: County Real Estate Portal (owner name), `ParcelsPublicCityVacant`, ETHOS lot suitability, lot dimensions, sewersheds/CSO, lead service lines, DEP Act 2/AUL, EPA facilities, wetlands, soils, QCT/DDA/OZ layers, suburban zoning layers via the PRT registry, Pro-Housing Pittsburgh's 20+-unit CSV.
+- Sources we use that are **not** in the catalog: County Real Estate Portal (shows owner name; ⚠ do not ingest, use OWNERDESC only *(corrected 2026-09-26 per docs/04-critique.md row 32)*), `ParcelsPublicCityVacant`, ETHOS lot suitability, lot dimensions, sewersheds/CSO, lead service lines, DEP Act 2/AUL, EPA facilities, wetlands, soils, QCT/DDA/OZ layers, suburban zoning layers via the PRT registry, Pro-Housing Pittsburgh's 20+-unit CSV.
 - Catalog caveats are quoted in the relevant nodes.
 
 ## Full catalog (compact)
@@ -61,7 +62,7 @@ T1 Feas. = tagged Feasibility; PtP = Permit Navigator; T3 Typ. = Typology & Clim
 | Core | Pittsburgh Zoning Districts | ✓ | ✓ | ✓ |  | [zoning-gis](zoning-gis.md) |
 | Core | Pittsburgh Zoning Code | ✓ | ✓ | ✓ |  | [zoning-code-text](zoning-code-text.md) |
 | Core | Pittsburgh Development / Permit Records via OneStopPGH | ✓ | ✓ |  | ✓ | [permits-and-outcomes](permits-and-outcomes.md) |
-| Core | Allegheny County Housing Needs Assessment |  |  | ✓ | ✓ | – |
+| Core | Allegheny County Housing Needs Assessment ⚠ link dead (404); no such report found; see [Allegheny County](../stakeholders/allegheny-county.md) *(corrected 2026-09-26 per docs/04-critique.md row 27)* |  |  | ✓ | ✓ | – |
 | Core | American Community Survey 5-Year |  |  | ✓ | ✓ | – |
 | Core | Decennial Census |  |  | ✓ | ✓ | – |
 | Core | TIGER/Line Shapefiles | ✓ | ✓ | ✓ | ✓ | [market-and-affordability](market-and-affordability.md) |
@@ -117,6 +118,7 @@ T1 Feas. = tagged Feasibility; PtP = Permit Navigator; T3 Typ. = Typology & Clim
 - Which track, if any, the Observatory brief corresponds to (not needed for Track 1/3 work).
 - Why the four Vacancy & distress Core rows carry no brief tag.
 - Whether the catalog will be revised during the event (the saved copy is dated 2026-09-26).
+- Which document the County HNA row was meant to point to (its URL is dead).
 
 ## Connects to
 - [Brief and judging](../challenge/brief-and-judging.md): tracks and the Data & AI Integrity criterion
@@ -133,3 +135,4 @@ T1 Feas. = tagged Feasibility; PtP = Permit Navigator; T3 Typ. = Typology & Clim
 - [het-sheth/ai-housing-hackathon-wiki](https://github.com/het-sheth/ai-housing-hackathon-wiki), file `raw/hackathon/AI Hackathon for Housing — Public Data Catalog - Data Catalog.csv` `[read]` *(accessed 2026-09-26)*: where we first saw it; same 60 dataset names
 - [Track 1 brief page](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/policy-to-permit.html) `[read]` *(accessed 2026-09-26)*: URL slug vs title
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 19, 27

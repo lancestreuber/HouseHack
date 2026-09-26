@@ -9,6 +9,12 @@
 
 ## Start here
 
+**Humans, 2 minutes: → [`BRIEFING.md`](BRIEFING.md).** What we can build, what works, what doesn't, what's unknown, and a find-it-fast table.
+
+**Agents looking for a fact: → [`knowledge/INDEX.md`](knowledge/INDEX.md).** One line per node. Grep it, then open the node.
+
+**The full argument:**
+
 **→ [`knowledge/PAPER.md`](knowledge/PAPER.md) — *Where Housing Can Be Built, and What Should Be Built There***
 
 The paper is the map. Every claim in it links to a node in [`knowledge/`](knowledge/), and each node carries its sources.

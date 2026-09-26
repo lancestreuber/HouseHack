@@ -89,7 +89,7 @@ All from the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md
 - Where approval probabilities would come from. No published ZBA approval rates were found ([approval sweep](../../sweeps/r2-approval-pathway-and-timelines.md)); scraping ZBA decisions is the only lead ([ZBA decisions](../data/zba-decisions.md)).
 - Whether the use-table reading (R2+ for 2 units, R3+ for 3 units, RM for multi-unit) holds in the current code text.
 - Exact thresholds in every literature item above; none were re-fetched.
-- Whether the city's ~140k parcel count is right. The scoring sweep did not verify it; a separate layer (ETHOS Lot Suitability) has 142,806 city parcels as of 2024 ([deeper data sweep](../../sweeps/r2-deeper-data-sources.md)).
+- Whether the city's ~140k parcel count is right. The scoring sweep did not verify it; a separate layer (ETHOS Lot Suitability, a stormwater/green-infrastructure analysis; ⚠ "2024" date unverified *(corrected 2026-09-26 per docs/04-critique.md row 31)*) has 142,806 city parcels ([deeper data sweep](../../sweeps/r2-deeper-data-sources.md)).
 
 ## Connects to
 - [Backtest and calibration](backtest-and-calibration.md): how a chosen structure can be checked against permits

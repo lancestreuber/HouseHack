@@ -18,7 +18,17 @@ City base `C = https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/service
 | Hold for Study | 1,836 | URA Transfer | 1,419 |
 | Sale Pending | 489 | PLB (Land Bank) Transfer | 117 |
 
-The 3,260 figure was flagged unverified by one sweep and confirmed by another's live query (corrections log).
+The 3,260 figure was flagged unverified by one sweep and confirmed by another's live query (corrections log), and re-confirmed by the critique's live query on 2026-09-26 (other statuses: Unknown 82; null 72; Litigation Pending 24; Acquisition Pending 20; Cancelled 3).
+
+#### ⚠ Listed ≠ buildable *(corrected 2026-09-26 per docs/04-critique.md row 18)*
+
+3,260 city lots are listed Available for Sale; about half are under 2,400 sf, and roughly a third of the residential ones are below their district's minimum lot size. **Buildability is unassessed.** From the critique's live pull of all 3,260 (`calcacreag`, `zon_new`) against the post-reform minimum lot sizes `[read]`:
+
+- **Median lot 2,178 sf; 51% are under 2,400 sf.**
+- Of the **2,621** in residential districts, **1,684 (64%) meet** the post-reform minimum lot size, so about 36% do not.
+- **298 are zoned H (Hillside)**, where any construction triggers Site Plan Review (a mirror-read rule, `[skimmed]`).
+- **1,006** of the 3,260 are URA Transfer inventory.
+- Not accounted for: `calcacreag` precision, and **Ch. 921 lot-of-record relief** (unchecked). So "below minimum" does not mean "unbuildable".
 
 ### Other layers
 
@@ -54,13 +64,14 @@ The 3,260 figure was flagged unverified by one sweep and confirmed by another's 
 Catalog caveats: a foreclosure filing does not mean the property changed hands; condemnation does not establish demolition feasibility or availability.
 
 ## Owner name
-Only the County Real Estate Portal returns the owner's name; WPRDC assessments give OWNERDESC only ([parcels and assessments](parcels-and-assessments.md)).
+⚠ **Do not ingest owner names** *(corrected 2026-09-26 per docs/04-critique.md row 32)*. Owner names of private individuals are PII under the project's hard rule. They exist on the County Real Estate Portal, and `ParcelsPublicCityVacant` also carries owner fields; request only non-owner fields. Use **OWNERDESC** (owner category, from WPRDC assessments) only ([parcels and assessments](parcels-and-assessments.md)).
 
 ## Open questions
 - Why does WPRDC city-owned (12,477) differ from `ParcelsPublicCityVacant` (5,786)? Presumably non-vacant city property, but not checked.
 - Does `inventory_type = PLB Transfer` capture Land Bank holdings fully, or only transfers in progress?
 - Sheriff sales after 2024-06: no current source found.
 - Adjacency of available city lots (for assembly): not computed.
+- How many sub-minimum available lots are buildable as lots of record under Ch. 921 (Nonconformities)? Ch. 921 not read; Bill 2026-0834 would amend it.
 
 ## Connects to
 - [Land Bank](../stakeholders/land-bank.md)
@@ -81,3 +92,4 @@ Only the County Real Estate Portal returns the owner's name; WPRDC assessments g
 - Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 18, 32 (live buildability pull, §6)

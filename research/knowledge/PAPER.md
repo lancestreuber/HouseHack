@@ -92,7 +92,14 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
      - at least 21 days' notice
      - decision within 45 days **after the record closes**
      - a $400 fee
-   - **No ZBA approval rates and no timings for discretionary steps were found.** A round-5 sample of ZBA decisions is under way.
+   - ⭐ **The ZBA usually says yes (round 5).**
+     - We coded 90 decisions from 2026 hearings. Of the 84 relief requests, **81% were approved** (35 of those with conditions), 15.5% were denied and 3.6% split.
+     - The most-varied sections are setbacks (§903.03), accessory structures/parking pads (§912.04) and signs (§919). Use (§911) is the most cited once special exceptions are counted.
+     - **No case cites the §906 overlays.**
+     - Median time from the *final* hearing to the decision was 34 days, and at least 15 cases needed more than one hearing.
+     - Coverage is about two-thirds of 2026 case numbers, withdrawn cases are missing, and the rate is biased upward.
+     - → [ZBA sample](../sweeps/r5-zba-decisions-sample.md), [CSV](../sources/pittsburghpa-2026-09-26-zba-decisions-sample.csv)
+   - The Planning Commission, RCO and PWSA/sewage-planning steps remain untimed. PWSA's own manual puts the sewage-planning sign-off at 3–6 months (round 5).
    → [approval pathway](policy/approval-pathway.md) · [permit timelines](policy/permit-timelines.md)
 
 5. **Pittsburgh's environmental constraints are overlay districts with specific consequences.** Read on eCode360 (2026-09-26):
@@ -409,7 +416,7 @@ Cut lines are defined at hours 8, 12, 16, 18 and 20. All times are estimates.
   - Mirror-only: Ch. 914, 915 and 922.
   - Not read: Ch. 921 (nonconformities).
   - Two pending bills would amend much of this.
-- **How often variances are granted, or for what.** A round-5 sample is under way.
+- **How often variances are granted, beyond one 2026 sample.** 90 decisions, about two-thirds coverage, withdrawals missing. About 1,000 older decisions on the Internet Archive are unpulled.
 - **Infrastructure capacity for any parcel.** Not found in public data.
 - **What the Displacement Risk Ratio measures.** Its formula is undocumented.
 - **Anything about other teams' plans.**

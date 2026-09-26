@@ -9,6 +9,8 @@
 
 The two permit sources give different counts because they filter differently. Neither is wrong; they need to be reconciled, not averaged.
 
+⚠ **The counts are in different units and do not form a range** *(corrected 2026-09-26 per docs/04-critique.md row 22)*. ~370 is a *deduplicated residential project* count (one sweep's WPRDC filter). 592 is a *unique-parcel* count from OSPI_H that **includes the 370 Commercial permits** and **excludes the 583 recoded 2025+ records**. Say "roughly 370 deduplicated residential projects (one sweep's filter); the parcel-level counts differ by source and are not reconciled", not "370–590".
+
 | Source | Filter | Count | Verified |
 |---|---|---|---|
 | **WPRDC PLI permits** (resource `f4d1177a…`), 65,378 rows, issue dates 2019-06-03 to 2026-09-21 | permit_type ∈ {`BUILDING`, `Building & Development Application`} AND work_type = `NEW CONSTRUCTION`/`New Construction`; residential rows filtered by description regex (DWELLING\|HOUSE\|HOME\|TOWN\|MODULAR\|FAMILY\|UNIT) to drop sheds, garages and walls; commercial rows kept when the description matches APART\|DWELLING\|TOWN\|UNITS\|MULTIFAMILY\|CONDO | **~670 permits on ~510 unique parcels; ~370 independent projects** after collapsing by owner + neighborhood + month | Full CSV dump inspected by the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md) |
@@ -36,6 +38,8 @@ Positives cluster heavily: Fairywood 47, Bedford Dwellings 38, Central Lawrencev
 - Hold large public redevelopment sites out as a separate class, since their ease is not a zoning-map property.
 
 ## Is there enough data?
+
+⚠ **Power is uncomputed** *(corrected 2026-09-26 per docs/04-critique.md row 22)*. Heavy clustering (47 in one neighborhood, 38 in another) shrinks the effective sample below ~370. The figures below are one sweep's estimate, not a finding.
 
 The scoring sweep's assessment: about 370 events supports roughly 15–30 parameters at 10–20 events per variable (Peduzzi 1996, cited from memory), and is plenty to report an AUC for a rule-based score (it estimates a 95% CI of about ±0.03; that is the sweep's estimate, not a computed interval). The base rate is tiny, about 500 of roughly 140k city parcels, so report **PR-AUC and top-decile lift** alongside ROC-AUC. The 140k figure was not verified by that sweep.
 
@@ -84,7 +88,7 @@ Precedents from memory, not re-fetched: LA and SF Housing Element likelihood mod
 - Where pre-2019 permits live, if anywhere.
 - How much WPRDC and OSPI_H positives overlap after dedupe. Nobody has joined them yet.
 - Whether the Fairywood / Bedford Dwellings clusters are in fact HACP/URA projects.
-- Whether the city parcel universe is ~140k (unverified in the scoring sweep; 142,806 in the 2024 ETHOS layer).
+- Whether the city parcel universe is ~140k (unverified in the scoring sweep; 142,806 in the ETHOS layer, ⚠ whose "2024" date is unverified *(corrected 2026-09-26 per docs/04-critique.md row 31)*).
 
 ## Connects to
 - [Permits and outcomes](../data/permits-and-outcomes.md): the data behind the positives

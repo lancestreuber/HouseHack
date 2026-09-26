@@ -19,7 +19,7 @@ These counts come from different reports and define their universes differently;
 
 ## Title clearing and acquisition
 
-- In April 2026 the Land Bank started using **sheriff-sale authority**: about **9 months to a free-and-clear title, versus about 2 years before** `[read]` ([citizenportal.ai summary](https://citizenportal.ai/articles/7977800/pennsylvania/allegheny-county/pittsburgh/pittsburgh-land-bank-approves-two-sales-moves-to-speed-acquisitions-and-expand-rehab-pilot), a third-party summary). WESA (2025-11-20) described the same 2-years-to-9-months change as coming from "a new agreement" `[read]`.
+- In April 2026 the Land Bank started using **sheriff-sale authority**. ⚠ It **expects** about **9 months to a free-and-clear title, versus about 2 years before**. This is a stated expectation, not a measured result; there is no outcome data *(corrected 2026-09-26 per docs/04-critique.md row 13)*. `[read]` ([citizenportal.ai summary](https://citizenportal.ai/articles/7977800/pennsylvania/allegheny-county/pittsburgh/pittsburgh-land-bank-approves-two-sales-moves-to-speed-acquisitions-and-expand-rehab-pilot), a third-party summary). WESA (2025-11-20) described the same 2-years-to-9-months change as coming from "a new agreement" `[read]`. citizenportal.ai is an automated meeting-summary site, a weaker source type than minutes; the Land Bank's board agendas and minutes have not been read.
 - It mostly acquires parcels where a buyer is already identified `[skimmed]` ([PCRG](https://www.pcrg.org/pittsburgh-land-bank)).
 - The City "is not foreclosing on tax-delinquent vacant homes", so "these properties are simply inaccessible" `[read]` ([PublicSource 2025-12-22](https://www.publicsource.org/pittsburgh-housing-shortage-population-decline-vacant-homes/)).
 
@@ -69,3 +69,4 @@ These counts come from different reports and define their universes differently;
 - Sweep: [../../sweeps/r3-stakeholder-needs.md](../../sweeps/r3-stakeholder-needs.md)
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 13
