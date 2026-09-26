@@ -165,6 +165,58 @@ export const childCareOverlay = pointOverlay({
   },
 });
 
+// Everyday amenities from the Allegheny County Assets registry (WPRDC).
+const ASSETS_META = {
+  source: "Allegheny County Assets (WPRDC, CC0)",
+  sourceUrl: "https://data.wprdc.org/dataset/allegheny-county-assets",
+  asOf: "Registry updated Sep 2026; many underlying sources date from 2017–2020",
+  geography: "Listed locations",
+  caveats: ["Listed, not verified open today."],
+};
+
+const assetOverlay = (id: string, label: string, file: string, color: string, extraCaveats: string[] = []) =>
+  pointOverlay({
+    id,
+    label,
+    description: `${label} (Allegheny County Assets).`,
+    file,
+    color,
+    radius: [2.5, 6],
+    tooltip: (p) => [String(p.name), p.address && String(p.address), p.hours && `Hours: ${p.hours}`],
+    meta: { ...ASSETS_META, caveats: [...ASSETS_META.caveats, ...extraCaveats] },
+  });
+
+export const groceriesOverlay = pointOverlay({
+  id: "places-groceries",
+  label: "Grocery stores",
+  description: "Supermarkets (including Aldi) with an active food permit.",
+  file: "places-groceries.geojson",
+  color: "#84cc16",
+  radius: [3, 7],
+  tooltip: (p) => [String(p.name), p.address && String(p.address)],
+  meta: {
+    source: "Allegheny County Health Dept food facility permits (WPRDC, CC0)",
+    sourceUrl: "https://data.wprdc.org/dataset/allegheny-county-restaurant-food-facility-inspection-violations",
+    asOf: "Permits as of 2025",
+    geography: "Store locations",
+    caveats: ["Permit data; closures can lag.", "Smaller independent grocers may be filed under other categories."],
+  },
+});
+
+export const AMENITY_OVERLAYS = [
+  groceriesOverlay,
+  assetOverlay("places-pharmacies", "Pharmacies", "places-pharmacies.geojson", "#14b8a6", [
+    "Rite Aid locations are excluded (the chain closed its stores in 2025).",
+  ]),
+  assetOverlay("places-health-centers", "Health centers", "places-health-centers.geojson", "#f43f5e"),
+  assetOverlay("places-libraries", "Libraries", "places-libraries.geojson", "#8b5cf6"),
+  assetOverlay("places-banks", "Banks", "places-banks.geojson", "#64748b"),
+  assetOverlay("places-post-offices", "Post offices", "places-post-offices.geojson", "#0ea5e9"),
+  assetOverlay("places-senior-centers", "Senior centers", "places-senior-centers.geojson", "#d97706"),
+  assetOverlay("places-food-banks", "Food banks & pantries", "places-food-banks.geojson", "#65a30d"),
+  assetOverlay("places-laundromats", "Laundromats", "places-laundromats.geojson", "#94a3b8"),
+];
+
 export const PLACE_OVERLAYS = [
   hospitalsOverlay,
   fireStationsOverlay,

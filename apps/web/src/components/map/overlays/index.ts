@@ -9,8 +9,9 @@ import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./landslides";
 import { leadServiceLinesOverlay } from "./lead-service-lines";
+import { commerceDensityOverlay } from "./commerce-density";
 import { parksOverlay, trailsOverlay } from "./parks";
-import { PLACE_OVERLAYS } from "./places";
+import { AMENITY_OVERLAYS, PLACE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { sewerLinesOverlay } from "./sewer-lines";
 import { slopeOverlay } from "./slope";
@@ -35,6 +36,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   ...PLACE_OVERLAYS,
   parksOverlay,
   trailsOverlay,
+  ...AMENITY_OVERLAYS,
+  commerceDensityOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
