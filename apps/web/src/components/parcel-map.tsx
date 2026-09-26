@@ -24,7 +24,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@HouseHack/ui/components/resizable";
-import { SlidersHorizontal } from "lucide-react";
+import { Layers, SlidersHorizontal } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -158,6 +158,15 @@ function addZoningLayer(map: MapLibreMap) {
       ],
     },
   });
+}
+
+// MapLibre's compact attribution control briefly shows its full text next to
+// the (i) icon the first time it enters compact mode (and again on some
+// resizes), instead of staying fully collapsed until clicked. Strip the class
+// it uses for that so it always starts/stays icon-only until the user clicks it.
+function collapseAttribution(map: MapLibreMap) {
+  const el = map.getContainer().querySelector<HTMLElement>(".maplibregl-ctrl-attrib");
+  el?.classList.remove("maplibregl-compact-show");
 }
 
 function add3dBuildingsLayer(map: MapLibreMap, visible: boolean) {
@@ -324,12 +333,14 @@ export function ParcelMap() {
       addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
+      collapseAttribution(map);
     });
     map.on("styledata", () => {
       addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
+    map.on("resize", () => collapseAttribution(map));
     map.on("moveend", () => {
       void refreshParcels(map);
       void refreshViewportOverlays(map, overlayStateRef.current);
@@ -507,8 +518,16 @@ export function ParcelMap() {
               <div className="flex h-full min-w-0 flex-col">
                 <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
                 <div className="relative min-h-0 flex-1">
-                  <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
-                    <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
+                  <div className="absolute left-2 top-2 z-10">
+                    <Popover>
+                      <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
+                        <Layers className="size-3.5" />
+                        Layers
+                      </PopoverTrigger>
+                      <PopoverContent side="bottom" align="start" className="w-auto border-none bg-transparent p-0 shadow-none ring-0">
+                        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
                   <div className="absolute bottom-2 left-2 z-10">
