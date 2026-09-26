@@ -1,51 +1,81 @@
-# GitHub issues — draft (review before creating)
+# GitHub issues: draft (review before creating)
 
-Labels: `lane:data` `lane:scoring-ai` `lane:map` `lane:report` `setup` `blocker`
-Milestones: **M1 Setup (Sat 1:30pm)** · **M2 Checkpoint (Sat 7pm)** · **M3 Freeze (Sun 2pm)** · **M4 Submit (Sun 9pm)**
-Each issue links to the research doc that has the recipe, so nobody starts from scratch.
+**Track 3 only.** The product: pick a place (and who you're planning for), then see **scenario cards** (housing type × place × household), then ask the **AI companion**. Underneath is one engine: fit = benefits − exposure × household sensitivity × (1 − mitigation from the housing type).
+
+**Labels:** `lane:data` `lane:engine-ai` `lane:map` `lane:experience` `setup` `blocker`
+**Milestones:** M1 Setup (Sat 1:30pm) · M2 Checkpoint (Sat 7pm) · M3 Freeze (Sun 2pm) · M4 Submit (Sun 9pm)
+
+Each issue names the research doc that holds its recipe. All paths are under `docs/research/`.
 
 ## Setup (M1)
-1. **Setup runbook: bun, env, dev server running** (`setup`): Install bun, create `apps/web/.env` before `bun install`, and use a placeholder DATABASE_URL. Recipe in `docs/research/stack-setup.md` §1.
-2. **Remove scaffold cruft** (`setup`): Delete todos, `_auth/`, `login.tsx`, the sign-in/up forms and `user-menu`. Set the title, remove forced dark mode, and hide devtools in production. See stack-setup §5.
-3. **Shared contract: `packages/scoring/src/types.ts` + mock data** (`setup`, `blocker`): ParcelFeatures, NeighborhoodMetrics, Factor, TypologyResult, Fact, ProForma. Add mock JSON in `apps/web/public/data/mock/`.
-4. **Design tokens + fonts + shadcn components** (`setup`, `lane:map`): Tokens and color scales from ui-map §4. Fonts: Raleway 800 and DM Sans. Run the shadcn add command from ui-map §6.
-5. **Vercel project + env + preview protection off** (`setup`): See stack-setup §7.
+1. **Setup runbook: bun, env, dev server running** (`setup`). Follow stack-setup.md §1. Create `apps/web/.env` before `bun install`. No database is needed.
+2. **Remove scaffold cruft** (`setup`). Delete the todos, `_auth/`, login and user-menu code. Set the page title, drop the forced dark theme, and hide devtools in production. Steps in stack-setup.md §5.
+3. **Shared contract + mock data** (`setup`, `blocker`). Create `packages/scoring/src/types.ts` with these types:
+   - `Parcel`, `PlaceMetrics`
+   - `Household`, `Typology`
+   - `Scenario`, `Factor`, `Fact`
+   - `TradeoffCard`
 
-## Lane A: Data (`lane:data`)
+   Put mock JSON in `apps/web/public/data/mock/`.
+4. **Design tokens, fonts, shadcn components** (`setup`). Follow ui-map.md §4 and §6.
+5. **Vercel project, env vars, preview protection off** (`setup`). Follow stack-setup.md §7.
+
+## Lane A: Data (`lane:data`), docs: data-sources, access-amenities, environment-infrastructure, catalog-sweep, household-lens
 6. **Data workspace `@HouseHack/data` + `bun run data:refresh`** (M1)
-7. **Parcels: ParcelsPublic → features → `parcels.pmtiles`** (M2): Join zoning, neighborhood, vacant and owner category. See data-sources §parcels.
-8. **Constraint layers: slope 25%, landslide, undermined, flood, zoning, neighborhoods → GeoJSON + per-parcel flags** (M2)
-9. **Demand/equity: MVA 2021, displacement ratio, Census Reporter ACS, Housing_Burden → neighborhood + parcel metrics** (M2)
-10. **Transit: HighFrequencyTransit + GTFS → nearest frequent stop distance and trips/hr per parcel** (M2)
-11. **Satellite: tree canopy, impervious and summer surface temperature sampled per parcel (pin geotiff@2.1.3)** (M3)
-12. **City-owned parcels + Land Bank transfer flags + permits layer** (M2)
+7. **Parcels:** ParcelsPublic, then per-parcel features: zoning, lot width/depth, vacancy, owner. Output `parcels.pmtiles`. (M2)
+8. **Hazards and exposures per parcel** (M2):
+   - slope, landslide, undermined, flood
+   - lead line (PWSA / `lead-risk`)
+   - sewershed overflows
+   - highway and industrial proximity
+   - tract PM2.5
+9. **Access per parcel via kdbush** (M2):
+   - jobs by transit (Access Across America)
+   - grocery, parks, schools (growth score), health, childcare
+   - frequent transit stops
+   - sidewalks
+10. **Demand and equity per place** (M2):
+    - Market Value Analysis 2021 and the displacement risk ratio
+    - ACS 2024 via Census Reporter (income, rent, burden, household mix, zero-car)
+    - Eviction Lab filings
+    - expiring affordability
+    - 1937 redlining (HOLC) layer
+11. **Satellite per parcel** (M3): canopy, impervious surface, summer heat. Pin `geotiff@2.1.3`.
+12. **Climate and carbon inputs** (M3): FEMA National Risk Index (tract), DOE LEAD energy cost by building type, BTS LATCH vehicle miles, HUD Location Affordability Index.
+13. **Household-lens inputs** (M3): LEHD commute flows to job centers, including suburbs, and household composition. Follow household-lens.md.
 
-## Lane B: Scoring + AI (`lane:scoring-ai`)
-13. **Encode `ZONING_RULES` (from zoning-rules.md) + tests** (M2)
-14. **Development Ease Score (10-factor rubric, pass/warn/block, hard caps) + tests** (M2)
-15. **Typology matcher + Track 3 weights + confidence ranges** (M2)
-16. **Reform scenario overrides (Bill 2025-1545, labeled pending) + citywide delta counts** (M3)
-17. **Pro forma lite with editable, sourced defaults (pro-forma.md)** (M3)
-18. **`ai.brief` streaming router: fact-id citations, Evidence/Assumption/Value tags, cache, works with no key** (M2). The code is in stack-setup §4.
-19. **`ai.filters`: "Ask the map", which turns natural language into structured filter chips via tool use** (M3)
-20. **Methodology page content: sources, weights, limits, who could be harmed** (M3)
+## Lane B: Engine + AI (`lane:engine-ai`), docs: track3-methodology, interactions, zoning-rules, pro-forma, household-lens
+14. **`ZONING_RULES` + tests** (M2)
+15. **Six sub-scores** (M2): Feasibility, Demand, Access, Climate, Equity/Displacement, Infrastructure. Use percentile ranks. Suppress a sub-score when coverage is below 67%.
+16. **One engine: `SENSITIVITY` × `MITIGATION` exposure-risk sub-score + red-flag rule** (M2)
+17. **Scenario generator** (M2). For a place and household, rank typologies with fit, a P10–P90 confidence range, legal status and the top tradeoffs. Each scenario becomes a card.
+18. **Tradeoff card triggers**, the 11 rules in interactions.md (M3)
+19. **Household personas + weight presets** (Balanced / CDC / Climate / Market) (M2)
+20. **Affordability gap (pro forma lite) + subsidy matches** (M3)
+21. **Policy simulation, 7 levers** (M3). The ADU reform (pending, Bill 2025-1545) comes first, with before/after deltas.
+22. **AI companion (Claude, tool use, streaming)** (M2). Tools:
+    - `find_places`, `get_site_report`
+    - `compare_scenarios`, `explain_factor`
+    - `simulate_policy`, `get_sources`
 
-## Lane C: Map + explorer (`lane:map`)
-21. **Map shell: MapLibre 6 + OpenFreeMap Positron, ClientOnly/lazy, worker URL** (M1). The component is in ui-map §1.
-22. **Layers + combined legend/layer list; hazards drawn as hatching or outlines** (M2)
-23. **Search: ⌘K command palette for address (Census geocoder), ZIP and neighborhood, with flyTo** (M2)
-24. **Priority sliders → GPU recolor of parcels and neighborhoods; state in the URL** (M2)
-25. **Parcel hover/select highlight → open the report drawer; map padding shifts** (M2)
-26. **Reverse Lot Finder: goals → ranked shortlist on the map + in a list** (M3)
-27. **3D massing preview of the typology on the selected lot** (stretch, M3)
-28. **Mobile bottom sheet (vaul) + ranked list view for accessibility** (M3)
+    It may only state facts that a tool returned. It cites fact ids, and it degrades gracefully when there is no API key.
+23. **Who benefits / who might be harmed / what the tool gets wrong**, rule-based text (M3)
 
-## Lane D: Report, compare, polish (`lane:report`)
-29. **Site report drawer: score gauge, factor chips, typology cards, tradeoff table** (M2)
-30. **AI brief panel: streamed sentences with fact chips + tag badges** (M2)
-31. **Pro forma card with editable assumptions** (M3)
-32. **Policy reform toggle UX: before/after diff + citywide counter** (M3)
-33. **Compare tray (up to 3 sites) + shortlist export (link/CSV)** (M3)
-34. **Landing page + community brief print stylesheet (map snapshot, OSM attribution)** (M3)
-35. **Demo video script + recording (3–5 min: say the hackathon name + team, be honest about what's real)** (M4)
-36. **Submission: Google Form, public repo check, secret scan, README** (M4)
+## Lane C: Map (`lane:map`), doc: ui-map
+24. **Map shell** (M1): MapLibre 6 + OpenFreeMap Positron, ClientOnly/lazy, worker URL.
+25. **Layers + combined legend/layer list**, including the redlining and exposure layers (M2)
+26. **Pick-a-place** (M2): ⌘K search (address, ZIP, neighborhood) with flyTo. Tap-to-select a neighborhood or parcel.
+27. **GPU recolor as weights and household change**, with state kept in the URL (M2)
+28. **Companion → map actions** (M3): the companion can fly to places, highlight them and filter.
+29. **Mobile bottom sheet + ranked list view (accessibility)** (M3)
+30. **3D massing preview for a scenario** (stretch, M3)
+
+## Lane D: Experience (`lane:experience`), docs: ui-map, track3-methodology
+31. **Household picker** (M2): who you're planning for, plus an optional workplace.
+32. **Scenario cards** (M2): fit, confidence, top tradeoffs, benefits/harms, legal status. Compare and pin.
+33. **Companion chat panel** (M2): streaming, fact chips, Evidence/Assumption/Value tags, suggested next questions, glossary tooltips.
+34. **Site report drawer + affordability card + next steps** (M3). Next steps include the zoning path, variance odds, Land Bank and RCO contacts.
+35. **Policy simulation UX** (M3): toggle, before/after, citywide counter.
+36. **Landing page + methodology page + community brief print** (M3)
+37. **Demo video** (M4): 3–5 minutes. Open with the hackathon name and team, and say plainly what is real.
+38. **Submission** (M4): Google Form, repo public, secret scan, README.

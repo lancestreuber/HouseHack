@@ -46,11 +46,11 @@ The goal is a real tool a CDC, planner, small developer or resident could use on
 
 ### What we need from you
 1. **Read the plan doc** and leave comments: what's missing, what's too much, what you'd change.
-2. **Pick a lane** in Discord (one person per lane; each lane owns its own folders so we don't collide):
-   - **A: Data pipeline.** Fetch, join and export all layers, plus satellite sampling. Read [data-sources.md](docs/research/data-sources.md).
-   - **B: Scoring + AI.** Zoning rules, Ease Score, typology matching, pro forma, Claude endpoints. Read [zoning-rules.md](docs/research/zoning-rules.md) and [pro-forma.md](docs/research/pro-forma.md).
-   - **C: Map + explorer.** MapLibre map, layers, search, sliders, lot finder. Read [ui-map.md](docs/research/ui-map.md).
-   - **D: Report, compare, polish.** Site report, compare, reform toggle, landing page, video, submission. Read [ui-map.md](docs/research/ui-map.md) and [pro-forma.md](docs/research/pro-forma.md).
+2. **Pick a lane** in Discord (one person per lane; each lane owns its own folders so we don't collide). The full issue list is in [docs/issues-draft.md](docs/issues-draft.md).
+   - **A: Data.** Parcels, hazards and exposures, access, demand/equity, satellite, climate, commute. Read data-sources, access-amenities, environment-infrastructure, catalog-sweep and household-lens in [docs/research/](docs/research/).
+   - **B: Engine + AI.** Sub-scores, the sensitivity × mitigation engine, the scenario generator, tradeoff cards, personas, policy simulation, and the Claude companion with tools. Read track3-methodology, interactions, zoning-rules and pro-forma.
+   - **C: Map.** MapLibre map, layers, pick-a-place search, live recolor, companion → map actions, mobile. Read ui-map.
+   - **D: Experience.** Household picker, scenario cards, companion chat panel, site report, policy simulation UI, landing and methodology pages, video, submission. Read ui-map and track3-methodology.
 3. **Vote on a name**: Groundwork PGH (working name), Buildable Burgh, LotLogic, SiteLine PGH or Yinz Can Build.
 4. **Get set up** by following [stack-setup.md §1](docs/research/stack-setup.md). In short:
    - Install bun: `curl -fsSL https://bun.sh/install | bash`.

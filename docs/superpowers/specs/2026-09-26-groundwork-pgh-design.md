@@ -17,6 +17,18 @@ What "works for real" means concretely:
 - **Refreshable**: `bun run data:refresh` rebuilds everything from the source APIs, and a README tells a partner org how to keep it running. That covers the continuation criterion.
 - **Robust**: works without the AI (scores are deterministic, and the AI only explains them), without JS-heavy waits (static files on a CDN), and on phones.
 
+## Current direction (Sep 26, ~2pm): read this first
+**Track 3 only** (Housing Typology, Equity & Climate Matchmaker). Wherever the rest of this spec mentions "Tracks 1+3", it's outdated. Feasibility and the pro forma survive only as inputs to Track 3's tradeoffs and policy simulation.
+
+- **Experience:**
+  1. Pick a place, and optionally who you're planning for and where they work.
+  2. Get **scenario cards**. Each card is one housing type on that place for that household, with fit, P10–P90 confidence, top tradeoffs, and who benefits and who might be harmed.
+  3. Ask the **AI companion**. It's a neutral, conversational guide that uses Claude with tools and cites every fact.
+- **One engine:** fit = benefits − Σ exposure × household sensitivity × (1 − typology mitigation). Six sub-scores (Feasibility, Demand, Access, Climate, Equity/Displacement, Infrastructure) sit on top of it. Details are in `docs/research/track3-methodology.md` and `docs/research/interactions.md`.
+- **Equity:** affordability, access to opportunity, displacement, environmental justice, history (the 1937 redlining layer) and accessibility. Race is shown as context only and never enters a score. Crime data never enters a score.
+- **Data:** every factor the team listed is sourced in `docs/research/access-amenities.md`, `environment-infrastructure.md`, `catalog-sweep.md` and `household-lens.md`.
+- **Work split:** `docs/issues-draft.md` defines four lanes: A Data, B Engine + AI, C Map, D Experience.
+
 ## Updates after research (Sep 26, ~12:30pm)
 Details and citations for each item are in `docs/research/` (`ui-map.md`, `data-sources.md`, `zoning-rules.md`, `stack-setup.md`, `pro-forma.md`). Where this section and the rest of the spec disagree, this section wins.
 - **Parcels:** City ArcGIS `ParcelsPublic` has all 142,635 parcels, already tagged with zoning, neighborhood, vacancy and owner category. Build them into one `parcels.pmtiles` file and recolor on the GPU as sliders move.
