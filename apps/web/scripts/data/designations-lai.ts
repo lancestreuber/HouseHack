@@ -41,7 +41,7 @@ export async function buildDesignations() {
 
   const lai = await fetchAllGeoJSON(`${HUD}/Location_Affordability_Index_v3/FeatureServer/0`, {
     where: "GEOID LIKE '42003%'",
-    outFields: ["GEOID", "median_gross_rent", "avg_h_cost", "autos_per_hh", "pct_transit_j2w", "hh1_model_vmt_per_hh", "hh3_model_vmt_per_hh", "hh1_vmt_cost"],
+    outFields: ["GEOID", "median_gross_rent", "avg_h_cost", "autos_per_hh", "pct_transit_j2w", "hh1_model_vmt_per_hh", "hh3_model_vmt_per_hh", "hh1_vmt_cost", "hh1_ht", "hh6_ht", "hh1_t_cost", "hh6_t_cost"],
     maxAllowableOffset: 0.00005,
   });
   for (const f of lai) {
@@ -55,6 +55,12 @@ export async function buildDesignations() {
       vmt_median_family: n(p.hh1_model_vmt_per_hh) == null ? null : Math.round(n(p.hh1_model_vmt_per_hh)!),
       vmt_working_individual: n(p.hh3_model_vmt_per_hh) == null ? null : Math.round(n(p.hh3_model_vmt_per_hh)!),
       vmt_cost_median_family: n(p.hh1_vmt_cost) == null ? null : Math.round(n(p.hh1_vmt_cost)!),
+      // Housing + transportation cost as % of income: hh1 and hh6 single-parent
+      // family (3 people, 1 commuter, 50% of area median income).
+      ht_median_family: n(p.hh1_ht) == null ? null : Math.round(n(p.hh1_ht)! * 10) / 10,
+      ht_single_parent: n(p.hh6_ht) == null ? null : Math.round(n(p.hh6_ht)! * 10) / 10,
+      t_cost_median_family: n(p.hh1_t_cost) == null ? null : Math.round(n(p.hh1_t_cost)!),
+      t_cost_single_parent: n(p.hh6_t_cost) == null ? null : Math.round(n(p.hh6_t_cost)!),
       autos_per_hh: n(p.autos_per_hh) == null ? null : Math.round(n(p.autos_per_hh)! * 100) / 100,
       pct_transit_j2w: n(p.pct_transit_j2w) == null ? null : Math.round(n(p.pct_transit_j2w)! * 10) / 10,
       avg_h_cost: n(p.avg_h_cost) == null ? null : Math.round(n(p.avg_h_cost)!),
