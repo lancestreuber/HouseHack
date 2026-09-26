@@ -60,8 +60,8 @@ Note: the sweep numbers its framings 1–8 without the literal scorecard; this t
 - [Land availability and title](../data/land-availability-and-title.md): framings 2 and 3
 - [Reforms in flux](../policy/reforms-in-flux-2025-2026.md): framing 7 and staleness risk
 - [Pro forma](../methods/pro-forma.md): framing 9
-- [Architecture options](../build/architecture-options.md): the shared rules engine
-- [UX patterns](../build/ux-patterns.md): map vs chat vs memo
+- [Architecture options](../build-plan/architecture-options.md): the shared rules engine
+- [UX patterns](../build-plan/ux-patterns.md): map vs chat vs memo
 
 ## Sources
 - [Pro-Housing Pittsburgh, minimum lot sizes](https://www.prohousingpgh.org/blog/wins-minimum-lot-sizes) `[skimmed]` *(accessed 2026-09-26)*

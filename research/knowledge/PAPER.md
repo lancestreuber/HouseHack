@@ -162,7 +162,7 @@ A dedicated critique pass is part of the method. See [`../docs/04-critique.md`](
     - hand-encoding zoning rules
 
     The login wall in the scaffold is a demo risk. These are recommendations from one feasibility sweep, not tested builds.
-    → [architecture options](build/architecture-options.md) · [timeline and workstreams](build/timeline-and-workstreams.md)
+    → [architecture options](build-plan/architecture-options.md) · [timeline and workstreams](build-plan/timeline-and-workstreams.md)
 
 ---
 
@@ -353,7 +353,7 @@ Pittsburgh's own tools are data explorers, not scorers: WPRDC tools, ETHOS lot s
 
 ## Part IX — Building it
 
-See Summary §14 for the options and risks. → [architecture options](build/architecture-options.md), [data pipeline](build/data-pipeline.md), [timeline and workstreams](build/timeline-and-workstreams.md), [UX patterns](build/ux-patterns.md)
+See Summary §14 for the options and risks. → [architecture options](build-plan/architecture-options.md), [data pipeline](build-plan/data-pipeline.md), [timeline and workstreams](build-plan/timeline-and-workstreams.md), [UX patterns](build-plan/ux-patterns.md)
 
 The proposed plan:
 - **By hour 4:** a vertical slice, meaning one parcel working end to end on the deployed URL.

@@ -24,7 +24,7 @@ The method is the same one used in the team's earlier research repositories:
 | [`methods/`](methods/) | Scoring, calibration, uncertainty, the LLM's role, and typology matching |
 | [`landscape/`](landscape/) | Existing tools, hackathon precedents, and public repos from other participants |
 | [`track3/`](track3/) | Typology, equity, and climate: data, methods, and options for combining with Track 1 |
-| [`build/`](build/) | Architecture on our scaffolded stack, the data pipeline, timeline, workstreams, and UX patterns |
+| [`build-plan/`](build-plan/) | Architecture on our scaffolded stack, the data pipeline, timeline, workstreams, and UX patterns |
 
 ## Node index
 
@@ -79,7 +79,7 @@ These are the canonical filenames. Link to them even before they exist; a link t
   - `displacement-and-equity.md`
   - `carbon-by-typology.md`
   - `combining-with-track1.md`
-- **build/**
+- **build-plan/**
   - `architecture-options.md`
   - `data-pipeline.md`
   - `timeline-and-workstreams.md`

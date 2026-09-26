@@ -76,7 +76,7 @@ From the data sweep (its judgment) and the build sweep (its timeline):
 - [Reforms in flux](../policy/reforms-in-flux-2025-2026.md): Bill 2025-1545 for option B
 - [Dimensional standards and use table](../policy/dimensional-standards-and-use-table.md)
 - [Score design options](../methods/score-design-options.md): Ease as gate vs. score
-- [Architecture options](../build/architecture-options.md) and [timeline and workstreams](../build/timeline-and-workstreams.md): where Track 3 sits in the build
+- [Architecture options](../build-plan/architecture-options.md) and [timeline and workstreams](../build-plan/timeline-and-workstreams.md): where Track 3 sits in the build
 - [Land availability and title](../data/land-availability-and-title.md): city-owned vacant lots for the demo
 
 ## Sources

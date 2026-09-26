@@ -39,7 +39,7 @@ Collected from the nodes:
 - [Challenge brief and judging](../challenge/brief-and-judging.md)
 - [Score design options](../methods/score-design-options.md)
 - [Dimensional standards and use table](../policy/dimensional-standards-and-use-table.md)
-- [Data pipeline](../build/data-pipeline.md)
+- [Data pipeline](../build-plan/data-pipeline.md)
 
 ## Sources
 

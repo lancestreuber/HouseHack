@@ -43,7 +43,7 @@ From the [data sweep](../../sweeps/r4-track3-data-methods-and-combination.md), s
 
 ## Output shape
 
-The build sweep proposes precomputing Track 3 metrics per block group into one JSON file of about 1–2 MB (an estimate), consumed client-side so weight sliders update instantly ([build sweep](../../sweeps/r4-build-feasibility-on-team-stack.md)). The pipeline itself is in [data pipeline](../build/data-pipeline.md).
+The build sweep proposes precomputing Track 3 metrics per block group into one JSON file of about 1–2 MB (an estimate), consumed client-side so weight sliders update instantly ([build sweep](../../sweeps/r4-build-feasibility-on-team-stack.md)). The pipeline itself is in [data pipeline](../build-plan/data-pipeline.md).
 
 ## Open questions
 
@@ -64,7 +64,7 @@ The build sweep proposes precomputing Track 3 metrics per block group into one J
 - [Infrastructure](../data/infrastructure.md): the uncovered "infrastructure capacity" axis
 - [Organizer data catalog](../data/organizer-data-catalog.md): overlap with organizer-recommended sources
 - [Displacement and equity](displacement-and-equity.md): MVA and DRR in depth
-- [Data pipeline](../build/data-pipeline.md): how these are pulled and joined
+- [Data pipeline](../build-plan/data-pipeline.md): how these are pulled and joined
 
 ## Sources
 

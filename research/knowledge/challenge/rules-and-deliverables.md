@@ -96,7 +96,7 @@ From the [packet](https://docs.google.com/document/d/1L-UYid6Q0JDRH3iy4cpqGIDlZN
 
 ## Connects to
 - [Brief and judging](brief-and-judging.md): what is scored
-- [Timeline and workstreams](../build/timeline-and-workstreams.md): planning against the deadline
+- [Timeline and workstreams](../build-plan/timeline-and-workstreams.md): planning against the deadline
 - [LLM role](../methods/llm-role.md): avoiding the "thin wrapper" problem
 - [Combining with Track 1](../track3/combining-with-track1.md): one track on the form
 - [Other participants](../landscape/other-participants.md): public repos created on build day
