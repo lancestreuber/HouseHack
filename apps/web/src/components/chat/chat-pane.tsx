@@ -12,6 +12,7 @@ import {
   Square,
   Volume2,
   VolumeX,
+  X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -28,6 +29,8 @@ export interface ChatPaneProps {
    */
   context?: ChatContext;
   className?: string;
+  /** Show only as a floating window (no docked state) with a close button. */
+  onClose?: () => void;
 }
 
 const EDGES: { edge: Edge; className: string }[] = [
@@ -46,9 +49,10 @@ const EDGES: { edge: Edge; className: string }[] = [
  * pane sets the size). Popped out, it's a floating window you can drag by its
  * header and resize from any edge or corner; size and position are remembered.
  */
-export function ChatPane({ context, className }: ChatPaneProps) {
+export function ChatPane({ context, className, onClose }: ChatPaneProps) {
   const chat = useChat(context);
-  const [floating, setFloating] = useState(false);
+  const [poppedOut, setFloating] = useState(false);
+  const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
   const hasSubject = Boolean(context?.facts.length);
 
@@ -86,13 +90,24 @@ export function ChatPane({ context, className }: ChatPaneProps) {
             <RotateCcw />
           </IconButton>
         )}
-        <IconButton
-          label={floating ? "Dock chat back into the panel" : "Pop out into a window you can move and resize"}
-          onClick={() => setFloating((f) => !f)}
-        >
-          {floating ? <PanelRightClose /> : <PictureInPicture2 />}
-        </IconButton>
+        {onClose ? (
+          <IconButton label="Close chat" onClick={onClose}>
+            <X />
+          </IconButton>
+        ) : (
+          <IconButton
+            label={floating ? "Dock chat back into the panel" : "Pop out into a window you can move and resize"}
+            onClick={() => setFloating((f) => !f)}
+          >
+            {floating ? <PanelRightClose /> : <PictureInPicture2 />}
+          </IconButton>
+        )}
       </header>
+      {hasSubject && context?.subject && (
+        <p className="shrink-0 truncate border-b border-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
+          {context.subject}
+        </p>
+      )}
 
       <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
 
@@ -111,6 +126,7 @@ export function ChatPane({ context, className }: ChatPaneProps) {
   );
 
   if (!floating) return pane;
+  if (onClose) return win.rect ? pane : null;
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
