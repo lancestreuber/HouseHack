@@ -11,7 +11,7 @@ const BINS = [
   { min: 100, color: "#facc15", label: "100+ trips (frequent)" },
 ];
 
-const tripsColor = ["step", ["to-number", ["get", "trips_wd"], 0], BINS[0].color];
+const tripsColor: unknown[] = ["step", ["to-number", ["get", "trips_wd"], 0], BINS[0].color];
 for (const bin of BINS.slice(1)) tripsColor.push(bin.min, bin.color);
 
 export const transitStopsOverlay: OverlayDefinition = {
