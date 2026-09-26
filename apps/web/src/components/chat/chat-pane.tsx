@@ -15,11 +15,13 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { FactChip } from "./fact-chip";
 import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
+import { PaneCollapseButton } from "../map/pane-collapse-button";
 
 export interface ChatPaneProps {
   /**
@@ -31,6 +33,9 @@ export interface ChatPaneProps {
   className?: string;
   /** Show only as a floating window (no docked state) with a close button. */
   onClose?: () => void;
+  /** Docked only: collapses the pane to just its header. */
+  collapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 const EDGES: { edge: Edge; className: string }[] = [
@@ -49,7 +54,7 @@ const EDGES: { edge: Edge; className: string }[] = [
  * pane sets the size). Popped out, it's a floating window you can drag by its
  * header and resize from any edge or corner; size and position are remembered.
  */
-export function ChatPane({ context, className, onClose }: ChatPaneProps) {
+export function ChatPane({ context, className, onClose, collapsed, onToggleCollapse }: ChatPaneProps) {
   const chat = useChat(context);
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
@@ -90,6 +95,9 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
             <RotateCcw />
           </IconButton>
         )}
+        {!floating && onToggleCollapse && (
+          <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="chat" />
+        )}
         {onClose ? (
           <IconButton label="Close chat" onClick={onClose}>
             <X />
@@ -103,15 +111,19 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
           </IconButton>
         )}
       </header>
-      {hasSubject && context?.subject && (
-        <p className="shrink-0 truncate border-b border-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
-          {context.subject}
-        </p>
+      {!(collapsed && !floating) && (
+        <>
+          {hasSubject && context?.subject && (
+            <p className="shrink-0 truncate border-b border-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
+              {context.subject}
+            </p>
+          )}
+
+          <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
+
+          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={hasSubject} />
+        </>
       )}
-
-      <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
-
-      <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={hasSubject} />
 
       {floating &&
         EDGES.map(({ edge, className: edgeClass }) => (
@@ -125,8 +137,13 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
     </section>
   );
 
+  // Portaled to <body>: this can be mounted arbitrarily deep (e.g. inside a
+  // resizable pane), and `position: fixed` only escapes an ancestor's bounds
+  // reliably when there's no risk of that ancestor creating its own
+  // containing block (transform/filter/contain). A portal sidesteps that
+  // regardless of where the component happens to live.
   if (!floating) return pane;
-  if (onClose) return win.rect ? pane : null;
+  if (onClose) return win.rect ? createPortal(pane, document.body) : null;
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
@@ -135,7 +152,7 @@ export function ChatPane({ context, className, onClose }: ChatPaneProps) {
           <PanelRightClose /> Dock it back here
         </Button>
       </div>
-      {win.rect && pane}
+      {win.rect && createPortal(pane, document.body)}
     </>
   );
 }

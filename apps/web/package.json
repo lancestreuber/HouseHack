@@ -8,7 +8,8 @@
     "dev": "vite dev",
     "check-types": "tsc -b ../../packages/api && vite build && tsc --noEmit",
     "env:generate": "varlock codegen",
-    "auth:generate": "varlock run -- bun x auth@latest generate --config src/services.ts --output ../../packages/db/src/schema/auth.ts --yes"
+    "auth:generate": "varlock run -- bun x auth@latest generate --config src/services.ts --output ../../packages/db/src/schema/auth.ts --yes",
+    "data:overlays": "bun scripts/data/build-all.ts"
   },
   "dependencies": {
     "@HouseHack/api": "workspace:*",

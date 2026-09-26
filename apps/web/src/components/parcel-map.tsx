@@ -10,7 +10,33 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
 setWorkerUrl(maplibreWorkerUrl);
 
+import {
+  type PanelImperativeHandle,
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@HouseHack/ui/components/resizable";
+
+import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
+
+import { type AddressResult, AddressSearch } from "./map/address-search";
+import { BreakdownPanel } from "./map/breakdown-panel";
+import { useChatContext } from "./chat/chat-context-store";
+import { SAMPLE } from "./chat/chat-launcher";
+import { ChatPane } from "./chat/chat-pane";
+import { LayersPanel } from "./map/layers-panel";
+import {
+  INITIAL_OVERLAY_STATE,
+  loadingOverlayIds,
+  type OverlayState,
+  refreshViewportOverlays,
+  registerTooltips,
+  syncOverlays,
+} from "./map/overlay-controller";
+import { ParcelTab } from "./map/parcel-tab";
+import { PillarsPanel } from "./map/pillars-panel";
+import { TypologyPanel } from "./map/typology-panel";
 
 type BasemapId = "carto-dark" | "osm-inverted";
 
@@ -35,6 +61,9 @@ const OSM_RASTER_STYLE: StyleSpecification = {
 
 const PARCEL_SOURCE_ID = "parcels";
 const PARCEL_LAYER_ID = "parcels-outline";
+// Invisible fill so a click anywhere inside a parcel selects it.
+const PARCEL_HIT_LAYER_ID = "parcels-hit";
+const PARCEL_SELECTED_LAYER_ID = "parcels-selected";
 
 // Pittsburgh CITY zoning only (not county-wide) -- static file, small enough
 // (1068 features) to ship as one asset instead of a DB-backed bbox query.
@@ -50,9 +79,18 @@ const COUNTY_BOUNDS: [[number, number], [number, number]] = [
   [-79.69, 40.68],
 ];
 
+// Heat overlays are inserted beneath the first of these that exists, so zoning
+// and parcel outlines stay readable on top of the color fill.
+const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PARCEL_LAYER_ID];
+
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
 const PARCEL_MIN_ZOOM = 14;
+
+// A real Pittsburgh parcel (R1D-H, single-unit detached residential) with
+// full indicator coverage, used so the panels show real demo data on first
+// load instead of empty "select a parcel" placeholders everywhere.
+const DEMO_PIN = "0001N00154000000";
 
 function addZoningLayer(map: MapLibreMap) {
   if (map.getSource(ZONING_SOURCE_ID)) return;
@@ -105,6 +143,12 @@ function addParcelLayer(map: MapLibreMap) {
     data: { type: "FeatureCollection", features: [] },
   });
   map.addLayer({
+    id: PARCEL_HIT_LAYER_ID,
+    type: "fill",
+    source: PARCEL_SOURCE_ID,
+    paint: { "fill-color": "#000000", "fill-opacity": 0 },
+  });
+  map.addLayer({
     id: PARCEL_LAYER_ID,
     type: "line",
     source: PARCEL_SOURCE_ID,
@@ -113,6 +157,13 @@ function addParcelLayer(map: MapLibreMap) {
       "line-width": 1,
       "line-opacity": 0.85,
     },
+  });
+  map.addLayer({
+    id: PARCEL_SELECTED_LAYER_ID,
+    type: "line",
+    source: PARCEL_SOURCE_ID,
+    filter: ["==", ["get", "pin"], ""],
+    paint: { "line-color": "#F2C230", "line-width": 3 },
   });
 }
 
@@ -137,12 +188,56 @@ async function refreshParcels(map: MapLibreMap) {
   source.setData(data as Parameters<GeoJSONSource["setData"]>[0]);
 }
 
+/** Wires a ResizablePanel up to a header collapse button: tracks whether
+ * it's currently collapsed (via onResize, so dragging past the threshold
+ * keeps the icon in sync too, not just button clicks) and exposes a toggle. */
+function usePaneCollapse() {
+  const ref = useRef<PanelImperativeHandle | null>(null);
+  const [collapsed, setCollapsed] = useState(false);
+  const onResize = (size: { asPercentage: number }) => setCollapsed(size.asPercentage <= 0.5);
+  const toggle = () => {
+    const panel = ref.current;
+    if (!panel) return;
+    if (panel.isCollapsed()) panel.expand();
+    else panel.collapse();
+  };
+  return { ref, collapsed, onResize, toggle };
+}
+
 export function ParcelMap() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
   const [basemap, setBasemap] = useState<BasemapId>("carto-dark");
   const [showZoning, setShowZoning] = useState(true);
+  const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
+  const overlayStateRef = useRef(overlayState);
+  overlayStateRef.current = overlayState;
+  const [zoom, setZoom] = useState(0);
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  // Pre-selected with a real, well-covered demo parcel so the scores,
+  // breakdown and typology panes are never empty on first load -- an actual
+  // click or address search just swaps this out.
+  const [selectedPin, setSelectedPin] = useState<string | null>(DEMO_PIN);
+  const mapPane = usePaneCollapse();
+  const scoresPane = usePaneCollapse();
+  const breakdownPane = usePaneCollapse();
+  const typologyPane = usePaneCollapse();
+  const chatPane = usePaneCollapse();
+  const chatContext = useChatContext() ?? SAMPLE;
+
+  const handleAddressSelect = (result: AddressResult) => {
+    mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
+    if (result.pin) {
+      setSelectedPin(result.pin);
+      if (scoresPane.ref.current?.isCollapsed()) scoresPane.ref.current.expand();
+    }
+  };
+
+  const handleSelectPillar = (id: PillarId) => {
+    if (breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current.expand();
+    document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -164,9 +259,46 @@ export function ParcelMap() {
       addZoningLayer(map);
       addParcelLayer(map);
     });
-    map.on("moveend", () => void refreshParcels(map));
+    map.on("moveend", () => {
+      void refreshParcels(map);
+      void refreshViewportOverlays(map, overlayStateRef.current);
+      setZoom(map.getZoom());
+    });
+
+    // Overlays (air quality, weather, lead, sewers, ...) come from the registry
+    // in ./map/overlays. Re-applied after every style load, since a basemap
+    // swap drops all sources and layers.
+    const applyOverlays = () => {
+      addZoningLayer(map);
+      addParcelLayer(map);
+      syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
+      void refreshViewportOverlays(map, overlayStateRef.current);
+    };
+    map.on("style.load", applyOverlays);
+
+    // Keep the panel's "loading" badges in sync with MapLibre's source state.
+    const updateLoading = () => {
+      const next = loadingOverlayIds(map, overlayStateRef.current);
+      setLoadingIds((prev) => (prev.join() === next.join() ? prev : next));
+    };
+    map.on("sourcedata", updateLoading);
+    map.on("idle", updateLoading);
+    registerTooltips(map, () => overlayStateRef.current);
+
+    map.on("click", PARCEL_HIT_LAYER_ID, (e) => {
+      const pin = e.features?.[0]?.properties?.pin;
+      if (typeof pin === "string") setSelectedPin(pin);
+    });
+    map.on("mouseenter", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = "pointer"));
+    map.on("mouseleave", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = ""));
+
+    // The map's container is one pane in a resizable/collapsible layout, so
+    // its size changes from panel drags and collapses, not just React state.
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(containerRef.current);
 
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -201,6 +333,23 @@ export function ParcelMap() {
 
   useEffect(() => {
     const map = mapRef.current;
+    if (!map || !map.isStyleLoaded()) return;
+    syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
+    setLoadingIds(loadingOverlayIds(map, overlayState));
+    void refreshViewportOverlays(map, overlayState).then(() =>
+      setLoadingIds(loadingOverlayIds(map, overlayStateRef.current)),
+    );
+  }, [overlayState]);
+
+  // Highlight the selected parcel; re-applied after basemap swaps.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !map.getLayer(PARCEL_SELECTED_LAYER_ID)) return;
+    map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
+  }, [selectedPin, basemap]);
+
+  useEffect(() => {
+    const map = mapRef.current;
     if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
     const visibility = showZoning ? "visible" : "none";
     map.setLayoutProperty(ZONING_FILL_LAYER_ID, "visibility", visibility);
@@ -209,42 +358,134 @@ export function ParcelMap() {
   }, [showZoning, basemap]);
 
   return (
-    <div className="relative h-[420px] w-full overflow-hidden rounded-lg border">
-      <div ref={containerRef} className="h-full w-full" />
-      <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
-        <button
-          type="button"
-          onClick={() => setBasemap("carto-dark")}
-          className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
+    <div className="h-full w-full overflow-hidden">
+      <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+        <ResizablePanel defaultSize="85%" minSize="50%">
+          <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+            <ResizablePanel
+              defaultSize="75%"
+              minSize={0}
+              collapsible
+              collapsedSize="34px"
+              panelRef={mapPane.ref}
+              onResize={mapPane.onResize}
+            >
+              <div className="flex h-full min-w-0 flex-col">
+                <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
+                <div className="relative min-h-0 flex-1">
+                  <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
+                    <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
+                  </div>
+                  <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+                    <AddressSearch onSelect={handleAddressSelect} />
+                  </div>
+                  <div ref={containerRef} className="h-full w-full" />
+                  <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
+                    <button
+                      type="button"
+                      onClick={() => setBasemap("carto-dark")}
+                      className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
+                    >
+                      Dark Matter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBasemap("osm-inverted")}
+                      className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
+                    >
+                      OSM (inverted)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowZoning((v) => !v)}
+                      className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
+                    >
+                      Zoning
+                    </button>
+                  </div>
+                  <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
+                    <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+                      Zoom in to see parcel boundaries
+                    </p>
+                    {showZoning && (
+                      <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
+                        Zoning excludes housing (Pittsburgh city only)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
+              <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+                <ResizablePanel
+                  defaultSize="45%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize="80px"
+                  panelRef={scoresPane.ref}
+                  onResize={scoresPane.onResize}
+                >
+                  {selectedPin ? (
+                    <PillarsPanel
+                      pin={selectedPin}
+                      onClose={() => setSelectedPin(null)}
+                      onSelectPillar={handleSelectPillar}
+                      collapsed={scoresPane.collapsed}
+                      onToggleCollapse={scoresPane.toggle}
+                    />
+                  ) : (
+                    <p className="p-2 text-xs text-muted-foreground">
+                      Click a parcel on the map to see its scores &amp; considerations.
+                    </p>
+                  )}
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel
+                  defaultSize="25%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize="34px"
+                  panelRef={breakdownPane.ref}
+                  onResize={breakdownPane.onResize}
+                >
+                  <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel
+                  defaultSize="30%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize="48px"
+                  panelRef={chatPane.ref}
+                  onResize={chatPane.onResize}
+                >
+                  <ChatPane
+                    context={chatContext}
+                    className="border-t"
+                    collapsed={chatPane.collapsed}
+                    onToggleCollapse={chatPane.toggle}
+                  />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel
+          defaultSize="15%"
+          minSize="8%"
+          maxSize="30%"
+          collapsible
+          collapsedSize="34px"
+          panelRef={typologyPane.ref}
+          onResize={typologyPane.onResize}
         >
-          Dark Matter
-        </button>
-        <button
-          type="button"
-          onClick={() => setBasemap("osm-inverted")}
-          className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
-        >
-          OSM (inverted)
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowZoning((v) => !v)}
-          className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-        >
-          Zoning
-        </button>
-      </div>
-      <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
-        <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-          Zoom in to see parcel boundaries
-        </p>
-        {showZoning && (
-          <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-            <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
-            Zoning excludes housing (Pittsburgh city only)
-          </p>
-        )}
-      </div>
+          <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }

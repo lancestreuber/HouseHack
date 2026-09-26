@@ -1,0 +1,1129 @@
+{
+  "version": "2026-09-26.9",
+  "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
+  "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
+  "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
+  "missing": {
+    "rule": "exclude and renormalize the remaining weights",
+    "min_coverage": 0.5
+  },
+  "overall": {
+    "method": "geometric",
+    "options": [
+      "geometric",
+      "arithmetic"
+    ],
+    "floor": 1,
+    "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle."
+  },
+  "pillars": [
+    {
+      "id": "demand",
+      "label": "Demand",
+      "brief_axes": [
+        "demand"
+      ],
+      "weight": 1,
+      "description": "Signs that people want to live here: population and job growth, low vacancy, rising rents, recent construction."
+    },
+    {
+      "id": "site",
+      "label": "Site Feasibility",
+      "brief_axes": [
+        "physical feasibility",
+        "infrastructure capacity"
+      ],
+      "weight": 1,
+      "description": "Physical constraints on building on this lot: flooding, steep slopes, landslides, undermining, and known lead service lines. Zoning legality is applied per housing type, not averaged in.",
+      "gates": [
+        {
+          "indicator": "site_floodway_share",
+          "below": 100,
+          "cap": 20,
+          "flag": "Part of the lot is in the FEMA regulatory floodway"
+        }
+      ]
+    },
+    {
+      "id": "afford",
+      "label": "Affordability & Displacement",
+      "brief_axes": [
+        "affordability",
+        "displacement risk"
+      ],
+      "weight": 1,
+      "description": "Two sub-scores: how affordable the area is for the people who live there, and how much displacement pressure it shows. 100 = affordable and low pressure.",
+      "subscores": [
+        {
+          "id": "affordability",
+          "label": "Affordability",
+          "weight": 1,
+          "description": "Housing, transportation and energy costs relative to local incomes (HUD 30% cost-burden standard; CNT 45% housing + transportation benchmark)."
+        },
+        {
+          "id": "displacement",
+          "label": "Displacement pressure",
+          "weight": 1,
+          "description": "Signs that rising costs are pushing residents out: fast rent growth, sale prices outpacing incomes, eviction filings. 100 = low pressure."
+        }
+      ]
+    },
+    {
+      "id": "access",
+      "label": "Access to Opportunity",
+      "brief_axes": [
+        "access to opportunity"
+      ],
+      "weight": 1,
+      "description": "Walking-distance access to daily needs, transit service, and jobs reachable by transit."
+    },
+    {
+      "id": "climate",
+      "label": "Climate & Environment",
+      "brief_axes": [
+        "marginal carbon emissions"
+      ],
+      "weight": 1,
+      "description": "Two sub-scores that often pull in opposite directions: carbon (dense, walkable places mean less driving) and local environment (air, heat, tree canopy). Kept separate so the trade-off stays visible.",
+      "subscores": [
+        {
+          "id": "carbon",
+          "label": "Carbon (location efficiency)",
+          "weight": 1,
+          "description": "Transportation emissions a household here would likely produce. Building-form carbon depends on the housing type and is added when types are compared."
+        },
+        {
+          "id": "local_env",
+          "label": "Local environment",
+          "weight": 1,
+          "description": "Air pollution, industrial emissions, surface heat and tree canopy where residents would live."
+        }
+      ]
+    }
+  ],
+  "indicators": [
+    {
+      "id": "demand_household_growth",
+      "pillar": "demand",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Household change, 2020 Census to ACS 2020–24",
+      "geography": "tract",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_tract_household_growth_2020_2024.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "hh_change_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Household growth is the core of HUD market-analysis demand. Weak signal: only 35 of 394 tracts change by more than the ACS margin of error, so it carries weight 1.",
+      "unit": "fraction_pct"
+    },
+    {
+      "id": "demand_sales_turnover",
+      "pillar": "demand",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Home sales per 100 housing units, 2024–25",
+      "geography": "tract",
+      "unit": "per100",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "sales_per_100hu_2024_2025"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Arm's-length residential sales (county sales file) relative to housing stock: an active market absorbs new homes."
+    },
+    {
+      "id": "demand_low_vacancy",
+      "pillar": "demand",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Residential vacancy (USPS)",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/usps-vacancy.geojson",
+        "property": "res_vacancy_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Low vacancy means existing homes are being absorbed.",
+      "unit": "%"
+    },
+    {
+      "id": "demand_job_growth",
+      "pillar": "demand",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Job change, 2019 to 2023",
+      "geography": "block group",
+      "source": {
+        "kind": "table",
+        "file": "scripts/data/inputs/allegheny_jobs_demand_bg_2023.csv",
+        "key": "geoid",
+        "join": "bg",
+        "property": "jobs_change_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Employment growth drives household formation (LEHD LODES).",
+      "unit": "fraction_pct"
+    },
+    {
+      "id": "demand_rent_growth",
+      "pillar": "demand",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Rent growth, last 12 months (Zillow ZORI)",
+      "geography": "ZIP",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/market-zip.geojson",
+        "property": "zori_yoy_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Rising asking rents signal demand exceeding supply.",
+      "unit": "%"
+    },
+    {
+      "id": "demand_new_construction",
+      "pillar": "demand",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "New residential permits within 800 m",
+      "geography": "parcel",
+      "source": {
+        "kind": "count_within",
+        "file": "public/data/overlays/permits-activity.geojson",
+        "where": {
+          "kind": "new_residential"
+        },
+        "radius_m": 800
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Revealed demand: builders are already building nearby. City of Pittsburgh permits only.",
+      "unit": "permits"
+    },
+    {
+      "id": "demand_market_strength",
+      "pillar": "demand",
+      "weight": 0,
+      "evidence": "value",
+      "label": "Market Value Analysis type (A strongest … J most distressed)",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/market-mva.geojson",
+        "property": "mva",
+        "map": {
+          "A": 10,
+          "B": 9,
+          "C": 8,
+          "D": 7,
+          "E": 6,
+          "F": 5,
+          "G": 4,
+          "H": 3,
+          "I": 2,
+          "J": 1
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 10
+      },
+      "rationale": "Default weight 0: rewarding strong markets steers housing away from distressed neighborhoods. Available for users who choose to weigh it.",
+      "unit": "class"
+    },
+    {
+      "id": "site_floodway_share",
+      "pillar": "site",
+      "weight": 0,
+      "evidence": "observed",
+      "label": "Share of lot in the FEMA regulatory floodway",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": "public/data/overlays/flood-zones.geojson",
+        "where": {
+          "class": "floodway"
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "Used only as a gate (caps the pillar at 20); never averaged.",
+      "unit": "share"
+    },
+    {
+      "id": "site_sfha_share",
+      "pillar": "site",
+      "weight": 3,
+      "evidence": "observed",
+      "label": "Share of lot in the 100-year floodplain",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": "public/data/overlays/flood-zones.geojson",
+        "where": {
+          "class": [
+            "sfha",
+            "floodway"
+          ]
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "FEMA Special Flood Hazard Area; triggers the City floodplain overlay (Ch. 906).",
+      "unit": "share"
+    },
+    {
+      "id": "site_steep_slope_share",
+      "pillar": "site",
+      "weight": 3,
+      "evidence": "observed",
+      "label": "Share of lot at 25%+ slope (City map, 2018)",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": ".cache/pillars/slope25.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "Triggers the City steep-slope overlay (Ch. 906) and raises foundation cost.",
+      "unit": "share"
+    },
+    {
+      "id": "site_landslide_prone_share",
+      "pillar": "site",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Share of lot in a City landslide-prone area",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": ".cache/pillars/landslide-prone.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "Triggers the City landslide-prone overlay (Ch. 906).",
+      "unit": "share"
+    },
+    {
+      "id": "site_recent_landslide_share",
+      "pillar": "site",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Share of lot on a mapped recent landslide deposit (county)",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": "public/data/overlays/landslide-susceptibility.geojson",
+        "where": {
+          "class": "recent"
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "County susceptibility mapping; complements the City overlay.",
+      "unit": "share"
+    },
+    {
+      "id": "site_undermined_share",
+      "pillar": "site",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Share of lot over mapped mines (City undermined area)",
+      "geography": "parcel",
+      "source": {
+        "kind": "overlap",
+        "file": ".cache/pillars/undermined.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1,
+        "full": 0
+      },
+      "rationale": "Triggers the City undermined overlay (Ch. 906); subsidence risk.",
+      "unit": "share"
+    },
+    {
+      "id": "site_lead_line",
+      "pillar": "site",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Known lead or galvanized service line at this address",
+      "geography": "address",
+      "source": {
+        "kind": "nearest_attr",
+        "file": "public/data/overlays/lead-service-lines.geojson",
+        "property": "status",
+        "max_m": 30,
+        "map": {
+          "lead": 0,
+          "galvanized": 40
+        }
+      },
+      "normalize": {
+        "method": "identity"
+      },
+      "rationale": "Replacement adds cost. Unknown or unmatched addresses are missing, not 'no lead'.",
+      "unit": "score"
+    },
+    {
+      "id": "site_inland_flood_rating",
+      "pillar": "site",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "FEMA NRI inland flooding score",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/weather-risk.geojson",
+        "property": "inland_flood_score"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Uses the NRI hazard score, not expected annual loss, which scales with property value.",
+      "unit": "index"
+    },
+    {
+      "id": "afford_lowinc_renter_burden",
+      "pillar": "afford",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Low-income renters paying 30%+ of income on housing (CHAS)",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/chas-cost-burden.geojson",
+        "property": "renter_lowinc_costburdened_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "HUD's 30% cost-burden standard, for households at or below 80% AMI.",
+      "sub": "affordability",
+      "unit": "%"
+    },
+    {
+      "id": "afford_rent_vs_ami",
+      "pillar": "afford",
+      "weight": 2,
+      "evidence": "assumption",
+      "label": "Median gross rent vs. rent affordable at 50% AMI (3-person household)",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/housing-costs.geojson",
+        "property": "median_gross_rent",
+        "divide_by": 1242.5
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2,
+        "full": 0.8
+      },
+      "rationale": "1242.5 = 30% × $49,700 (HUD FY2026 Pittsburgh 50% AMI, 3 persons) ÷ 12. The household size is an assumption. A ratio of 0.8 or less scores 100; 2.0 or more scores 0.",
+      "sub": "affordability",
+      "unit": "ratio"
+    },
+    {
+      "id": "afford_rent_burden",
+      "pillar": "afford",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Renters paying 30%+ of income on rent (ACS)",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/housing-costs.geojson",
+        "property": "rent_burden_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "All renters, not just low-income; ACS margins of error are large at block group level.",
+      "sub": "affordability",
+      "unit": "%"
+    },
+    {
+      "id": "afford_housing_transport",
+      "pillar": "afford",
+      "sub": "affordability",
+      "weight": 2,
+      "evidence": "assumption",
+      "label": "Housing + transportation cost share, median-income family (HUD LAI v3)",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/location-affordability.geojson",
+        "property": "ht_median_family"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 75,
+        "full": 45
+      },
+      "rationale": "CNT's H+T benchmark treats ≤45% of income as affordable, so 45% scores 100. The 75% zero point is our assumption. Modeled for a fixed household; inputs 2012–16 on 2010 tracts.",
+      "unit": "%"
+    },
+    {
+      "id": "afford_rent_growth_5yr",
+      "pillar": "afford",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Rent growth, last 5 years (Zillow ZORI)",
+      "geography": "ZIP",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/market-zip.geojson",
+        "property": "zori_5yr_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Fast rent growth is a displacement pressure (Urban Displacement Project typology uses rent change).",
+      "sub": "displacement",
+      "unit": "%"
+    },
+    {
+      "id": "afford_displacement_ratio",
+      "pillar": "afford",
+      "weight": 0.5,
+      "evidence": "observed",
+      "label": "Displacement Risk Ratio, 2019/20 (Reinvestment Fund)",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/market-mva.geojson",
+        "property": "drr_1920"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Sale-price growth relative to residents' incomes (Reinvestment Fund). Data end 2019/20, so low weight; tract price growth carries the current signal.",
+      "sub": "displacement",
+      "unit": "ratio"
+    },
+    {
+      "id": "afford_price_growth",
+      "pillar": "afford",
+      "sub": "displacement",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Median home sale price change, 2020–21 to 2024–25",
+      "geography": "tract",
+      "unit": "fraction_pct",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "chg_pct_pooled_2021_to_2425"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Fast price appreciation is the market-pressure signal in the Urban Displacement Project and Portland (Bates 2013) methods. Pooled two-year medians; tracts with fewer than 10 sales in a pool are blank."
+    },
+    {
+      "id": "afford_evictions",
+      "pillar": "afford",
+      "weight": 0,
+      "evidence": "observed",
+      "label": "Eviction filings per 100 renter households, 2025",
+      "geography": "ZIP",
+      "source": {
+        "kind": "table",
+        "file": "scripts/data/inputs/pittsburgh_evictions_zip_2025.csv",
+        "key": "zip",
+        "join": "zip",
+        "property": "filings_per_100_renter_hh"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Context only (weight 0): Eviction Lab publishes only ZIP-level filings for Allegheny County, and the ZIP value barely relates to the other displacement signals (r = −0.05).",
+      "sub": "displacement",
+      "unit": "per100"
+    },
+    {
+      "id": "afford_energy_burden",
+      "pillar": "afford",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Home energy burden, households at or below 80% AMI (DOE LEAD 2022)",
+      "geography": "tract",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_energy_burden_tract_2022.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "energy_burden_lowinc"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Energy bills are part of housing cost. Modeled from ACS 2022 PUMS, not utility bills.",
+      "sub": "affordability",
+      "unit": "fraction_pct"
+    },
+    {
+      "id": "access_transit",
+      "pillar": "access",
+      "weight": 3,
+      "evidence": "observed",
+      "label": "Weekday transit trips within 800 m, distance-weighted",
+      "geography": "parcel",
+      "source": {
+        "kind": "decay_sum",
+        "file": "public/data/overlays/transit-stops.geojson",
+        "property": "trips_wd",
+        "full_m": 400,
+        "zero_m": 800,
+        "mode_weight": {
+          "RAIL": 2,
+          "INCLINE": 2,
+          "BUS": 1
+        }
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Transit Score pattern: trips × mode weight × distance decay.",
+      "unit": "trips"
+    },
+    {
+      "id": "access_grocery",
+      "pillar": "access",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Walking distance to nearest grocery",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-groceries.geojson",
+        "where": {
+          "tier": "full_grocery"
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Full-service groceries from USDA SNAP retailers + ACHD food permits (deduped, tier full_grocery). Walk Score decay: full credit within 400 m, none beyond 2.4 km. Straight-line distance.",
+      "unit": "m"
+    },
+    {
+      "id": "access_pharmacy",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Walking distance to nearest pharmacy",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-pharmacies.geojson",
+        "where": {
+          "kind": "retail"
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "unit": "m",
+      "rationale": "Retail pharmacies from the CMS NPPES registry (2026), with closed Rite Aid stores removed."
+    },
+    {
+      "id": "access_school",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Walking distance to nearest school",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-schools.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Proximity only; school quality is deliberately not scored.",
+      "unit": "m"
+    },
+    {
+      "id": "access_park",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Walking distance to nearest park",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/parks.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Distance to the nearest park boundary vertex.",
+      "unit": "m"
+    },
+    {
+      "id": "access_health",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Distance to nearest health center, clinic or hospital",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": [
+          "public/data/overlays/places-health-centers.geojson",
+          "public/data/overlays/places-clinics.geojson",
+          "public/data/overlays/places-hospitals.geojson"
+        ]
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 4800,
+        "full": 800
+      },
+      "unit": "m",
+      "rationale": "HRSA health-center sites, NPPES urgent-care/primary-care/community clinics, and hospitals."
+    },
+    {
+      "id": "access_child_care",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Walking distance to nearest child care",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-child-care.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "unit": "m"
+    },
+    {
+      "id": "access_library",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "label": "Walking distance to nearest library",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-libraries.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "unit": "m"
+    },
+    {
+      "id": "access_food_assistance",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Walking distance to nearest food pantry or walk-up food distribution",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-food-banks.geojson",
+        "where": {
+          "type": [
+            "Food Pantry",
+            "Walk-up Distribution - Food Bank Led",
+            "Walk-up Distribution - Agency Led",
+            "Fresh Market",
+            "The Market Food Pantry"
+          ]
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Greater Pittsburgh Community Food Bank network (Apr 2025). Drive-up distributions are excluded because they are scheduled events, not places you can walk to."
+    },
+    {
+      "id": "access_dentist",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Distance to nearest dentist",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-dentists.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "OSM + County Assets. No data on which dentists accept Medicaid."
+    },
+    {
+      "id": "access_community_center",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Walking distance to nearest community center",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-community-centers.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      }
+    },
+    {
+      "id": "access_senior_center",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Distance to nearest senior center",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-senior-centers.geojson"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 2400,
+        "full": 400
+      },
+      "rationale": "Matters most for older adults; the older-adult preset raises Access overall."
+    },
+    {
+      "id": "access_jobs_transit",
+      "pillar": "access",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Jobs reachable within 30 minutes by transit",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/jobs.geojson",
+        "property": "transit_jobs_30"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Cumulative-opportunity accessibility (EPA Smart Location Database style).",
+      "unit": "jobs"
+    },
+    {
+      "id": "climate_pm25",
+      "pillar": "climate",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Fine particulate matter (PM2.5), PA percentile",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/air-quality.geojson",
+        "property": "pm25_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "EJScreen v2.3 modeled annual exposure, re-ranked within the county.",
+      "sub": "local_env",
+      "unit": "pctile"
+    },
+    {
+      "id": "climate_traffic_combustion",
+      "pillar": "climate",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Traffic combustion (mean of diesel PM, NO2 and traffic proximity percentiles)",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/air-quality.geojson",
+        "property": [
+          "dslpm_pct",
+          "no2_pct",
+          "ptraf_pct"
+        ]
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Three correlated traffic indicators averaged first so traffic counts once.",
+      "sub": "local_env",
+      "unit": "pctile"
+    },
+    {
+      "id": "climate_air_toxics",
+      "pillar": "climate",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Industrial air toxics (RSEI), PA percentile",
+      "geography": "block group",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/air-quality.geojson",
+        "property": "rsei_air_pct"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "sub": "local_env",
+      "unit": "pctile"
+    },
+    {
+      "id": "climate_industrial_emissions",
+      "pillar": "climate",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Industrial criteria-pollutant emissions nearby, distance-weighted (ACHD, ≤2021)",
+      "geography": "parcel",
+      "source": {
+        "kind": "decay_sum",
+        "file": "scripts/pillars/inputs/achd_facilities_latest.csv",
+        "property": "criteria_tpy",
+        "full_m": 1000,
+        "zero_m": 5000
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Tons/yr from current permitted facilities, full weight within 1 km, fading to zero at 5 km. Emissions, not measured exposure; NRG Cheswick may have retired after 2021.",
+      "sub": "local_env",
+      "unit": "tons"
+    },
+    {
+      "id": "climate_household_vmt",
+      "pillar": "climate",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Modeled annual household VMT, median-income family (HUD LAI v3)",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/location-affordability.geojson",
+        "property": "vmt_median_family"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Transportation-carbon proxy. HUD models VMT for a fixed household (median income, 4 people, 2 commuters), so it varies only with location efficiency. Inputs 2012–16, 2010 tracts.",
+      "sub": "carbon",
+      "unit": "miles"
+    },
+    {
+      "id": "climate_heat",
+      "pillar": "climate",
+      "weight": 0.5,
+      "evidence": "observed",
+      "label": "FEMA NRI heat wave score",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/weather-risk.geojson",
+        "property": "heat_wave_score"
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "lower_is_better"
+      },
+      "rationale": "FEMA NRI heat wave score. Little variation within the county, so low weight; surface temperature carries most of the heat signal.",
+      "sub": "local_env",
+      "unit": "index"
+    },
+    {
+      "id": "climate_surface_heat",
+      "pillar": "climate",
+      "weight": 2,
+      "evidence": "observed",
+      "label": "Summer surface heat, parcel (Landsat 8, 4-scene anomaly vs county median)",
+      "geography": "parcel (30 m pixel at centroid)",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/pgh_parcel_lst_canopy.csv",
+        "key": "pin",
+        "join": "pin",
+        "property": "lst_anom_c_4scenes"
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Mean of (LST − scene county median) over 4 clear summer scenes, 2023–2025. Surface, not air, temperature; ranked, not thresholded.",
+      "sub": "local_env",
+      "unit": "degC"
+    },
+    {
+      "id": "climate_tree_canopy",
+      "pillar": "climate",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Tree canopy at the parcel (NLCD 2021, 30 m)",
+      "geography": "parcel (30 m pixel at centroid)",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/pgh_parcel_lst_canopy.csv",
+        "key": "pin",
+        "join": "pin",
+        "property": "canopy_pct"
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 0,
+        "full": 50
+      },
+      "rationale": "Canopy cools and filters air. 50%+ canopy scores 100. The 30 m grid misses small street trees.",
+      "sub": "local_env",
+      "unit": "%"
+    }
+  ],
+  "presets": {
+    "equal": {
+      "demand": 1,
+      "site": 1,
+      "afford": 1,
+      "access": 1,
+      "climate": 1
+    },
+    "family": {
+      "demand": 1,
+      "site": 1.5,
+      "afford": 1,
+      "access": 2,
+      "climate": 1
+    },
+    "older_adult": {
+      "demand": 1,
+      "site": 2,
+      "afford": 1,
+      "access": 2,
+      "climate": 1
+    },
+    "climate_first": {
+      "demand": 1,
+      "site": 1,
+      "afford": 1,
+      "access": 1.5,
+      "climate": 3
+    },
+    "affordability_first": {
+      "demand": 1,
+      "site": 1,
+      "afford": 3,
+      "access": 1.5,
+      "climate": 1
+    },
+    "market_first": {
+      "demand": 3,
+      "site": 1.5,
+      "afford": 0.5,
+      "access": 1,
+      "climate": 0.5
+    }
+  },
+  "sensitivity": {
+    "draws": 200,
+    "concentration": 47,
+    "rationale": "Dirichlet draws around the current pillar weights. Concentration 47 gives a 0.2 weight a standard deviation of about 0.058, matching the ±0.1 uniform weight ranges used in the JRC audit of the Global Innovation Index."
+  },
+  "units": {
+    "fraction_pct": "value is a fraction; shown ×100 as %",
+    "%": "percent",
+    "share": "share of lot area (0–1)",
+    "m": "meters, straight line",
+    "pctile": "PA percentile (0–100)",
+    "trips": "weekday trips, distance-weighted",
+    "tons": "tons/yr, distance-weighted",
+    "miles": "miles per year",
+    "degC": "°C above the scene's county median",
+    "index": "FEMA NRI score",
+    "ratio": "ratio",
+    "per100": "per 100 renter households",
+    "permits": "permits",
+    "jobs": "jobs",
+    "class": "class rank (10 = A)",
+    "score": "0 = lead, 40 = galvanized"
+  }
+}

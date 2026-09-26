@@ -1,0 +1,74 @@
+name,address,lat,lon,sources,osm_id
+Brookline Teen Outreach,520 Brookline Boulevard,40.395731,-80.023168,OSM,node/5555063714
+Nightshade Lounge,3019 West Liberty Avenue,40.392728,-80.037062,OSM,node/6852746242
+Saint Peter & Saint Paul Ukrainian Church Hall,,40.40934,-80.085265,OSM,node/9560011454
+Indian Community Center,,40.407945,-80.087223,OSM,node/12150617350
+Mt. Lebanon Recreation Center,,40.374027,-80.055377,OSM,way/47147857
+Lodge,,40.382678,-80.086949,OSM,way/275981544
+Bethel Park Community Center,5151 Park Avenue,40.330724,-80.028728,OSM,way/306453491
+Upper St. Clair Community & Recreation Center,,40.33479,-80.110383,OSM,way/380016234
+Thomas Lloyd Recreation Center,,40.39715,-80.045151,OSM,way/381011318
+Jewish Community Center,345 Kane Boulevard,40.375249,-80.085817,OSM,way/383766471
+Rosslyn Farms Community Center,400 Kings Highway,40.423089,-80.091481,OSM,way/538008890
+Collier Township Community Center,5 Lobaugh Street,40.39739,-80.161501,OSM,way/543346456
+Neville Park Community Center,,40.381581,-80.097645,OSM,way/543346900
+Cloverleaf Estates West Clubhouse,160 Cloverleaf Drive,40.414544,-80.11109,OSM,way/543348143
+Presto Volunteer Fire Department,5228 Thoms Run Road,40.372564,-80.119829,OSM,way/543348697
+LaRosa Mckeesport Boys and Girls Club,,40.347867,-79.852862,OSM,node/3452073067
+LifeSpan,370,40.321972,-79.834948,OSM,node/5553101067
+Community Forge,1256 Franklin Avenue,40.437594,-79.874526,OSM,node/5868955140
+Jewish Community Center,,40.437455,-79.923934,OSM,node/13027419552
+Brookline Recreation Center,1400 OAKRIDGE ST,40.391246,-80.008386,OSM+County_Assets,way/164760974
+Saint Vladimir Ukrainian Church Hall,,40.429318,-79.980199,OSM,way/272023448
+Saint John the Baptist Ukrainian Church Social Hall,,40.344845,-79.829893,OSM,way/504852747
+Silent Brook Barn,,40.325875,-80.015581,OSM,way/532258410
+Glen Hazel Recreation Center,,40.406839,-79.928156,OSM,way/536270483
+South Park Community House,,40.315916,-79.998885,OSM,way/538859297
+Forest Hills Senior Center,444 Avenue D,40.410956,-79.842421,OSM,way/899328705
+Forest Hills/Westinghouse Lodge,,40.418233,-79.8418,OSM,way/1205266911
+Township of Wilkins Community Center,120 Peffer Road,40.419051,-79.829118,OSM,way/1313563573
+Jewish Community Center,,40.436474,-79.923767,OSM,relation/7759824
+Christ church at grove farm,249 Duff Road,40.550896,-80.110748,OSM,node/6244631486
+Franciscan Resource Center,,40.516293,-80.038791,OSM,node/12279560083
+Township of Robinson Community Recreation Center,5440 Campbells Run Road,40.445817,-80.153893,OSM,node/13918098755
+Findlay Township Activity Center,,40.450259,-80.24502,OSM,way/255607094
+Veterans of Foreign Wars Post 2754,,40.518249,-80.03002,OSM,way/339498444
+Meyers Ridge,901 Gray Street,40.469381,-80.065409,OSM,way/403001743
+Hays Manor Community Center,205 Locust Street,40.466466,-80.056506,OSM,way/515919200
+Uansa Village Community Center,9 Robb Street,40.471245,-80.054058,OSM,way/516435575
+Aspinwall Borough Hall,217 Commercial Avenue,40.490318,-79.904365,OSM,node/367971288
+Bloomcraft,460 Melwood Avenue,40.455739,-79.952693,OSM,node/5369293400
+Blackridge Civic Association,1200 Beulah Road,40.449137,-79.847045,OSM,node/5411342977
+The Mr. Roboto Project,5106 Penn Avenue,40.464789,-79.942476,OSM,node/5470076632
+Richland Community Center,,40.63192,-79.939014,OSM,node/7946014560
+Assemble,4824 Penn Avenue,40.465264,-79.946022,OSM,node/12621445905
+Kingsley Center,6435 Frankstown Avenue,40.4614,-79.915709,OSM,node/12621519746
+Union Project,801 North Negley Avenue,40.471918,-79.926503,OSM,node/12622285615
+QMNTY Center,,40.45354,-79.999775,OSM,node/13663658098
+Community Center,,40.585717,-79.93391,OSM,way/349392299
+West Penn Community Recreation Center,450 30th Street,40.455642,-79.969555,OSM+County_Assets,way/375021803
+Millvale Community Center,416 Lincoln Avenue,40.480977,-79.97268,OSM,way/426222309
+Millvale Food + Energy Hub,112 East Sherman Street,40.479797,-79.971344,OSM,way/426608095
+Thelma Lovette YMCA,,40.44457,-79.977752,OSM,way/533740169
+ACH Clear Pathways,,40.442882,-79.98255,OSM,way/535066255
+University of Pittsburgh Community Engagement Center Hill District,,40.443821,-79.981291,OSM,way/535066541
+Stephen Foster Community Center,286 Main Street,40.467664,-79.958598,OSM,way/543529465
+Union Project,801 North Negley Avenue,40.471924,-79.926514,OSM,way/547354575
+Mount Ararat Community Activity Center,745 North Negley Avenue,40.471174,-79.926882,OSM,way/550636257
+Lauri Ann West Community Center,1220 Powers Run Road,40.513919,-79.857529,OSM,way/551707901
+Allegheny YMCA,,40.454631,-80.012929,OSM,way/556279321
+Four Seasons Activity Center,,40.46152,-79.746836,OSM,way/802727964
+Glenwood Condominium Office,500 Lakewood Drive,40.441016,-79.745835,OSM,way/1204433192
+Ormsby Pool and Recreation Center,2200 SIDNEY ST,40.4290817,-79.97429357,OSM+County_Assets,
+Ammon Recreation Center,2217 Bedford Avenue,40.44853,-79.977743,County_Assets,
+Bloomfield Pool and Recreation Center,408 ELLA ST,40.46214499,-79.95361898,County_Assets,
+Chadwick Recreation Center,1462 OBERLIN ST,40.46499306,-79.89081697,County_Assets,
+Cowley Recreation Center,1268 GOETTMANN ST,40.45839137,-79.98817885,County_Assets,
+Jefferson Recreation Center,605 Rednap Street,40.459441,-80.014485,OSM+County_Assets,
+Magee Recreation Center,745 Greenfield Avenue,40.42418,-79.93678,County_Assets,
+Moore Pool and Recreation Building,1801 PIONEER AVE,40.40550366,-80.01396329,County_Assets,
+Paulson Recreation Center,1201 PAULSON AVE,40.46823802,-79.90351256,OSM+County_Assets,
+Phillips Gym and Recreation Center,201 PARKFIELD ST,40.39155476,-79.99097483,OSM+County_Assets,
+Ream Pool Building and Recreation Center,321 MERRIMAC ST,40.43095677,-80.01347913,County_Assets,
+Robert E Williams Recreation Center,3438 MILWAUKEE ST,40.45478499,-79.95988197,County_Assets,
+Warrington Recreation Center,326 E WARRINGTON AVE,40.42125678,-80.00095405,OSM+County_Assets,

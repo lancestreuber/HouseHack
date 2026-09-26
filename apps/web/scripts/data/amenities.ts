@@ -1,0 +1,104 @@
+// Everyday amenities (county-wide points).
+// - Restaurant/shop density: ACHD food facility permits (WPRDC, CC0).
+// - Senior centers: Allegheny County Assets (WPRDC, CC0). Groceries,
+//   pharmacies, banks, health centers, food banks, post offices and
+//   laundromats now come from places-multisource.ts.
+//   Rows flagged do_not_display or sensitive are dropped; contact fields never kept.
+
+import { fetchAllGeoJSON, writeOverlay } from "./arcgis";
+import { parseCSV } from "./geo";
+
+const FOOD = "https://data.wprdc.org/datastore/dump/112a3821-334d-4f3f-ab40-4de1220b1a0a";
+const ASSETS = "https://data.wprdc.org/datastore/dump/5c7825d2-6814-40c7-aefe-3d0f3d6f22e7";
+// Newer County layer. The Assets registry hides some real libraries (e.g.
+// Carnegie Library of Homestead) under do_not_display with no reason given.
+const LIBRARIES = "https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/Libraries/FeatureServer/0";
+
+const round = (v: number) => Math.round(v * 1e5) / 1e5;
+const pt = (lon: number, lat: number) => ({ type: "Point", coordinates: [round(lon), round(lat)] });
+
+const RESTAURANT = /^(chain )?restaurant with(out)? liquor$/i;
+const SHOP = /^(chain )?retail\/convenience store$/i;
+
+// Asset type -> output file (and optional name exclusions).
+const ASSET_LAYERS: Record<string, { file: string; exclude?: RegExp }> = {
+  senior_centers: { file: "places-senior-centers.geojson" },
+};
+
+async function buildFood() {
+  // Skip closed permits and the county's test accounts ("(TEST) …", "TEST Client").
+  const rows = parseCSV(await fetch(FOOD).then((r) => r.text())).filter(
+    (r) => !r.bus_cl_date && Number(r.x) && Number(r.y) && !/\(test\b|test client/i.test(r.facility_name),
+  );
+  // Density layer: one weightless point per restaurant or shop.
+  const commerce = rows
+    .filter((r) => RESTAURANT.test(r.description) || SHOP.test(r.description))
+    .map((r) => ({
+      type: "Feature" as const,
+      geometry: pt(Number(r.x), Number(r.y)),
+      properties: { kind: RESTAURANT.test(r.description) ? "restaurant" : "shop" },
+    }));
+  await writeOverlay("commerce-density.geojson", {
+    type: "FeatureCollection",
+    features: commerce,
+    metadata: { source: FOOD, builtAt: new Date().toISOString() },
+  });
+}
+
+async function buildAssets() {
+  const rows = parseCSV(await fetch(ASSETS).then((r) => r.text()));
+  for (const [assetType, { file, exclude }] of Object.entries(ASSET_LAYERS)) {
+    const features = rows
+      .filter(
+        (r) =>
+          r.asset_type === assetType &&
+          r.do_not_display !== "t" &&
+          r.sensitive !== "t" &&
+          Number(r.latitude) &&
+          Number(r.longitude) &&
+          !(exclude && exclude.test(r.name)),
+      )
+      .map((r) => ({
+        type: "Feature" as const,
+        geometry: pt(Number(r.longitude), Number(r.latitude)),
+        properties: {
+          name: r.name,
+          address: r.street_address || null,
+          municipality: r.municipality || null,
+          hours: r.hours_of_operation || null,
+        },
+      }));
+    await writeOverlay(file, {
+      type: "FeatureCollection",
+      features,
+      metadata: { source: ASSETS, assetType, builtAt: new Date().toISOString() },
+    });
+  }
+}
+
+async function buildLibraries() {
+  const rows = await fetchAllGeoJSON(LIBRARIES, { outFields: ["Library", "Address", "City_1"] });
+  const features = rows.map((f) => ({
+    type: "Feature" as const,
+    geometry: f.geometry,
+    properties: {
+      name: f.properties.Library,
+      address: [f.properties.Address, f.properties.City_1].filter(Boolean).join(", ") || null,
+      municipality: f.properties.City_1 ?? null,
+      hours: null,
+    },
+  }));
+  await writeOverlay("places-libraries.geojson", {
+    type: "FeatureCollection",
+    features,
+    metadata: { source: LIBRARIES, builtAt: new Date().toISOString() },
+  });
+}
+
+export async function buildAmenities() {
+  await buildFood();
+  await buildAssets();
+  await buildLibraries();
+}
+
+if (import.meta.main) await buildAmenities();

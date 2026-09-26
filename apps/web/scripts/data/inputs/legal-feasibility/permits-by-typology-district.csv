@@ -1,0 +1,380 @@
+group_by,group_value,typology,n,n_with_timeline,n_issued,n_censored,n_legacy_agol_no_dates,median_days_to_issue,p75_days_to_issue,km_median_days,n_days_known,units_sum_known,n_units_known,n_high_conf,n_conversions,n_parcels,n_overlap_flagged,first_year,last_year
+zon_new,GPRC,single_detached,6,5,5,0,1,106.0,175.0,106,5,6,6,5,0,3,5,2020,2026
+zon_new,GT-C,single_detached,1,1,1,0,0,200.0,200.0,200,1,1,1,1,1,1,0,2024,2025
+zon_new,H,single_detached,25,17,17,0,8,119.0,217.0,119,17,25,25,14,0,21,0,2019,2025
+zon_new,LNC,single_detached,17,16,15,1,1,79.0,140.5,79,15,17,17,10,1,13,0,2019,2026
+zon_new,NDI,single_detached,5,0,0,0,5,,,,0,5,5,0,0,5,0,2021,2021
+zon_new,P,single_detached,19,19,19,0,0,202.0,444.5,202,19,19,19,18,0,19,0,2019,2025
+zon_new,R1A-H,single_detached,58,51,51,0,7,144.0,256.0,144,51,58,58,43,0,58,0,2019,2026
+zon_new,R1A-VH,single_detached,68,60,53,7,8,133.0,330.0,178,53,68,68,47,1,68,0,2019,2026
+zon_new,R1D-H,single_detached,77,77,65,12,0,139.0,205.0,155,65,77,77,52,0,76,0,2020,2026
+zon_new,R1D-L,single_detached,24,23,22,1,1,104.5,182.8,132,22,24,24,17,1,23,0,2019,2026
+zon_new,R1D-M,single_detached,26,13,12,1,13,72.0,107.2,72,12,26,26,7,0,26,0,2019,2025
+zon_new,R1D-VL,single_detached,8,7,6,1,1,179.0,305.2,204,6,8,8,7,0,8,0,2020,2026
+zon_new,R2-H,single_detached,29,28,25,3,1,233.0,550.0,237,25,29,29,16,0,29,0,2019,2026
+zon_new,R2-L,single_detached,7,4,3,1,3,146.0,173.5,146,3,7,7,1,0,6,0,2020,2026
+zon_new,R2-M,single_detached,15,15,15,0,0,74.0,101.0,74,15,15,15,11,0,15,0,2019,2023
+zon_new,R2-VH,single_detached,5,2,2,0,3,133.0,142.5,114,2,5,5,2,0,5,0,2019,2023
+zon_new,R3-M,single_detached,6,5,5,0,1,103.0,103.0,103,5,6,6,3,0,6,0,2019,2026
+zon_new,RIV-IMU,single_detached,3,3,3,0,0,156.0,235.5,156,3,7,3,0,0,3,1,2024,2026
+zon_new,RIV-MU,single_detached,25,0,0,0,25,,,,0,25,25,0,0,25,0,2020,2021
+zon_new,RM-M,single_detached,31,15,14,1,16,334.0,334.0,334,14,31,31,15,0,24,0,2020,2026
+zon_new,RP,single_detached,3,3,3,0,0,217.0,217.0,217,3,3,3,3,0,1,0,2023,2024
+zon_new,SP-8,single_detached,1,0,0,0,1,,,,0,1,1,0,0,1,0,2020,2020
+zon_new,SP-9,single_detached,1,0,0,0,1,,,,0,1,1,0,0,1,0,2021,2021
+zon_new,UI,single_detached,7,7,7,0,0,401.0,414.5,401,7,7,7,4,0,7,0,2020,2026
+zon_new,UNC,single_detached,1,1,1,0,0,103.0,103.0,103,1,42,1,0,0,1,0,2021,2021
+zon_new,GPRB,single_attached,10,10,10,0,0,363.0,382.0,344,10,10,10,10,0,10,0,2023,2024
+zon_new,H,single_attached,2,2,1,1,0,36.0,36.0,36,1,2,2,2,0,2,0,2021,2026
+zon_new,LNC,single_attached,6,6,6,0,0,303.0,404.2,303,6,6,6,6,1,4,0,2020,2025
+zon_new,R1A-H,single_attached,43,43,43,0,0,135.0,143.0,135,43,43,43,43,0,26,0,2019,2024
+zon_new,R1A-M,single_attached,6,6,6,0,0,41.0,45.0,37,6,6,6,6,0,6,0,2021,2021
+zon_new,R1A-VH,single_attached,27,27,27,0,0,274.0,328.0,274,27,27,27,27,0,27,0,2019,2025
+zon_new,R1D-H,single_attached,7,7,3,4,0,452.0,501.0,452,3,7,7,7,0,7,0,2021,2025
+zon_new,R1D-L,single_attached,1,1,0,1,0,,,,0,1,1,1,0,1,0,2026,2026
+zon_new,R1D-M,single_attached,2,2,2,0,0,70.0,94.5,21,2,2,2,2,0,2,0,2025,2025
+zon_new,R2-H,single_attached,7,7,6,1,0,589.0,879.0,299,6,7,7,7,0,6,0,2020,2026
+zon_new,R2-L,single_attached,1,1,1,0,0,484.0,484.0,484,1,1,1,1,0,1,0,2019,2020
+zon_new,R2-M,single_attached,5,5,5,0,0,20.0,93.0,20,5,5,5,5,0,2,1,2020,2026
+zon_new,RIV-IMU,single_attached,5,5,5,0,0,155.0,157.0,155,5,5,5,5,0,1,0,2024,2024
+zon_new,RIV-MU,single_attached,9,9,8,1,0,109.0,150.2,109,8,9,9,9,0,9,0,2021,2025
+zon_new,RM-M,single_attached,94,94,94,0,0,181.0,203.0,181,94,94,94,94,0,8,0,2019,2026
+zon_new,RP,single_attached,8,8,8,0,0,217.0,234.0,217,8,8,8,8,0,2,0,2020,2024
+zon_new,UPR-B,single_attached,1,1,0,1,0,,,,0,1,1,1,0,1,0,2025,2025
+zon_new,H,two_unit,4,4,1,3,0,76.0,76.0,,1,8,4,1,4,4,0,2024,2026
+zon_new,LNC,two_unit,9,9,7,2,0,211.0,241.0,211,7,18,9,2,8,9,0,2020,2026
+zon_new,NDI,two_unit,3,0,0,0,3,,,,0,6,3,0,0,3,0,2022,2022
+zon_new,R-MU,two_unit,2,2,2,0,0,361.5,482.8,119,2,4,2,1,2,2,0,2022,2026
+zon_new,R1A-H,two_unit,7,7,5,2,0,165.0,253.0,253,5,14,7,0,7,6,0,2020,2026
+zon_new,R1A-VH,two_unit,10,10,9,1,0,187.0,245.0,187,9,20,10,2,9,9,0,2022,2026
+zon_new,R1D-H,two_unit,18,18,14,4,0,87.0,278.2,147,14,36,18,4,15,17,0,2020,2026
+zon_new,R1D-L,two_unit,3,3,2,1,0,352.0,467.0,582,2,6,3,1,3,3,0,2023,2025
+zon_new,R1D-M,two_unit,4,4,3,1,0,118.0,195.0,118,3,8,4,2,4,4,0,2021,2026
+zon_new,R2-H,two_unit,14,14,10,4,0,22.5,49.5,30,10,28,14,9,6,13,0,2022,2026
+zon_new,R2-L,two_unit,7,6,6,0,1,135.0,173.2,120,6,14,7,2,6,7,0,2020,2025
+zon_new,R2-M,two_unit,2,2,2,0,0,72.5,80.8,56,2,4,2,1,1,2,0,2019,2024
+zon_new,R2-VH,two_unit,2,1,1,0,1,51.0,51.0,51,1,4,2,1,0,2,0,2020,2022
+zon_new,R3-M,two_unit,1,1,1,0,0,60.0,60.0,60,1,2,1,0,1,1,0,2025,2025
+zon_new,RIV-IMU,two_unit,2,2,2,0,0,365.5,444.8,207,2,4,2,1,2,2,0,2023,2025
+zon_new,RM-M,two_unit,18,16,13,3,2,140.0,168.0,153,13,36,18,13,4,17,0,2020,2025
+zon_new,UC-MU,two_unit,2,2,2,0,0,64.5,78.8,36,2,4,2,0,2,2,0,2021,2024
+zon_new,UI,two_unit,2,2,1,1,0,152.0,152.0,152,1,4,2,1,2,2,0,2022,2026
+zon_new,UNC,two_unit,1,0,0,0,1,,,,0,2,1,0,0,1,0,2021,2021
+zon_new,UPR-B,two_unit,7,7,7,0,0,157.0,256.0,157,7,14,7,2,7,7,0,2022,2026
+zon_new,R3-M,three_unit,2,2,1,1,0,169.0,169.0,169,1,6,2,2,1,2,0,2020,2026
+zon_new,RM-M,three_unit,2,0,0,0,2,,,,0,6,2,0,0,2,0,2020,2022
+zon_new,UC-MU,three_unit,1,1,1,0,0,269.0,269.0,269,1,3,1,0,1,1,0,2025,2026
+zon_new,UPR-B,three_unit,1,1,0,1,0,,,,0,3,1,1,0,1,0,2025,2025
+zon_new,GT-C,multi_unit_4_19,1,1,1,0,0,36.0,36.0,36,1,5,1,1,1,1,0,2020,2020
+zon_new,LNC,multi_unit_4_19,6,4,4,0,2,195.0,229.5,185,4,49,6,4,0,6,0,2020,2025
+zon_new,R1A-H,multi_unit_4_19,1,0,0,0,1,,,,0,14,1,0,0,1,0,2020,2020
+zon_new,R2-L,multi_unit_4_19,1,1,0,1,0,,,,0,10,1,0,1,1,0,2025,2025
+zon_new,RIV-IMU,multi_unit_4_19,1,1,1,0,0,342.0,342.0,342,1,19,1,1,0,1,0,2021,2022
+zon_new,RIV-MU,multi_unit_4_19,1,0,0,0,1,,,,0,4,1,0,0,1,0,2020,2020
+zon_new,RM-H,multi_unit_4_19,1,1,1,0,0,160.0,160.0,160,1,9,1,1,0,1,0,2022,2023
+zon_new,RM-M,multi_unit_4_19,17,14,14,0,3,326.0,326.0,326,14,142,17,14,0,7,1,2020,2026
+zon_new,RP,multi_unit_4_19,1,1,1,0,0,141.0,141.0,141,1,18,1,1,0,1,0,2019,2020
+zon_new,UNC,multi_unit_4_19,3,0,0,0,3,,,,0,24,3,0,0,2,0,2020,2020
+zon_new,UPR-B,multi_unit_4_19,2,2,2,0,0,123.5,129.2,112,2,16,2,2,0,2,0,2019,2020
+zon_new,LNC,multi_unit_20plus,4,3,2,1,1,255.0,336.0,417,2,150,4,1,0,4,0,2020,2025
+zon_new,NDI,multi_unit_20plus,2,2,2,0,0,212.5,250.2,137,2,68,2,1,1,2,0,2021,2022
+zon_new,RIV-IMU,multi_unit_20plus,7,6,5,1,1,192.0,332.0,192,5,1246,7,5,0,6,0,2019,2026
+zon_new,RIV-MU,multi_unit_20plus,1,1,1,0,0,237.0,237.0,237,1,49,1,0,0,1,1,2021,2021
+zon_new,RM-M,multi_unit_20plus,1,1,1,0,0,283.0,283.0,283,1,70,1,1,0,1,1,2024,2025
+zon_new,RP,multi_unit_20plus,3,3,3,0,0,140.0,140.5,140,3,122,3,3,0,2,0,2019,2020
+zon_new,SP-5,multi_unit_20plus,1,0,0,0,1,,,,0,182,1,0,0,1,0,2022,2022
+zon_new,SP-8,multi_unit_20plus,2,0,0,0,2,,,,0,442,2,0,0,2,0,2022,2022
+zon_new,UI,multi_unit_20plus,4,3,2,1,1,431.0,560.0,173,2,670,4,3,0,4,1,2020,2026
+zon_new,UNC,multi_unit_20plus,1,0,0,0,1,,,,0,24,1,0,0,1,0,2020,2020
+zon_new,EMI,multi_unit_size_unknown,2,2,2,0,0,259.0,301.5,174,2,0,0,0,0,2,1,2020,2023
+zon_new,GT-B,multi_unit_size_unknown,1,1,1,0,0,195.0,195.0,195,1,0,0,0,1,1,0,2024,2025
+zon_new,GT-C,multi_unit_size_unknown,2,2,1,1,0,175.0,175.0,175,1,0,0,0,2,2,0,2020,2025
+zon_new,LNC,multi_unit_size_unknown,7,7,6,1,0,104.0,141.5,101,6,0,0,0,2,7,0,2019,2026
+zon_new,R-MU,multi_unit_size_unknown,1,1,1,0,0,196.0,196.0,196,1,0,0,0,0,1,0,2024,2025
+zon_new,R1D-H,multi_unit_size_unknown,1,1,1,0,0,473.0,473.0,473,1,0,0,0,1,1,0,2025,2026
+zon_new,R1D-L,multi_unit_size_unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,RIV-IMU,multi_unit_size_unknown,9,9,8,1,0,298.5,332.0,317,8,0,0,0,0,9,2,2019,2025
+zon_new,RIV-MU,multi_unit_size_unknown,1,1,1,0,0,304.0,304.0,304,1,0,0,0,0,1,1,2023,2024
+zon_new,RIV-NS,multi_unit_size_unknown,2,2,2,0,0,134.0,152.5,97,2,0,0,0,0,1,1,2024,2025
+zon_new,RM-M,multi_unit_size_unknown,2,2,2,0,0,218.5,232.2,191,2,0,0,0,0,2,0,2024,2025
+zon_new,RP,multi_unit_size_unknown,3,3,3,0,0,287.0,290.5,287,3,0,0,0,0,2,0,2023,2024
+zon_new,SP-10,multi_unit_size_unknown,3,3,1,2,0,329.0,329.0,329,1,0,0,0,0,2,1,2024,2025
+zon_new,SP-5,multi_unit_size_unknown,2,2,2,0,0,108.0,115.5,93,2,0,0,0,0,1,2,2021,2022
+zon_new,SP-9,multi_unit_size_unknown,2,2,0,2,0,,,,0,0,0,0,0,1,1,2025,2025
+zon_new,UC-E,multi_unit_size_unknown,3,3,3,0,0,179.0,207.0,179,3,0,0,0,0,1,2,2021,2022
+zon_new,UC-MU,multi_unit_size_unknown,5,5,3,2,0,174.0,375.0,576,3,0,0,0,0,2,4,2021,2026
+zon_new,UI,multi_unit_size_unknown,3,3,3,0,0,140.0,145.0,140,3,0,0,0,0,3,1,2020,2023
+zon_new,UNC,multi_unit_size_unknown,11,11,7,4,0,214.0,273.5,266,7,0,0,0,1,5,8,2020,2026
+zon_new,UPR-A,multi_unit_size_unknown,1,1,1,0,0,273.0,273.0,273,1,0,0,0,0,1,0,2019,2020
+zon_new,UPR-B,multi_unit_size_unknown,1,1,1,0,0,191.0,191.0,191,1,0,0,0,0,1,0,2023,2024
+zon_new,P,senior,2,2,1,1,0,32.0,32.0,32,1,96,2,1,0,1,1,2024,2026
+zon_new,R2-H,senior,1,1,1,0,0,108.0,108.0,108,1,0,0,1,1,1,0,2024,2024
+zon_new,EMI,other_group,2,2,2,0,0,201.5,263.8,77,2,37,1,0,0,2,1,2019,2021
+zon_new,H,other_group,1,1,0,1,0,,,,0,0,0,1,0,1,0,2025,2025
+zon_new,RM-H,other_group,1,1,1,0,0,193.0,193.0,193,1,0,0,0,0,1,0,2023,2023
+zon_new,R1A-M,adu,1,1,1,0,0,10.0,10.0,10,1,1,1,0,1,1,0,2020,2020
+zon_new,R2-H,adu,1,1,1,0,0,613.0,613.0,613,1,1,1,0,1,1,0,2024,2026
+zon_new,GPRB,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+zon_new,H,unknown,5,5,1,4,0,31.0,31.0,,1,0,0,0,0,5,0,2024,2026
+zon_new,LNC,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,P,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2020,2020
+zon_new,R1A-H,unknown,10,9,1,8,1,91.0,91.0,,1,0,0,0,0,10,0,2020,2026
+zon_new,R1A-M,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,R1A-VH,unknown,26,19,3,16,7,168.0,232.5,,3,0,0,0,0,26,0,2019,2026
+zon_new,R1D-H,unknown,12,11,3,8,1,35.0,75.0,,3,0,0,0,0,12,0,2021,2026
+zon_new,R1D-L,unknown,11,9,1,8,2,25.0,25.0,,1,0,0,0,0,11,0,2020,2026
+zon_new,R1D-M,unknown,5,4,2,2,1,40.0,49.5,59,2,0,0,0,0,5,0,2023,2026
+zon_new,R1D-VL,unknown,2,2,1,1,0,13.0,13.0,13,1,0,0,0,0,2,0,2026,2026
+zon_new,R2-H,unknown,13,11,1,10,2,43.0,43.0,,1,0,0,0,0,13,0,2020,2026
+zon_new,R2-L,unknown,13,12,2,10,1,50.0,58.5,,2,0,0,0,0,13,0,2021,2026
+zon_new,R2-M,unknown,7,4,1,3,3,219.0,219.0,,1,0,0,0,0,4,0,2020,2025
+zon_new,R3-M,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,RIV-IMU,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,RIV-MU,unknown,4,4,0,4,0,,,,0,0,0,0,0,4,0,2024,2026
+zon_new,RM-M,unknown,11,11,5,6,0,120.0,226.0,536,5,3,2,0,2,11,1,2020,2026
+zon_new,RP,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2020,2020
+zon_new,SP-9,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2021,2021
+zon_new,UI,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+zon_new,UPR-A,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,Allegheny West,single_detached,2,2,2,0,0,83.0,86.5,76,2,2,2,2,0,2,0,2022,2024
+neighborhood,Allentown,single_detached,33,33,33,0,0,139.0,160.0,139,33,33,33,17,0,33,0,2020,2024
+neighborhood,Banksville,single_detached,7,7,7,0,0,41.0,96.0,41,7,7,7,4,0,7,0,2019,2024
+neighborhood,Bedford Dwellings,single_detached,1,1,1,0,0,194.0,194.0,194,1,1,1,1,0,1,0,2026,2026
+neighborhood,Beltzhoover,single_detached,2,2,1,1,0,154.0,154.0,154,1,2,2,1,0,2,0,2023,2026
+neighborhood,Bloomfield,single_detached,8,7,7,0,1,386.0,386.0,386,7,8,8,6,0,8,0,2020,2024
+neighborhood,Brookline,single_detached,1,1,1,0,0,126.0,126.0,126,1,1,1,1,0,1,0,2025,2025
+neighborhood,California-Kirkbride,single_detached,1,1,1,0,0,310.0,310.0,310,1,1,1,1,0,1,0,2022,2023
+neighborhood,Central Business District,single_detached,1,1,1,0,0,200.0,200.0,200,1,1,1,1,1,1,0,2024,2025
+neighborhood,Central Lawrenceville,single_detached,20,20,20,0,0,125.0,279.5,119,20,20,20,11,0,20,0,2019,2026
+neighborhood,Central Northside,single_detached,22,16,15,1,6,336.0,340.5,336,15,22,22,15,0,22,0,2020,2025
+neighborhood,Crafton Heights,single_detached,1,1,0,1,0,,,,0,1,1,0,0,1,0,2026,2026
+neighborhood,Crawford-Roberts,single_detached,10,10,9,1,0,217.0,253.0,217,9,10,10,10,0,8,0,2021,2024
+neighborhood,Duquesne Heights,single_detached,36,24,24,0,12,121.5,152.5,124,24,36,36,19,0,35,2,2019,2026
+neighborhood,East Allegheny,single_detached,10,10,10,0,0,134.0,256.0,187,10,10,10,9,1,10,0,2021,2026
+neighborhood,East Liberty,single_detached,27,21,21,0,6,97.0,233.0,97,21,68,27,14,0,27,0,2019,2026
+neighborhood,Elliott,single_detached,4,3,3,0,1,84.0,273.5,84,3,4,4,2,0,4,0,2022,2023
+neighborhood,Fineview,single_detached,1,1,1,0,0,63.0,63.0,63,1,1,1,0,0,1,0,2021,2021
+neighborhood,Garfield,single_detached,33,31,29,2,2,550.0,553.0,550,29,33,33,18,0,33,0,2019,2026
+neighborhood,Greenfield,single_detached,4,2,2,0,2,107.0,110.0,101,2,4,4,2,0,4,0,2020,2023
+neighborhood,Hazelwood,single_detached,8,6,5,1,2,89.0,96.0,89,5,8,8,5,0,8,0,2020,2025
+neighborhood,Highland Park,single_detached,3,3,3,0,0,78.0,78.0,78,3,3,3,2,0,3,0,2021,2022
+neighborhood,Homewood South,single_detached,16,7,7,0,9,401.0,414.5,401,7,16,16,4,0,9,0,2020,2026
+neighborhood,Larimer,single_detached,12,12,12,0,0,76.0,76.0,76,12,12,12,5,0,8,0,2021,2023
+neighborhood,Lincoln Place,single_detached,1,1,1,0,0,71.0,71.0,71,1,1,1,1,0,1,0,2022,2022
+neighborhood,Lincoln-Lemington-Belmar,single_detached,1,1,1,0,0,238.0,238.0,238,1,1,1,1,0,1,0,2024,2025
+neighborhood,Lower Lawrenceville,single_detached,14,10,10,0,4,123.0,201.2,92,10,14,14,9,0,14,0,2019,2024
+neighborhood,Manchester,single_detached,7,7,7,0,0,28.0,172.0,28,7,7,7,7,0,7,0,2020,2025
+neighborhood,Middle Hill,single_detached,6,6,6,0,0,334.0,334.0,334,6,6,6,6,0,6,0,2021,2022
+neighborhood,Morningside,single_detached,1,1,1,0,0,70.0,70.0,70,1,1,1,1,0,1,0,2023,2023
+neighborhood,Mount Washington,single_detached,32,32,31,1,0,168.0,219.5,168,31,32,32,28,0,30,3,2019,2026
+neighborhood,New Homestead,single_detached,4,4,4,0,0,74.5,93.8,72,4,4,4,3,0,4,0,2020,2025
+neighborhood,Perry North,single_detached,1,1,0,1,0,,,,0,1,1,1,1,1,0,2025,2025
+neighborhood,Perry South,single_detached,9,9,2,7,0,280.5,302.2,324,2,9,9,8,0,8,0,2020,2026
+neighborhood,Point Breeze,single_detached,1,1,1,0,0,204.0,204.0,204,1,1,1,1,0,1,0,2025,2026
+neighborhood,Point Breeze North,single_detached,3,3,3,0,0,132.0,212.5,132,3,3,3,3,0,3,0,2019,2026
+neighborhood,Polish Hill,single_detached,7,7,7,0,0,108.0,263.5,108,7,7,7,5,0,7,0,2019,2021
+neighborhood,Regent Square,single_detached,1,1,1,0,0,29.0,29.0,29,1,1,1,1,0,1,0,2023,2023
+neighborhood,Shadyside,single_detached,3,2,2,0,1,425.5,461.2,354,2,3,3,1,0,3,0,2020,2025
+neighborhood,South Oakland,single_detached,4,0,0,0,4,,,,0,4,4,0,0,4,0,2023,2023
+neighborhood,South Side Flats,single_detached,18,11,6,5,7,198.5,299.8,318,6,18,18,7,1,18,0,2019,2026
+neighborhood,South Side Slopes,single_detached,17,11,8,3,6,147.0,180.2,176,8,17,17,10,0,13,0,2020,2026
+neighborhood,Spring Garden,single_detached,3,3,2,1,0,45.0,50.5,56,2,3,3,3,0,3,0,2024,2025
+neighborhood,Spring Hill-City View,single_detached,1,1,0,1,0,,,,0,1,1,1,0,1,0,2025,2025
+neighborhood,Squirrel Hill North,single_detached,7,3,2,1,4,264.5,301.8,339,2,7,7,3,0,6,0,2020,2025
+neighborhood,Squirrel Hill South,single_detached,3,3,3,0,0,152.0,153.0,152,3,3,3,3,0,3,0,2020,2025
+neighborhood,Stanton Heights,single_detached,5,4,4,0,1,180.5,264.5,146,4,5,5,3,0,4,0,2020,2025
+neighborhood,Strip District,single_detached,4,3,3,0,1,156.0,235.5,156,3,8,4,0,0,4,1,2020,2026
+neighborhood,Troy Hill,single_detached,1,1,1,0,0,325.0,325.0,325,1,1,1,1,0,1,0,2021,2022
+neighborhood,Upper Hill,single_detached,2,2,2,0,0,173.5,187.2,146,2,2,2,1,0,2,0,2023,2026
+neighborhood,Upper Lawrenceville,single_detached,45,18,17,1,27,133.0,266.0,133,17,45,45,14,0,45,0,2019,2025
+neighborhood,West Oakland,single_detached,3,3,3,0,0,211.0,367.5,211,3,3,3,3,0,3,0,2022,2026
+neighborhood,Westwood,single_detached,1,1,1,0,0,44.0,44.0,44,1,1,1,1,0,1,0,2025,2025
+neighborhood,Bedford Dwellings,single_attached,23,23,23,0,0,188.0,326.0,188,23,23,23,23,0,2,0,2024,2026
+neighborhood,Bluff,single_attached,1,1,0,1,0,,,,0,1,1,1,0,1,0,2025,2025
+neighborhood,California-Kirkbride,single_attached,6,6,6,0,0,41.0,45.0,37,6,6,6,6,0,6,0,2021,2021
+neighborhood,Central Lawrenceville,single_attached,23,23,22,1,0,131.0,143.0,131,22,23,23,23,0,6,0,2020,2025
+neighborhood,Central Northside,single_attached,19,19,18,1,0,328.0,420.0,328,18,19,19,19,0,19,0,2019,2026
+neighborhood,Crawford-Roberts,single_attached,14,14,14,0,0,217.0,217.0,217,14,14,14,14,0,3,0,2022,2024
+neighborhood,Duquesne Heights,single_attached,10,10,10,0,0,363.0,382.0,344,10,10,10,10,0,10,0,2023,2024
+neighborhood,East Allegheny,single_attached,8,8,8,0,0,169.5,276.8,65,8,8,8,8,0,8,0,2022,2023
+neighborhood,East Liberty,single_attached,1,1,1,0,0,93.0,93.0,93,1,1,1,1,0,1,0,2020,2020
+neighborhood,Fairywood,single_attached,45,45,45,0,0,181.0,181.0,181,45,45,45,45,0,1,0,2022,2022
+neighborhood,Garfield,single_attached,9,9,5,4,0,550.0,879.0,550,5,9,9,9,0,8,0,2021,2025
+neighborhood,Hazelwood,single_attached,2,2,2,0,0,438.0,438.0,438,2,2,2,2,0,2,0,2022,2023
+neighborhood,Homewood North,single_attached,1,1,1,0,0,484.0,484.0,484,1,1,1,1,0,1,0,2019,2020
+neighborhood,Larimer,single_attached,6,6,5,1,0,303.0,303.0,303,5,6,6,6,0,4,0,2020,2026
+neighborhood,Lower Lawrenceville,single_attached,3,3,3,0,0,135.0,135.0,135,3,3,3,3,0,3,0,2020,2020
+neighborhood,Manchester,single_attached,2,2,2,0,0,153.5,154.8,151,2,2,2,2,0,2,0,2024,2025
+neighborhood,Mount Washington,single_attached,2,2,2,0,0,221.0,221.0,221,2,2,2,2,0,2,0,2024,2025
+neighborhood,Point Breeze North,single_attached,1,1,0,1,0,,,,0,1,1,1,0,1,0,2026,2026
+neighborhood,Polish Hill,single_attached,3,3,3,0,0,299.0,843.5,299,3,3,3,3,1,3,0,2020,2025
+neighborhood,Shadyside,single_attached,21,21,21,0,0,74.0,344.0,74,21,21,21,21,0,3,1,2019,2026
+neighborhood,South Side Flats,single_attached,8,8,8,0,0,109.0,150.2,109,8,8,8,8,0,8,0,2021,2022
+neighborhood,Squirrel Hill North,single_attached,3,3,3,0,0,682.0,688.5,682,3,3,3,3,0,2,0,2020,2026
+neighborhood,Strip District,single_attached,5,5,5,0,0,155.0,157.0,155,5,5,5,5,0,1,0,2024,2024
+neighborhood,Upper Lawrenceville,single_attached,2,2,2,0,0,84.5,84.8,84,2,2,2,2,0,2,0,2019,2020
+neighborhood,West Oakland,single_attached,16,16,16,0,0,143.0,143.0,143,16,16,16,16,0,16,0,2019,2023
+neighborhood,Allentown,two_unit,3,3,2,1,0,76.5,111.8,147,2,6,3,0,3,2,0,2025,2026
+neighborhood,Arlington,two_unit,1,1,1,0,0,181.0,181.0,181,1,2,1,0,1,1,0,2023,2023
+neighborhood,Beechview,two_unit,4,4,3,1,0,272.0,278.5,272,3,8,4,1,4,4,0,2021,2025
+neighborhood,Beltzhoover,two_unit,1,1,0,1,0,,,,0,2,1,1,1,1,0,2024,2024
+neighborhood,Bloomfield,two_unit,8,6,4,2,2,146.5,190.0,169,4,16,8,1,5,7,0,2020,2025
+neighborhood,Bluff,two_unit,7,7,7,0,0,157.0,256.0,157,7,14,7,2,7,7,0,2022,2026
+neighborhood,Brookline,two_unit,2,2,1,1,0,251.0,251.0,251,1,4,2,0,2,2,0,2024,2025
+neighborhood,California-Kirkbride,two_unit,4,1,1,0,3,307.0,307.0,307,1,8,4,0,1,4,0,2022,2025
+neighborhood,Carrick,two_unit,4,4,4,0,0,85.5,235.5,51,4,8,4,0,4,4,0,2023,2026
+neighborhood,Central Lawrenceville,two_unit,4,4,3,1,0,207.0,241.5,207,3,8,4,2,3,4,0,2020,2025
+neighborhood,Central Oakland,two_unit,8,8,8,0,0,26.0,99.5,16,8,16,8,5,4,8,0,2021,2026
+neighborhood,Crafton Heights,two_unit,1,1,1,0,0,64.0,64.0,64,1,2,1,0,1,1,0,2024,2025
+neighborhood,Crawford-Roberts,two_unit,3,3,1,2,0,219.0,219.0,,1,6,3,3,0,2,0,2023,2025
+neighborhood,East Allegheny,two_unit,5,5,5,0,0,113.0,215.0,113,5,10,5,0,5,4,0,2022,2026
+neighborhood,East Liberty,two_unit,1,1,1,0,0,121.0,121.0,121,1,2,1,1,0,1,0,2024,2025
+neighborhood,Fairywood,two_unit,1,1,1,0,0,203.0,203.0,203,1,2,1,1,0,1,0,2022,2022
+neighborhood,Friendship,two_unit,1,1,1,0,0,60.0,60.0,60,1,2,1,0,1,1,0,2025,2025
+neighborhood,Garfield,two_unit,4,4,4,0,0,1205.0,1205.0,1205,4,8,4,3,1,4,0,2020,2025
+neighborhood,Greenfield,two_unit,4,4,2,2,0,62.0,65.0,68,2,8,4,0,4,4,0,2024,2026
+neighborhood,Hazelwood,two_unit,2,2,1,1,0,23.0,23.0,23,1,4,2,1,2,2,0,2024,2026
+neighborhood,Highland Park,two_unit,2,1,1,0,1,54.0,54.0,54,1,4,2,1,1,2,0,2020,2025
+neighborhood,Homewood North,two_unit,4,4,4,0,0,140.0,147.0,140,4,8,4,4,0,4,0,2024,2024
+neighborhood,Homewood South,two_unit,5,3,1,2,2,153.0,153.0,153,1,10,5,3,1,5,0,2020,2026
+neighborhood,Homewood West,two_unit,2,2,2,0,0,46.0,46.0,46,2,4,2,2,0,2,0,2023,2023
+neighborhood,Larimer,two_unit,2,2,1,1,0,56.0,56.0,56,1,4,2,2,0,2,0,2022,2025
+neighborhood,Marshall-Shadeland,two_unit,1,1,1,0,0,231.0,231.0,231,1,2,1,0,1,1,0,2023,2024
+neighborhood,Morningside,two_unit,1,1,1,0,0,49.0,49.0,49,1,2,1,0,1,1,0,2021,2021
+neighborhood,Mount Washington,two_unit,4,4,4,0,0,72.0,148.5,32,4,8,4,2,4,4,0,2021,2026
+neighborhood,Perry South,two_unit,1,1,1,0,0,89.0,89.0,89,1,2,1,0,1,1,0,2025,2025
+neighborhood,Point Breeze,two_unit,1,1,0,1,0,,,,0,2,1,0,1,1,0,2024,2024
+neighborhood,Polish Hill,two_unit,5,5,3,2,0,67.0,139.0,67,3,10,5,1,4,4,0,2023,2026
+neighborhood,Regent Square,two_unit,1,1,1,0,0,118.0,118.0,118,1,2,1,0,1,1,0,2023,2024
+neighborhood,Shadyside,two_unit,2,2,2,0,0,58.5,73.8,28,2,4,2,1,1,2,0,2019,2022
+neighborhood,Sheraden,two_unit,1,1,0,1,0,,,,0,2,1,0,1,1,0,2025,2025
+neighborhood,South Oakland,two_unit,3,3,2,1,0,160.5,162.8,156,2,6,3,1,3,3,0,2020,2026
+neighborhood,South Side Flats,two_unit,2,2,2,0,0,259.0,266.0,245,2,4,2,1,1,2,0,2023,2024
+neighborhood,South Side Slopes,two_unit,3,3,1,2,0,85.0,85.0,,1,6,3,1,3,3,0,2024,2026
+neighborhood,Spring Garden,two_unit,1,1,1,0,0,122.0,122.0,122,1,2,1,1,1,1,0,2023,2023
+neighborhood,Squirrel Hill North,two_unit,1,1,1,0,0,49.0,49.0,49,1,2,1,0,1,1,0,2024,2024
+neighborhood,Squirrel Hill South,two_unit,3,3,3,0,0,150.0,152.5,150,3,6,3,1,3,3,0,2024,2025
+neighborhood,Strip District,two_unit,1,1,1,0,0,524.0,524.0,524,1,2,1,0,1,1,0,2023,2025
+neighborhood,Troy Hill,two_unit,3,3,3,0,0,152.0,303.5,152,3,6,3,0,3,3,0,2022,2026
+neighborhood,Upper Hill,two_unit,1,1,1,0,0,363.0,363.0,363,1,2,1,1,1,1,0,2022,2023
+neighborhood,Bloomfield,three_unit,1,1,1,0,0,169.0,169.0,169,1,3,1,1,0,1,0,2020,2021
+neighborhood,East Liberty,three_unit,1,1,0,1,0,,,,0,3,1,1,1,1,0,2026,2026
+neighborhood,Homewood South,three_unit,1,0,0,0,1,,,,0,3,1,0,0,1,0,2020,2020
+neighborhood,North Oakland,three_unit,1,1,1,0,0,269.0,269.0,269,1,3,1,0,1,1,0,2025,2026
+neighborhood,Shadyside,three_unit,1,0,0,0,1,,,,0,3,1,0,0,1,0,2022,2022
+neighborhood,West Oakland,three_unit,1,1,0,1,0,,,,0,3,1,1,0,1,0,2025,2025
+neighborhood,Bedford Dwellings,multi_unit_4_19,11,11,11,0,0,326.0,326.0,326,11,112,11,11,0,3,1,2024,2026
+neighborhood,Bloomfield,multi_unit_4_19,1,1,1,0,0,133.0,133.0,133,1,8,1,1,0,1,0,2024,2024
+neighborhood,Bluff,multi_unit_4_19,2,2,2,0,0,123.5,129.2,112,2,16,2,2,0,2,0,2019,2020
+neighborhood,Central Business District,multi_unit_4_19,1,1,1,0,0,36.0,36.0,36,1,5,1,1,1,1,0,2020,2020
+neighborhood,Crawford-Roberts,multi_unit_4_19,1,1,1,0,0,285.0,285.0,285,1,4,1,1,0,1,0,2023,2024
+neighborhood,East Liberty,multi_unit_4_19,4,1,1,0,3,559.0,559.0,559,1,30,4,1,0,3,0,2020,2026
+neighborhood,Hazelwood,multi_unit_4_19,1,1,1,0,0,185.0,185.0,185,1,4,1,1,0,1,0,2023,2024
+neighborhood,Highland Park,multi_unit_4_19,1,0,0,0,1,,,,0,6,1,0,0,1,0,2022,2022
+neighborhood,Homewood South,multi_unit_4_19,3,0,0,0,3,,,,0,12,3,0,0,1,0,2020,2020
+neighborhood,Larimer,multi_unit_4_19,1,1,1,0,0,303.0,303.0,303,1,4,1,1,0,1,0,2020,2020
+neighborhood,Lower Lawrenceville,multi_unit_4_19,2,0,0,0,2,,,,0,29,2,0,0,2,0,2020,2021
+neighborhood,Middle Hill,multi_unit_4_19,2,2,2,0,0,1135.0,1600.0,205,2,20,2,2,0,2,0,2020,2026
+neighborhood,Point Breeze,multi_unit_4_19,1,1,0,1,0,,,,0,10,1,0,1,1,0,2025,2025
+neighborhood,Shadyside,multi_unit_4_19,1,1,1,0,0,160.0,160.0,160,1,9,1,1,0,1,0,2022,2023
+neighborhood,Strip District,multi_unit_4_19,1,1,1,0,0,342.0,342.0,342,1,19,1,1,0,1,0,2021,2022
+neighborhood,Terrace Village,multi_unit_4_19,1,1,1,0,0,141.0,141.0,141,1,18,1,1,0,1,0,2019,2020
+neighborhood,Upper Lawrenceville,multi_unit_4_19,1,0,0,0,1,,,,0,4,1,0,0,1,0,2020,2020
+neighborhood,Bedford Dwellings,multi_unit_20plus,1,1,1,0,0,283.0,283.0,283,1,70,1,1,0,1,1,2024,2025
+neighborhood,Bluff,multi_unit_20plus,1,1,1,0,0,237.0,237.0,237,1,49,1,0,0,1,1,2021,2021
+neighborhood,California-Kirkbride,multi_unit_20plus,1,1,1,0,0,137.0,137.0,137,1,30,1,1,0,1,0,2021,2021
+neighborhood,Central Lawrenceville,multi_unit_20plus,1,1,0,1,0,,,,0,97,1,1,0,1,0,2024,2024
+neighborhood,Central Northside,multi_unit_20plus,2,2,2,0,0,190.5,239.2,93,2,84,2,0,1,2,0,2021,2022
+neighborhood,East Liberty,multi_unit_20plus,1,0,0,0,1,,,,0,24,1,0,0,1,0,2020,2020
+neighborhood,Larimer,multi_unit_20plus,1,1,1,0,0,689.0,689.0,689,1,220,1,1,0,1,0,2023,2025
+neighborhood,Lower Lawrenceville,multi_unit_20plus,4,2,1,1,2,332.0,332.0,332,1,427,4,2,0,4,0,2019,2025
+neighborhood,Middle Hill,multi_unit_20plus,1,1,1,0,0,417.0,417.0,417,1,40,1,0,0,1,0,2020,2021
+neighborhood,Polish Hill,multi_unit_20plus,1,1,1,0,0,173.0,173.0,173,1,230,1,1,0,1,1,2020,2021
+neighborhood,South Side Flats,multi_unit_20plus,2,1,0,1,1,,,,0,382,2,1,0,2,0,2022,2026
+neighborhood,Strip District,multi_unit_20plus,7,4,4,0,3,177.5,266.8,163,4,1248,7,3,0,6,0,2020,2026
+neighborhood,Terrace Village,multi_unit_20plus,3,3,3,0,0,140.0,140.5,140,3,122,3,3,0,2,0,2019,2020
+neighborhood,Allegheny Center,multi_unit_size_unknown,1,1,1,0,0,126.0,126.0,126,1,0,0,0,1,1,0,2026,2026
+neighborhood,Bedford Dwellings,multi_unit_size_unknown,2,2,2,0,0,218.5,232.2,191,2,0,0,0,0,2,0,2024,2025
+neighborhood,Bloomfield,multi_unit_size_unknown,5,5,1,4,0,101.0,101.0,,1,0,0,0,1,2,3,2019,2026
+neighborhood,Bluff,multi_unit_size_unknown,2,2,2,0,0,182.5,186.8,174,2,0,0,0,0,2,0,2023,2024
+neighborhood,Carrick,multi_unit_size_unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Central Business District,multi_unit_size_unknown,3,3,2,1,0,185.0,190.0,195,2,0,0,0,3,3,0,2020,2025
+neighborhood,Central Northside,multi_unit_size_unknown,1,1,1,0,0,107.0,107.0,107,1,0,0,0,0,1,0,2022,2022
+neighborhood,Central Oakland,multi_unit_size_unknown,6,6,5,1,0,196.0,235.0,196,5,0,0,0,0,3,4,2021,2026
+neighborhood,Crawford-Roberts,multi_unit_size_unknown,4,4,4,0,0,287.0,288.8,287,4,0,0,0,0,3,0,2019,2024
+neighborhood,East Liberty,multi_unit_size_unknown,4,4,2,2,0,240.0,253.0,266,2,0,0,0,0,2,3,2020,2025
+neighborhood,Friendship,multi_unit_size_unknown,1,1,1,0,0,155.0,155.0,155,1,0,0,0,0,1,0,2022,2022
+neighborhood,Greenfield,multi_unit_size_unknown,1,1,1,0,0,473.0,473.0,473,1,0,0,0,1,1,0,2025,2026
+neighborhood,Hazelwood,multi_unit_size_unknown,3,3,1,2,0,329.0,329.0,329,1,0,0,0,0,2,1,2024,2025
+neighborhood,Highland Park,multi_unit_size_unknown,1,1,1,0,0,153.0,153.0,153,1,0,0,0,0,1,0,2025,2025
+neighborhood,Knoxville,multi_unit_size_unknown,1,1,1,0,0,503.0,503.0,503,1,0,0,0,1,1,0,2020,2021
+neighborhood,Larimer,multi_unit_size_unknown,1,1,1,0,0,78.0,78.0,78,1,0,0,0,0,1,0,2021,2021
+neighborhood,Lower Lawrenceville,multi_unit_size_unknown,3,3,3,0,0,317.0,323.5,317,3,0,0,0,0,3,1,2019,2025
+neighborhood,North Oakland,multi_unit_size_unknown,3,3,2,1,0,139.5,156.8,174,2,0,0,0,0,1,2,2021,2025
+neighborhood,North Shore,multi_unit_size_unknown,2,2,2,0,0,134.0,152.5,97,2,0,0,0,0,1,1,2024,2025
+neighborhood,Polish Hill,multi_unit_size_unknown,2,2,2,0,0,131.5,140.8,113,2,0,0,0,0,2,1,2020,2021
+neighborhood,Shadyside,multi_unit_size_unknown,3,3,3,0,0,281.0,359.0,281,3,0,0,0,0,1,3,2022,2024
+neighborhood,South Side Flats,multi_unit_size_unknown,2,2,2,0,0,108.0,115.5,93,2,0,0,0,0,1,2,2021,2022
+neighborhood,Squirrel Hill North,multi_unit_size_unknown,1,1,1,0,0,344.0,344.0,344,1,0,0,0,0,1,1,2020,2021
+neighborhood,Strip District,multi_unit_size_unknown,8,8,7,1,0,214.0,309.0,214,7,0,0,0,0,8,1,2019,2025
+neighborhood,Upper Lawrenceville,multi_unit_size_unknown,2,2,1,1,0,304.0,304.0,304,1,0,0,0,0,2,1,2023,2026
+neighborhood,Beltzhoover,senior,1,1,1,0,0,108.0,108.0,108,1,0,0,1,1,1,0,2024,2024
+neighborhood,Fairywood,senior,2,2,1,1,0,32.0,32.0,32,1,96,2,1,0,1,1,2024,2026
+neighborhood,East Liberty,other_group,1,1,0,1,0,,,,0,0,0,1,0,1,0,2025,2025
+neighborhood,Larimer,other_group,1,1,1,0,0,193.0,193.0,193,1,0,0,0,0,1,0,2023,2023
+neighborhood,Shadyside,other_group,1,1,1,0,0,77.0,77.0,77,1,0,0,0,0,1,1,2019,2020
+neighborhood,Squirrel Hill North,other_group,1,1,1,0,0,326.0,326.0,326,1,37,1,0,0,1,0,2020,2021
+neighborhood,California-Kirkbride,adu,1,1,1,0,0,10.0,10.0,10,1,1,1,0,1,1,0,2020,2020
+neighborhood,Manchester,adu,1,1,1,0,0,613.0,613.0,613,1,1,1,0,1,1,0,2024,2026
+neighborhood,Allentown,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2023,2023
+neighborhood,Banksville,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Beechview,unknown,4,4,0,4,0,,,,0,0,0,0,0,4,0,2024,2026
+neighborhood,Beltzhoover,unknown,2,2,0,2,0,,,,0,0,0,0,0,2,0,2026,2026
+neighborhood,Bloomfield,unknown,2,2,0,2,0,,,,0,0,0,0,0,2,0,2025,2025
+neighborhood,Brighton Heights,unknown,2,2,1,1,0,59.0,59.0,59,1,0,0,0,0,2,0,2026,2026
+neighborhood,Brookline,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,California-Kirkbride,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Carrick,unknown,1,1,1,0,0,67.0,67.0,67,1,0,0,0,0,1,0,2026,2026
+neighborhood,Central Lawrenceville,unknown,4,2,1,1,2,120.0,120.0,120,1,2,1,0,1,4,0,2020,2026
+neighborhood,Central Northside,unknown,7,5,0,5,2,,,,0,0,0,0,0,7,0,2021,2026
+neighborhood,Crafton Heights,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,Crawford-Roberts,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,Duquesne Heights,unknown,2,2,1,1,0,91.0,91.0,91,1,0,0,0,0,2,0,2023,2025
+neighborhood,East Allegheny,unknown,3,3,1,2,0,297.0,297.0,,1,0,0,0,0,3,0,2025,2026
+neighborhood,East Liberty,unknown,7,4,2,2,3,131.0,175.0,219,2,0,0,0,0,5,0,2020,2026
+neighborhood,Elliott,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,Fineview,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2021,2021
+neighborhood,Friendship,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Garfield,unknown,3,2,1,1,1,115.0,115.0,115,1,0,0,0,0,3,0,2020,2026
+neighborhood,Greenfield,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Hazelwood,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Highland Park,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Homewood South,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Homewood West,unknown,1,0,0,0,1,,,,0,0,0,0,0,1,0,2021,2021
+neighborhood,Larimer,unknown,3,3,0,3,0,,,,0,0,0,0,0,3,0,2024,2024
+neighborhood,Lincoln Place,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,Lower Lawrenceville,unknown,2,1,0,1,1,,,,0,0,0,0,0,2,0,2020,2026
+neighborhood,Manchester,unknown,9,9,1,8,0,168.0,168.0,,1,0,0,0,0,9,0,2022,2026
+neighborhood,Middle Hill,unknown,3,3,3,0,0,21.0,123.5,21,3,1,1,0,1,3,0,2020,2026
+neighborhood,Morningside,unknown,7,6,1,5,1,6.0,6.0,,1,0,0,0,0,7,0,2020,2026
+neighborhood,Mount Washington,unknown,3,3,1,2,0,21.0,21.0,,1,0,0,0,0,3,0,2024,2026
+neighborhood,Perry North,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Perry South,unknown,2,2,0,2,0,,,,0,0,0,0,0,2,0,2024,2025
+neighborhood,Point Breeze,unknown,2,2,0,2,0,,,,0,0,0,0,0,2,0,2025,2026
+neighborhood,Polish Hill,unknown,2,1,0,1,1,,,,0,0,0,0,0,2,0,2022,2024
+neighborhood,Regent Square,unknown,1,1,1,0,0,35.0,35.0,35,1,0,0,0,0,1,0,2026,2026
+neighborhood,Ridgemont,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Shadyside,unknown,6,5,2,3,1,280.5,408.2,536,2,0,0,0,0,5,1,2021,2026
+neighborhood,South Oakland,unknown,2,2,1,1,0,158.0,158.0,158,1,0,0,0,0,2,0,2019,2024
+neighborhood,South Side Flats,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2024,2024
+neighborhood,South Side Slopes,unknown,2,2,1,1,0,31.0,31.0,31,1,0,0,0,0,2,0,2024,2026
+neighborhood,Spring Garden,unknown,2,2,0,2,0,,,,0,0,0,0,0,2,0,2024,2025
+neighborhood,Squirrel Hill North,unknown,6,5,1,4,1,13.0,13.0,,1,0,0,0,0,6,0,2020,2026
+neighborhood,Squirrel Hill South,unknown,4,4,1,3,0,33.0,33.0,,1,0,0,0,0,4,0,2026,2026
+neighborhood,Stanton Heights,unknown,2,0,0,0,2,,,,0,0,0,0,0,2,0,2020,2021
+neighborhood,Strip District,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Swisshelm Park,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025
+neighborhood,Troy Hill,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2026,2026
+neighborhood,Upper Hill,unknown,5,5,0,5,0,,,,0,0,0,0,0,5,0,2026,2026
+neighborhood,Upper Lawrenceville,unknown,7,4,0,4,3,,,,0,0,0,0,0,7,0,2020,2026
+neighborhood,West Oakland,unknown,1,1,0,1,0,,,,0,0,0,0,0,1,0,2025,2025

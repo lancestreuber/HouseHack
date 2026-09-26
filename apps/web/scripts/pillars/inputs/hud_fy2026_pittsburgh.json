@@ -1,0 +1,72 @@
+{
+ "hud_area": "Pittsburgh, PA HUD Metro FMR Area (METRO38300M38300)",
+ "fiscal_year": 2026,
+ "median_family_income": 110400,
+ "income_limits": {
+  "ELI_30pct": [
+   23200,
+   26500,
+   29800,
+   33100,
+   38680,
+   44360,
+   50040,
+   55720
+  ],
+  "VLI_50pct": [
+   38650,
+   44200,
+   49700,
+   55200,
+   59650,
+   64050,
+   68450,
+   72900
+  ],
+  "LI_80pct": [
+   61850,
+   70650,
+   79500,
+   88300,
+   95400,
+   102450,
+   109500,
+   116600
+  ],
+  "MTSP_60pct_LIHTC": [
+   46380,
+   53040,
+   59640,
+   66240,
+   71580,
+   76860,
+   82140,
+   87480
+  ],
+  "MTSP_50pct_LIHTC": [
+   38650,
+   44200,
+   49700,
+   55200,
+   59650,
+   64050,
+   68450,
+   72900
+  ]
+ },
+ "income_limits_note": "arrays are household size 1..8 persons",
+ "fmr_area_wide": {
+  "0br": 1001,
+  "1br": 1077,
+  "2br": 1299,
+  "3br": 1661,
+  "4br": 1789
+ },
+ "sources": {
+  "income_limits": "https://www.huduser.gov/portal/datasets/il/il26/Section8-FY26.xlsx (row fips 4200399999)",
+  "fmr": "https://www.huduser.gov/portal/datasets/fmr/fmr2026/FY26_FMRs_revised.xlsx",
+  "safmr": "https://www.huduser.gov/portal/datasets/fmr/fmr2026/fy2026_safmrs_revised.xlsx",
+  "mtsp": "https://www.huduser.gov/portal/datasets/mtsp/mtsp26/MTSP-Data-FY26.xlsx (row fips 4200399999)"
+ },
+ "mtsp_hera_type": "Regular"
+}

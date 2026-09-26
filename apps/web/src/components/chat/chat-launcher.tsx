@@ -1,6 +1,7 @@
 import { reportContext } from "@HouseHack/api/chat/facts";
 import { homewoodEvals, homewoodReport } from "@HouseHack/api/chat/fixtures";
 import { cn } from "@HouseHack/ui/lib/utils";
+import { useLocation } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
 
@@ -11,7 +12,7 @@ import { stopNatural } from "./voice";
 // Until a panel selects a real parcel, the chat explains a sample one so it's
 // usable from any page. It's labeled as sample data everywhere it appears.
 const EQUAL_WEIGHTS = { lot: 1, zoning: 1, hazards: 1, slope: 1, air: 1, transit: 1, parks: 1, health: 1, schools: 1, shops: 1, demand: 1 };
-const SAMPLE = (() => {
+export const SAMPLE = (() => {
   const context = reportContext([{ report: homewoodReport, evals: homewoodEvals }], EQUAL_WEIGHTS);
   return {
     ...context,
@@ -28,11 +29,16 @@ export function ChatLauncher() {
   const [open, setOpen] = useState(false);
   const [started, setStarted] = useState(false);
   const context = useChatContext() ?? SAMPLE;
+  const { pathname } = useLocation();
 
   const close = () => {
     stopNatural();
     setOpen(false);
   };
+
+  // The explorer (home) page docks the chat into its own pane layout instead,
+  // so the floating launcher would just be a redundant second chat there.
+  if (pathname === "/") return null;
 
   return (
     <>

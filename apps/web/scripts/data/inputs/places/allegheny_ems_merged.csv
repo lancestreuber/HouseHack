@@ -1,0 +1,48 @@
+name,address,phone,lat,lon,municipalities_served,sources
+McCandless-Franklin Park Ambulance Authority,"9925 Grubbs Road Wexford, Pennsylvania 15090",412-367-5883,40.591024,-80.017421,Bradford Woods; Franklin Park; Marshall; Mccandless; Pine,ConnectGovs+OSM
+Northwest EMS,"366 Helen Street McKees Rocks, PA 15136",412-331-2600,40.476029,-80.058605,Avalon; Bellevue; Ben Avon; Ben Avon Heights; Emsworth; Ingram; Kennedy; Kilbuck; Mcdonald; Mckees Rocks; North Fayette; Oakdale; Stowe,ConnectGovs
+McKeesport Ambulance Rescue Service,"1604 Evans Avenue McKeesport, PA 15132",412-675-5076,40.341833,-79.849648,Dravosburg; Duquesne; Glassport; Mckeesport; Port Vue,ConnectGovs
+Ross/West View EMSA,"5325 Perrysville Ave Pittsburgh, PA 15229",412-931-8200,40.50836,-80.029091,Millvale; Ohio; Reserve; Ross; West View,ConnectGovs+OSM
+Monroeville VFC #1,"122 Elmwood St. Monroeville, PA 15146",412-824-1122,40.425803,-79.787935,Monroeville,ConnectGovs
+Monroeville VFC #4,"4370 Northern Pike Monroeville, PA 15146",412-372-4404,40.433882,-79.746651,Monroeville; Pitcairn,ConnectGovs
+Monroeville VFC #5,"100 Seco Road Monroeville, PA 15146",412-372-7725,40.446437,-79.758018,Monroeville,ConnectGovs
+Monroeville VFC #6,"600 Garden City Drive Monroeville, PA 15146",412-373-0333,40.448219,-79.782101,Monroeville,ConnectGovs
+Valley Ambulance Authority,"3550 University Blvd. Moon Township, PA 15108",412-262-2621,40.527217,-80.184287,Aleppo; Bell Acres; Coraopolis; Crescent; Edgeworth; Findlay; Glen Osborne; Glenfield; Haysville; Leet; Leetsdale; Moon; Neville; Sewickley; Sewickley Heights; Sewickley Hills,ConnectGovs+OSM
+Medical Rescue Team South Authority,"315 Cypress Way Pittsburgh, PA 15228",412-343-5111,40.375477,-80.0373,Baldwin; Castle Shannon; Dormont; Green Tree; Mount Lebanon; Whitehall,ConnectGovs+OSM
+"Pittsburgh, Bureau of EMS","700 Filbert Street, Pittsburgh, PA 15232",412-622-6930,40.452514,-79.933881,Mount Oliver; Pittsburgh,ConnectGovs
+Munhall Area Prehospital Services,"1902 West St. Munhall, Pa 15120",412-464-7329,40.398559,-79.904323,Homestead; Munhall,ConnectGovs
+Priority One EMS,"575 Baldridge Ave, Braddock, PA 15104",412-823-4980,40.40621,-79.863776,Braddock; East Pittsburgh; North Braddock; Rankin,ConnectGovs
+Fire Department of North Versailles,"1021 Broad St, North Versailles, PA 15137",412-823-9666,40.374457,-79.796979,North Versailles,ConnectGovs
+Parkview EMS,"726 Midway Drive Pittsburgh,PA 15215",412-449-1080,40.501384,-79.930923,Blawnox; O'Hara,ConnectGovs
+Lower Valley Ambulance Service,"1201 Freeport Rd. Cheswick, PA 15024",724-274-4155,40.540771,-79.812454,Cheswick; Harmar; Indiana; Oakmont; Springdale; Verona,ConnectGovs
+Penn Hills EMS,"102 Duff Rd, Penn Hills, PA 15235",412-798-2041,40.461104,-79.828342,Penn Hills,ConnectGovs+OSM
+Carnegie Volunteer Fire and Rescue Bureau,"201 W Main St, Carnegie, PA 15106",412-276-4355,40.404965,-80.090348,Pennsbury Village,ConnectGovs
+Baldwin EMS,"1 Readshaw Way, Pittsburgh, PA 15236",412-884-0666,40.344806,-79.975227,Baldwin; Brentwood; Pleasant Hills; West Homestead; West Mifflin; Whitaker,ConnectGovs
+Plum EMS,"1990 Old Mine Rd, Plum, PA 15239",412-793-4801,40.508942,-79.730964,Plum,ConnectGovs+OSM
+Richland EMS,"4009 Dickey Rd, Gibsonia, PA 15044",724-443-5921,40.640562,-79.953018,Richland,ConnectGovs
+Robinson EMS,"998 Church Hill Rd, Pittsburgh, PA 15205",412-787-5044,40.439863,-80.144165,Crafton; Robinson; Rosslyn Farms; Thornburg,ConnectGovs
+Scott Township EMS,"543 Carothers Ave, Carnegie, PA 15106",412-278-2439,40.398171,-80.088201,Scott,ConnectGovs
+Shaler Hampton EMS,"339 Wetzel Rd, Glenshaw, PA 15116",412-487-6590,40.522519,-79.968446,Etna; Hampton; Shaler,ConnectGovs
+Seneca Area EMS,"101 East Union Road Cheswick, PA 15024",412-781-8596,40.621332,-79.856249,Indiana; Sharpsburg,ConnectGovs+OSM
+SouthBridge EMS,"178 Hickory Grade Rd, Bridgeville, PA 15017",412-221-5115,40.357499,-80.124908,Bridgeville; South Fayette,ConnectGovs+OSM
+Tri-Community South EMS,"5490 Progress Blvd, Bethel Park, PA 15102",412-831-3710,40.320525,-80.043259,Bethel Park; South Park; Upper St. Clair,ConnectGovs+OSM
+White Oak EMS,"2800 State St, White Oak, PA 15131",412-672-3055,40.352195,-79.821748,South Versailles; White Oak,ConnectGovs
+Eastern Area Prehospital Services,"192 11th Street Turtle Creek, PA 15145",412-829-8155,40.403676,-79.822432,East Mckeesport; Edgewood; Swissvale; Turtle Creek; Wall; Wilkinsburg; Wilmerding,ConnectGovs
+Eureka VFD,"304 E 3rd Ave, Tarentum, PA 15084",724-224-1499,40.600874,-79.753733,Brackenridge; East Deer; Fawn; Frazer; Tarentum,ConnectGovs+OSM
+Penn Township EMS,"1030 Sandy Hill Rd, Irwin, PA 15642",724-864-3211,40.364225,-79.678015,Trafford,ConnectGovs
+Southeast Regional EMS,"911 Swiss Way, Elizabeth, PA 15037",412-384-0111,40.280282,-79.834814,Elizabeth; Liberty; Lincoln; Versailles; West Elizabeth,ConnectGovs+OSM
+West Deer EMS,"101 E Union Rd, Cheswick, PA 15024",724-265-4750,40.621332,-79.856249,West Deer,ConnectGovs
+Woodland Hills EMS,"8 Vine Alley, Pittsburgh, PA 15221",412-351-9111,40.420831,-79.849082,Braddock Hills; Chalfant; Churchill; Forest Hills; Wilkins,ConnectGovs+OSM
+Foxwall EMS,"749 Hemlock Hollow Road Pittsburgh, PA 15238",412-963-6611,40.510193,-79.891197,Aspinwall; Fox Chapel,ConnectGovs+OSM
+Scott Township EMS,"305 Duncan Way, Carnegie, PA 15106",412-276-4355,40.41426,-80.076098,Carnegie,ConnectGovs
+Southeast Regional EMS,"2121 Century Dr, Clairton, PA 15025",412-384-0111,40.28209,-79.905766,Clairton,ConnectGovs
+Kirwan VFD,"1200 Washington Pike, Bridgeville, PA 15017",412-221-8382,40.37057,-80.100225,Collier; Heidelberg,ConnectGovs
+Southeast Regional EMS,"2121 Century Drive Jefferson Hills, PA 15025",412-384-0111,40.28209,-79.905766,Forward; Jefferson Hills,ConnectGovs
+Citizens Hose Company,"965 Burtner Road  Natrona Heights, PA  15065",724-224-1912,40.628873,-79.716786,Harrison,ConnectGovs
+Medical Rescure Team South Authority Ambulance Station,,,40.358628,-79.982,,OSM
+Ambulance station,,,40.43675,-79.761022,,OSM
+McCandless - Franklin Park Ambulance Authority Station 2,2533 Ems Lane,,40.605185,-80.087676,,OSM
+Medic 9 and Rescue 1,,,40.454984,-79.947962,,OSM
+East Deer EMS,927 Freeport Road,,40.583317,-79.77829,,OSM
+Emergency Medical Services,,,40.594336,-79.948259,,OSM
+City of Pittsburgh EMS Training Division,,,40.451685,-79.982089,,OSM
