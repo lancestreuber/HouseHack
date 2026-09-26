@@ -1,6 +1,6 @@
 # Groundwork PGH: Design (Track 3, 30-hour cut)
 
-Revised Sat Sep 26, ~3pm ET, from the team whiteboard (demand, site considerations, neighborhood, typology). This replaces the earlier Track 1+3 design. Git history holds the old version. The implementation plan (owners, files, milestones, tasks) is in [`/PLAN.md`](../../../PLAN.md).
+Revised Sat Sep 26, ~3pm ET, from two team whiteboards: the factor list, and the pane-layout sketch. This replaces the earlier Track 1+3 design. Git history holds the old version. The implementation plan (owners, files, milestones, tasks) is in [`/PLAN.md`](../../../PLAN.md).
 
 ## Context
 - AI Horizons 2026 AI for Housing Hackathon, Track 3 (Housing Typology, Equity & Climate Matchmaker), City of Pittsburgh.
@@ -9,138 +9,180 @@ Revised Sat Sep 26, ~3pm ET, from the team whiteboard (demand, site consideratio
 - Deliverables: a 3–5 min demo video, a public repo and the Google Form.
 - **Guiding rule: demoability over coverage.** One flow must work flawlessly on real data. Every factor we can't source well in about 1 hour gets cut, not faked.
 
-## The product in one sentence
-Click any City of Pittsburgh parcel and see **which of six housing types fit there, and why**. That means a ranked list of typology cards, each built from a few sourced factors. Sliders let you reweight Demand, Site and Access. **No LLM is involved.** A transparent, deterministic engine makes suggestions, and people decide.
+## The product: two ways in
+1. **Explore (parcel → what to build).** Click a parcel and see its **considerations**: each factor scored, with a comment, a warning where one applies, and a source. The parcel gets **one unbiased Parcel Score**, which uses **the user's weight for each consideration**. The six **typology cards** show how well the parcel suits each housing type, and **Jev** judges that fit.
+2. **Find (what I want to build → which parcels).** You say "I want to build senior housing", optionally add a purpose ("near a clinic, for people who can't drive"), and choose a scope: the city, a neighborhood, or your favorites. The algorithm shortlists legal, big-enough parcels. **Jev** then scores each one for that purpose and returns a confidence. The result is a ranked list on the map.
+3. **Compare favorites** *(low priority, end goal).* Star parcels into a set for a purpose. Jev picks which parcel best fits the purpose and gives a probability for each.
+
+### Who decides what
+| Layer | What it decides | Why |
+|---|---|---|
+| **Algorithm** (deterministic, `packages/scoring`) | Consideration scores, the **Parcel Score** (user weights), **legality** per typology, shortlists | Transparent and reproducible. The same inputs always give the same output. Legality is never left to AI. |
+| **Jev** (TypeSafe, a typed decision model) | **How good a parcel is for purpose X**: typology fit (a score with a confidence) in Explore, ranking in Find, and a choice among favorites in Compare | Weighs each typology's *demands* against the facts. For example, senior housing needs air quality, health access and flat ground. Returns calibrated probabilities instead of text, so it can't hallucinate prose. |
+| **People** | Weights, purpose, final pick | "We suggest; people decide." |
+
+No Claude and no free-text generation. All user-facing wording is templated from facts.
 
 ## Demo story: "Homewood CDC wants to know which vacant lots fit what housing"
-1. The map opens on Pittsburgh. Neighborhoods are shaded by a **Demand** score built from age mix, household size, vacancy and recent permits.
-2. Search "Homewood" and fly there. Turn on the **city-owned lots** layer. Zoom in until parcels appear, colored by their best-fit typology.
-3. Click a city-owned vacant lot. The right-hand report shows 6 typology cards, ranked. Each card shows:
-   - fit 0–100
-   - legal status: by right, needs approval, or not allowed
-   - its top 3 reasons, each with a source chip
-4. Drag the **Access** weight up. The ranking and the map recolor live.
-5. **Pin** that lot plus 1–2 others. The **compare** view shows them side by side.
-6. **Print** the report as a one-page brief for a community meeting.
-7. Open the **Methodology** page. It lists sources, dates, weights and "what this tool can't tell you".
+1. **Explore.** The map opens on Pittsburgh with the Demand choropleth. Search "Homewood" and turn on **city-owned lots**.
+2. Click a lot. The right pane lists its considerations like a set of review comments:
+   - ✓ Transit: 180 m to a bus stop
+   - ⚠ Slope: 40% of the lot is on ≥25% slope
+   - ! Landslide-prone area
+
+   The Parcel Score is 64. The bottom pane shows 6 typology cards with Jev fit numbers.
+3. Click the **Senior housing** card. Its demands (air, health access, slope, transit) light up in the considerations pane. Jev says "Fair, 71% confident", and the notes explain which demand fails.
+4. Drag the **Air** weight up. The Parcel Score and the map recolor instantly (algorithm only).
+5. **Find.** Switch to "I want to build… **senior housing** in Homewood". A shortlist of 10 parcels appears, ranked by Jev fit with confidence, and each one is highlighted on the map.
+6. *(If built)* Star three of them, then **Compare for senior housing**. Jev's choice probabilities appear as a bar per parcel.
+7. **Print** the report. Open **Methodology**: it covers sources, dates, weights, "Algorithm vs. Jev", and "what this tool can't tell you".
 
 ## Typologies (6)
-| Id | Name | Meaning | Legality source |
-|---|---|---|---|
-| `sfd` | Classic neighborhood | Single-family detached | zoning-rules.md table |
-| `adu` | ADU | Backyard or garage unit on a lot with a house | Illegal everywhere today, so the card always shows "not allowed". Its reason text notes that pending Bill 2025-1545 would allow ADUs by right. There is no reform toggle (cut). |
-| `duplex` | Duplex | 2 units (triplex treated the same) | zoning-rules.md |
-| `townhome` | Townhome | Attached rowhouses | zoning-rules.md. R1D is "uncertain" and gets flagged. |
-| `apartments` | Apartments | 4+ units, no mid-rise split | zoning-rules.md |
-| `senior` | Senior housing | Age-friendly small multifamily or duplex | Same legality as `duplex` or `apartments`, whichever is more permissive. There is no separate zoning use for it. It is scored on the 65+ share, flat slope and hospital/transit proximity. |
+| Id | Name | Meaning | Legality (deterministic) | Demands (what Jev weighs; highlighted when the card is selected) |
+|---|---|---|---|---|
+| `sfd` | Classic neighborhood | Single-family detached | zoning-rules.md table | lot size, schools, parks, flat ground |
+| `adu` | ADU | Backyard or garage unit on a lot with a house | Illegal everywhere today, so the card always shows "not allowed". A note says pending Bill 2025-1545 would allow ADUs by right. | existing structure, lot size, transit |
+| `duplex` | Duplex | 2 units (triplex treated the same) | zoning-rules.md | lot size, transit, demand (small households) |
+| `townhome` | Townhome | Attached rowhouses | zoning-rules.md. R1D is "uncertain" and gets flagged. | lot size, schools, flat ground |
+| `apartments` | Apartments | 4+ units | zoning-rules.md | lot size, transit, shops, demand |
+| `senior` | Senior housing | Age-friendly small multifamily | The more permissive of `duplex` and `apartments` | **air quality, hospital/fire, transit, flat ground, 65+ share** |
 
-Legality is a **gate**. When a type is "not allowed", its card still shows but is greyed out and ranked last, with the reason. "Needs approval" (special exception, Administrator Exception or variance) is a 0.6× penalty on fit and gets a chip.
+When a type is "not allowed", its card is greyed out and Jev is **not asked** about it. "Needs approval" shows a chip.
 
-## Factors (whiteboard mapping)
-★ marks a factor starred on the whiteboard. **Status** says what we do with it in the 30h scope.
+## Considerations (whiteboard mapping)
+★ marks a factor starred on the whiteboard. Each consideration yields a 0–100 score, a severity, a one-line comment and a source.
 
-### Demand (per neighborhood, 90 neighborhoods)
-| Factor | Source (WPRDC unless noted) | Status |
+| Consideration | Inputs (WPRDC slug unless noted) | Level |
 |---|---|---|
-| Population age (share 65+, share under 18) | `2009-13-and-2019-23-american-community-survey-estimates-for-city-of-pittsburgh-neighborhoods`: `Var_2023_Age_*` | Scored |
-| Household size / type | same file, `Var_2023_hhtype_*` | Scored (drives the small-unit vs family-unit split) |
-| Vacancy % ★ | same file (housing vacancy) + parcel vacancy | Scored. High vacancy means lower demand for new stock, but more lots to fill. |
-| Permit activity | `pli-permits`: new residential and renovation permits per neighborhood, last 3 years | Scored |
+| Lot size ★ | parcel geometry (`allegheny-county-parcel-boundaries1`, already in PostGIS) | parcel |
+| Zoning ★ | `zoning` + `ZONING_RULES`. Score = how many typologies are by right. | parcel |
+| Hazards ★ (landslide, flood, undermined) | `landslide-prone-areas`, `landslides`, `2014-fema-flood-zones`, `undermined-areas` | parcel |
+| Slope | `25-or-greater-slope`: share of the parcel on ≥25% slope | parcel |
+| Air quality ★ | `emissions-inventory`: criteria-pollutant tons/yr within 2 km, inverse-distance weighted | parcel |
+| Transit ★ | `prt-of-allegheny-county-transit-stops`: distance | parcel |
+| Parks & greenways | `parks1`, `greenways`: distance | parcel |
+| Health & emergency ★ | `hospitals`, `pgh-fire-stations`: distance | parcel |
+| Schools | `pittsburgh-public-school-locations`: distance (proximity only) | parcel |
+| Shops *(Should)* | `allegheny-county-assets`: grocery/retail within 800 m | parcel |
+| Demand | ACS neighborhood file (`Var_2023_Age_*`, `hhtype_*`, vacancy) + `pli-permits` in the last 3 years | neighborhood |
 
-### Site considerations (per parcel)
-| Factor | Source | Status |
+**Context rows** are shown but never scored: median income, median rent, nearest monitor's AQI, city-owned status.
+
+**Not used, and stated on the methodology page:**
+- **Crime:** the feed has been broken since 2025-10, and crime data carries equity bias. So the whiteboard's "Safety" card becomes **Hazards**.
+- **Tornado:** no meaningful variation inside the city.
+- **Water/sewer capacity:** not public.
+- **School quality.**
+
+### Severity (the review-comment model)
+| Severity | Rule | Look |
 |---|---|---|
-| Parcel size ★ | `allegheny-county-parcel-boundaries1` geometry (already in PostGIS on the zoning-parcels branch) | Scored, per-typology minimums |
-| Zoning ★ | `zoning` (already shipped as `public/data/pittsburgh-zoning.geojson`) + `ZONING_RULES` | Legality gate |
-| Slope of yard | `25-or-greater-slope`: share of the parcel inside a ≥25% slope polygon | Scored |
-| Natural disasters ★: landslide, flood, undermined | `landslide-prone-areas`, `landslides` (events), `2014-fema-flood-zones`, `undermined-areas` | Scored as hazard flags. **Tornado is cut:** it has no meaningful variation inside the city, and the methodology page says so. |
-| Air quality ★ | `emissions-inventory` (16.8k rows of facility × pollutant × year, with lat/lon and tons/yr): the latest year's criteria-pollutant tons within 2 km, inverse-distance weighted | Scored (Site). It varies within the city, unlike the monitors. Labeled **Evidence** for the emissions data, and the proxy is disclosed on the methodology page. |
-| Air quality context | `allegheny-county-air-quality`: "Sensor Locations" (lat/lon) + "Daily AQI Data" (87k rows) → the nearest active monitor's median PM2.5 AQI over the last 12 months | Context row, not scored, because only a handful of monitors cover the city. |
-| Greenways / parks | `parks1`, `greenways`: distance to nearest | Scored (Access) |
-| Transit ★ | `prt-of-allegheny-county-transit-stops`: distance to the nearest stop, frequency where available | Scored (Access) |
-| Cost of living | ACS neighborhood file: median rent and income | Context row, not scored |
-| Safety / crime | none | **Cut.** The city's crime data feed has been broken since 2025-10, and crime scoring carries equity bias. The methodology page states this. |
+| ✓ ok | score ≥ 70 | muted green dot |
+| • consideration | 40–69 | amber dot |
+| ! warning | < 40, or any hazard flag | red dot. Warnings also appear in **Notes**. |
 
-### Neighborhood services (per parcel distance, or per neighborhood)
-| Factor | Source | Status |
-|---|---|---|
-| Hospitals / fire ★ | `pgh-fire-stations`, `hospitals` | Scored (Access). Senior housing weights hospitals higher. |
-| Schools (proximity) | `pittsburgh-public-school-locations` | Scored (Access). Family types weight it higher. **Quality is cut** (data and equity concerns). |
-| Local economy / shops | `allegheny-county-assets` (grocery and retail points) | *Should*: count within 800 m |
-| Average income | ACS neighborhood file | Context row (equity) |
-| % vacancy ★ | see Demand | — |
-| Transit | see Site | — |
-| Water / sewage | none usable | **Cut.** Main capacity isn't public. The methodology page states this. |
+## Algorithm (deterministic; the "unbiased" score)
+- **Normalize.** Each consideration becomes a 0–100 score, using thresholds for distances and hazards and percentiles for emissions and neighborhood metrics. The table lives in `packages/scoring/src/considerations.ts` and is printed on the methodology page.
+- **Parcel Score.** `Σ w_c × score_c / Σ w_c`, where `w_c` is **one user weight per consideration** (default 1, range 0–3). It is typology-agnostic, and it is the same formula for everyone.
+- **Legality.** `ZONING_RULES[zon_new][typology]` gives by right, needs approval, not allowed, or uncertain.
+- **Find shortlist.** First filter for legal (not `not_allowed`), lot ≥ the typology minimum, inside the scope. Then rank by Parcel Score reweighted by the typology's demand profile, and send the top 40 to Jev.
+- **Fallback.** Without Jev, typology fit = the demand-profile-weighted mean of consideration scores. It is labeled "rule-based estimate".
+- **Where it runs.** Consideration scores and the Parcel Score are computed **in the browser**, so sliders are instant. Jev runs on the server.
 
-## Engine (deterministic and transparent; "we suggest, people decide")
-- **Normalize.** Each raw factor becomes a 0–1 score, using a percentile rank across city parcels or neighborhoods, or a fixed threshold for distances and hazards. The mapping is written in `packages/scoring/src/factors.ts` and shown on the methodology page.
-- **Sub-scores.** Three sub-scores, each a weighted mean of its factors:
-  - **Demand**: age, household mix, vacancy, permits.
-  - **Site**: lot size vs. the typology minimum, slope, hazards, air.
-  - **Access**: transit, parks, schools, fire/hospital, shops.
-- **Typology profiles.** Each typology has its own factor weights inside each sub-score. Examples:
-  - `senior` weights the 65+ share, hospitals and flat slope.
-  - `apartments` weights transit and lot size.
-  - `sfd` weights schools and lot size.
-  - `adu` needs an existing structure and lot area ≥ threshold.
-- **Fit.** `fit = legalityMultiplier × Σ(userWeight_s × subScore_s(typology))`, where the user weights (default ⅓ each) come from the sliders.
-- **Why.** Each card lists its top 3 contributing factors plus any red-flag factor (hazard, slope, not allowed).
-- **Uncertainty (cut down).**
-  - Each card gets a **coverage badge**: how many of its factors have data for this parcel.
-  - Each fact carries an **Evidence** or **Assumption** label.
-  - The 300-draw Monte Carlo and P10–P90 bands are **cut**.
-- **Where it runs.** Scoring runs **in the browser** (`packages/scoring`, pure TS), so sliders are instant. The server only serves features.
+## Jev integration
+- **Transport:** Cloudflare Workers AI REST `POST https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/typesafe/jev`, with body `{ state, questions }`. The call uses plain `fetch`, so no new dependency. The context window is 32k tokens.
+- **Question types:** `score` (2–10 ordered levels, with confidence), `choice` (closed option list, with per-option probabilities) and `noul` (probability that a statement is true).
+- **State:** the parcel's facts JSON: id, label, value, unit, severity and source for each consideration, plus context rows and the neighborhood name. Never PII.
+- **Explore call** (one per parcel, cached):
+  - one `score` question per *legal* typology: `fit_<typology>`, 5 levels (poor, weak, fair, good, excellent), with instructions naming that typology's demands
+  - a `noul` question `major_concern_<typology>`
+- **Find call:** one `score` question for the requested typology + purpose, per shortlisted parcel. Fan out 40 calls in parallel with a concurrency of about 10.
+- **Compare call:** one `choice` question across ≤6 favorites, where each option's description is that parcel's fact summary, plus one `score` per option.
+- **Display:** the level, mapped to 0/25/50/75/100, plus the confidence ("Fair · 71%"). Confidence below 0.5 shows "uncertain". Each card lists **which demands pulled the fit down**. That list is deterministic (the demand considerations with a red or amber severity), so the card never shows AI-invented reasons.
+- **Cache:** `jev_cache(key = sha1(pin | typology | purpose | rubric_version))` in Postgres. The demo parcels are precomputed.
+- **Failure:** on a timeout (8 s) or a missing key, fall back to the rule-based estimate, with a label.
 
-## No AI/LLM (team decision)
-- The product uses no LLM and no trained model. The pitch: a transparent, rule-based suggestion engine where every number traces to a public dataset. It suggests, and people decide.
-- The video and the methodology page say this plainly.
-- **Cut:** the Claude brief, the companion chat, "ask the map", personas.
+## Frontend: pane explorer (super minimal, dark)
+The layout follows the whiteboard sketch: **resizable, collapsible panes**, using the shadcn `resizable` component.
+```
+┌──────────────────────────────────────┬───────────────────────┐
+│ [Explore | Find]  ⌘K search   weights│ SCORE 64  ▸ weights   │
+│                                      │ Considerations        │
+│              MAP (parcel)            │ ! Hazards    landslide│
+│   parcels colored by Parcel Score    │ ⚠ Slope      40% ≥25% │
+│   selected = yellow outline          │ ✓ Transit    180 m    │
+│                                      │ ✓ Health     1.1 km   │
+│                                      │ ── Notes ───────────  │
+│                                      │ ! Zoning: verify w/ ZA│
+├──────────────────────────────────────┴───────────────────────┤
+│ Evaluate typologies  (Explore)  /  Shortlist (Find)          │
+│ [SFD 72] [Duplex 65] [Town 60] [Apts —] [Senior 50·71%] [ADU ✕]│
+└──────────────────────────────────────────────────────────────┘
+```
+- **Grammarly model.**
+  - The map/parcel is the *content*.
+  - Considerations are *comments*: a dot, a name, a short value and one line of text, expanding to the source, as-of date and Evidence/Assumption label.
+  - Notes are the *warnings and caveats*.
+- **Typology cards** (bottom pane) show a big number, the legal badge, Jev confidence and demand chips. Selecting a card **filters and highlights** its demands in the considerations pane and adds typology-specific notes.
+- **Find mode** turns the bottom pane into the ranked **shortlist**: a row per parcel with address, Jev fit, confidence and a ☆ button. Hovering a row highlights the parcel on the map.
+- **Weights** live in a popover from the score header: one slider per consideration, with a reset button. They are saved in the URL.
+- **Visual system.**
+  - Near-black background (`#0B0B0C`), 1px `#222` pane borders, no shadows, no card chrome inside panes.
+  - Inter/DM Sans at 13px; tabular numbers for scores.
+  - Color only for severity (green/amber/red at low saturation) and **yellow `#F2C230` for selection only**.
+  - Carto dark basemap.
+- **Mobile.** Panes stack in this order: map, typologies, considerations. The collapse toggles stay.
 
 ## Equity and integrity (what judges check)
-- Income and cost of living appear as context on every report. They never lower a typology's fit.
-- Race and crime never enter any score.
-- Every fact shows its source dataset link and as-of date.
-- Zoning interpretation carries the note: "Simplified interpretation. Verify with the Zoning Administrator."
+- Income and rent are context only. Race and crime never enter any score.
+- Every consideration shows its source link and as-of date.
+- Zoning carries the note "Simplified interpretation. Verify with the Zoning Administrator."
+- **AI boundaries are explicit:**
+  - Jev never decides legality and never generates text.
+  - Its confidence is always shown.
+  - The rule-based fallback is labeled.
+  - The methodology page explains algorithm vs. Jev.
 - The methodology page includes a "What this tool can't tell you" section covering:
-  - tornado, water/sewer capacity, crime, school quality
+  - crime, tornado, water/sewer capacity, school quality
   - market feasibility and cost
-  - air quality measured as a proxy (emissions from permitted facilities, not measured exposure)
-- No PII. Owner names are dropped from parcel properties at import.
-
-## Also in scope
-- **City-owned lots layer**: `city-owned-properties` joined on PIN. It's a map toggle plus a "City-owned" badge on the report, pointing to the acquisition path.
-- **Compare**: pin 2–3 parcels, then view a side-by-side table (fit per typology, key factors).
-- **Print**: print CSS for the report panel, giving a one-page brief with sources and date.
+  - that air quality is an emissions proxy
+- No PII. Owner names are stripped at import and never sent to Jev.
 
 ## Stack (committed; no new frameworks)
-- **Base is the `zoning-parcels` branch.** It gives us:
-  - Neon Postgres + PostGIS parcel table (`packages/db/src/schema/parcels.ts`) and a streaming import (`packages/db/src/scripts/import-parcels.ts`)
-  - an oRPC bbox query (`packages/api/src/routers/parcels.ts`)
-  - a raw `maplibre-gl` 6 map with a Carto dark basemap and the zoning layer (`apps/web/src/components/parcel-map.tsx`), including the worker/Vite fixes
-- This **reverses the earlier "no DB" decision**. PostGIS turns every spatial join (hazard overlap, nearest stop, containing neighborhood) into one SQL statement. That is the biggest scope saver we have.
+- **Base:** `zoning-parcels` (now merged into `main`). It gives us:
+  - Neon Postgres + PostGIS parcels
+  - oRPC `parcels.getByBounds`
+  - the `maplibre-gl` 6 map with the zoning layer and worker/Vite fixes
 - Monorepo stays as scaffolded: bun + Turborepo, TanStack Start (`apps/web`), oRPC (`packages/api`), Drizzle (`packages/db`), shadcn/base-ui (`packages/ui`), Vercel.
-- **One new package:** `packages/scoring` (pure TS, `bun test`). Data scripts live in `packages/db/src/scripts/`, next to the existing import. There is no separate `scripts/data` workspace.
-- Auth stays in the code but is unused. The login and todos routes and their header links get deleted.
-- **No new runtime dependencies.** Everything is already installed or comes from shadcn.
+- **One new package:** `packages/scoring` (pure TS, `bun test`), which also holds the Jev rubrics. Data scripts live in `packages/db/src/scripts/`.
+- **New deps:** only the shadcn `resizable` component (react-resizable-panels). Jev uses `fetch`.
+- **Env:** `CF_ACCOUNT_ID` and `CF_AI_TOKEN` (Workers AI). If the team's TypeSafe early-access key works, the lead may swap the transport; the questions and state stay the same.
 
-## Explicitly cut (don't build; mention on the methodology page if relevant)
-- Every LLM feature: Claude brief, companion, "ask the map"
+## Priorities
+1. **Must:**
+   - Explore mode with algorithm considerations and the Parcel Score
+   - weights, legality, typology cards (rule-based fit)
+   - panes
+   - city-owned layer
+   - methodology
+2. **Must, by M3:** Jev typology fit in Explore (with cache and fallback) and Find mode with the Jev shortlist.
+3. **Should:** print, shops, AQI context, layer toggles.
+4. **Low / end goal:** Jev Compare favorites.
+
+## Explicitly cut
+- Claude and any text generation: the brief, companion chat, "ask the map"
 - ADU reform toggle
-- Pro forma, reverse lot finder
-- Personas and commute (r5py)
-- Satellite canopy/heat, 3D massing
-- Mobile bottom sheet (responsive stacking only)
-- Monte Carlo confidence
-- Redlining layer, lead lines, Eviction Lab, displacement ratio, Market Value Analysis
-- Tornado, crime, water/sewer, school quality
-
-The research docs in `docs/research/` stay as reference for continuation after the hackathon.
+- Pro forma, personas, commute, satellite layers, 3D massing, Monte Carlo confidence
+- Redlining, lead lines, Eviction Lab, displacement, Market Value Analysis
+- Crime, tornado, water/sewer, school quality
 
 ## Verification
 - `bun test` in `packages/scoring`, with golden cases:
-  1. A flat R1D lot near a school: `sfd` ranks first, and `apartments` is not allowed.
-  2. A flat RM lot near transit with a high 65+ share: `senior` or `apartments` in the top 2.
-  3. A parcel inside a landslide-prone polygon with steep slope: its hazard red flag shows and every fit drops.
-  4. The ADU card is `not_allowed` for every district.
-- Three demo parcels are checked by hand against the city zoning map (Homewood city-owned vacant lot, Lawrenceville, Beechview hillside).
+  1. A flat R1D lot near a school: `sfd` is by right and `apartments` is not allowed.
+  2. A landslide-prone steep parcel: a Hazards warning appears and the Parcel Score drops.
+  3. Raising the Air weight changes the Parcel Score in the expected direction.
+  4. ADU is `not_allowed` everywhere.
+  5. With Jev mocked, a not-allowed typology is never sent to Jev.
+- Jev: 3 demo parcels are precomputed and checked by eye to see whether the fits make sense. Removing the token triggers the labeled fallback.
+- Three demo parcels are checked by hand against the city zoning map (Homewood city-owned lot, Lawrenceville, Beechview hillside).
 - Deploy checks: `bun run check-types` and `bun run build`. Open the Vercel preview in a fresh browser with no login. It must be interactive in under 3 s.
