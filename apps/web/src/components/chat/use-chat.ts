@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { client } from "@/utils/orpc";
 
-import { speak, stopSpeaking } from "./speech";
+import { speakNatural as speak, stopNatural as stopSpeaking } from "./voice";
 
 export type ChatTurn =
   | { id: number; role: "user"; text: string }

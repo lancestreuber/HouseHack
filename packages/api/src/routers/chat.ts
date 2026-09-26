@@ -1,7 +1,7 @@
 import z from "zod";
 
 import { createChat } from "../chat/engine";
-import { geminiGenerate } from "../chat/gemini";
+import { geminiGenerate, geminiSpeak } from "../chat/gemini";
 import { publicProcedure } from "../index";
 
 const factKind = z.enum(["evidence", "assumption", "observed", "policy", "value", "definition"]);
@@ -53,7 +53,28 @@ function chatFor(apiKey: string | undefined) {
   return chat;
 }
 
+// Spoken replies, cached by text so replays and repeated demo answers are free.
+const speechCache = new Map<string, { mimeType: string; data: string }>();
+const SPEECH_CACHE_LIMIT = 100;
+
 export const chatRouter = {
   /** Explain-only assistant grounded in the facts the screen is showing. */
   ask: publicProcedure.input(askInput).handler(({ input, context }) => chatFor(context.geminiApiKey)(input)),
+
+  /** A natural voice for one or two sentences of a reply. `null` means use the browser voice. */
+  speak: publicProcedure
+    .input(z.object({ text: z.string().min(1).max(1200) }))
+    .handler(async ({ input, context }) => {
+      if (!context.geminiApiKey) return null;
+      const cached = speechCache.get(input.text);
+      if (cached) return cached;
+      try {
+        const audio = await geminiSpeak(context.geminiApiKey, input.text);
+        if (speechCache.size >= SPEECH_CACHE_LIMIT) speechCache.delete(speechCache.keys().next().value as string);
+        speechCache.set(input.text, audio);
+        return audio;
+      } catch {
+        return null;
+      }
+    }),
 };

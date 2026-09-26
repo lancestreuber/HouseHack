@@ -4,9 +4,10 @@ import { Button } from "@HouseHack/ui/components/button";
 import { cn } from "@HouseHack/ui/lib/utils";
 import {
   ArrowUp,
-  Maximize2,
+  GripHorizontal,
   Mic,
-  Minimize2,
+  PanelRightClose,
+  PictureInPicture2,
   RotateCcw,
   Square,
   Volume2,
@@ -15,7 +16,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 
 import { FactChip } from "./fact-chip";
-import { canListen, canSpeak, listen } from "./speech";
+import { type Edge, useFloatingWindow } from "./floating";
+import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
 
 export interface ChatPaneProps {
@@ -28,68 +30,96 @@ export interface ChatPaneProps {
   className?: string;
 }
 
+const EDGES: { edge: Edge; className: string }[] = [
+  { edge: "n", className: "inset-x-3 -top-1 h-2 cursor-ns-resize" },
+  { edge: "s", className: "inset-x-3 -bottom-1 h-2 cursor-ns-resize" },
+  { edge: "e", className: "inset-y-3 -right-1 w-2 cursor-ew-resize" },
+  { edge: "w", className: "inset-y-3 -left-1 w-2 cursor-ew-resize" },
+  { edge: "nw", className: "-top-1 -left-1 size-4 cursor-nwse-resize" },
+  { edge: "se", className: "-right-1 -bottom-1 size-4 cursor-nwse-resize" },
+  { edge: "ne", className: "-top-1 -right-1 size-4 cursor-nesw-resize" },
+  { edge: "sw", className: "-bottom-1 -left-1 size-4 cursor-nesw-resize" },
+];
+
 /**
- * Explain-only assistant. Fills its container; Lane C's resizable pane sets the
- * size, and the expand button opens a large overlay for longer conversations.
+ * Explain-only assistant. Docked, it fills its container (Lane C's resizable
+ * pane sets the size). Popped out, it's a floating window you can drag by its
+ * header and resize from any edge or corner; size and position are remembered.
  */
 export function ChatPane({ context, className }: ChatPaneProps) {
   const chat = useChat(context);
-  const [expanded, setExpanded] = useState(false);
+  const [floating, setFloating] = useState(false);
+  const win = useFloatingWindow(floating);
   const hasSubject = Boolean(context?.facts.length);
-
-  useEffect(() => {
-    if (!expanded) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExpanded(false);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [expanded]);
 
   const pane = (
     <section
       aria-label="Ask about this parcel"
       className={cn(
-        "flex h-full min-h-0 w-full flex-col bg-background text-foreground",
-        expanded && "fixed inset-y-0 right-0 z-50 w-full border-l border-border shadow-2xl md:w-[min(760px,72vw)]",
-        className,
+        "flex min-h-0 flex-col bg-background text-foreground",
+        floating
+          ? "fixed z-50 overflow-hidden rounded-xl border border-border shadow-2xl shadow-black/40"
+          : "h-full w-full",
+        !floating && className,
       )}
+      style={floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : undefined}
+      {...(floating ? win.handlers : {})}
     >
-      <header className="flex h-12 shrink-0 items-center gap-1 border-b border-border px-4">
-        <h2 className="mr-auto text-[15px] font-medium">{hasSubject ? "Ask about this parcel" : "Ask Groundwork"}</h2>
-        {canSpeak() && (
-          <IconButton
-            label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
-            pressed={chat.readAloud}
-            onClick={chat.toggleReadAloud}
-          >
-            {chat.readAloud ? <Volume2 /> : <VolumeX />}
-          </IconButton>
+      <header
+        className={cn(
+          "flex h-12 shrink-0 items-center gap-1 border-b border-border px-4",
+          floating && "cursor-grab touch-none select-none active:cursor-grabbing",
         )}
+        onPointerDown={floating ? win.begin("move") : undefined}
+      >
+        {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
+        <h2 className="mr-auto text-[15px] font-medium">{hasSubject ? "Ask about this parcel" : "Ask Groundwork"}</h2>
+        <IconButton
+          label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
+          pressed={chat.readAloud}
+          onClick={chat.toggleReadAloud}
+        >
+          {chat.readAloud ? <Volume2 /> : <VolumeX />}
+        </IconButton>
         {chat.turns.length > 0 && (
           <IconButton label="New conversation" onClick={chat.clear}>
             <RotateCcw />
           </IconButton>
         )}
-        <IconButton label={expanded ? "Shrink chat" : "Expand chat"} onClick={() => setExpanded((e) => !e)}>
-          {expanded ? <Minimize2 /> : <Maximize2 />}
+        <IconButton
+          label={floating ? "Dock chat back into the panel" : "Pop out into a window you can move and resize"}
+          onClick={() => setFloating((f) => !f)}
+        >
+          {floating ? <PanelRightClose /> : <PictureInPicture2 />}
         </IconButton>
       </header>
 
       <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
 
       <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={hasSubject} />
+
+      {floating &&
+        EDGES.map(({ edge, className: edgeClass }) => (
+          <div
+            key={edge}
+            aria-hidden
+            className={cn("absolute z-10 touch-none", edgeClass)}
+            onPointerDown={win.begin(edge)}
+          />
+        ))}
     </section>
   );
 
-  if (!expanded) return pane;
+  if (!floating) return pane;
   return (
     <>
-      <button
-        type="button"
-        aria-label="Close expanded chat"
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px]"
-        onClick={() => setExpanded(false)}
-      />
-      {pane}
+      <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
+        <p className="text-[15px] text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
+        <Button variant="outline" onClick={() => setFloating(false)}>
+          <PanelRightClose /> Dock it back here
+        </Button>
+      </div>
+      {win.rect && pane}
     </>
   );
 }
@@ -259,16 +289,14 @@ function AssistantTurn({
 
       {done && (
         <div className="flex flex-wrap items-center gap-2">
-          {canSpeak() && (
-            <button
-              type="button"
-              onClick={onListen}
-              className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
-            >
-              {speaking ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
-              {speaking ? "Stop" : "Listen"}
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onListen}
+            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
+          >
+            {speaking ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
+            {speaking ? "Stop" : "Listen"}
+          </button>
         </div>
       )}
 

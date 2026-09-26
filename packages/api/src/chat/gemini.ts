@@ -79,3 +79,39 @@ export function geminiGenerate(apiKey: string): GenerateFn {
     throw last;
   };
 }
+
+/** Natural-sounding speech models, best first. */
+export const TTS_MODELS = ["gemini-3.8-flash-tts", "gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts-preview"] as const;
+export const DEFAULT_VOICE = "Aoede";
+
+/** Speak `text` with a Gemini voice. Returns WAV audio as base64. */
+export async function geminiSpeak(apiKey: string, text: string, voice = DEFAULT_VOICE): Promise<{ mimeType: string; data: string }> {
+  let last: unknown;
+  for (const model of TTS_MODELS) {
+    try {
+      const res = await fetch(`${ENDPOINT}/${model}:generateContent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
+        signal: AbortSignal.timeout(25_000),
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Read this aloud in a warm, natural, conversational tone, like a helpful local guide: ${text}` }] }],
+          generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } },
+          },
+        }),
+      });
+      if (!res.ok) throw new GeminiError(`TTS ${model} ${res.status}`, res.status);
+      const body = (await res.json()) as {
+        candidates?: { content?: { parts?: { inlineData?: { mimeType: string; data: string } }[] } }[];
+      };
+      const audio = body.candidates?.[0]?.content?.parts?.find((p) => p.inlineData)?.inlineData;
+      if (!audio) throw new GeminiError(`TTS ${model} returned no audio`, 502);
+      return audio;
+    } catch (err) {
+      last = err;
+      if (err instanceof GeminiError && !RETRYABLE.has(err.status)) break;
+    }
+  }
+  throw last;
+}
