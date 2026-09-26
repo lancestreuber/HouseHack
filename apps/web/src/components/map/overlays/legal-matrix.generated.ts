@@ -3,21 +3,23 @@
 export const LEGAL_MATRIX_AS_OF = "2026-09-26";
 export const LEGAL_MATRIX_SOURCE = "https://ecode360.com/45476524";
 
-export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: string; clock: string; fee: string; section: string; note: string }> = {
+export const PATHWAYS: Record<string, { rank: number | null; decider: string; hearing: string; clock: string; missedDeadline: string; fee: string; section: string; note: string }> = {
   "by_right": {
     "rank": 0,
     "decider": "Zoning staff (BDA review via OneStopPGH)",
     "hearing": "no",
     "clock": "none",
+    "missedDeadline": "n/a",
     "fee": "",
-    "section": "§922.02",
-    "note": "Site Plan Review §922.04 still applies at >=4 units or any construction in H"
+    "section": "",
+    "note": "Section for by-right zoning review not read; Site Plan Review §922.04 still applies at >=4 units or any construction in H"
   },
   "za": {
     "rank": 1,
     "decider": "Zoning Administrator (Administrator Exception)",
     "hearing": "no",
     "clock": "decision 21 days after complete application",
+    "missedDeadline": "City code: deemed denial, may go to ZBA (§922.08.C)",
     "fee": "",
     "section": "§922.08",
     "note": ""
@@ -27,6 +29,7 @@ export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: 
     "decider": "Zoning Board of Adjustment",
     "hearing": "yes, >=21-day notice",
     "clock": "hearing within 45 days of complete application; decision within 45 days of hearing",
+    "missedDeadline": "conflict: City code says deemed denial; PA MPC (2003 ed.) says deemed approval; see sources/pa-dced-2003-01-mpc-908-913-2-deemed-approval.md §908(9)",
     "fee": "400",
     "section": "§922.07",
     "note": "Seven 'no detrimental impact' tests; ZBA handout Dec 2024 for fee"
@@ -36,6 +39,7 @@ export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: 
     "decider": "Planning Commission recommends, City Council decides",
     "hearing": "yes, two (PC and Council)",
     "clock": "up to 4 x 45 days (~6 months) before deemed denial",
+    "missedDeadline": "conflict: City code says deemed denial; PA MPC (2003 ed.) says deemed approval; see sources/pa-dced-2003-01-mpc-908-913-2-deemed-approval.md §913.2(b)(2); 39 Council CUs recorded as Passed pursuant to Case Law",
     "fee": "",
     "section": "§922.06",
     "note": "Council needs >=7 votes if PC recommended denial"
@@ -45,9 +49,40 @@ export const PATHWAYS: Record<string, { rank: number; decider: string; hearing: 
     "decider": "Only via use variance (ZBA, §922.09 five findings incl. hardship) or rezoning (Council map amendment)",
     "hearing": "yes",
     "clock": "variance as ZBA; rezoning not bounded",
+    "missedDeadline": "variance: conflict: City code says deemed denial; PA MPC (2003 ed.) says deemed approval; see sources/pa-dced-2003-01-mpc-908-913-2-deemed-approval.md §908(9)",
     "fee": "400 (variance)",
     "section": "§922.09 / map amendment",
-    "note": "2026 ZBA sample: use variances 7 of 10 approved; two-unit in single-unit/H districts 3 of 5 (n small)"
+    "note": "ZBA 2023-26 (zba-decisions.csv): unit cases with a use variance 22 of 30 approved; conditional on a posted decision, withdrawals invisible"
+  },
+  "per_plan": {
+    "rank": null,
+    "decider": "Planning Commission, through the site's approved unit development plan",
+    "hearing": "yes",
+    "clock": "not bounded in code read",
+    "missedDeadline": "unknown",
+    "fee": "",
+    "section": "§909.02",
+    "note": "AP/CP/RP planned-unit districts; not ranked"
+  },
+  "not_city_jurisdiction": {
+    "rank": null,
+    "decider": "Mount Oliver Borough",
+    "hearing": "",
+    "clock": "",
+    "missedDeadline": "",
+    "fee": "",
+    "section": "",
+    "note": "Enclave inside the City zoning layer; not ranked"
+  },
+  "unknown": {
+    "rank": null,
+    "decider": "",
+    "hearing": "",
+    "clock": "",
+    "missedDeadline": "",
+    "fee": "",
+    "section": "",
+    "note": "Code text unresolved; show as insufficient data, not as bad"
   }
 };
 
@@ -65,7 +100,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "per_plan",
     "elderly_limited": "per_plan",
     "elderly_general": "per_plan",
-    "interim_housing": "unknown",
+    "interim_housing": "per_plan",
     "multi_suite_limited": "not_permitted",
     "multi_suite_general": "not_permitted",
     "personal_care_large": "per_plan",
@@ -84,7 +119,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "per_plan",
     "elderly_limited": "per_plan",
     "elderly_general": "per_plan",
-    "interim_housing": "unknown",
+    "interim_housing": "per_plan",
     "multi_suite_limited": "not_permitted",
     "multi_suite_general": "not_permitted",
     "personal_care_large": "per_plan",
@@ -350,7 +385,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "not_city_jurisdiction",
     "elderly_limited": "not_city_jurisdiction",
     "elderly_general": "not_city_jurisdiction",
-    "interim_housing": "unknown",
+    "interim_housing": "not_city_jurisdiction",
     "multi_suite_limited": "not_city_jurisdiction",
     "multi_suite_general": "not_city_jurisdiction",
     "personal_care_large": "not_city_jurisdiction",
@@ -901,7 +936,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "not_permitted",
     "elderly_limited": "not_permitted",
     "elderly_general": "not_permitted",
-    "interim_housing": "unknown",
+    "interim_housing": "not_permitted",
     "multi_suite_limited": "not_permitted",
     "multi_suite_general": "not_permitted",
     "personal_care_large": "not_permitted",
@@ -939,7 +974,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "zbe_special_exception",
     "elderly_limited": "by_right",
     "elderly_general": "by_right",
-    "interim_housing": "unknown",
+    "interim_housing": "zbe_special_exception",
     "multi_suite_limited": "by_right",
     "multi_suite_general": "by_right",
     "personal_care_large": "zbe_special_exception",
@@ -958,7 +993,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "not_permitted",
     "elderly_limited": "not_permitted",
     "elderly_general": "not_permitted",
-    "interim_housing": "unknown",
+    "interim_housing": "not_permitted",
     "multi_suite_limited": "not_permitted",
     "multi_suite_general": "not_permitted",
     "personal_care_large": "not_permitted",
@@ -977,7 +1012,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "not_permitted",
     "elderly_limited": "not_permitted",
     "elderly_general": "not_permitted",
-    "interim_housing": "unknown",
+    "interim_housing": "not_permitted",
     "multi_suite_limited": "not_permitted",
     "multi_suite_general": "not_permitted",
     "personal_care_large": "not_permitted",
@@ -996,7 +1031,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "zbe_special_exception",
     "elderly_limited": "za",
     "elderly_general": "za",
-    "interim_housing": "unknown",
+    "interim_housing": "zbe_special_exception",
     "multi_suite_limited": "by_right",
     "multi_suite_general": "by_right",
     "personal_care_large": "zbe_special_exception",
@@ -1015,7 +1050,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "not_permitted",
     "elderly_limited": "by_right",
     "elderly_general": "by_right",
-    "interim_housing": "unknown",
+    "interim_housing": "not_permitted",
     "multi_suite_limited": "by_right",
     "multi_suite_general": "by_right",
     "personal_care_large": "by_right",
@@ -1110,7 +1145,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "zbe_special_exception",
     "elderly_limited": "by_right",
     "elderly_general": "by_right",
-    "interim_housing": "unknown",
+    "interim_housing": "zbe_special_exception",
     "multi_suite_limited": "by_right",
     "multi_suite_general": "by_right",
     "personal_care_large": "zbe_special_exception",
@@ -1129,7 +1164,7 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
     "community_home": "zbe_special_exception",
     "elderly_limited": "by_right",
     "elderly_general": "by_right",
-    "interim_housing": "unknown",
+    "interim_housing": "zbe_special_exception",
     "multi_suite_limited": "za",
     "multi_suite_general": "zbe_special_exception",
     "personal_care_large": "zbe_special_exception",
@@ -1137,1060 +1172,1311 @@ export const DISTRICT_PATHWAYS: Record<string, Record<string, string>> = {
   }
 };
 
-export const CELL_NOTES: Record<string, Record<string, { unconfirmed: boolean; note: string }>> = {
+export const CELL_NOTES: Record<string, Record<string, { unconfirmed: boolean; basis: string | null; note: string }>> = {
   "AP": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: listed; CP/HC: not allowed."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: listed; CP/HC: not allowed."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: listed; CP/HC: not allowed."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: listed; CP/HC: not allowed."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: listed; CP/HC: not allowed."
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: S; CP/HC: P."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: S; CP/HC: P."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: S; CP/HC: not allowed."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: S/C; CP/HC: S."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: C; CP/HC: A."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: C; CP/HC: S."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Planning Commission may approve any RP or CP use in the plan (§909.02.F.2)"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in RP or CP (HC), so not approvable in AP."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in RP or CP (HC), so not approvable in AP."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: not listed; CP/HC: S."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "AP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve any use allowed in RP or CP 'subject to the same conditions and limitations'. RP: not listed; CP/HC: A."
     }
   },
   "CP": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Planning Commission may approve any HC use in the plan (§909.02.E.2); HC column = S"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not allowed in HC (§911.02 HC blank), so not approvable in CP."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "CP uses are 'those approved by the Planning Commission in accordance with an approved unit development plan'; PC may approve 'any use that is allowed in the HC district, subject to the same conditions and limitations'. HC allows this use…"
     }
   },
   "GPRA": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-A. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-A. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-A. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "three_unit": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not in the GPR-A by-right list. Exceptions are 'the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district', a district name that no longer exists in Ch. 903; the nearest current analog (R2) does…"
     },
     "multi_unit": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not in the GPR-A by-right list. Exceptions are 'the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district', a district name that no longer exists in Ch. 903; the nearest current analog (R2) does…"
     },
     "assisted_living_a": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "assisted_living_b": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "assisted_living_c": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "community_home": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "elderly_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "elderly_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "interim_housing": {
       "unconfirmed": false,
+      "basis": null,
       "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "multi_suite_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "personal_care_large": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     },
     "personal_care_small": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.1(d): 'Use exceptions are the same as those found in Chapter 903 for the RT-3, Residential Two-Unit, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as curr…"
     }
   },
   "GPRB": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-B. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-B. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-B. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-B. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-B. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F).; >=4 units triggers Site Plan Review (§922.04) and RCO Development Activities Meeting if a…"
     },
     "assisted_living_a": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "assisted_living_b": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "assisted_living_c": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "community_home": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "elderly_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "elderly_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "interim_housing": {
       "unconfirmed": false,
+      "basis": null,
       "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "multi_suite_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "personal_care_large": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "personal_care_small": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.2(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-Unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     }
   },
   "GPRC": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-C. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-C. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-C. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-C. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F)."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed as permitted by-right in GPR-C. Public Realm Project Development Plan (Planning Commission) also required for new construction (§908.01.F).; >=4 units triggers Site Plan Review (§922.04) and RCO Development Activities Meeting if a…"
     },
     "assisted_living_a": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "assisted_living_b": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "assisted_living_c": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "community_home": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "elderly_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "elderly_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "interim_housing": {
       "unconfirmed": false,
+      "basis": null,
       "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "multi_suite_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "personal_care_large": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     },
     "personal_care_small": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Not listed by-right. §908.02.D.3(d): 'Use exceptions are the same as those found in Chapter 903 for the RTS-3, Three-unit Residential, Moderate Density district' - an obsolete district name not in current Ch. 903 or §911.02. If read as c…"
     }
   },
   "MTOBOR": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
-    },
-    "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Mount Oliver Borough is a separate municipality (enclave); City of Pittsburgh Title Nine does not apply. Borough zoning not researched."
     }
   },
   "RP": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "RP has no by-right table: 'permitted uses shall be those listed in this section that are in accordance with an approved unit development plan and recorded improvement subdivision site plan' (Planning Commission). Dwellings of all these t…"
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "RP has no by-right table: 'permitted uses shall be those listed in this section that are in accordance with an approved unit development plan and recorded improvement subdivision site plan' (Planning Commission). Dwellings of all these t…"
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "RP has no by-right table: 'permitted uses shall be those listed in this section that are in accordance with an approved unit development plan and recorded improvement subdivision site plan' (Planning Commission). Dwellings of all these t…"
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "RP has no by-right table: 'permitted uses shall be those listed in this section that are in accordance with an approved unit development plan and recorded improvement subdivision site plan' (Planning Commission). Dwellings of all these t…"
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "RP has no by-right table: 'permitted uses shall be those listed in this section that are in accordance with an approved unit development plan and recorded improvement subdivision site plan' (Planning Commission). Dwellings of all these t…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Assisted Living' (classes not distinguished) is a ZBA Special Exception in RP; §911.04.A.66 applies."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Assisted Living' (classes not distinguished) is a ZBA Special Exception in RP; §911.04.A.66 applies."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Assisted Living' (classes not distinguished) is a ZBA Special Exception in RP; §911.04.A.66 applies."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Internal conflict: Community Home is listed both as a Conditional Use (D.6(a)(2)) and as a Special Exception (D.6(b)(3)). Coded S (less demanding); may require C. Flag for legal review."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Housing for the Elderly' (Limited/General not distinguished) is a Conditional Use in RP (Planning Commission + Council, §922.06), incorporated into the approved unit development plan; §911.04.A.35 applies."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Housing for the Elderly' (Limited/General not distinguished) is a Conditional Use in RP (Planning Commission + Council, §922.06), incorporated into the approved unit development plan; §911.04.A.35 applies."
     },
     "interim_housing": {
       "unconfirmed": false,
+      "basis": null,
       "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not listed among RP uses or use exceptions. RP also allows LNC by-right uses as a minor part of the development, but LNC does not allow this use by right (§911.02 LNC = A)."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not listed among RP uses or use exceptions. RP also allows LNC by-right uses as a minor part of the development, but LNC does not allow this use by right (§911.02 LNC = S)."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not listed among RP uses or use exceptions. RP also allows LNC by-right uses as a minor part of the development, but LNC does not allow this use by right (§911.02 LNC = S)."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not listed among RP uses or use exceptions. RP also allows LNC by-right uses as a minor part of the development, but LNC does not allow this use by right (§911.02 LNC = A)."
     }
   },
   "SP-1": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Only residential use in SP-1's closed list ('for only the uses listed'). Development governed by Planning Commission-approved Final Land Development Plan (§909.01.B.3; §922.11).; >=4 units triggers Site Plan Review (§922.04) and RCO Deve…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Closed use list (§909.01.F.1) does not include Interim Housing"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-1 has a closed use list; only Multi-Unit Residential is listed among residential uses."
     }
   },
   "SP-10": {
     "single_detached": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "single_attached": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "two_unit": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "three_unit": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "assisted_living_a": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "assisted_living_b": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "assisted_living_c": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "community_home": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "elderly_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "elderly_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "SP-10 does not use §911.02 residential types. Table 1 permits 'Residential: Low' (25-38 du per developable acre; only HG Blocks 62-63), 'Medium' (39-62) and 'High' (63+) on all blocks. Mapping this dwelling-unit use to those density band…"
     },
     "interim_housing": {
       "unconfirmed": false,
+      "basis": null,
       "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
     },
     "multi_suite_limited": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "multi_suite_general": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "personal_care_large": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     },
     "personal_care_small": {
       "unconfirmed": true,
+      "basis": "Unconfirmed reading of the code",
       "note": "Table 1 lists no group/care residential use by name; 'Residential' bands are defined in dwelling units per developable acre, which does not map cleanly to beds/sleeping rooms. Whether this use counts as a 'residential use' under SP-10 is…"
     }
   },
   "SP-11": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = not_permitted (GT use list plus additions, §909.01.R.3(b))."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = P (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b))."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = P (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b))."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = P (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b))."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = P (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)).; >=4 units triggers Site Plan Review (§922.04) and RCO Development Activities Meeting if a hearing…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = S (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = P (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b))."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = S (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Subdistrict 1: Special Exception subject to §911.04.A.35(a),(b); Subdistricts 2-3: by right. Code…"
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "SUBDISTRICT-DEPENDENT: subdistricts 2-3 adopt the GT list (S); subdistrict 1 is a closed list without it"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = P (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = S (GT use list plus additions, §909.01.R.3(b)). Code shows the most permissive subdistrict."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: Subdistrict 1 = not_permitted (closed list, §909.01.R.3(a)); Subdistricts 2-3 = S (GT use list plus additions, §909.01.R.3(b)). §909.01.R.3(b)(iii) lists Personal Care Residence (Small) as a Special Exception 'in a…"
     }
   },
   "SP-4": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "'Multiple-unit dwellings' (I-III) / 'Multi-unit residential' (IV) listed in all four SP-4 subdistricts. SP-4(IV) also requires compliance with the Preliminary Land Development Plan.; >=4 units triggers Site Plan Review (§922.04) and RCO…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Closed use lists (§909.01.I) do not include Interim Housing"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in any SP-4 subdistrict's closed use list ('for only the following uses'). Subdistricts I-IV have the same residential rule."
     }
   },
   "SP-5": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed in all three SP-5 development subdistricts (A, B, C). Final Land Development Plan approval by Planning Commission governs development (§909.01.B.3)."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed in all three SP-5 development subdistricts (A, B, C). Final Land Development Plan approval by Planning Commission governs development (§909.01.B.3).; >=4 units triggers Site Plan Review (§922.04) and RCO Development Activities Mee…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Use list (§909.01.J.1) does not include Interim Housing"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Not in the closed use list of any SP-5 subdistrict (A-C list only Single-Unit Attached and Multi-Unit Residential)."
     }
   },
   "SP-8": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Added by right ('Residential, Single Family Attached') on top of the GT use list."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses.; >=4 units triggers Site Plan Review (§922.04) and RCO Development…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Added as 'permitted subject to review by the Zoning Administrator pursuant to Section 922.08' (Administrator Exception), subject to §911.04.A.35. GT column itself is blank for this use."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "SP-8 adopts GT uses (§909.01.O.4); GT column of §911.02 = S"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SP-8 primary uses are 'the same as; subject to the same use review and approval processes as' the GT district, as amended from time to time. Zones A-F do not change uses."
     }
   },
   "SP-9": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed only in Subdistrict B; not permitted in A, C, D, E. Code shows the most permissive subdistrict."
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed only in Subdistrict B; not permitted in A, C, D, E. Code shows the most permissive subdistrict."
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed only in Subdistrict B; not permitted in A, C, D, E. Code shows the most permissive subdistrict."
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed only in Subdistrict B; not permitted in A, C, D, E. Code shows the most permissive subdistrict."
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed in all five SP-9 subdistricts (A-E).; >=4 units triggers Site Plan Review (§922.04) and RCO Development Activities Meeting if a hearing is needed"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Community Home is not in any SP-9 subdistrict's closed use list."
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "Use lists (§909.01.P.1) do not include Interim Housing"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "SUBDISTRICT-DEPENDENT: listed in Subdistricts C, D, E only; not permitted in A or B. Code shows the most permissive subdistrict."
     }
   },
   "UPR-A": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed 'Permitted By Right' in UPR-A, overriding the GT baseline (§911.02 GT = A)."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed 'Permitted By Right' in UPR-A, overriding the GT baseline (§911.02 GT = blank)."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "UPR-A adopts the GT use list (§908.04.D.1.b); GT column of §911.02 = S"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-A uses 'are the same as those found in Chapter 903 for the GT, Golden Triangle District, except where modified'; no modification for this use, so the §911.02 GT column applies (the text says Ch. 903 though GT is Ch. 910/LNC is Ch. 90…"
     }
   },
   "UPR-B": {
     "single_detached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "single_attached": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "two_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "three_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "multi_unit": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "assisted_living_a": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "assisted_living_b": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "assisted_living_c": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "community_home": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "elderly_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed 'Permitted By Right' in UPR-B, overriding the LNC baseline (§911.02 LNC = A)."
     },
     "elderly_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "Listed 'Permitted By Right' in UPR-B, overriding the LNC baseline (§911.02 LNC = S)."
     },
     "interim_housing": {
-      "unconfirmed": false,
-      "note": "District not in §911.02 table (SP/PUD/public-realm/non-City); see special-district-residential-permissions.csv"
+      "unconfirmed": true,
+      "basis": "Inferred from the district's adopted use list",
+      "note": "UPR-B adopts the LNC use list (§908.04.D.2.b); LNC column of §911.02 = S"
     },
     "multi_suite_limited": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "multi_suite_general": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "personal_care_large": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     },
     "personal_care_small": {
       "unconfirmed": false,
+      "basis": null,
       "note": "UPR-B uses 'are the same as those found in Chapter 903 for the LNC, Local Neighborhood Commercial District, except where modified'; no modification for this use, so the §911.02 LNC column applies (the text says Ch. 903 though GT is Ch. 9…"
     }
   }
