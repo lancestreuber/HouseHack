@@ -11,6 +11,7 @@ import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./envi
 import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
+import { marketMvaOverlay, marketZipOverlay } from "./market";
 import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./landslides";
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { commerceDensityOverlay } from "./commerce-density";
@@ -32,6 +33,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   uspsVacancyOverlay,
   chasOverlay,
   locationAffordabilityOverlay,
+  marketMvaOverlay,
+  marketZipOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,

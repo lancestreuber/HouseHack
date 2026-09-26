@@ -85,3 +85,28 @@ export function parseCSV(text: string): Record<string, string>[] {
   const header = rows.shift()?.map((h) => h.replace(/^﻿/, "")) ?? [];
   return rows.filter((r) => r.length > 1).map((r) => Object.fromEntries(header.map((h, i) => [h, r[i] ?? ""])));
 }
+
+// Read a shapefile .dbf attribute table (dBase III).
+export function readDbf(buf: DataView): Record<string, string>[] {
+  const records = buf.getUint32(4, true);
+  const headerLen = buf.getUint16(8, true);
+  const recordLen = buf.getUint16(10, true);
+  const fields: { name: string; len: number }[] = [];
+  for (let off = 32; buf.getUint8(off) !== 0x0d; off += 32) {
+    let name = "";
+    for (let i = 0; i < 11 && buf.getUint8(off + i); i++) name += String.fromCharCode(buf.getUint8(off + i));
+    fields.push({ name, len: buf.getUint8(off + 16) });
+  }
+  const decoder = new TextDecoder("latin1");
+  const rows: Record<string, string>[] = [];
+  for (let r = 0; r < records; r++) {
+    let off = headerLen + r * recordLen + 1; // skip deletion flag
+    const row: Record<string, string> = {};
+    for (const f of fields) {
+      row[f.name] = decoder.decode(new Uint8Array(buf.buffer, buf.byteOffset + off, f.len)).trim();
+      off += f.len;
+    }
+    rows.push(row);
+  }
+  return rows;
+}

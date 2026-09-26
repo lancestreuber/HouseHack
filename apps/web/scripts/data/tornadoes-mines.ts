@@ -2,37 +2,14 @@
 // undermined areas (PA DEP mined-out areas, underground coal).
 
 import { fetchAllGeoJSON, writeOverlay } from "./arcgis";
+import { readDbf } from "./geo";
 
 const TORNADO_ZIP = "https://www.spc.noaa.gov/gis/svrgis/zipped/1950-2025-torn-aspath.zip";
 const MINED_OUT =
   "https://gis.dep.pa.gov/depgisprd/rest/services/DistrictMiningOperations/DMO_MinedOutAreaCoalUnderground/FeatureServer/0";
 const COUNTY_BBOX = [-80.36, 40.19, -79.69, 40.68] as const;
 
-// --- Minimal shapefile reader: polyline .shp (type 3) + .dbf attributes. ---
-
-function readDbf(buf: DataView): Record<string, string>[] {
-  const records = buf.getUint32(4, true);
-  const headerLen = buf.getUint16(8, true);
-  const recordLen = buf.getUint16(10, true);
-  const fields: { name: string; len: number }[] = [];
-  for (let off = 32; buf.getUint8(off) !== 0x0d; off += 32) {
-    let name = "";
-    for (let i = 0; i < 11 && buf.getUint8(off + i); i++) name += String.fromCharCode(buf.getUint8(off + i));
-    fields.push({ name, len: buf.getUint8(off + 16) });
-  }
-  const decoder = new TextDecoder("latin1");
-  const rows: Record<string, string>[] = [];
-  for (let r = 0; r < records; r++) {
-    let off = headerLen + r * recordLen + 1; // skip deletion flag
-    const row: Record<string, string> = {};
-    for (const f of fields) {
-      row[f.name] = decoder.decode(new Uint8Array(buf.buffer, buf.byteOffset + off, f.len)).trim();
-      off += f.len;
-    }
-    rows.push(row);
-  }
-  return rows;
-}
+// --- Minimal shapefile reader: polyline .shp (type 3); .dbf via geo.readDbf. ---
 
 function readPolylines(buf: DataView): number[][][][] {
   const shapes: number[][][][] = [];
