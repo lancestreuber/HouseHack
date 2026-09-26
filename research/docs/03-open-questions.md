@@ -41,3 +41,9 @@ These are ranked by **how much the answer would change what we build**. The fast
 | 18 | Literature cited in score design (MCDA, CA Housing Element, Portland BLI, UrbanSim, CalEnviroScreen) was recalled, not re-read | `[found]`. Re-read before citing on a slide. |
 | 19 | Rankin et al. 2024 (missing-middle embodied carbon) | `[inaccessible]` (paywall) |
 | 20 | Vercel limits on large static `.pmtiles` files; MapLibre v6 worker under Vite/SSR | Untested. Spike in the first hours of the build. |
+
+## Parked research (started, not finished)
+
+| Item | Status | How to pick it up |
+|---|---|---|
+| Multi-year ZBA dataset, 2021–2025, residential cases | An attempt ran for more than an hour, was stopped at the parser stage, and produced nothing. | About 1,000 decision PDFs are on the Internet Archive (CDX query for `pittsburghpa.gov/files/assets/city/v/1/dcp/documents/zoning-board-of-adjustment/*`, `mimetype:application/pdf`). Reuse the 2026 CSV schema in `sources/pittsburghpa-2026-09-26-zba-decisions-sample.csv`. **Timebox it**: sample ~100 residential cases rather than parsing everything. |
