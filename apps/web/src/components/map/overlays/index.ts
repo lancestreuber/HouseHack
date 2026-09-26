@@ -13,6 +13,7 @@ import { equityOverlay, holcOverlay, opportunityAtlasOverlay } from "./equity";
 import { floodZonesOverlay } from "./flood-zones";
 import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./everyday-access";
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
+import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
 import { cityOwnedLandOverlay, taxDelinquentOverlay, treasurySalesOverlay } from "./land";
@@ -49,6 +50,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   lifeExpectancyOverlay,
   homeInternetOverlay,
   walkabilityOverlay,
+  evictionsOverlay,
+  childBloodLeadOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
