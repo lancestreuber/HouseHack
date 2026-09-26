@@ -1,8 +1,25 @@
 # HouseHack
 
-This project was created with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
+Our entry for the **AI Horizons 2026 — AI for Housing Hackathon** (virtual, Sept 26–27, 2026).
 
-## Features
+- Event: https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/
+- Hackathon packet: https://docs.google.com/document/d/1L-UYid6Q0JDRH3iy4cpqGIDlZNpJspok_rPxIsILbLQ/edit?usp=sharing
+
+## Tracks
+
+1. **Development Feasibility & Pro Forma Navigator** — AI-assisted first-pass feasibility for parcels and housing concepts, grounded in public records and approved affordability assumptions.
+2. **Housing Production, Rents & Household Flow Observatory** — interactive tool combining administrative, market, and community indicators to show how the housing system evolves over time.
+3. **Housing Typology, Equity & Climate Matchmaker** — decision support matching locations with plausible housing types and tradeoffs across demand, transit, equity, and climate resilience.
+
+Judging favors practical, source-grounded prototypes with clear benefit to developers, nonprofits, public agencies, community partners, or households.
+
+## Our project
+
+_Track and approach TBD._
+
+## Tech Stack
+
+Scaffolded with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
 
 - **TypeScript** - For type safety and improved developer experience
 - **TanStack Start** - SSR framework with TanStack Router
