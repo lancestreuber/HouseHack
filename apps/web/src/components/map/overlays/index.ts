@@ -15,6 +15,7 @@ import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./ev
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
 import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
 import { councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay } from "./legal-feasibility";
+import { cityHazardOverlaysOverlay, citySteepSlopesOverlay, landslidePublicAssistanceOverlay } from "./city-hazards";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
 import { cityOwnedLandOverlay, taxDelinquentOverlay, treasurySalesOverlay } from "./land";
@@ -61,6 +62,9 @@ export const OVERLAYS: OverlayDefinition[] = [
   slopeOverlay,
   landslideSusceptibilityOverlay,
   landslideIncidentsOverlay,
+  landslidePublicAssistanceOverlay,
+  citySteepSlopesOverlay,
+  cityHazardOverlaysOverlay,
   seriousCrashesOverlay,
   tornadoPathsOverlay,
   minedOutAreasOverlay,

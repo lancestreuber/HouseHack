@@ -48,6 +48,7 @@ const KIND_COLORS: Record<string, string> = {
   parking_reduction: "#38bdf8",
   transit_buffer: "#0ea5e9",
   historic: "#d97706",
+  historic_landmark: "#fbbf24",
 };
 const KIND_LABELS: Record<string, string> = {
   inclusionary: "Inclusionary zoning (affordable units required)",
@@ -55,6 +56,7 @@ const KIND_LABELS: Record<string, string> = {
   parking_reduction: "Parking reduction overlay",
   transit_buffer: "Major transit buffer (parking reduction)",
   historic: "City historic district (design review)",
+  historic_landmark: "Individual historic landmark (design review)",
 };
 const kindColor = ["match", ["get", "kind"], ...Object.entries(KIND_COLORS).flat(), "#a3a3a3"];
 
@@ -63,7 +65,7 @@ export const cityZoningOverlaysOverlay: OverlayDefinition = {
   label: "City zoning overlays & historic districts",
   group: "policy",
   drawBelowOutlines: true,
-  description: "Inclusionary zoning, multi-unit districts, parking reductions and historic districts (City of Pittsburgh).",
+  description: "Inclusionary zoning, multi-unit districts, parking reductions, historic districts and landmarks (City of Pittsburgh).",
   source: { kind: "static", url: "/data/overlays/city-zoning-overlays.geojson" },
   layers: (sourceId) => [
     {
@@ -83,7 +85,15 @@ export const cityZoningOverlaysOverlay: OverlayDefinition = {
     },
   ],
   tooltipLayerIds: ["city-zoning-overlays-fill"],
-  tooltip: (p) => [KIND_LABELS[String(p.kind)] ?? String(p.label), p.kind === "historic" ? String(p.label) : ""].filter(Boolean),
+  tooltip: (p) =>
+    [
+      KIND_LABELS[String(p.kind)] ?? String(p.label),
+      p.kind === "historic" || p.kind === "historic_landmark" ? String(p.label) : "",
+      p.kind === "historic_landmark" && p.address ? String(p.address) : "",
+      p.kind === "historic" || p.kind === "historic_landmark"
+        ? "Exterior changes and demolition need Historic Review Commission approval"
+        : "",
+    ].filter(Boolean),
   legend: () => Object.entries(KIND_COLORS).map(([k, color]) => ({ color, label: KIND_LABELS[k], shape: "dashed-line" as const })),
   meta: {
     source: "City of Pittsburgh zoning overlays and historic districts (City ArcGIS)",

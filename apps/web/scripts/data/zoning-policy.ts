@@ -83,6 +83,22 @@ export async function buildZoningPolicy() {
       },
     });
   }
+  // Individually designated City historic landmarks (parcel polygons).
+  const landmarks = await fetchAllGeoJSON(`${CITY}/PGHWEBCHDIndividialProperties/FeatureServer/0`, {
+    outFields: ["name", "address"],
+    maxAllowableOffset: 0.00001,
+  });
+  for (const f of landmarks) {
+    overlays.push({
+      type: "Feature",
+      geometry: f.geometry,
+      properties: {
+        kind: "historic_landmark",
+        label: `City historic landmark: ${String(f.properties.name ?? "").trim() || String(f.properties.address ?? "").trim()}`,
+        address: f.properties.address ?? null,
+      },
+    });
+  }
   await writeOverlay("city-zoning-overlays.geojson", {
     type: "FeatureCollection",
     features: overlays,
