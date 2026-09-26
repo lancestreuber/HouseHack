@@ -41,5 +41,5 @@ For each new dataset, give:
 
 ## Checks
 
-- `bun scripts/data/audit-overlays.ts`: for every overlay, confirms its file exists and reports how many features have each property its styles read.
+- `bun scripts/data/audit-overlays.ts`: for every overlay, runs MapLibre style validation on its layers (for every metric), confirms its file exists, and reports how many features have each property its styles read.
 - Type-check with `bunx tsc --noEmit -p .` (the scripts' "Cannot find name 'Bun'" errors are expected).
