@@ -16,7 +16,7 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 | Node | What it covers |
 |---|---|
 | [environmental-constraints](data/environmental-constraints.md) ⚠ | Flood, landslide, steep-slope, undermining, contamination, wetland and soil layers that can be intersected with a parcel, with endpoints, counts and query gotchas. |
-| [infrastructure](data/infrastructure.md) | What public infrastructure data exists per parcel (sewer lines, sewersheds and CSO stress, lead service lines, transit) and what does not (water mains, sewer capacity, electric hosting capacity). |
+| [infrastructure](data/infrastructure.md) ⚠ | What public infrastructure data exists per parcel (sewer lines, sewersheds and CSO stress, lead service lines, transit), what we did not find (water mains, sewer capacity, electric hosting capacity; ⚠ search only *(corrected 2026-09-26 per docs/04-critique.md row 20)*), and how PWSA decides capacity per project *(updated 2026-09-26, round 5)*. |
 | [land-availability-and-title](data/land-availability-and-title.md) ⚠ | Which parcels are publicly owned or available (city vacant inventory, treasury and side-yard sales, URA, Land Bank transfers) and which carry title or distress flags (liens, delinquency, foreclosure, conservatorship, condemnation). |
 | [lidar-slope](data/lidar-slope.md) ⚠ | Per-parcel slope-class areas computed on the fly from the USGS 3DEP 1 m elevation ImageServer, with the City's precomputed ETHOS `SteepSlope` fraction as a fallback. |
 | [market-and-affordability](data/market-and-affordability.md) ⚠ | Sales comps, rents, HUD income limits, LIHTC incentive geographies (QCT/DDA/OZ), and the geography and access layers used to join them to parcels. |
@@ -24,7 +24,7 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 | [organizer-data-catalog](data/organizer-data-catalog.md) ⚠ | The organizers' "AI Hackathon for Housing — Public Data Catalog" spreadsheet: ⚠ 60 rows (58 distinct sources) rated Core or Useful and tagged to problem briefs, plus a Read Me and a Brief Source Map. |
 | [parcels-and-assessments](data/parcels-and-assessments.md) ⚠ | The parcel spine: Allegheny County assessment records, parcel polygons, owner category (⚠ not owner names), parcel-ID formats, and the city's lot-dimension and building-footprint layers that hang off them. |
 | [permits-and-outcomes](data/permits-and-outcomes.md) ⚠ | City permit records (OneStopPGH `OSPI_H`, WPRDC PLI permits) and other revealed-outcome sets (new construction, demolitions, LIHTC, the Pro-Housing Pittsburgh 20+-unit list) that can serve as ground truth and as timeline data. |
-| [zba-decisions](data/zba-decisions.md) | ZBA variance and special-exception decisions exist only as per-case PDFs on pittsburghpa.gov; they are well structured but must be crawled and parsed. |
+| [zba-decisions](data/zba-decisions.md) ⚠ | ZBA variance and special-exception decisions are per-case PDFs on pittsburghpa.gov with a consistent caption template; a hand-coded sample of 90 decisions from 2026 hearings now gives the first outcome, section and timing numbers we have *(updated 2026-09-26, round 5)*. |
 | [zoning-code-text](data/zoning-code-text.md) ⚠ | Where the Pittsburgh Zoning Code text lives, which copies can be fetched by machine, and what has been transcribed into tables so far. |
 | [zoning-gis](data/zoning-gis.md) | The City's ArcGIS FeatureServers for base zoning districts, overlays, historic districts and RCO areas, and how to query them per parcel. |
 
@@ -33,12 +33,12 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 | Node | What it covers |
 |---|---|
 | [approval-pathway](policy/approval-pathway.md) ⚠ | Every approval step a Pittsburgh housing project can hit, what triggers it, who decides, how long it takes and what it costs, with a verification tag per row. |
-| [dimensional-standards-and-use-table](policy/dimensional-standards-and-use-table.md) | The residential site standards in §903.03 (lot size, setbacks, height) and the residential rows of the §911.02 use table, as they read in eCode360 on 2026-09-26. |
+| [dimensional-standards-and-use-table](policy/dimensional-standards-and-use-table.md) ⚠ | The residential site standards in §903.03 (lot size, setbacks, height) and the residential rows of the §911.02 use table, as they read in eCode360 on 2026-09-26. |
 | [environmental-overlays-ch906](policy/environmental-overlays-ch906.md) ⚠ | The steep-slope (SS-O), landslide-prone (LS-O), undermined (UM-O) and floodplain (FP-O) overlay districts in Chapter 906, plus the general slope and tree rules in §915.02. |
-| [inclusionary-zoning-and-bonus](policy/inclusionary-zoning-and-bonus.md) | The mandatory Inclusionary Housing Overlay (IZ-O) that applies today in four neighborhoods, and the optional citywide Affordable Housing Bonus proposed in Bill 2025-1545. |
+| [inclusionary-zoning-and-bonus](policy/inclusionary-zoning-and-bonus.md) ⚠ | The mandatory Inclusionary Housing Overlay (IZ-O) that applies today in four neighborhoods, and the two competing voluntary affordable-housing texts in pending Bill 2025-1545 *(updated 2026-09-26, round 5)*. |
 | [parking](policy/parking.md) ⚠ | Current residential parking minimums and maximums, the district reductions, and the pending bill that would remove minimums. |
 | [permit-timelines](policy/permit-timelines.md) ⚠ | How long Pittsburgh zoning and building reviews actually take, computed by us from OneStopPGH workflow dates, alongside the City-reported figures. |
-| [reforms-in-flux-2025-2026](policy/reforms-in-flux-2025-2026.md) | Every Pittsburgh zoning and permitting change that is enacted, pending, or announced as of 2026-09-26, with its status and the contradictions between our sources. |
+| [reforms-in-flux-2025-2026](policy/reforms-in-flux-2025-2026.md) ⚠ | Every Pittsburgh zoning and permitting change that is enacted, pending, or announced as of 2026-09-26, with its status and the contradictions between our sources. |
 
 ## Stakeholders: what users say
 
@@ -46,7 +46,7 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 |---|---|
 | [allegheny-county](stakeholders/allegheny-county.md) ⚠ | What Allegheny County government says it needs on housing: preservation first, incentives for 130 municipalities to reform zoning, and its own housing needs assessment. |
 | [city-of-pittsburgh](stakeholders/city-of-pittsburgh.md) ⚠ | What the City (the Mayor's office, City Planning, PLI) has said it wants on housing, permitting and zoning, and what it has and hasn't committed to. |
-| [land-bank](stakeholders/land-bank.md) ⚠ | The City-adjacent Pittsburgh Land Bank: its inventory, its new sheriff-sale authority, its rehab pilot, and its funding cliff. |
+| [land-bank](stakeholders/land-bank.md) ⚠ | The City-adjacent Pittsburgh Land Bank (pghlandbank.org): its inventory, disposition rules, sheriff-sale authority, rehab pilot, and funding cliff *(updated 2026-09-26, round 5)*. |
 | [practitioners](stakeholders/practitioners.md) ⚠ | What Pittsburgh builders, nonprofit developers, CDCs and advocates cite as the barriers to producing housing, and why that challenges the premise that site selection is the bottleneck. |
 | [state-dced-phfa](stakeholders/state-dced-phfa.md) | What Pennsylvania's Department of Community and Economic Development (DCED) and the Pennsylvania Housing Finance Agency (PHFA) have said about housing supply, regulation and funding priorities. |
 
@@ -65,21 +65,21 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 | Node | What it covers |
 |---|---|
 | [brief-and-requirements](track3/brief-and-requirements.md) | What the Track 3 brief ("Housing Typology, Equity & Climate Matchmaker") actually asks for, quoted from the brief, and what its two hardest requirements mean in build terms. |
-| [carbon-by-typology](track3/carbon-by-typology.md) | The published numbers we have for operational energy, embodied carbon and driving by housing type, and why the normalization choice decides which typology "wins". |
+| [carbon-by-typology](track3/carbon-by-typology.md) ⚠ | The published numbers we have for operational energy, embodied carbon and driving by housing type, and why the normalization choice decides which typology "wins". |
 | [combining-with-track1](track3/combining-with-track1.md) | Three ways to join Track 1's parcel feasibility work with Track 3's typology/equity/climate matching, the shared data model they would use, and where combining could hurt. |
-| [displacement-and-equity](track3/displacement-and-equity.md) | The displacement and equity data available for Pittsburgh (MVA 2021, the Displacement Risk Ratio, UDP), what is missing from each, and the framing risk of a "densify here" ranking. |
-| [indicators-and-data](track3/indicators-and-data.md) | Every Track 3 indicator we have located, with its source, the geography it comes at, its vintage, and what breaks when you try to download it. |
-| [typology-prototypes](track3/typology-prototypes.md) | How to turn "duplex", "townhomes", "ADU" and the rest into comparable objects with parameters, and which of those parameters are observed data, legal gates, or our assumptions. |
+| [displacement-and-equity](track3/displacement-and-equity.md) ⚠ | The displacement and equity data available for Pittsburgh (MVA 2021, the Displacement Risk Ratio, UDP), what is missing from each, and the framing risk of a "densify here" ranking. |
+| [indicators-and-data](track3/indicators-and-data.md) ⚠ | Every Track 3 indicator we have located, with its source, the geography it comes at, its vintage, and what breaks when you try to download it. |
+| [typology-prototypes](track3/typology-prototypes.md) ⚠ | How to turn "duplex", "townhomes", "ADU" and the rest into comparable objects with parameters, and which of those parameters are observed data, legal gates, or our assumptions. |
 
 ## Landscape: what already exists
 
 | Node | What it covers |
 |---|---|
 | [commercial-tools](landscape/commercial-tools.md) ⚠ | Existing products, research models and open repos that do parcel zoning lookup, envelopes, pro formas, likelihood models or policy simulation, with licenses. |
-| [framings](landscape/framings.md) | Nine ways to frame a Track 1 product, each defined by its user, the decision it changes, what the LLM adds, and its main risk. |
-| [hackathon-precedents](landscape/hackathon-precedents.md) | What comparable civic-tech and AEC hackathons built on zoning, permitting, feasibility and typology, and what their judges rewarded. |
+| [framings](landscape/framings.md) ⚠ | Nine ways to frame a Track 1 product, each defined by its user, the decision it changes, what the LLM adds, and its main risk. |
+| [hackathon-precedents](landscape/hackathon-precedents.md) ⚠ | What comparable civic-tech and AEC hackathons built on zoning, permitting, feasibility and typology, and what their judges rewarded. |
 | [other-participants](landscape/other-participants.md) ⚠ | Public GitHub repositories tied to this hackathon that we could find, with their stated content and creation dates. Facts only. |
-| [pittsburgh-civic-tools](landscape/pittsburgh-civic-tools.md) | Public, nonprofit and academic tools and datasets that already describe Pittsburgh parcels, vacancy, permits, boards and neighborhoods. |
+| [pittsburgh-civic-tools](landscape/pittsburgh-civic-tools.md) ⚠ | Public, nonprofit and academic tools and datasets that already describe Pittsburgh parcels, vacancy, permits, boards and neighborhoods. |
 
 ## Build plan: architecture, pipeline, timeline
 

@@ -59,7 +59,7 @@ County landslide, FEMA NFHL, DEP and EPA layers are county- or state-wide, so en
 - Is SS-O mapped as its own layer, or is `PGHWebSlope25` the operative map? (unverified)
 - `FEMA_2026` fields and whether it matches live NFHL.
 - Relationship between city `PGHWebUndermined` (47 polygons), `Parcels_On_Mines` (25,821 parcels) and DEP mined areas; DEP missed a point the city flagged.
-- The "40% no-disturbance / 30% max disturbance of 25–40%" rule came from a search snippet and was not found in the §915.02 text read (unverified).
+- The "40% no-disturbance / 30% max disturbance of 25–40%" rule came from a search snippet and was not found in the §915.02 text read (unverified). *(updated 2026-09-26, round 5)* The eCode360 re-read confirms it is **not in §906.08, §915.01 or §915.02** (only 15% and 25% thresholds appear there); it may be in the Subdivision Regulations' Hillside Development Standards (unread). Keep it out of the rules engine ([sweep](../../sweeps/r5-ecode360-reread-ch906-914-915-922.md), [overlays](../policy/environmental-overlays-ch906.md)).
 - ACHD air quality: not verified.
 
 ## Connects to
