@@ -6,9 +6,10 @@ import { buildFloodZones } from "./flood-zones";
 import { buildHousingCosts } from "./housing-costs";
 import { buildLandslides } from "./landslides";
 import { buildLeadServiceLines } from "./lead-service-lines";
+import { buildSafety } from "./safety";
 import { buildTransitStops } from "./transit-stops";
 import { buildWeatherRisk } from "./weather-risk";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety]) {
   await build();
 }
