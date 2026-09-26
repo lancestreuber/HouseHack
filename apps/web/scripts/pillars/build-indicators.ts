@@ -144,7 +144,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       const rows = parseCSV(await Bun.file(`${ROOT}${files[0]}`).text());
       const byKey = new Map(rows.map((r) => [r[src.key as string], readValue(r, src)]));
       const units = [...byKey.values()].filter((v): v is number => v != null);
-      const join = src.join as "tract" | "bg" | "zip";
+      const join = src.join as "tract" | "bg" | "zip" | "pin";
       return { raw: spine.map((p) => (p[join] ? (byKey.get(p[join] as string) ?? null) : null)), units };
     }
     case "overlap": {
@@ -173,12 +173,16 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
     }
     case "count_within":
     case "decay_sum": {
-      const pts = (await features(files[0]))
-        .filter((f) => f.geometry?.type === "Point" && matches(f.properties, where))
-        .map((f) => {
-          const [x, y] = (f.geometry as Geometry).coordinates as number[];
-          return { x, y, value: f.properties };
-        });
+      const pts = files[0].endsWith(".csv")
+        ? parseCSV(await Bun.file(`${ROOT}${files[0]}`).text())
+            .filter((r) => matches(r, where) && num(r.lon) != null && num(r.lat) != null)
+            .map((r) => ({ x: Number(r.lon), y: Number(r.lat), value: r as Record<string, unknown> }))
+        : (await features(files[0]))
+            .filter((f) => f.geometry?.type === "Point" && matches(f.properties, where))
+            .map((f) => {
+              const [x, y] = (f.geometry as Geometry).coordinates as number[];
+              return { x, y, value: f.properties };
+            });
       const index = pointIndex(pts);
       if (src.kind === "count_within") return { raw: spine.map((p) => index.within(p.x, p.y, src.radius_m as number).length), units: null };
       const full = src.full_m as number;

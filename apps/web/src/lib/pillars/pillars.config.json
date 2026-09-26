@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.1",
+  "version": "2026-09-26.4",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -8,11 +8,13 @@
     "min_coverage": 0.5
   },
   "overall": {
-    "method": "arithmetic",
+    "method": "geometric",
     "options": [
-      "arithmetic",
-      "geometric"
-    ]
+      "geometric",
+      "arithmetic"
+    ],
+    "floor": 1,
+    "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle."
   },
   "pillars": [
     {
@@ -720,22 +722,43 @@
       }
     },
     {
-      "id": "climate_autos_per_household",
+      "id": "climate_industrial_emissions",
+      "pillar": "climate",
+      "weight": 1,
+      "evidence": "observed",
+      "label": "Industrial criteria-pollutant emissions nearby, distance-weighted (ACHD, ≤2021)",
+      "geography": "parcel",
+      "source": {
+        "kind": "decay_sum",
+        "file": "scripts/pillars/inputs/achd_facilities_latest.csv",
+        "property": "criteria_tpy",
+        "full_m": 1000,
+        "zero_m": 5000
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "lower_is_better"
+      },
+      "rationale": "Tons/yr from current permitted facilities, full weight within 1 km, fading to zero at 5 km. Emissions, not measured exposure; NRG Cheswick may have retired after 2021."
+    },
+    {
+      "id": "climate_household_vmt",
       "pillar": "climate",
       "weight": 2,
       "evidence": "observed",
-      "label": "Vehicles per household (HUD LAI)",
+      "label": "Modeled annual household VMT, median-income family (HUD LAI v3)",
       "geography": "tract",
       "source": {
         "kind": "area",
         "file": "public/data/overlays/location-affordability.geojson",
-        "property": "autos_per_hh"
+        "property": "vmt_median_family"
       },
       "normalize": {
         "method": "percentile",
         "direction": "lower_is_better"
       },
-      "rationale": "Transportation-carbon proxy: places where households own fewer cars drive less. Replaces average household VMT, which is empty in the current LAI overlay."
+      "rationale": "Transportation-carbon proxy. HUD models VMT for a fixed household (median income, 4 people, 2 commuters), so it varies only with location efficiency. Inputs 2012–16, 2010 tracts."
     },
     {
       "id": "climate_heat",
@@ -760,40 +783,42 @@
       "pillar": "climate",
       "weight": 2,
       "evidence": "observed",
-      "label": "Summer land surface temperature (Landsat, 10 Aug 2025)",
-      "geography": "block group",
+      "label": "Summer surface heat, parcel (Landsat 8, 4-scene anomaly vs county median)",
+      "geography": "parcel (30 m pixel at centroid)",
       "source": {
         "kind": "table",
-        "file": "scripts/pillars/inputs/allegheny_bg_canopy_impervious_lst.csv",
-        "key": "geoid",
-        "join": "bg",
-        "property": "lst_c_mean_20250810"
+        "file": "scripts/pillars/inputs/pgh_parcel_lst_canopy.csv",
+        "key": "pin",
+        "join": "pin",
+        "property": "lst_anom_c_4scenes"
       },
       "normalize": {
         "method": "percentile",
+        "reference": "parcels",
         "direction": "lower_is_better"
       },
-      "rationale": "Relative heat exposure from one clear summer afternoon's surface (not air) temperature; ranked, not thresholded."
+      "rationale": "Mean of (LST − scene county median) over 4 clear summer scenes, 2023–2025. Surface, not air, temperature; ranked, not thresholded."
     },
     {
       "id": "climate_tree_canopy",
       "pillar": "climate",
       "weight": 1,
       "evidence": "observed",
-      "label": "Tree canopy cover (NLCD 2021)",
-      "geography": "block group",
+      "label": "Tree canopy at the parcel (NLCD 2021, 30 m)",
+      "geography": "parcel (30 m pixel at centroid)",
       "source": {
         "kind": "table",
-        "file": "scripts/pillars/inputs/allegheny_bg_canopy_impervious_lst.csv",
-        "key": "geoid",
-        "join": "bg",
-        "property": "canopy_pct_mean"
+        "file": "scripts/pillars/inputs/pgh_parcel_lst_canopy.csv",
+        "key": "pin",
+        "join": "pin",
+        "property": "canopy_pct"
       },
       "normalize": {
-        "method": "percentile",
-        "direction": "higher_is_better"
+        "method": "linear",
+        "zero": 0,
+        "full": 50
       },
-      "rationale": "Canopy cools and filters air. 30 m grid misses small street trees."
+      "rationale": "Canopy cools and filters air. 50%+ canopy scores 100. The 30 m grid misses small street trees."
     }
   ],
   "presets": {
@@ -839,5 +864,10 @@
       "access": 1,
       "climate": 0.5
     }
+  },
+  "sensitivity": {
+    "draws": 200,
+    "concentration": 47,
+    "rationale": "Dirichlet draws around the current pillar weights. Concentration 47 gives a 0.2 weight a standard deviation of about 0.058, matching the ±0.1 uniform weight ranges used in the JRC audit of the Global Innovation Index."
   }
 }

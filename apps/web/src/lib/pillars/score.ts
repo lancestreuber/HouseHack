@@ -88,7 +88,7 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
     const score = pillars[id].score;
     if (weight <= 0 || score == null) continue;
     weightSum += weight;
-    acc += method === "geometric" ? weight * Math.log(Math.max(score, 1)) : weight * score;
+    acc += method === "geometric" ? weight * Math.log(Math.max(score, cfg.overall.floor ?? 1)) : weight * score;
   }
   if (weightSum === 0) return null;
   return method === "geometric" ? Math.exp(acc / weightSum) : acc / weightSum;
@@ -97,7 +97,7 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
 // Rank stability: re-draws the pillar weights around the current ones
 // (Dirichlet, via normalized gamma draws) and reports the p10–p90 range of the
 // overall score. A narrow range means the result doesn't hinge on the weights.
-export function weightSensitivity(pillars: Record<PillarId, PillarScore>, overrides: WeightOverrides = {}, draws = 200, concentration = 20, cfg: PillarsConfig = config) {
+export function weightSensitivity(pillars: Record<PillarId, PillarScore>, overrides: WeightOverrides = {}, draws = config.sensitivity.draws, concentration = config.sensitivity.concentration, cfg: PillarsConfig = config) {
   const base = cfg.pillars.map((p) => overrides.pillars?.[p.id as PillarId] ?? p.weight);
   const total = base.reduce((a, b) => a + b, 0) || 1;
   const results: number[] = [];
