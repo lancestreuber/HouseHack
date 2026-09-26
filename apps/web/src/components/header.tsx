@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
 
+import { AddressSearch } from "./map/address-search";
+import { dispatchAddressSelect } from "./map/address-select-store";
 import { ThemeToggle } from "./theme-toggle";
 import UserMenu from "./user-menu";
 
@@ -23,6 +25,7 @@ export default function Header() {
           })}
         </nav>
         <div className="flex items-center gap-2">
+          <AddressSearch onSelect={dispatchAddressSelect} />
           <ThemeToggle />
           <UserMenu />
         </div>

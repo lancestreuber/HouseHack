@@ -55,7 +55,7 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground"
+        className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
       >
         <Search className="size-3.5" />
         Search address

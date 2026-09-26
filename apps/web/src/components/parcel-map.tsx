@@ -20,7 +20,8 @@ import {
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
 
-import { type AddressResult, AddressSearch } from "./map/address-search";
+import type { AddressResult } from "./map/address-search";
+import { setAddressSelectHandler } from "./map/address-select-store";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { useChatContext } from "./chat/chat-context-store";
 import { SAMPLE } from "./chat/chat-launcher";
@@ -239,6 +240,13 @@ export function ParcelMap() {
     document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  // The address search itself lives in the navbar (mounted on every route);
+  // registering here lets it drive this map while this page is showing it.
+  useEffect(() => {
+    setAddressSelectHandler(handleAddressSelect);
+    return () => setAddressSelectHandler(null);
+  });
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -359,11 +367,11 @@ export function ParcelMap() {
 
   return (
     <div className="h-full w-full overflow-hidden">
-      <ResizablePanelGroup orientation="vertical" className="h-full w-full">
-        <ResizablePanel defaultSize="85%" minSize="50%">
-          <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+        <ResizablePanel defaultSize="75%" minSize="40%">
+          <ResizablePanelGroup orientation="vertical" className="h-full w-full">
             <ResizablePanel
-              defaultSize="75%"
+              defaultSize="85%"
               minSize={0}
               collapsible
               collapsedSize="34px"
@@ -375,9 +383,6 @@ export function ParcelMap() {
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
                     <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
-                  </div>
-                  <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
-                    <AddressSearch onSelect={handleAddressSelect} />
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
                   <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
@@ -407,83 +412,77 @@ export function ParcelMap() {
                     <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
                       Zoom in to see parcel boundaries
                     </p>
-                    {showZoning && (
-                      <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-                        <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
-                        Zoning excludes housing (Pittsburgh city only)
-                      </p>
-                    )}
                   </div>
                 </div>
               </div>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
-              <ResizablePanelGroup orientation="vertical" className="h-full w-full">
-                <ResizablePanel
-                  defaultSize="45%"
-                  minSize={0}
-                  collapsible
-                  collapsedSize="80px"
-                  panelRef={scoresPane.ref}
-                  onResize={scoresPane.onResize}
-                >
-                  {selectedPin ? (
-                    <PillarsPanel
-                      pin={selectedPin}
-                      onClose={() => setSelectedPin(null)}
-                      onSelectPillar={handleSelectPillar}
-                      collapsed={scoresPane.collapsed}
-                      onToggleCollapse={scoresPane.toggle}
-                    />
-                  ) : (
-                    <p className="p-2 text-xs text-muted-foreground">
-                      Click a parcel on the map to see its scores &amp; considerations.
-                    </p>
-                  )}
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel
-                  defaultSize="25%"
-                  minSize={0}
-                  collapsible
-                  collapsedSize="34px"
-                  panelRef={breakdownPane.ref}
-                  onResize={breakdownPane.onResize}
-                >
-                  <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
-                </ResizablePanel>
-                <ResizableHandle withHandle />
-                <ResizablePanel
-                  defaultSize="30%"
-                  minSize={0}
-                  collapsible
-                  collapsedSize="48px"
-                  panelRef={chatPane.ref}
-                  onResize={chatPane.onResize}
-                >
-                  <ChatPane
-                    context={chatContext}
-                    className="border-t"
-                    collapsed={chatPane.collapsed}
-                    onToggleCollapse={chatPane.toggle}
-                  />
-                </ResizablePanel>
-              </ResizablePanelGroup>
+            <ResizablePanel
+              defaultSize="15%"
+              minSize="8%"
+              maxSize="30%"
+              collapsible
+              collapsedSize="34px"
+              panelRef={typologyPane.ref}
+              onResize={typologyPane.onResize}
+            >
+              <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel
-          defaultSize="15%"
-          minSize="8%"
-          maxSize="30%"
-          collapsible
-          collapsedSize="34px"
-          panelRef={typologyPane.ref}
-          onResize={typologyPane.onResize}
-        >
-          <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
+        <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
+          <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+            <ResizablePanel
+              defaultSize="45%"
+              minSize={0}
+              collapsible
+              collapsedSize="80px"
+              panelRef={scoresPane.ref}
+              onResize={scoresPane.onResize}
+            >
+              {selectedPin ? (
+                <PillarsPanel
+                  pin={selectedPin}
+                  onClose={() => setSelectedPin(null)}
+                  onSelectPillar={handleSelectPillar}
+                  collapsed={scoresPane.collapsed}
+                  onToggleCollapse={scoresPane.toggle}
+                />
+              ) : (
+                <p className="p-2 text-xs text-muted-foreground">
+                  Click a parcel on the map to see its scores &amp; considerations.
+                </p>
+              )}
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize="25%"
+              minSize={0}
+              collapsible
+              collapsedSize="34px"
+              panelRef={breakdownPane.ref}
+              onResize={breakdownPane.onResize}
+            >
+              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize="30%"
+              minSize={0}
+              collapsible
+              collapsedSize="48px"
+              panelRef={chatPane.ref}
+              onResize={chatPane.onResize}
+            >
+              <ChatPane
+                context={chatContext}
+                className="border-t"
+                collapsed={chatPane.collapsed}
+                onToggleCollapse={chatPane.toggle}
+              />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

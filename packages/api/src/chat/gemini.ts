@@ -43,7 +43,11 @@ async function callModel(apiKey: string, model: string, req: GenerateRequest): P
   const res = await fetch(`${ENDPOINT}/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-    signal: AbortSignal.timeout(20_000),
+    // Kept well under the serverless function's own duration limit: this can
+    // retry across up to 3 models (see MODELS below), and a per-call timeout
+    // anywhere near that limit risks the platform killing the whole request
+    // before a later model gets a chance to answer.
+    signal: AbortSignal.timeout(12_000),
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: req.system }] },
       contents: req.contents,

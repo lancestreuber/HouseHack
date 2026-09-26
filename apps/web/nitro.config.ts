@@ -13,4 +13,13 @@ export default defineConfig({
       env: { service: "HouseHack-web" },
     }),
   ],
+  vercel: {
+    functions: {
+      // The chat's Gemini client retries across up to 3 models, each with its
+      // own timeout -- worst case is comfortably longer than Vercel's default
+      // function duration (10-15s depending on plan), which silently kills
+      // the request before Gemini answers. 60s is the max Hobby allows.
+      maxDuration: 60,
+    },
+  },
 });
