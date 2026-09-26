@@ -18,7 +18,9 @@ export type OverlayGroup =
   | "policy"
   | "development"
   // - "land": acquisition signals (city-owned land, tax sales, delinquency), stackable.
-  | "land";
+  | "land"
+  // - "legal": what zoning allows vs what exists (senior and supportive housing), stackable.
+  | "legal";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.
