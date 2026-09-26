@@ -46,9 +46,13 @@ export const shortageAreasOverlay: OverlayDefinition = {
     source: "HRSA Health Professional Shortage Areas (federal designations)",
     sourceUrl: "https://data.hrsa.gov/topics/health-workforce/shortage-areas",
     asOf: "Updated daily; pulled Sep 2026",
-    geography: "Designated service areas (county bounding box; a few extend past the county)",
+    geography: "Designated service areas that touch Allegheny County",
     evidence: "policy",
-    caveats: ["Faint fill = proposed for withdrawal.", "No mental-health shortage areas are currently designated here."],
+    caveats: [
+      "Faint fill = proposed for withdrawal.",
+      "Where an area has a current designation and an older record proposed for withdrawal, only the current one is shown.",
+      "No mental-health shortage areas are currently designated here.",
+    ],
   },
 };
 
