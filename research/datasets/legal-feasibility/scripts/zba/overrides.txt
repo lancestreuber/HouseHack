@@ -1,0 +1,244 @@
+# case|addr_prefix|scope|typ|ub|ua|class|note
+374 of 2016||N|NR|||NONE|
+267 of 2022||U|MU|0|378|NEW|
+292 of 2022||N|NR|||NONE|
+298 of 2022||U|SD|0|1|NEW|
+8 of 2023||U|MU|0|240|NEW|unit count from findings text
+13 of 2023||U|SA|0|4|NEW|
+25 of 2023||U|2U|2|2|LEGAL|nonconforming 2 units confirmed plus deck variance approved
+26 of 2023||U|3U|2|3|ADD|
+29 of 2023||N|NR|||NONE|
+31 of 2023||U|SD|0|1|NEW|
+32 of 2023||U|2U|2|2|LEGAL|
+35 of 2023||U|SA|0|5|NEW|
+39 of 2023||N|NR|||NONE|
+45 of 2023||U|2U|1|2|ADD|second (basement) unit in house; request field shows application number only
+48 of 2023||U|MU|||NEW|unit count not in caption/decision
+49 of 2023||U|MU|0|160|NEW|
+50 of 2023||A|SD|||NONE|home occupation in single-family residence
+52 of 2023||U|2U|2|2|LEGAL|
+54 of 2023||A|MU|||NONE|parking for existing multi-unit building
+61 of 2023||N|NR|||NONE|
+67 of 2023||U|AL|||NEW|assisted living incl. personal care, memory care and independent living apartments; unit count not captioned
+68 of 2023||U|SA|0|3|NEW|two attached houses and one detached house
+75 of 2023||N|NR|||NONE|bar/restaurant addition incl. one dwelling and hotel rooms; relief was a compatibility setback waiver
+81 of 2023||N|NR|||NONE|
+84 of 2023||N|NR|||NONE|
+89 of 2023||N|NR|||NONE|
+93 of 2023||A|OR|||NONE|subdivision; dwelling type not stated
+94 of 2023||U|SA|0|2|NEW|
+95 of 2023||U|2U|0|4|NEW|two two-unit structures
+100 of 2023||N|NR|||NONE|mixed-use building addition (nonconforming uses)
+102 of 2023||U|SA|0|2|NEW|
+104 of 2023||A|OR|||NONE|chicken coop
+105 of 2023||A|OR|||NONE|garage
+107 of 2023||U|2U|1|2|CONV|
+108 of 2023||U|2U|2|2|LEGAL|
+112 of 2023||U|MU|0|248|NEW|mixed-use; grocery SE approved, height/FAR variances denied
+113 of 2023||A|SD|||NONE|
+114 of 2023||N|NR|||NONE|
+115 of 2023||N|NR|||NONE|
+122 of 2023||A|SD|||NONE|
+123 of 2023||N|NR|||NONE|
+124 of 2023||A|SA|||NONE|subdivision of existing attached units
+125 of 2023||A|OR|||NONE|subdivision
+131 of 2023||U|2U|2|2|LEGAL|
+140 of 2023||U|2U||2|NEW|two-unit use on 1403 Sarah St parcel
+142 of 2023||U|2U|2|2|LEGAL|
+147 of 2023||A|OR|||NONE|subdivision
+148 of 2023||N|NR|||NONE|
+150 of 2023||N|NR|||NONE|
+151 of 2023||U|3U|2|3|CONV|
+154 of 2023||U|3U|3|3|LEGAL|
+155 of 2023||N|NR|||NONE|mixed-use building; unit count not stated
+157 of 2023||U|2U|2|2|LEGAL|
+158 of 2023||A|OR|||NONE|garage greenhouse
+159 of 2023||N|NR|||NONE|
+161 of 2023||U|2U|0|6|NEW|request says three single-unit houses; decision says three two-unit structures
+162 of 2023||A|OR|||NONE|subdivision
+163 of 2023||N|NR|||NONE|
+165 of 2023||U|SD|2|1|REDUCE|combine two houses into one
+171 of 2023||U|SR|0|52|NEW|
+172 of 2023||U|2U|2|2|LEGAL|
+176 of 2023||U|SA|0|2|NEW|
+179 of 2023||N|NR|||NONE|
+180 of 2023||U|2U|2|2|LEGAL|
+184 of 2023||U|MU|4|4|LEGAL|
+185 of 2023||U|MU|0|60|NEW|max 60 units per request
+186 of 2023||A|OR|||NONE|generator
+192 of 2023||N|NR|||NONE|
+193 of 2023||N|NR|||NONE|former nursing home to training program (unlisted use)
+194 of 2023||U|OR|1|1|NONE|multigenerational residence with second kitchen; denied
+195 of 2023||U|3U|1|3|CONV|
+199 of 2023||U|MU|5|5|LEGAL|
+202 of 2023||N|NR|||NONE|
+205 of 2023||N|NR|||NONE|
+206 of 2023||N|NR|||NONE|
+3 of 2024||N|NR|||NONE|
+8 of 2024||U|MU||4|LEGAL|use variance for four units in existing structure
+9 of 2024||U|3U|3|3|LEGAL|
+11 of 2024||U|MU|0||CONV|former hospital to multi-unit
+15 of 2024||U|3U|3|3|LEGAL|
+18 of 2024||U|2U|2|2|LEGAL|
+20 of 2024||A|3U|||NONE|addition to existing three-unit residence
+22 of 2024||U|MU|0|200|NEW|unit count from findings text
+23 of 2024||U|MU|0|50|NEW|
+27 of 2024||A|OR|||NONE|fence
+30 of 2024||A|OR|||NONE|generator
+32 of 2024||U|MU|||ADD|4th-story addition on multi-unit building; unit change not stated
+35 of 2024||U|2U|0|8|NEW|four two-unit structures
+36 of 2024||A|MU|||NONE|
+37 of 2024||U|3U|3|3|LEGAL|
+42 of 2024||N|NR|||NONE|
+43 of 2024||U|SD|0|1|NEW|
+45 of 2024||N|NR|||NONE|
+46 of 2024||N|NR|||NONE|
+47 of 2024||U|2U|1|2|CONV|
+48 of 2024||U|3U|3|3|LEGAL|
+49 of 2024||A|SD|||NONE|
+51 of 2024||U|MU|5|6|ADD|
+53 of 2024||A|OR|||NONE|subdivision
+54 of 2024||A|OR|||NONE|third-party appeal (retaining wall and fence)
+55 of 2024||U|SA|0|3|NEW|
+58 of 2024||U|OR||1|CONV|second-floor dwelling unit above retail
+65 of 2024||U|2U|0|2|CONV|nonconforming commercial to 2 units
+73 of 2024||U|2U|2|2|LEGAL|
+74 of 2024||N|NR|||NONE|
+77 of 2024||U|SD|0|1|NEW|
+80 of 2024||U|SD|0|1|CONV|ground floor dwelling unit in UI
+89 of 2024||A|OR|||NONE|
+105 of 2024||N|NR|||NONE|
+122 of 2024||U|2U|1|2|LEGAL|existing second unit from 1990s addition
+125 of 2024||U|SD|0|1|NEW|house approved, carport denied
+128 of 2024||N|NR|||NONE|
+129 of 2024||N|NR|||NONE|
+131 of 2024||U|SD|0|1|CONV|office to single-unit residential
+134 of 2024||U|MU|0|49|NEW|unit count from findings text
+135 of 2024||U|MU|0|6|NEW|
+139 of 2024||U|SA|0|2|NEW|
+140 of 2024||N|NR|||NONE|
+141 of 2024||A|OR|||NONE|subdivision
+143 of 2024||U|3U|2|3|CONV|
+147 of 2024||A|SD|||NONE|garage
+148 of 2024||U|SR|0|180|NEW|complex: 70 townhouses/apartments + 60 senior + 50 multi-unit
+149 of 2024||A|MU|||NONE|off-site parking for multi-unit building
+150 of 2024||U|2U|2|2|LEGAL|
+151 of 2024||U|2U|2|2|LEGAL|
+153 of 2024||U|SD|0|1|NEW|
+155 of 2024||U|2U|2|2|LEGAL|
+169 of 2024||N|NR|||NONE|
+171 of 2024||U|MU|0||NEW|
+172 of 2024|Replace|A|SD|||NONE|
+172 of 2024|New Const|U|MU|0|4|NEW|
+176 of 2024||U|2U|2|2|LEGAL|
+180 of 2024||U|2U|1|2|ADD|
+183 of 2024||U|SR|0|48|NEW|
+185 of 2024||N|NR|||NONE|
+187 of 2024||A|OR|||NONE|
+5 of 2025||U|2U|1|2|LEGAL|existing second unit from 1990s addition
+8 of 2025||N|NR|||NONE|
+9 of 2025||N|NR|||NONE|
+11 of 2025||N|NR|||NONE|
+14 of 2025||U|MU|0|12|NEW|
+16 of 2025||U|2U|2|2|LEGAL|
+19 of 2025||U|2U|1|2|CONV|
+24 of 2025||U|SA|0|2|NEW|
+26 of 2025||U|MU|0|38|NEW|
+27 of 2025||U|2U|2|2|LEGAL|
+28 of 2025||U|MU||+2|ADD|two units added to existing multi-unit use
+29 of 2025||U|SD|0|1|NEW|
+34 of 2025||N|NR|||NONE|
+37 of 2025||U|MU||+4|ADD|four units added to existing multi-unit building
+41 of 2025||N|NR|||NONE|
+44 of 2025||N|NR|||NONE|
+45 of 2025||N|NR|||NONE|
+46 of 2025||U|SD|0|2|NEW|
+53 of 2025||U|MU|0|32|CONV|
+63 of 2025||N|NR|||NONE|
+65 of 2025||A|OR|||NONE|retaining wall
+67 of 2025||A|MU|54|54|NONE|parking modification for existing 54-unit building
+70 of 2025||N|NR|||NONE|
+74 of 2025||N|NR|||NONE|
+75 of 2025||U|2U|0|4|NEW|
+76 of 2025||U|SA|0|2|NEW|
+77 of 2025||U|SD|0|3|NEW|
+78 of 2025||N|NR|||NONE|
+79 of 2025||N|NR|||NONE|
+81 of 2025||U|2U|2|2|LEGAL|
+84 of 2025||N|NR|||NONE|
+88 of 2025||U|MU|0|30|NEW|
+100 of 2025||U|SD|0|3|NEW|
+103 of 2025||U|SA|0|2|NEW|subdivision for two single-unit attached houses
+104 of 2025||N|NR|||NONE|
+111 of 2025||N|NR|||NONE|
+112 of 2025||U|MU|0|10|CONV|funeral home to 10 units denied (8 also denied)
+113 of 2025||U|MU|0|12|CONV|
+114 of 2025||N|NR|||NONE|
+115 of 2025||A|MU|||NONE|signs for multi-unit residential building
+116 of 2025||U|2U|1|2|LEGAL|first-floor unit used without CO
+117 of 2025||U|SD|0|1|NEW|
+118 of 2025||A|SD|||NONE|
+119 of 2025||U|SA|0|4|NEW|
+122 of 2025||A|OR|||NONE|garage
+128 of 2025||N|NR|||NONE|art studio with existing upstairs unit
+129 of 2025||U|OR|||NEW|unlisted student residential use, max 16 students
+130 of 2025|7165|A|OR|||NONE|generator and fence
+130 of 2025|West|U|2U|0|16|NEW|eight duplexes
+131 of 2025||A|OR|||NONE|subdivision
+134 of 2025||U|SA|0|2|NEW|request says 2-unit structure; decision says two attached single-family houses
+139 of 2025||N|NR|||NONE|
+140 of 2025||U|2U|2|2|LEGAL|
+143 of 2025||A|SD|||NONE|shed
+149 of 2025||A|OR|||NONE|subdivision
+157 of 2025||N|NR|||NONE|
+158 of 2025||U|2U|0|2|NEW|
+159 of 2025||U|SD|0|1|NEW|
+160 of 2025||N|NR|||NONE|home occupation (dog services)
+164 of 2025||U|SD|0|1|NEW|
+166 of 2025||U|2U|1|2|CONV|
+168 of 2025||N|NR|||NONE|
+169 of 2025||U|2U|0|6|NEW|
+172 of 2025||U|MU|0|159|NEW|inclusionary zoning waiver denied
+173 of 2025||A|SD|||NONE|
+175 of 2025||N|NR|||NONE|
+177 of 2025||A|OR|||NONE|appeal re rear deck
+190 of 2025||U|SD|0|1|NEW|
+3 of 2026||U|SD|0|1|NEW|third-party appeal of decks denied in same decision
+4 of 2026||U|2U|2|2|LEGAL|
+5 of 2026||N|NR|||NONE|
+6 of 2026||N|NR|||NONE|
+8 of 2026||N|NR|||NONE|
+9 of 2026||A|OR|||NONE|dumpster enclosure
+10 of 2026||U|SD|0|3|NEW|three houses; attached/detached not stated in decision
+16 of 2026||U|SD|0|1|NEW|
+19 of 2026||U|SA|0|18|NEW|18 four-story townhouse structures
+23 of 2026||U|MU|0|6|CONV|
+25 of 2026||N|NR|||NONE|
+26 of 2026||N|NR|||NONE|
+36 of 2026||U|3U|0|3|ADD|mixed-use addition with restaurant and three dwelling units
+38 of 2026||U|MU||15|NEW|third-party appeal vacated AAPP for 15-unit residential use
+39 of 2026||U|MU||16|LEGAL|occupancy of existing building for 16 units
+42 of 2026||N|NR|||NONE|
+43 of 2026||N|NR|||NONE|
+45 of 2026||U|MU|||NEW|seven multi-unit buildings (public housing redevelopment); unit count ambiguous in text
+47 of 2026||N|NR|||NONE|
+49 of 2026||A|OR|||NONE|generator
+51 of 2026||N|NR|||NONE|
+52 of 2026||A|OR|||NONE|subdivision
+53 of 2026||U|2U|2|2|LEGAL|
+56 of 2026||A|SR|||NONE|sign for approved housing for the elderly
+58 of 2026||U|2U|0|2|NEW|
+63 of 2026||N|NR|||NONE|
+64 of 2026||N|NR|||NONE|
+66 of 2026||U|2U|1|2|LEGAL|
+68 of 2026||U|OR|||NEW|dormitory, max 470 residents
+87 of 2026||U|SD|0|1|NEW|
+88 of 2026||U|2U||2|REDUCE|multi-unit to two-unit
+92 of 2026||U|2U|2|2|LEGAL|
+94 of 2026||N|NR|||NONE|
+96 of 2026||U|2U|0|2|NEW|use variance denied, setback variance approved
+98 of 2026||U|2U|1|2|LEGAL|
+101 of 2026||U|MU|0|38|NEW|
+102 of 2026||U|2U|2|2|LEGAL|
+69 of 2025||A|OR|||NONE|garage
+78 of 2023||U|2U|2|2|LEGAL|
