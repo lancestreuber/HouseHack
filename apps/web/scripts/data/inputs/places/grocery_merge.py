@@ -35,6 +35,7 @@ TIER_ACHD = {
 RANK = ["full_grocery", "specialty_food", "farmers_market", "other_food_retail", "convenience_limited"]
 STOPWORDS = {"THE", "AND", "INC", "LLC", "STORE", "MARKET", "FOOD", "FOODS"}
 DEAD = re.compile(r"RITE ?AID|BLOCKBUSTER|BLOCK BUSTER|HOLLYWOOD VIDEO|\bAMES\b|PHAR-?MOR|ECKERD", re.I)
+TEST_ACCOUNT = re.compile(r"\(test\b|test client", re.I)  # ACHD test records, e.g. 2121 Noblestown Rd
 NOT_GROCERY = [
     (re.compile(r"DOLLAR|FAMILY DOLLAR|FIVE BELOW|CVS|WALGREEN|PHARM|DRUG", re.I), "other_food_retail"),
     (re.compile(r"GETGO|GET GO|SHEETZ|7-?ELEVEN|SPEEDWAY|SUNOCO|EXXON|\bBP\b|CITGO|MARATHON|GULF|BEER|DISTRIBUT", re.I),
@@ -88,7 +89,8 @@ def main():
     snap = [f["attributes"] for g in glob.glob("snap_*.json") for f in json.load(open(g))["features"]]
     last = json.load(open("achd_last_inspection.json"))
     permits = [x for x in csv.DictReader(open("food.csv", encoding="utf-8-sig"))
-               if not x.get("bus_cl_date") and x["description"] in TIER_ACHD and x["x"] and x["y"]]
+               if not x.get("bus_cl_date") and x["description"] in TIER_ACHD and x["x"] and x["y"]
+               and not TEST_ACCOUNT.search(x["facility_name"])]
     for p in permits:
         p["last_inspection"] = last.get(p["id"], "")
 

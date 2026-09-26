@@ -1284,7 +1284,6 @@ Brew-Thru Beer and More,264 Yost Boulevard PA 15221,40.414077,-79.8556635,conven
 Mercearia Brazilian Mini Market,4091 Route 8 Highway PA 15101,40.567977,-79.9549515,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-04-16
 BB & Bur Pastry Kitchen,317 Trenton Avenue PA 15221,40.443669,-79.8920775,specialty_food,,Bakery,False,ACHD,2024-09-20
 Lou's Brews,1985 Lincoln Way PA 15131,40.3386975660697,-79.8083082907507,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-01-30
-Danielle's Test Kitchen (TEST Client),2121 Nobelstown  Road,40.42971,-80.052039,specialty_food,,Bakery,False,ACHD,2025-05-07
 Puff House,225 Ross Street PA 15219,40.436991,-79.997094,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-04-09
 In n Out Corner Market,4900 Penn Avenue PA 15224,40.464945,-79.944867,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-05-07
 Save On Beer,933 Sheraton Drive PA 16046,40.671765,-80.0959365,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-01-31
@@ -1401,6 +1400,7 @@ American Natural / GP #915,2 Rich Hill Road PA 15024,40.549608,-79.8391035,conve
 Marathon #185058,2699 Mosside Boulevard PA 15146,40.433436,-79.7531715,convenience_limited,,Chain Retail/Convenience Store,False,ACHD,2025-02-18
 Lindenwood Distributing Inc.,830 Sleepy Holllow Road PA 15234,40.37382,-80.0197425,convenience_limited,,Packaged Food Only,False,ACHD,2024-02-05
 Prime Stop,6494 Frankstown Avenue PA 15206,40.460292,-79.9140015,convenience_limited,,Retail/Convenience Store,False,ACHD,2024-07-30
+Super Beer World,2121 Noblestown Road PA 15205,40.42971,-80.052039,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-05-07
 Sudz Beer,6936 5th Avenue PA 15208,40.45779,-79.9083,convenience_limited,,Retail/Convenience Store,False,ACHD,2024-02-09
 Speedy Food Mart,557 James Street PA 15145,40.412475,-79.8188175,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-01-24
 BP Market 24,8936 Frankstown Road PA 15235,40.460652,-79.8670935,convenience_limited,,Chain Packaged Food Only,False,ACHD,2024-11-08
@@ -1488,7 +1488,6 @@ Pike Beverage Beer,7165 Steubenville Pike PA 15071,40.443651,-80.181558,convenie
 Caribbean Food Snacks,1511 Stratmore Street PA 15205,40.438179,-80.0560755,convenience_limited,,Retail/Convenience Store,False,ACHD,2024-06-04
 SouthSide Beverages,2001-B Wharton Street PA 15203,40.431384,-79.9775865,convenience_limited,,Retail/Convenience Store,False,ACHD,2025-06-17
 Robinson Beer and Beverage,5899 Steubenville  Pike PA 15136,40.449015,-80.1410805,convenience_limited,,Retail/Convenience Store,False,ACHD,2024-03-12
-(TEST) Nicole's Bake Shop,2121  Noblestown Road PA 15235,40.427559052,-80.055452211,specialty_food,,Bakery,False,ACHD,2025-07-02
 Lincoln Bakery,543 Lincoln Avenue PA 15202,40.496121,-80.0571465,specialty_food,,Bakery,False,ACHD,2024-10-03
 All American Field House / Cadence Fuel + Gear,1 Racquet  Lane PA 15146,40.432806,-79.785351,other_food_retail,,Packaged Food Only,False,ACHD,2025-07-23
 Marathon,4010 Penn Avenue PA 15224,40.46508,-79.957521,convenience_limited,,Chain Retail/Convenience Store,False,ACHD,2025-07-15
