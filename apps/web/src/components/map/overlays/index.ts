@@ -10,6 +10,7 @@ import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./lan
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { sewerLinesOverlay } from "./sewer-lines";
 import { slopeOverlay } from "./slope";
+import { transitStopsOverlay } from "./transit-stops";
 import type { Indicator, OverlayDefinition } from "./types";
 import { weatherRiskOverlay } from "./weather-risk";
 
@@ -22,6 +23,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   landslideIncidentsOverlay,
   leadServiceLinesOverlay,
   sewerLinesOverlay,
+  transitStopsOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
