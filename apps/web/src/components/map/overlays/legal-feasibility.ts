@@ -2,7 +2,7 @@ import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS, ZBA_OUTCOM
 import { matchColor, NO_DATA_COLOR } from "./styles";
 import type { OverlayDefinition, OverlayMetric } from "./types";
 
-const TYPOLOGIES: [string, string][] = [
+export const TYPOLOGIES: [string, string][] = [
   ["single_detached", "Single-unit detached house"],
   ["single_attached", "Single-unit attached (rowhouse)"],
   ["two_unit", "Two-unit (duplex)"],
@@ -23,7 +23,7 @@ const TYPOLOGIES: [string, string][] = [
 
 // Ranked pathways run cyan (easiest) to red (hardest). The non-ranked states sit
 // off that ramp: planned-unit districts purple, Mount Oliver light grey.
-const PATHWAY_META: Record<string, { color: string; label: string }> = {
+export const PATHWAY_META: Record<string, { color: string; label: string }> = {
   by_right: { color: "#22d3ee", label: "By right (staff review)" },
   za: { color: "#60a5fa", label: "Administrator exception" },
   zbe_special_exception: { color: "#fbbf24", label: "Special exception (Zoning Board hearing)" },

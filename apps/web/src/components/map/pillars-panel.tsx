@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
 
-type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
+export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
 type ParcelRow = [zoning: string, norm: (number | null)[], raw: (number | null)[]];
 
@@ -14,7 +14,7 @@ const EVIDENCE_LABEL: Record<string, string> = {
   value: "Value judgment",
 };
 
-const INDICATORS = config.indicators as Indicator[];
+export const INDICATORS = config.indicators as Indicator[];
 
 let indexPromise: Promise<ShardIndex> | null = null;
 const shardCache = new Map<string, Promise<Record<string, ParcelRow>>>();
@@ -33,9 +33,9 @@ function loadShard(key: string) {
   return shard;
 }
 
-type ParcelData = { zoning: string; norm: Record<string, number | null>; raw: Record<string, number | null> };
+export type ParcelData = { zoning: string; norm: Record<string, number | null>; raw: Record<string, number | null> };
 
-function useParcelData(pin: string | null) {
+export function useParcelData(pin: string | null) {
   const [state, setState] = useState<{ pin: string | null; data: ParcelData | null; status: "idle" | "loading" | "ready" | "missing" }>({
     pin: null,
     data: null,
@@ -66,7 +66,7 @@ function useParcelData(pin: string | null) {
   return state;
 }
 
-function formatRaw(value: number | null, unit: string | undefined) {
+export function formatRaw(value: number | null, unit: string | undefined) {
   if (value == null) return "no data";
   switch (unit) {
     case "fraction_pct":
@@ -104,7 +104,7 @@ function ordinal(n: number) {
   return `${n}${suffix}`;
 }
 
-function scoreColor(score: number | null) {
+export function scoreColor(score: number | null) {
   if (score == null) return "#525252";
   if (score >= 70) return "#22c55e";
   if (score >= 45) return "#eab308";
@@ -119,7 +119,7 @@ function ScoreBar({ score }: { score: number | null }) {
   );
 }
 
-const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
+export const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
 
 function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: ParcelData; contribution?: number }) {
   const [open, setOpen] = useState(false);
@@ -171,7 +171,17 @@ function sourceLabel(ind: Indicator) {
   return `${files}${prop} (${src.kind})`;
 }
 
-function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; data: ParcelData }) {
+function PillarCard({
+  id,
+  score,
+  data,
+  onSelectPillar,
+}: {
+  id: PillarId;
+  score: PillarScore;
+  data: ParcelData;
+  onSelectPillar?: (id: PillarId) => void;
+}) {
   const [open, setOpen] = useState(false);
   const pillar = config.pillars.find((p) => p.id === id) as (typeof config.pillars)[number] & {
     subscores?: { id: string; label: string; description: string }[];
@@ -180,7 +190,14 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
   const groups = pillar.subscores ?? [{ id: "", label: "", description: "" }];
   return (
     <section className="rounded border border-border/60 bg-background/60">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="w-full space-y-1 p-2 text-left">
+      <button
+        type="button"
+        onClick={() => {
+          setOpen((v) => !v);
+          onSelectPillar?.(id);
+        }}
+        className="w-full space-y-1 p-2 text-left"
+      >
         <div className="flex items-baseline justify-between gap-2">
           <span className="font-medium">
             {open ? "▾" : "▸"} {pillar.label}
@@ -241,13 +258,21 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
   );
 }
 
-export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => void }) {
+export function PillarsPanel({
+  pin,
+  onClose,
+  onSelectPillar,
+}: {
+  pin: string;
+  onClose: () => void;
+  onSelectPillar?: (id: PillarId) => void;
+}) {
   const { data, status } = useParcelData(pin);
   const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
   const range = useMemo(() => (result ? weightSensitivity(result.pillars) : null), [result]);
 
   return (
-    <aside className="flex h-full w-[22rem] shrink-0 flex-col border-l bg-background text-xs">
+    <aside className="flex h-full w-full flex-col bg-background text-xs">
       <header className="flex items-start justify-between gap-2 border-b p-3">
         <div>
           <p className="text-muted-foreground">Parcel</p>
@@ -279,7 +304,13 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
               </p>
             </section>
             {config.pillars.map((p) => (
-              <PillarCard key={p.id} id={p.id as PillarId} score={result.pillars[p.id as PillarId]} data={data} />
+              <PillarCard
+                key={p.id}
+                id={p.id as PillarId}
+                score={result.pillars[p.id as PillarId]}
+                data={data}
+                onSelectPillar={onSelectPillar}
+              />
             ))}
             <p className="text-muted-foreground">
               All scores 0–100, higher = better for a future resident. Weights are value judgments, published in

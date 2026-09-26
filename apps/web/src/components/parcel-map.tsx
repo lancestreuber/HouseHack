@@ -10,10 +10,19 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 
 setWorkerUrl(maplibreWorkerUrl);
 
+import {
+  type PanelImperativeHandle,
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@HouseHack/ui/components/resizable";
+
+import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
 
+import { type AddressResult, AddressSearch } from "./map/address-search";
+import { BreakdownPanel } from "./map/breakdown-panel";
 import { LayersPanel } from "./map/layers-panel";
-import { PillarsPanel } from "./map/pillars-panel";
 import {
   INITIAL_OVERLAY_STATE,
   loadingOverlayIds,
@@ -22,6 +31,9 @@ import {
   registerTooltips,
   syncOverlays,
 } from "./map/overlay-controller";
+import { ParcelTab } from "./map/parcel-tab";
+import { PillarsPanel } from "./map/pillars-panel";
+import { TypologyPanel } from "./map/typology-panel";
 
 type BasemapId = "carto-dark" | "osm-inverted";
 
@@ -71,6 +83,11 @@ const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PAR
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
 const PARCEL_MIN_ZOOM = 14;
+
+// A real Pittsburgh parcel (R1D-H, single-unit detached residential) with
+// full indicator coverage, used so the panels show real demo data on first
+// load instead of empty "select a parcel" placeholders everywhere.
+const DEMO_PIN = "0001N00154000000";
 
 function addZoningLayer(map: MapLibreMap) {
   if (map.getSource(ZONING_SOURCE_ID)) return;
@@ -179,7 +196,26 @@ export function ParcelMap() {
   overlayStateRef.current = overlayState;
   const [zoom, setZoom] = useState(0);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
-  const [selectedPin, setSelectedPin] = useState<string | null>(null);
+  // Pre-selected with a real, well-covered demo parcel so the scores,
+  // breakdown and typology panes are never empty on first load -- an actual
+  // click or address search just swaps this out.
+  const [selectedPin, setSelectedPin] = useState<string | null>(DEMO_PIN);
+  const scoresPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const breakdownPanelRef = useRef<PanelImperativeHandle | null>(null);
+  const typologyPanelRef = useRef<PanelImperativeHandle | null>(null);
+
+  const handleAddressSelect = (result: AddressResult) => {
+    mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
+    if (result.pin) {
+      setSelectedPin(result.pin);
+      if (scoresPanelRef.current?.isCollapsed()) scoresPanelRef.current.expand();
+    }
+  };
+
+  const handleSelectPillar = (id: PillarId) => {
+    if (breakdownPanelRef.current?.isCollapsed()) breakdownPanelRef.current.expand();
+    document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -234,7 +270,13 @@ export function ParcelMap() {
     map.on("mouseenter", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = ""));
 
+    // The map's container is one pane in a resizable/collapsible layout, so
+    // its size changes from panel drags and collapses, not just React state.
+    const resizeObserver = new ResizeObserver(() => map.resize());
+    resizeObserver.observe(containerRef.current);
+
     return () => {
+      resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -284,11 +326,6 @@ export function ParcelMap() {
     map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
   }, [selectedPin, basemap]);
 
-  // The map canvas changes width when the panel opens or closes.
-  useEffect(() => {
-    mapRef.current?.resize();
-  }, [selectedPin === null]);
-
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
@@ -299,48 +336,89 @@ export function ParcelMap() {
   }, [showZoning, basemap]);
 
   return (
-    <div className="flex h-[640px] w-full overflow-hidden rounded-lg border">
-      <div className="relative h-full min-w-0 flex-1">
-        <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
-          <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
-        </div>
-        <div ref={containerRef} className="h-full w-full" />
-        <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
-          <button
-            type="button"
-            onClick={() => setBasemap("carto-dark")}
-            className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
-          >
-            Dark Matter
-          </button>
-          <button
-            type="button"
-            onClick={() => setBasemap("osm-inverted")}
-            className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
-          >
-            OSM (inverted)
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowZoning((v) => !v)}
-            className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-          >
-            Zoning
-          </button>
-        </div>
-        <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
-          <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-            Zoom in to see parcel boundaries
-          </p>
-          {showZoning && (
-            <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-              <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
-              Zoning excludes housing (Pittsburgh city only)
-            </p>
-          )}
-        </div>
-      </div>
-    {selectedPin && <PillarsPanel pin={selectedPin} onClose={() => setSelectedPin(null)} />}
+    <div className="h-full w-full overflow-hidden">
+      <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+        <ResizablePanel defaultSize="85%" minSize="50%">
+          <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
+            <ResizablePanel defaultSize="75%" minSize="40%">
+              <div className="flex h-full min-w-0 flex-col">
+                <ParcelTab pin={selectedPin} />
+                <div className="relative min-h-0 flex-1">
+                  <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
+                    <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
+                  </div>
+                  <div className="absolute left-1/2 top-2 z-20 -translate-x-1/2">
+                    <AddressSearch onSelect={handleAddressSelect} />
+                  </div>
+                  <div ref={containerRef} className="h-full w-full" />
+                  <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
+                    <button
+                      type="button"
+                      onClick={() => setBasemap("carto-dark")}
+                      className={`px-2 py-1 ${basemap === "carto-dark" ? "bg-foreground text-background" : ""}`}
+                    >
+                      Dark Matter
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBasemap("osm-inverted")}
+                      className={`px-2 py-1 ${basemap === "osm-inverted" ? "bg-foreground text-background" : ""}`}
+                    >
+                      OSM (inverted)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowZoning((v) => !v)}
+                      className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
+                    >
+                      Zoning
+                    </button>
+                  </div>
+                  <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
+                    <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+                      Zoom in to see parcel boundaries
+                    </p>
+                    {showZoning && (
+                      <p className="flex items-center gap-1 rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
+                        <span className="inline-block h-2 w-2 rounded-sm bg-[#ef4444]" />
+                        Zoning excludes housing (Pittsburgh city only)
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
+              <ResizablePanelGroup orientation="vertical" className="h-full w-full">
+                <ResizablePanel
+                  defaultSize="70%"
+                  minSize={0}
+                  collapsible
+                  collapsedSize={0}
+                  panelRef={scoresPanelRef}
+                >
+                  {selectedPin ? (
+                    <PillarsPanel pin={selectedPin} onClose={() => setSelectedPin(null)} onSelectPillar={handleSelectPillar} />
+                  ) : (
+                    <p className="p-2 text-xs text-muted-foreground">
+                      Click a parcel on the map to see its scores &amp; considerations.
+                    </p>
+                  )}
+                </ResizablePanel>
+                <ResizableHandle withHandle />
+                <ResizablePanel defaultSize="30%" minSize={0} collapsible collapsedSize={0} panelRef={breakdownPanelRef}>
+                  <BreakdownPanel pin={selectedPin} />
+                </ResizablePanel>
+              </ResizablePanelGroup>
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize="15%" minSize="8%" maxSize="30%" collapsible collapsedSize={0} panelRef={typologyPanelRef}>
+          <TypologyPanel pin={selectedPin} />
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
   );
 }
