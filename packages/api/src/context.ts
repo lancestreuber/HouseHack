@@ -4,4 +4,6 @@ import type { Database } from "@HouseHack/db";
 export type Context = {
   session: Session | null;
   db: Database;
+  /** Server-only key for the chat assistant; undefined disables it. */
+  geminiApiKey?: string;
 };

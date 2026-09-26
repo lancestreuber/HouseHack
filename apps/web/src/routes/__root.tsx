@@ -8,6 +8,7 @@ import { evlogErrorHandler } from "evlog/nitro/v3";
 
 import type { orpc } from "@/utils/orpc";
 
+import { ChatLauncher } from "../components/chat/chat-launcher";
 import Header from "../components/header";
 
 import appCss from "../index.css?url";
@@ -56,6 +57,7 @@ function RootDocument() {
           <Header />
           <Outlet />
         </div>
+        <ChatLauncher />
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />
         <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
