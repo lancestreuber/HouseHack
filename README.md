@@ -15,14 +15,14 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 
 ## Our project
 
-> **Team: start here.** This branch (`vid-branch`) holds the plan and research. The app's starting point (map, parcels in PostGIS, zoning layer) is on the `zoning-parcels` branch, which gets merged into `main` first. See [PLAN.md](PLAN.md) §0.
+> **Team: start here.** This branch (`vid-branch`) holds the plan and research. The app's starting point (map, parcels in PostGIS, zoning layer) came from `zoning-parcels` and is now on `main`. See [PLAN.md](PLAN.md) §0.
 
 ### What we're building
-**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. Sliders reweight Demand, Site and Access. You can show city-owned lots, compare up to 3 parcels, and print a one-page brief. There's no LLM: a transparent, rule-based engine suggests, and people decide.
+**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. There are two ways in. **Explore** starts from a parcel: you see its considerations, each scored like a review comment, plus one Parcel Score built from your own weights, plus a card for each housing type. **Find** starts from a goal ("I want to build senior housing in Homewood") and returns a ranked shortlist of parcels. A deterministic algorithm handles the scores and legality. [Jev](https://developers.cloudflare.com/ai/models/typesafe/jev/), a typed decision model, judges how well a parcel suits a purpose and reports a confidence. Nothing generates free text.
 
 ### Read these, in order
 1. **[PLAN.md](PLAN.md)**: lanes, contracts, tasks, milestones and the cut order. This is the source of truth for the 30-hour build.
-2. **[Design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md)**: typologies, factors (from the whiteboard), engine, and what's cut.
+2. **[Design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md)**: the two modes, typologies, considerations, algorithm vs. Jev, the pane layout, and what's cut.
 3. **[docs/research/](docs/research/)**: background reference only. It covers more than we will build.
 
 ### Get set up
