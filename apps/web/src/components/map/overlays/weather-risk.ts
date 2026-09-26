@@ -58,11 +58,12 @@ export const weatherRiskOverlay: OverlayDefinition = {
     sourceUrl:
       "https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/National_Risk_Index_Census_Tracts/FeatureServer/0",
     asOf: "NRI December 2025",
-    geography: "Census tract rating, not this parcel",
+    geography: "Census tract rating (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "NRI risk includes the dollar value of exposed buildings, so dense or valuable tracts rate higher.",
-      "Use the city flood, landslide and undermined layers for parcel-precise hazards.",
+      "Use the flood-zone, landslide and City hazard-overlay layers for parcel-precise hazards.",
+      "Some hazards barely vary here: heat wave, for example, is only rated Very Low or Relatively Low in every tract, so its colors don't signal a real difference.",
     ],
   },
   indicators: METRICS.map((m) => ({

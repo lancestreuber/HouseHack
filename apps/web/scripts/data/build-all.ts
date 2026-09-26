@@ -5,6 +5,7 @@ import { buildActivity } from "./activity";
 import { buildAirQuality } from "./air-quality";
 import { buildAmenities } from "./amenities";
 import { buildChas } from "./chas";
+import { buildCityHazards } from "./city-hazards";
 import { buildDesignations } from "./designations-lai";
 import { buildEquity } from "./equity";
 import { buildEverydayAccess } from "./everyday-access";
@@ -28,6 +29,6 @@ import { buildTransitStops } from "./transit-stops";
 import { buildWeatherRisk } from "./weather-risk";
 import { buildZoningPolicy } from "./zoning-policy";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity, buildSchoolQuality, buildZoningPolicy, buildHealth, buildEverydayAccess, buildHousingStability, buildLegalFeasibility]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity, buildSchoolQuality, buildZoningPolicy, buildHealth, buildEverydayAccess, buildHousingStability, buildLegalFeasibility, buildCityHazards]) {
   await build();
 }

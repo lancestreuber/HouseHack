@@ -21,15 +21,26 @@ export const RAMPS = {
 // Step choropleth on a numeric property: breaks[i] starts color i+1.
 // Missing values are checked first: `to-number` turns null into 0, which would
 // otherwise color no-data areas as the lowest bin.
+// When the first break is above zero, negative values are treated as sentinels
+// (no data). When it's zero or below (e.g. percent change), everything under the
+// first break gets the first color, so declines stay visible.
 export function stepFill(property: string, breaks: number[], colors: string[]): Expression {
-  const expr: Expression = ["step", ["to-number", ["get", property], -1], NO_DATA_COLOR, 0, colors[0]];
+  const signed = breaks[0] <= 0;
+  const expr: Expression = signed
+    ? ["step", ["to-number", ["get", property]], colors[0]]
+    : ["step", ["to-number", ["get", property], -1], NO_DATA_COLOR, 0, colors[0]];
   breaks.forEach((b, i) => expr.push(b, colors[i + 1]));
   return ["case", ["==", ["get", property], null], NO_DATA_COLOR, expr];
 }
 
 export function stepLegend(breaks: number[], colors: string[], format: (lo: number, hi?: number) => string): LegendItem[] {
-  const edges = [0, ...breaks];
-  return colors.map((color, i) => ({ color, label: format(edges[i], edges[i + 1]), shape: "fill" as const }));
+  const signed = breaks[0] <= 0;
+  const edges = signed ? [Number.NEGATIVE_INFINITY, ...breaks] : [0, ...breaks];
+  return colors.map((color, i) => ({
+    color,
+    label: signed && i === 0 ? `Below ${format(breaks[0]).replace(/\+$/, "")}` : format(edges[i], edges[i + 1]),
+    shape: "fill" as const,
+  }));
 }
 
 // Categorical color on a string property.

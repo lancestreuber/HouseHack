@@ -16,7 +16,10 @@ const ZCTA = "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/PUMA
 
 const round5 = (c: unknown): unknown =>
   Array.isArray(c) ? (typeof c[0] === "number" ? c.map((v) => Math.round(v * 1e5) / 1e5) : c.map(round5)) : c;
-const num = (v: unknown) => (v == null || v === "" || Number.isNaN(Number(v)) ? null : Number(v));
+// The MVA file codes missing values as -9999; real values (including negative
+// DRR and price change) are never that low.
+const num = (v: unknown) =>
+  v == null || v === "" || Number.isNaN(Number(v)) || Number(v) <= -9999 ? null : Number(v);
 const pct = (v: unknown) => (num(v) == null ? null : Math.round(num(v)! * 1000) / 10);
 
 async function buildMva() {

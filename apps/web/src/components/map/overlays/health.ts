@@ -120,7 +120,7 @@ export const healthOutcomesOverlay: OverlayDefinition = {
     source: "CDC PLACES, census tract estimates (2024 release)",
     sourceUrl: "https://www.cdc.gov/places/",
     asOf: "PLACES 2024 release (mostly 2022 BRFSS)",
-    geography: "Census tract estimate, not this parcel",
+    geography: "Census tract estimate (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "Model-based estimates, not local surveys.",

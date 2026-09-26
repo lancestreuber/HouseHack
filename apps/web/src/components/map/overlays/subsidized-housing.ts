@@ -111,7 +111,9 @@ export const housingVouchersOverlay: OverlayDefinition = {
   ],
   tooltipLayerIds: ["housing-vouchers-fill"],
   tooltip: (p) => [
-    `Voucher households: ${p.voucher_households ?? "no data"}`,
+    p.voucher_households == null
+      ? "10 or fewer voucher households (HUD withholds small counts)"
+      : `Voucher households: ${p.voucher_households}`,
     p.voucher_pct == null ? "" : `${Number(p.voucher_pct).toFixed(1)}% of renter units`,
     `Tract ${p.geoid}`,
   ].filter(Boolean),
@@ -119,14 +121,17 @@ export const housingVouchersOverlay: OverlayDefinition = {
     ...stepLegend(VOUCHER_BREAKS, RAMPS.neutral, (lo, hi) => (hi ? `${lo}–${hi}%` : `${lo}%+`)).map((item, i) =>
       i === 0 ? { ...item, label: `Under ${VOUCHER_BREAKS[0]}%` } : item,
     ),
-    { color: "rgba(120,120,120,0.35)", label: "No data", shape: "fill" as const },
+    { color: "rgba(120,120,120,0.35)", label: "10 or fewer voucher households (withheld)", shape: "fill" as const },
   ],
   meta: {
     source: "HUD Housing Choice Vouchers by Tract",
     sourceUrl: "https://services.arcgis.com/VTyQ9soqVukalItT/arcgis/rest/services/Housing_Choice_Vouchers_by_Tract/FeatureServer/0",
-    asOf: "Edited Jul 2026",
-    geography: "Census tract share, not this parcel",
+    asOf: "Vouchers through Dec 2025",
+    geography: "Census tract share (2020 boundaries), not this parcel",
     evidence: "observed",
-    caveats: ["Where voucher holders live, which reflects landlord acceptance as well as demand."],
+    caveats: [
+      "Where voucher holders live, which reflects landlord acceptance as well as demand.",
+      "HUD omits tracts with 10 or fewer voucher holders for privacy (200 of 394 here), so grey means few vouchers, not missing data.",
+    ],
   },
 };

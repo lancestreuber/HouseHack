@@ -63,7 +63,7 @@ export const equityOverlay: OverlayDefinition = {
     source: "CDC/ATSDR Social Vulnerability Index 2022 (public domain); Child Opportunity Index 3.0, diversitydatakids.org",
     sourceUrl: "https://www.atsdr.cdc.gov/place-health/php/svi/index.html",
     asOf: "SVI 2022; COI 2021 data year",
-    geography: "Census tract rank, not this parcel",
+    geography: "Census tract rank (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "SVI ranks are national percentiles; COI ranks are within the metro.",

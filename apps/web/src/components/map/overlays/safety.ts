@@ -65,7 +65,7 @@ export const safetyOverlay: OverlayDefinition = {
       "City of Pittsburgh police blotter, UCR Part I (WPRDC); Allegheny County homicide incidents (ACHD / Medical Examiner); population from ACS 2024 5-year",
     sourceUrl: "https://data.wprdc.org/dataset/uniform-crime-reporting-data",
     asOf: "City crime Dec 2020 – Nov 2023 (blotter ends); homicides 2016–2022 and 2024 (no 2023 layer)",
-    geography: "Census tract rate, not this parcel",
+    geography: "Census tract rate (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "Reported incidents reflect reporting and police deployment, not the risk people experience.",

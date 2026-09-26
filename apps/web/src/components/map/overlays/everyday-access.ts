@@ -111,7 +111,7 @@ export const homeInternetOverlay: OverlayDefinition = {
     source: "U.S. Census Bureau ACS 2024 5-year, table B28002 (via Census Reporter)",
     sourceUrl: "https://censusreporter.org/tables/B28002/",
     asOf: "ACS 2020–2024",
-    geography: "Census tract estimate, not this parcel",
+    geography: "Census tract estimate (2020 boundaries), not this parcel",
     evidence: "observed",
     caveats: [
       "Job searches, school, telehealth and housing applications (including subsidized waitlists) are mostly online.",
