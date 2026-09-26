@@ -14,7 +14,8 @@ The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-gro
 | Stack | bun, Turborepo, TanStack Start, oRPC, Drizzle, shadcn (`packages/ui`), `maplibre-gl` 6, Vercel. New package `packages/scoring`. The only new dependency is the shadcn `resizable` component. |
 | Modes | **Explore** (parcel → typologies) and **Find** ("I want to build X" → parcels). **Compare favorites** is a low-priority end goal. |
 | Algorithm | Deterministic consideration scores + **Parcel Score = user-weighted mean, one weight per consideration**. Also legality and shortlists. Runs in the browser. |
-| AI | **Jev only** (TypeSafe, via Cloudflare Workers AI `typesafe/jev`). It answers "how good is this parcel for purpose X": typology fit in Explore, ranking in Find, choice in Compare. **No Claude, no generated text.** It never decides legality. Rule-based fallback, labeled. |
+| AI: decisions | **Jev** (TypeSafe, **team early-access key**, `TYPESAFE_API_KEY`). It answers "how good is this parcel for purpose X": typology fit in Explore, ranking in Find (with an optional free-text purpose), and choice in Compare. It never decides legality. Rule-based fallback, labeled. Cloudflare Workers AI `typesafe/jev` is the backup transport. |
+| AI: explanation | **Explain-only chatbot** (Lane E, Vidyut, free Gemini tier). It answers questions using only facts the algorithm and Jev returned, cited with source chips. It never produces a score, fit or legal status. It is hideable, and the app works without it. |
 | Typologies | `sfd`, `adu`, `duplex`, `townhome`, `apartments`, `senior`, each with a demand profile (senior = air, health, transit, flat ground, 65+ share) |
 | UI | Resizable, collapsible panes: map (top left), considerations + notes (right), typology cards / shortlist (bottom). Super minimal dark, following the Grammarly content → comment → warning model. |
 | Hospitals / fire | Consideration "Health & emergency" |
@@ -25,7 +26,7 @@ The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-gro
 | Basemap | Carto dark. Yellow `#F2C230` only for selection. |
 | Owners | Claimed in Discord (§1) |
 
-## 1. Lanes (4; a 5th person takes Lane J)
+## 1. Lanes (5: A, B, C, D + E; Lane J goes to a 6th person, or B if there are only 5)
 | Lane | Owner | Owns (files) |
 |---|---|---|
 | **A: Data** | _Discord_ | `packages/db/src/schema/*`, `packages/db/src/scripts/*`, `packages/db/sql/*` |
@@ -33,6 +34,7 @@ The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-gro
 | **J: Jev** (5th person, or B if only 4) | _Discord_ | `packages/scoring/src/jev/*`, `packages/api/src/routers/jev.ts`, `packages/api/src/routers/find.ts` |
 | **C: Map + panes shell** | _Discord_ | `apps/web/src/components/map/*`, `apps/web/src/components/shell/*` (panes, mode switch, search) |
 | **D: Panels + submission** | _Discord_ | `apps/web/src/components/{considerations,typologies,shortlist,weights}/*`, `apps/web/src/routes/*`, methodology, video |
+| **E: Chatbot** | Vidyut | `packages/api/src/routers/chat.ts`, `packages/api/src/chat/*`, `apps/web/src/components/chat/*` |
 
 Each lane opens PRs to `main` and merges with **merge commits**. Never commit `.env` or keys.
 
@@ -111,6 +113,17 @@ export function notesFor(r: ParcelReport, t?: TypologyId): Note[];
 | `jev.evaluate` | J | `{ pin }` | `TypologyEval[]` (6, cached; rules fallback) |
 | `find.parcels` | J | `{ typology, purpose?: string, scope: { hood_id? , pins? }, weights }` | `{ pin, address, fit, confidence, source, failing_demands }[]` (≤10), shortlisted from the top 40 |
 | `jev.compare` *(low)* | J | `{ pins (≤6), typology, purpose? }` | `{ pin, p_best, fit, confidence }[]` |
+| `chat.ask` | E | `{ pin?, pins?, typology?, weights, messages: { role: "user" \| "assistant", text }[] }` | streamed `{ text, fact_ids[] }` chunks; a final `{ done: true }` or `{ unavailable: true, reason }` |
+
+**Chatbot grounding (Lane E):**
+- The server calls the same code as the UI (`parcels.report` → `considerationsFor`, `parcelScore`, `legality`, plus the cached `jev.evaluate` results). It sends those results plus the methodology text as the **only allowed facts**. The model cites consideration ids and fact ids, which the UI renders as the same source chips.
+- The system prompt says:
+  - Never state a number, score, fit, legal status or rule that isn't in the facts.
+  - When a Jev result is mentioned, report its confidence.
+  - For anything out of scope (crime, sewer capacity), say "the data doesn't cover that" and point to "what this tool can't tell you".
+  - Everything is a suggestion, never advice.
+- Target questions: "Why is senior housing only Fair here?", "What changes if I weight Air higher?" (it re-scores via `scoring`, never guesses), "Compare my favorites", "What does 'needs approval' mean?", "Where does the air number come from?".
+- **Fallback:** no key, a rate limit or an error → `{ unavailable }`. The pane then shows the deterministic notes.
 
 **Mocks:** `packages/scoring/fixtures/{report-homewood,report-beechview,report-lawrenceville,evals-homewood,find-senior-homewood}.json` + `hoods.json`. Lanes C and D build against these until M2.
 
@@ -119,7 +132,7 @@ export function notesFor(r: ParcelReport, t?: TypologyId): Note[];
 Legend: **M1** = Sat 5pm · **M2** = Sat 10pm (Explore end-to-end, real data, deployed) · **M3** = Sun 2pm freeze (Jev + Find in) · **M4** = Sun 9pm submit.
 
 ### Everyone (M1)
-- [ ] bun installed, `apps/web/.env` created (the shared `DATABASE_URL`; `CF_ACCOUNT_ID`/`CF_AI_TOKEN` for Lane J only), `bun install`, `bun run dev` → http://localhost:3001 shows the map.
+- [ ] bun installed, `apps/web/.env` created (the shared `DATABASE_URL`; `TYPESAFE_API_KEY` for Lane J and `GEMINI_API_KEY` for Lane E only), `bun install`, `bun run dev` → http://localhost:3001 shows the map.
 - [ ] Read the spec + your lane section below.
 
 ### Lane A: Data
@@ -153,7 +166,7 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
 - [ ] **A8 (M3)** `bun run data:refresh` runs everything in order. Document it in the README "Keeping it current" section.
 
 ### Lane B: Algorithm + API (lead)
-- [ ] **B0 (M1)** Set up the shared Neon DB, send out the connection string, and turn off Vercel preview protection. Add `CF_ACCOUNT_ID` and `CF_AI_TOKEN` to `apps/web/.env.schema`.
+- [ ] **B0 (M1)** Set up the shared Neon DB, send out the connection string, and turn off Vercel preview protection. Add `TYPESAFE_API_KEY` and `GEMINI_API_KEY` (optional, sensitive, server-only) to `apps/web/.env.schema`.
 - [ ] **B1 (M1)** Create `packages/scoring`. Commit `types.ts` + fixtures (§2b), then tell lanes C, D and J.
 - [ ] **B2 (M2)** `considerations.ts`: one entry per `ConsiderationId` holding its normalizer, thresholds, severity cutoffs (≥70 ok, 40–69 consider, <40 or any hazard = warn), comment template, source and kind. Examples:
   - Transit: ≤400 m = 100, ≥1600 m = 0
@@ -165,8 +178,8 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
 - [ ] **B7 (M3)** Tune thresholds on the 3 demo parcels, check zoning by hand, and hand the final table to Lane D for the methodology page.
 
 ### Lane J: Jev
-- [ ] **J0 (M1)** Get the Workers AI token (Cloudflare dashboard → AI → REST API token) and confirm `typesafe/jev` answers with a curl smoke test. If the team's TypeSafe early-access key is easier, use that transport instead; the questions stay the same.
-- [ ] **J1 (M2)** `packages/scoring/src/jev/client.ts`: `runJev(state, questions)` over `fetch` → `POST https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/ai/run/typesafe/jev`, 8 s timeout, typed result. Server-only.
+- [ ] **J0 (M1)** Take the team's TypeSafe early-access key (console.typesafe.ai/keys). Find the REST endpoint behind the `system_one(state, questions)` call in the TypeSafe docs (the Python SDK is `typesafe-sdk`, but we call it with `fetch`). Smoke-test with curl and record the endpoint, headers and response shape here. **Backup:** Cloudflare Workers AI `POST /accounts/{id}/ai/run/typesafe/jev` takes the same `{ state, questions }`.
+- [ ] **J1 (M2)** `packages/scoring/src/jev/client.ts`: `runJev(state, questions)` over `fetch` to the J0 endpoint with `TYPESAFE_API_KEY`. 8 s timeout. Typed result: `choices[name] { choice, confidence, probabilities }`, `scores[name] { score, confidence, probabilities }`, `nouls[name] { noul }`. Server-only.
 - [ ] **J2 (M2)** `jev/rubrics.ts`: per-typology `score` question (5 levels poor→excellent, instructions naming its demands in plain language) + `noul` `major_concern`. Add `RUBRIC_VERSION`. `jev/state.ts`: `ParcelReport` → compact facts JSON (no PII, under 2k tokens).
 - [ ] **J3 (M2)** `jev.evaluate` router:
   - Skip `not_allowed` typologies.
@@ -197,6 +210,14 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
 - [ ] **C6 (M3)** Find-mode map: highlight shortlist parcels with rank numbers. Hovering a row in the shortlist pane highlights the parcel, and vice versa.
 - [ ] **C7 (M3, Should)** Hazard / transit / emitter layer toggles.
 
+### Lane E: Chatbot (Vidyut)
+- [ ] **E1 (M1)** Pick the Gemini model on the free tier. Record its limits and model id here.
+- [ ] **E2 (M2)** `packages/api/src/chat/`: a provider wrapper (plain `fetch`, streaming), the system prompt, and a grounding builder (`ParcelReport` + `TypologyEval[]` + methodology → context). Build against the fixtures until the real data lands.
+- [ ] **E3 (M2)** `chat.ask` router with the fallback. Lane B registers it in `routers/index.ts`.
+- [ ] **E4 (M2)** `components/chat/`: a **collapsible chat pane**. It is a tab beside Considerations in the right pane, so it adds no new pane. It shows streaming text, fact chips (the same component as the considerations), and 3 starter questions per parcel or typology. Lane C gives it the pane slot.
+- [ ] **E5 (M3)** Test set: 10 questions across the 3 demo parcels. Every number in an answer must match a fact. Include 2 out-of-scope questions (crime, sewer) that must be declined. Add a response cache keyed by (pin, weights, question) so the demo replays instantly.
+- [ ] **E6 (M3)** Methodology copy: "What the chatbot does and doesn't do" (Lane D places it).
+
 ### Lane D: Panels + submission
 - [ ] **D1 (M1)** Scaffold cleanup: delete the `login` and `todos` routes and their header links, the "My App" title and the ASCII art. Add shadcn `resizable`, `slider`, `popover`, `badge`, `tooltip`, `collapsible`, `toggle-group`.
 - [ ] **D2 (M2)** **Considerations pane** (right, from fixtures):
@@ -215,7 +236,7 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
   - considerations table (thresholds, source, as-of, kind)
   - Parcel Score formula
   - legality rules + the Zoning Administrator note
-  - "Algorithm vs. Jev" (what each decides, confidence, fallback)
+  - "Algorithm vs. Jev vs. chatbot" (what each decides or explains, confidence, fallback)
   - "What this tool can't tell you"
 - [ ] **D9 (M3, Should)** Print CSS: considerations + typology cards + notes as one page with sources and the date.
 - [ ] **D10 (M4)** Video, recording and submission:
@@ -240,22 +261,25 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
 
 ## 5. Cut order if behind (cut from the top first)
 1. J6/D7 Jev Compare (keep the ☆ list only)
-2. A7 shops + AQI context, C7 layer toggles
-3. D9 print
-4. J4/D6 purpose free text (Find stays typology-only)
-5. Jev in Find (the shortlist ranks by the algorithm and is labeled "rule-based")
-6. Jev in Explore (the cards show `ruleFit`, labeled "rule-based")
+2. E5 cache and test set beyond the 3 demo parcels. **If the chatbot isn't solid by M3, hide its tab.**
+3. A7 shops + AQI context, C7 layer toggles
+4. D9 print
+5. J4/D6 purpose free text (Find stays typology-only)
+6. Jev in Find (the shortlist ranks by the algorithm and is labeled "rule-based")
+7. Jev in Explore (the cards show `ruleFit`, labeled "rule-based")
 
 **Never cut:** panes, Homewood search → city-owned layer → parcel click → considerations + notes + Parcel Score + typology cards with legality, weights, methodology page, video.
 
 ## 6. Risks
 | Risk | Mitigation |
 |---|---|
-| Jev access or latency | Smoke test at M1. 8 s timeout, cache in Postgres, precompute the demo, labeled rule fallback everywhere. |
+| Jev access or latency | Smoke test the early-access key at M1, with Workers AI as the backup transport. 8 s timeout, cache in Postgres, precompute the demo, labeled rule fallback everywhere. |
+| Chatbot states something false | Facts-only grounding, id citations, the E5 test set, and a cache for demo questions. If it's shaky at M3, hide the tab. |
+| Gemini free-tier limits or key | Server-side key only, a response cache, and an `unavailable` fallback to the deterministic notes. |
 | Jev returns odd fits | Rubrics name each typology's demands explicitly. Show the confidence. `failing_demands` is deterministic, so explanations never come from AI. Check the demo parcels by eye at M3. |
 | Neon free-tier storage (0.5 GB) | City-only parcels, `ST_SimplifyPreserveTopology` (0.00001), drop unneeded properties. |
 | Feature SQL is slow | GiST indexes. KNN `<->`. Run offline once. |
 | WPRDC CRS/format differs | Check `crs`. `ST_Transform` from 2272 when needed. |
 | Zoning rules wrong | "Verify with Zoning Administrator" note. Check 3 demo parcels by hand. |
 | Pane layout eats time | Use the shadcn `resizable` defaults. Collapse = set the size to 0. No custom drag code. |
-| Merge collisions | Lanes own folders (§1). Only B touches `routers/index.ts`, only D touches `__root.tsx`, and J adds its routers via B. |
+| Merge collisions | Lanes own folders (§1). Only B touches `routers/index.ts`, only D touches `__root.tsx`, and J and E add their routers via B. |

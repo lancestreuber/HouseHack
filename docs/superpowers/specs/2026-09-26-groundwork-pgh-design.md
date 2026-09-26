@@ -19,9 +19,10 @@ Revised Sat Sep 26, ~3pm ET, from two team whiteboards: the factor list, and the
 |---|---|---|
 | **Algorithm** (deterministic, `packages/scoring`) | Consideration scores, the **Parcel Score** (user weights), **legality** per typology, shortlists | Transparent and reproducible. The same inputs always give the same output. Legality is never left to AI. |
 | **Jev** (TypeSafe, a typed decision model) | **How good a parcel is for purpose X**: typology fit (a score with a confidence) in Explore, ranking in Find, and a choice among favorites in Compare | Weighs each typology's *demands* against the facts. For example, senior housing needs air quality, health access and flat ground. Returns calibrated probabilities instead of text, so it can't hallucinate prose. |
+| **Chatbot** (explain-only, Gemini free tier; owner Vidyut, Lane E) | **Nothing.** It explains: "Why is senior housing only Fair here?", "What changes if I weight Air higher?", "Compare my favorites" | It only uses facts the algorithm and Jev returned, and cites them with the same source chips. It never states a number, fit or legal status of its own, and it declines out-of-scope questions (crime, sewer). It lives in a hideable tab, and the app works without it. |
 | **People** | Weights, purpose, final pick | "We suggest; people decide." |
 
-No Claude and no free-text generation. All user-facing wording is templated from facts.
+All wording on considerations, notes and cards is templated from facts. The chatbot tab is the only place with generated text, and it is grounded and cited.
 
 ## Demo story: "Homewood CDC wants to know which vacant lots fit what housing"
 1. **Explore.** The map opens on Pittsburgh with the Demand choropleth. Search "Homewood" and turn on **city-owned lots**.
@@ -90,7 +91,9 @@ When a type is "not allowed", its card is greyed out and Jev is **not asked** ab
 - **Where it runs.** Consideration scores and the Parcel Score are computed **in the browser**, so sliders are instant. Jev runs on the server.
 
 ## Jev integration
-- **Transport:** Cloudflare Workers AI REST `POST https://api.cloudflare.com/client/v4/accounts/{CF_ACCOUNT_ID}/ai/run/typesafe/jev`, with body `{ state, questions }`. The call uses plain `fetch`, so no new dependency. The context window is 32k tokens.
+- **Transport:** the TypeSafe API with the team's **early-access key** (`TYPESAFE_API_KEY`, model alias `jev-latest`), called with plain `fetch`, so no new dependency. The request is `{ state, questions }`, the same as the SDK's `system_one`. Lane J confirms the endpoint at M1.
+  - Backup: Cloudflare Workers AI `typesafe/jev`, which takes the same body.
+  - The context window is 32k tokens.
 - **Question types:** `score` (2–10 ordered levels, with confidence), `choice` (closed option list, with per-option probabilities) and `noul` (probability that a statement is true).
 - **State:** the parcel's facts JSON: id, label, value, unit, severity and source for each consideration, plus context rows and the neighborhood name. Never PII.
 - **Explore call** (one per parcel, cached):
@@ -119,6 +122,7 @@ The layout follows the whiteboard sketch: **resizable, collapsible panes**, usin
 │ [SFD 72] [Duplex 65] [Town 60] [Apts —] [Senior 50·71%] [ADU ✕]│
 └──────────────────────────────────────────────────────────────┘
 ```
+- **Right pane tabs:** `Considerations` (default) | `Ask`. `Ask` is the chatbot: streaming answers, fact chips and 3 starter questions. It gets no pane of its own, so the layout stays at three panes.
 - **Grammarly model.**
   - The map/parcel is the *content*.
   - Considerations are *comments*: a dot, a name, a short value and one line of text, expanding to the source, as-of date and Evidence/Assumption label.
@@ -139,9 +143,10 @@ The layout follows the whiteboard sketch: **resizable, collapsible panes**, usin
 - Zoning carries the note "Simplified interpretation. Verify with the Zoning Administrator."
 - **AI boundaries are explicit:**
   - Jev never decides legality and never generates text.
-  - Its confidence is always shown.
+  - Jev's confidence is always shown.
   - The rule-based fallback is labeled.
-  - The methodology page explains algorithm vs. Jev.
+  - The chatbot only explains grounded, cited facts. It never scores.
+  - The methodology page explains algorithm vs. Jev vs. chatbot.
 - The methodology page includes a "What this tool can't tell you" section covering:
   - crime, tornado, water/sewer capacity, school quality
   - market feasibility and cost
@@ -155,8 +160,8 @@ The layout follows the whiteboard sketch: **resizable, collapsible panes**, usin
   - the `maplibre-gl` 6 map with the zoning layer and worker/Vite fixes
 - Monorepo stays as scaffolded: bun + Turborepo, TanStack Start (`apps/web`), oRPC (`packages/api`), Drizzle (`packages/db`), shadcn/base-ui (`packages/ui`), Vercel.
 - **One new package:** `packages/scoring` (pure TS, `bun test`), which also holds the Jev rubrics. Data scripts live in `packages/db/src/scripts/`.
-- **New deps:** only the shadcn `resizable` component (react-resizable-panels). Jev uses `fetch`.
-- **Env:** `CF_ACCOUNT_ID` and `CF_AI_TOKEN` (Workers AI). If the team's TypeSafe early-access key works, the lead may swap the transport; the questions and state stay the same.
+- **New deps:** only the shadcn `resizable` component (react-resizable-panels). Jev and Gemini both use `fetch`.
+- **Env (server-only, optional):** `TYPESAFE_API_KEY` (Jev) and `GEMINI_API_KEY` (chatbot).
 
 ## Priorities
 1. **Must:**
@@ -165,12 +170,15 @@ The layout follows the whiteboard sketch: **resizable, collapsible panes**, usin
    - panes
    - city-owned layer
    - methodology
-2. **Must, by M3:** Jev typology fit in Explore (with cache and fallback) and Find mode with the Jev shortlist.
+2. **Must, by M3:**
+   - Jev typology fit in Explore (with cache and fallback)
+   - Find mode with the Jev shortlist and an optional purpose text
+   - the explain-only chatbot tab (hidden if it's shaky at M3)
 3. **Should:** print, shops, AQI context, layer toggles.
 4. **Low / end goal:** Jev Compare favorites.
 
 ## Explicitly cut
-- Claude and any text generation: the brief, companion chat, "ask the map"
+- Claude, the AI brief, "ask the map" (natural-language filters). The chatbot explains but never filters or scores.
 - ADU reform toggle
 - Pro forma, personas, commute, satellite layers, 3D massing, Monte Carlo confidence
 - Redlining, lead lines, Eviction Lab, displacement, Market Value Analysis
