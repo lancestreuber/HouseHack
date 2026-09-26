@@ -7,7 +7,7 @@
 
 ## Stated framing
 
-- **Growth-first.** The Mayor's deputy chief of staff describes the administration's line as "laser-focus on growth" `[read]` ([WESA 2026-09-25](https://www.wesanews.org/politics-government/2026-09-25/housing-policy-priority-pittsburgh-allegheny-county)).
+- **Growth framing.** The Mayor's deputy chief of staff describes the administration's line as "laser-focus on growth" `[read]` ([WESA 2026-09-25](https://www.wesanews.org/politics-government/2026-09-25/housing-policy-priority-pittsburgh-allegheny-county)). ⚠ This is one quote in one article; the City's own 2050 plan housing section aims to "produce *and preserve*" (below), so the City's agenda includes both *(corrected 2026-09-26 per docs/04-critique.md row 16)*.
 - The Mayor took office in January 2026 and ordered a 60-day permitting review on day one (EO 2026-01, Jan 6) `[read]` for the review, `[skimmed]` for the order number. A WESA snippet has the Mayor saying the order does **not** touch planning, zoning or community-input steps `[skimmed]`. See the contradiction in [reforms in flux](../policy/reforms-in-flux-2025-2026.md).
 
 ## What the City has committed to
@@ -82,4 +82,4 @@ From PublicSource, 2026-09-23 `[read]` ([link](https://www.publicsource.org/pitt
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md)
 - Working notes: [../../archive/working-notes-2026-09-26/04-stakeholders.md](../../archive/working-notes-2026-09-26/04-stakeholders.md)
-- [Adversarial critique](../../docs/04-critique.md) — rows 4, 9, 15, 30
+- [Adversarial critique](../../docs/04-critique.md) — rows 4, 9, 15, 16, 30

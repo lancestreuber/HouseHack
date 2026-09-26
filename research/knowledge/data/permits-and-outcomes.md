@@ -88,5 +88,5 @@ From 30,775 paginated ZDR + BDA records; start = earliest workflow date, end = I
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
-- [Adversarial critique](../../docs/04-critique.md) — rows 2, 3
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 2, 3

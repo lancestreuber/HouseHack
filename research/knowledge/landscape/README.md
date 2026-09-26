@@ -6,7 +6,7 @@ What already exists: commercial and open tools, hackathon precedents, Pittsburgh
 |---|---|
 | [commercial-tools.md](commercial-tools.md) | Commercial zoning/feasibility products, research likelihood models, open-source repos with licenses |
 | [hackathon-precedents.md](hackathon-precedents.md) | Seattle PACT-athon, AEC Tech (UpZone, Zone In, Anthill), ZoneMind, YIMBY AI, NJ |
-| [pittsburgh-civic-tools.md](pittsburgh-civic-tools.md) | WPRDC tools, Lots to Love, ETHOS lot suitability, OneStopPGH Insights, Landslide Portal, Board Explorer, Pro-Housing IZ dataset, Neighborhood Project, MVA |
+| [pittsburgh-civic-tools.md](pittsburgh-civic-tools.md) | WPRDC tools, Lots to Love, ETHOS lot suitability (⚠ a stormwater/green-infrastructure analysis, date unverified *(corrected 2026-09-26 per docs/04-critique.md row 31)*), OneStopPGH Insights, Landslide Portal, Board Explorer, Pro-Housing IZ dataset, Neighborhood Project, MVA |
 | [other-participants.md](other-participants.md) | Public repos from this event (facts only; not a competitor count) |
 | [framings.md](framings.md) | Nine Track 1 framings with evidence and risks |
 
@@ -47,3 +47,7 @@ Sources for this summary: [r3 reality check](../../sweeps/r3-reality-check-exist
 - [Brief and judging](../challenge/brief-and-judging.md)
 - [Organizer data catalog](../data/organizer-data-catalog.md)
 - [Track 3: combining with Track 1](../track3/combining-with-track1.md)
+
+## Sources
+
+- [Adversarial critique](../../docs/04-critique.md) — row 31

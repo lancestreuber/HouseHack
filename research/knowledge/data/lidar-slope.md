@@ -67,7 +67,6 @@ The r3 reality-check sweep found no housing feasibility tool using LiDAR-derived
 ## Sources
 - [USGS 3DEP ImageServer](https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer) `[read]` *(accessed 2026-09-26)*: getSamples and computeStatisticsHistograms tested
 - [ETHOS lot suitability](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/ETHOS_Lot_Suitability/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
-- [Adversarial critique](../../docs/04-critique.md) — row 31
 - [City PGHWebSlope25](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/PGHWebSlope25/FeatureServer/0) `[read]` *(accessed 2026-09-26)*
 - [USGS 3DEP program page (organizer catalog URL)](https://www.usgs.gov/3d-elevation-program) `[found]` *(accessed 2026-09-26)*
 - [PASDA (organizer catalog URL)](https://www.pasda.psu.edu/) `[found]` *(accessed 2026-09-26)*
@@ -75,3 +74,4 @@ The r3 reality-check sweep found no housing feasibility tool using LiDAR-derived
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 31

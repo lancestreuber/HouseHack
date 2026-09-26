@@ -25,4 +25,6 @@ Some sources were blocked, and each one is recorded here with the specific block
 | OneStopPGH portal (interactive) | Not suited to bulk extraction | Use the `OSPI_H` FeatureServer instead (about 11 s per query) |
 | Seattle Innovation Hub (PACT-athon post) | A re-fetch hit a Cloudflare challenge; earlier sweeps had read it | The earlier `[read]` stands on the r3 and r4 sweeps |
 | Rankin et al. 2024 / Child Opportunity Index | 403 (paywall / bot block) | Recorded inline in the Track 3 nodes |
+| Allegheny County HNA (organizer catalog URL `alleghenycounty.us/Services/Housing/Housing-Needs-Assessment`) | 404 (WebFetch) / 403 (curl). No such report was found by search. The County's EO 2026-1 orders its "first" HNA. | None. Treat the catalog entry as unverifiable. |
+| Legistar (Pittsburgh City Council) | **Not blocked.** The web API answers without a key; an earlier "no Council records" claim was false | `https://webapi.legistar.com/v1/pittsburgh/matters` |
 | USGS 3DEP ImageServer | About 1 in 4 `computeStatisticsHistograms` calls failed; a 4000×4000 export returned HTTP 500 | Retry; tile the city at about 1500² px |

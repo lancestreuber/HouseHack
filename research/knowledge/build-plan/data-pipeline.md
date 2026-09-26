@@ -89,3 +89,4 @@ More on slope as data: [LiDAR slope](../data/lidar-slope.md).
 - Sweep: [../../sweeps/r4-build-feasibility-on-team-stack.md](../../sweeps/r4-build-feasibility-on-team-stack.md) `[read]` *(accessed 2026-09-26)*: tooling install tests, timing tests, estimates
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md) `[read]` *(accessed 2026-09-26)*: per-parcel histogram method, UTM gotcha, paging limits, WPRDC 403
 - Sweep: [../../sweeps/r2-ux-and-map-stack.md](../../sweeps/r2-ux-and-map-stack.md) `[read]` *(accessed 2026-09-26)*: tippecanoe flags, minimal attributes, low-zoom aggregates
+- [Adversarial critique](../../docs/04-critique.md) — row 31

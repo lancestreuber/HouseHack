@@ -135,4 +135,4 @@ T1 Feas. = tagged Feasibility; PtP = Permit Navigator; T3 Typ. = Typology & Clim
 - [het-sheth/ai-housing-hackathon-wiki](https://github.com/het-sheth/ai-housing-hackathon-wiki), file `raw/hackathon/AI Hackathon for Housing — Public Data Catalog - Data Catalog.csv` `[read]` *(accessed 2026-09-26)*: where we first saw it; same 60 dataset names
 - [Track 1 brief page](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/policy-to-permit.html) `[read]` *(accessed 2026-09-26)*: URL slug vs title
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
-- [Adversarial critique](../../docs/04-critique.md) — rows 19, 27
+- [Adversarial critique](../../docs/04-critique.md) — rows 19, 27, 32

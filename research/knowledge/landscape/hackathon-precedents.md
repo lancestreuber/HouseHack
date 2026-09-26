@@ -9,12 +9,12 @@
 
 ### Seattle Community Innovation PACT-athon (Oct 2025), permitting
 
-Source: [Seattle Innovation Hub post](https://innovation-hub.seattle.gov/2025/10/28/community-innovation-pactathon-permitting/) `[read]` (read by the round-3 and round-4 sweeps; a re-fetch on 2026-09-26 for this node was blocked by a Cloudflare challenge).
+Source: [Seattle Innovation Hub post](https://innovation-hub.seattle.gov/2025/10/28/community-innovation-pactathon-permitting/) `[read]` (read by the round-3 and round-4 sweeps; a re-fetch on 2026-09-26 for this node was blocked by a Cloudflare challenge; the critique's WebFetch on 2026-09-26 succeeded and confirmed the winners).
 
 - **1st place, "Permit Predictor":** forecast permit duration and number of review rounds, with confidence scores.
 - **2nd place:** a permit chatbot and dashboard.
 - **3rd place, "PreAssess":** retrieval over the municipal code, producing plain-language checklists; shows setbacks and height.
-- **Judges' praise** (as quoted by the sweep): tools that "illuminate the process… as early as possible."
+- ⚠ **Judges' praise: unverified; do not quote** *(corrected 2026-09-26 per docs/04-critique.md row 28)*. The sweeps quoted judges praising tools that "illuminate the process… as early as possible", but the critique's live fetch of the post (2026-09-26) found **no direct judges' quote**. The win itself (1st place Permit Predictor: duration, review rounds, confidence scores) and the 3rd-place team's time split **were confirmed** in that fetch.
 - **3rd-place team's time split:** about 1.5 hours defining the problem and 30 minutes coding (their own account, as reported in the post).
 - No repos were found for these entries.
 
@@ -58,7 +58,7 @@ Also noteworthy: timeline prediction with uncertainty (Permit Predictor) has **a
 The round-3 sweep found no published judges, prior winners or kickoff materials and describes this as apparently the first hackathon of its kind; the only organizer framing it found was "permitting or fragmented data" ([Technical.ly](https://technical.ly/workforce/ai-horizons-summit-pittsburgh-tackles-ai-safety-and-economic-impact/) `[skimmed]`).
 
 ## Open questions
-- Is the Seattle judges' quote exact? Our re-fetch was blocked; the wording comes from the sweeps.
+- Where did the sweeps' Seattle judges' quote come from? The critique's fetch found no judges' quote in the post.
 - What did the Seattle 2nd-place and NJ entries actually build? The two sweeps differ.
 - Zone In, Anthill and PreVu repos and licenses were not found.
 - Are there prior housing hackathons in Pittsburgh itself? None found.
@@ -73,7 +73,7 @@ The round-3 sweep found no published judges, prior winners or kickoff materials 
 - [Brief and judging](../challenge/brief-and-judging.md): this event's criteria
 
 ## Sources
-- [Seattle PACT-athon post](https://innovation-hub.seattle.gov/2025/10/28/community-innovation-pactathon-permitting/) `[read]` *(accessed 2026-09-26; per sweeps, re-fetch blocked)*: winners, judges' praise, time split
+- [Seattle PACT-athon post](https://innovation-hub.seattle.gov/2025/10/28/community-innovation-pactathon-permitting/) `[read]` *(accessed 2026-09-26; confirmed by the critique's fetch)*: winners, time split (⚠ no judges' quote found)
 - [AEC Tech hackathon archive](https://www.aectech.us/hackathon-archive) `[read]` *(accessed 2026-09-26)*: UpZone, Zone In, Anthill, PreVu
 - [ssajedi/upzone](https://github.com/ssajedi/upzone) `[read]` *(accessed 2026-09-26)*: license and dates via GitHub API
 - [Code4City](https://www.code4city.com/) `[read]` *(accessed 2026-09-26)*
@@ -83,3 +83,4 @@ The round-3 sweep found no published judges, prior winners or kickoff materials 
 - [Technical.ly, AI Horizons summit](https://technical.ly/workforce/ai-horizons-summit-pittsburgh-tackles-ai-safety-and-economic-impact/) `[skimmed]` *(accessed 2026-09-26)*
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 28

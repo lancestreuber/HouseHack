@@ -51,7 +51,7 @@ Parsed from `https://www.huduser.gov/portal/datasets/il/il26/Section8-FY26.xlsx`
 | `…/LIHTC/FeatureServer/0` | 215 Allegheny projects | latest real YR_PIS 2019 ([permits](permits-and-outcomes.md)) |
 
 ## PHFA 2025–26 QAP (from working notes, marked [V] there)
-Max basis per unit $320k (9%) / $380k (4%); developer fee caps; cost limits: general requirements ≤6%, overhead 2%, profit 6%, contingency 5%/10%. **The QAP URL was not recorded**, so cite as `[skimmed]` until re-read. See [pro forma](../methods/pro-forma.md).
+Max basis per unit $320k (9%) / $380k (4%); developer fee caps; cost limits: general requirements ≤6%, overhead 2%, profit 6%, contingency 5%/10%. **The QAP URL was not recorded** in the working notes, so these figures stay `[skimmed]` until re-read. ⚠ Tag reconciliation *(corrected 2026-09-26 per docs/04-critique.md row 30)*: the [State node](../stakeholders/state-dced-phfa.md), [pro forma](../methods/pro-forma.md) and [framings](../landscape/framings.md) name the QAP PDF they read ([PHFA 2025–2026 LIHTC QAP](https://www.phfa.org/forms/multifamily_program_notices/qap/2025_and_2026/2025-2026-lihtc-qap.pdf)) and keep `[read]`; this node's figures come from working notes, not that artefact, so they stay `[skimmed]` until checked against it.
 
 ## Geography and access `[read]`
 | Layer | Detail |
@@ -106,3 +106,4 @@ ACHD air quality, school quality (PA Future Ready), HUD FMR/SAFMR values, PHFA a
 - Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 30

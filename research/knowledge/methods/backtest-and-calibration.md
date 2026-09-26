@@ -110,3 +110,4 @@ Precedents from memory, not re-fetched: LA and SF Housing Element likelihood mod
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md) `[read]` *(accessed 2026-09-26)*: OSPI_H counts, recode, other permit copies
 - Working notes: [../../archive/working-notes-2026-09-26/03-scoring-methods.md](../../archive/working-notes-2026-09-26/03-scoring-methods.md) `[read]` *(accessed 2026-09-26)*: rule-change caveat
 - Working notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md) `[read]` *(accessed 2026-09-26)*: Pro-Housing Pittsburgh CSV
+- [Adversarial critique](../../docs/04-critique.md) — rows 22, 31

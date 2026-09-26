@@ -109,3 +109,4 @@ Details on IZ and the bonus: [inclusionary zoning and bonus](inclusionary-zoning
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 6, 8, 9, 10, 25, 26

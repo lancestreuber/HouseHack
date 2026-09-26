@@ -40,7 +40,7 @@ The scoring sweep's draft formula was:
 ⚠ **Two parts of that draft do not apply to Pittsburgh residential districts:**
 
 1. **No FAR.** §903.03 residential districts have no floor-area ratio. The envelope comes from lot size, setbacks and height only. This is logged in the [corrections log](../README.md#corrections-log). For residential districts, GFA_max = buildable footprint × floors allowed by the height limit.
-2. **No lot-area-per-unit limit.** The May 2025 lot-size reform removed lot-size-per-unit requirements everywhere ([prior-art sweep](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md); [working notes](../../archive/working-notes-2026-09-26/03-scoring-methods.md), citing Ord. 10-2025). Units are capped by the use table and by the envelope, not by lot area per unit.
+2. **No lot-area-per-unit limit in §903.03.** ⚠ *(corrected 2026-09-26 per docs/04-critique.md row 6)* §903.03 on eCode360 (read 2026-09-26, re-checked by the critique) has no lot-area-per-unit standard. Whether any such requirement survives elsewhere in Title Nine is **unchecked**. The earlier claim that the May 2025 reform removed it "everywhere" came from a sweep and working notes that cite each other ([prior-art sweep](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md); [working notes](../../archive/working-notes-2026-09-26/03-scoring-methods.md)); the Legistar title of Bill 2025-1579 mentions only minimum lot sizes. Within §903.03, units are capped by the use table and by the envelope.
 
 The current minimum lot sizes (VL 6,000 / L 3,000 / M 2,400 / H 1,200 sf / VH none) are in the [corrections log](../README.md#corrections-log) and [dimensional standards](../policy/dimensional-standards-and-use-table.md). Nonconformity flags must use the post-May-2025 values.
 
@@ -121,3 +121,4 @@ All from the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md
 - Seattle OPCD Development Capacity Report. Link: citation only, in the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md) `[found]` *(accessed 2026-09-26)*: from memory, not re-fetched
 - Waddell 2002, *JAPA* 68(3), UrbanSim. Link: citation only, in the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md) `[found]` *(accessed 2026-09-26)*: from memory, not re-fetched
 - CalEnviroScreen 4.0 (OEHHA 2021). Link: citation only, in the [scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md) `[found]` *(accessed 2026-09-26)*: from memory, not re-fetched
+- [Adversarial critique](../../docs/04-critique.md) — rows 6, 31

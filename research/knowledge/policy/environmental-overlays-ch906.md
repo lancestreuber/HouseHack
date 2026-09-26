@@ -87,3 +87,4 @@ From live queries of the City FeatureServers `[read]` ([r1 zoning sweep](../../s
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 8, 11

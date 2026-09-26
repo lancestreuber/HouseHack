@@ -41,7 +41,7 @@ From eCode360 as amended by Ord. No. 10-2025, eff. 5-7-2025, fetched via real br
 | Max height R1D/R1A/R2/R3 | 40 ft / 3 st | 40/3 | 40/3 | 40/3 | 40/3 |
 | Max height RM | 40/3 | 40/3 | 55/4 | 85/9 | 180 ft |
 
-Party-wall attached → interior side 0. Lot-area-per-unit was eliminated by the 2025 minimum-lot-size bill.
+Party-wall attached → interior side 0. ⚠ §903.03 on eCode360 has no lot-area-per-unit row (confirmed live by the critique, 2026-09-26); whether any such requirement survives elsewhere in Title Nine is unchecked, and the Legistar title of the 2025 bill mentions only minimum lot sizes *(corrected 2026-09-26 per docs/04-critique.md row 6)*.
 
 ⚠ An earlier reading of the Planning Commission PDF draft (2024-12-10) inferred old→new values from strikethrough/underline order and was ambiguous for VH; the live eCode360 text above supersedes it (corrections log).
 
@@ -70,8 +70,8 @@ Ch. 906 overlays, Ch. 914 parking, §922 review procedures, Ch. 915, Ch. 916, §
 - Does a minimum lot width exist in §903.03? Not found in the tables read (unverified).
 - Re-verify §911.02 columns past RM against the rendered table.
 - Currency of the zoneomics mirror against eCode360.
-- Bill 2026-0834 (Phase I amendment, Council hearing Oct 13, 2026) would revise dimensional standards and height rules; the table above will need re-reading if it passes.
-- Community Home: Bill 2024-0701 proposed S → C; the transcription shows S. Outcome not checked.
+- Bill 2026-0834 (Phase I amendment, Council hearing 10/13/26) would revise dimensional standards and height rules; the table above will need re-reading if it passes. ⚠ Per its Legistar title it also amends Ch. 906, 915, 921, 922, 911–913, 918–920 and 925–926 *(corrected 2026-09-26 per docs/04-critique.md row 8)*.
+- Community Home: Bill 2024-0701 proposed S → C; the transcription shows S. ⚠ Legistar shows Bill 2024-0701 still **"In Standing Committee"**, so the change is not law *(corrected 2026-09-26 per docs/04-critique.md row 10)*.
 
 ## Connects to
 - [Dimensional standards and use table](../policy/dimensional-standards-and-use-table.md): the policy reading of these tables
@@ -93,3 +93,4 @@ Ch. 906 overlays, Ch. 914 parking, §922 review procedures, Ch. 915, Ch. 916, §
 - [Pittsburgh Zoning Code page (organizer catalog URL)](https://pittsburghpa.gov/dcp/zoning-code) `[found]` *(accessed 2026-09-26)*
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 6, 8, 10

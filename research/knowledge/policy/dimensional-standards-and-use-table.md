@@ -112,3 +112,4 @@ The zoning sweep first read the use table from the attachment to Bill 2024-0701 
 - [Pittsburgh Legistar](https://pittsburgh.legistar.com/) and [web API](https://webapi.legistar.com/v1/pittsburgh/matters) `[read]` *(accessed 2026-09-26, via the critique's live check)*: Bills 2025-1579, 2024-0701 and 2026-0834 status and titles
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 6, 7, 8, 10

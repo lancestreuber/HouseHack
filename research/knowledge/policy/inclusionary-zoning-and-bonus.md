@@ -82,3 +82,4 @@ From the June 2026 draft on the EngagePgh IZ page `[read]`:
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r3-stakeholder-needs.md](../../sweeps/r3-stakeholder-needs.md)
 - Sweep: [../../sweeps/r3-alternative-framings.md](../../sweeps/r3-alternative-framings.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 9, 25

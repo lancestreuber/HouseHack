@@ -5,6 +5,17 @@
 **Why we care:** The brief asks the tool to compare "marginal carbon emissions" and suggests a "Climate score based on building form, embodied carbon, transportation, and infrastructure extension". The cited numbers are few, come from different places, and rank typologies differently depending on the denominator.
 **Last checked:** 2026-09-26
 
+⚠ **Read this first** *(corrected 2026-09-26 per docs/04-critique.md row 23)*. The only evidence we hold for a normalization flip on the **same quantity** is BfCA: the per-m² ranking of the same embodied-carbon data **flips with the floor-area definition**. The RECS and Dublin figures below are **different quantities** (national operational site energy per household vs. Irish embodied A1–A5 per m²), so setting them side by side does not show a flip. RECS gives **national per-household averages by building type, not a density effect**.
+
+## Embodied carbon: BfCA EMBARC report (Toronto/Hamilton)
+
+`[read]` (report PDF fetched and text extracted by the prior-art sweep):
+- 503 as-built homes in the Greater Toronto/Hamilton area.
+- Materials-only (A1–A3) carbon averaged **40 t CO2e per unit**.
+- **Townhouses are lowest per unit, mostly because they are smaller.**
+- **Which typology ranks best per m² flips with how floor area is defined.** By heated floor area, semi-detached homes are lowest; by a municipal gross-area definition, townhouses are lowest. The report says policymakers "must weigh" which metric to use.
+- BEAM, the associated estimator, is free.
+
 ## Operational energy: EIA RECS 2020, Table CE1.1
 
 Site energy **per household**, read from the PDF by the data-sweep agent `[read]`:
@@ -20,6 +31,7 @@ Site energy **per household**, read from the PDF by the data-sweep agent `[read]
 Notes:
 - These are **per household, site energy**, not per m² and not emissions. Converting to CO2e needs a fuel mix and emission factors we have not sourced.
 - National by type; only the all-types Middle Atlantic figure is regional.
+- ⚠ **Cross-sectional averages, not a density effect** *(corrected 2026-09-26 per docs/04-critique.md row 23)*. The gap between types is confounded by unit size, household size and region. Do not write "operational energy falls with density".
 - A search-engine summary quoted different figures (79.6, 54.1, and so on). **Those were wrong.** Do not copy RECS numbers from search summaries.
 - RECS has no ADU category (our observation from the table's rows). Mapping ADU to a row is an assumption.
 - NREL ResStock per-type numbers were **not pulled**.
@@ -34,17 +46,8 @@ Stages A1–A5, Dublin, Ireland `[read]`:
 | Duplex | 396 | +19% |
 | Apartment | 437 | +12% |
 
-- **Per m², denser buildings carry more embodied carbon.** Per unit or per bedroom the order can flip, because units are smaller and site works are shared (the sweep's reading of the paper).
+- **Per m², denser buildings carry more embodied carbon.** ⚠ That the order flips per unit or per bedroom is **the sweep's reading of the paper, not a number**: no per-unit figures are given here *(corrected 2026-09-26 per docs/04-critique.md row 23)*.
 - Irish construction; applying it to Pittsburgh is an assumption.
-
-## Embodied carbon: BfCA EMBARC report (Toronto/Hamilton)
-
-`[read]` (report PDF fetched and text extracted by the prior-art sweep):
-- 503 as-built homes in the Greater Toronto/Hamilton area.
-- Materials-only (A1–A3) carbon averaged **40 t CO2e per unit**.
-- **Townhouses are lowest per unit, mostly because they are smaller.**
-- **Which typology ranks best per m² flips with how floor area is defined.** By heated floor area, semi-detached homes are lowest; by a municipal gross-area definition, townhouses are lowest. The report says policymakers "must weigh" which metric to use.
-- BEAM, the associated estimator, is free.
 
 ## Embodied carbon: Rankin et al. 2024 — inaccessible
 
@@ -63,12 +66,12 @@ Stages A1–A5, Dublin, Ireland `[read]`:
 
 ## The normalization choice is a value judgment
 
-Per m², per unit, per bedroom, or per resident: the BfCA flip and the Dublin per-m² vs. per-unit note both show the choice changes the ranking. That makes it one of the "value judgments" the brief says users must be able to distinguish from data. Options, not a pick:
+Per m², per unit, per bedroom, or per resident: ⚠ the BfCA flip shows the choice (even of floor-area definition) changes the ranking of the same quantity. The Dublin per-unit note is the sweep's reading, not a figure, and RECS vs. Dublin are different quantities *(corrected 2026-09-26 per docs/04-critique.md row 23)*. That makes it one of the "value judgments" the brief says users must be able to distinguish from data. Options, not a pick:
 
 | Option | What it favors (per the sources above) | Tradeoff |
 |---|---|---|
 | Per m² | Detached/house (Dublin) | Rewards large floor area; ignores how many households are housed |
-| Per unit | Smaller units: townhouses (BfCA), apartments on operational energy (RECS) | Treats a studio and a 4-bed as equal |
+| Per unit | Smaller units: townhouses (BfCA); apartments have lower national average site energy per household (RECS, a cross-sectional average, not a causal density effect) | Treats a studio and a 4-bed as equal |
 | Per bedroom | Missing-middle multi-unit (Rankin snippet, unread) | Only snippet evidence |
 | Per resident | Not computed by any source we hold | Needs occupancy assumptions |
 | Let the user choose, and show the flip | Makes the value judgment explicit | More UI; the prior-art sweep's open question suggests presenting carbon as a choice of metric |
@@ -106,3 +109,4 @@ If Track 3 is behind at hour 16, the build sweep suggests dropping carbon or mak
 - Sweep: [../../sweeps/r4-track3-data-methods-and-combination.md](../../sweeps/r4-track3-data-methods-and-combination.md) `[read]` *(accessed 2026-09-26)*: RECS, Dublin, TRB, Rankin status
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md) `[read]` *(accessed 2026-09-26)*: BfCA flip, carbon-as-metric-choice question
 - Sweep: [../../sweeps/r4-build-feasibility-on-team-stack.md](../../sweeps/r4-build-feasibility-on-team-stack.md) `[read]` *(accessed 2026-09-26)*: H16 cut line
+- [Adversarial critique](../../docs/04-critique.md) — row 23

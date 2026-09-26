@@ -1,7 +1,7 @@
 # Infrastructure (sewer, water, stormwater, transit, power)
 
 **Type:** data
-**One line:** What public infrastructure data exists per parcel (sewer lines, sewersheds and CSO stress, lead service lines, transit) and what does not (water mains, sewer capacity, electric hosting capacity).
+**One line:** What public infrastructure data exists per parcel (sewer lines, sewersheds and CSO stress, lead service lines, transit) and what we did not find (water mains, sewer capacity, electric hosting capacity; ⚠ search only *(corrected 2026-09-26 per docs/04-critique.md row 20)*).
 **Why we care:** Infrastructure capacity is a real barrier to new units, but most of it is not published. A score can use proxies and must state the gaps as limitations.
 **Last checked:** 2026-09-26
 
@@ -27,7 +27,9 @@ GTFS gotcha: the old `portauthority.org/generaltransitfeed/` path returns 404. O
 - PWSA `PWSA_Project_Locations` (GI projects) `[found]`.
 - GTFS-realtime `https://truetime.portauthority.org/gtfsrt-bus/` and `…/gtfsrt-train/` (unverified).
 
-## Not public (state as limitations)
+## Not found publicly (state as limitations)
+
+⚠ **Absence of evidence, not evidence of absence** *(corrected 2026-09-26 per docs/04-critique.md row 20)*. We found no public capacity data (search only; PWSA's ArcGIS service list was checked for water mains). The tool and the pitch should say "unknown", not "no data exists" or "fails".
 - **PWSA water mains:** no public water-main layer among the 85 services in PWSA's ArcGIS org; only service areas, repair-contract sites and reliability-plan projects `[read]` (service list inspected).
 - **Sewer and treatment capacity (PWSA, ALCOSAN):** no public data found (unverified beyond search). ALCOSAN operates under the 2020 Modified Consent Decree; the sweep reports DEP has allowed no planning-module exemptions since 2011, so most net-new-unit projects need a **DEP Sewage Facilities Planning Module** (3–6 months per a PWSA page, `[skimmed]` in the approval sweep). Capacity is determined in that process and PWSA permit review, not from a dataset.
 - **PWSA Water & Sewer Use Application:** required for anything bigger than one single-family unit, any subdivision, any multi-unit (`[skimmed]`, pgh2o.com).
@@ -65,3 +67,4 @@ See [approval pathway](../policy/approval-pathway.md) for the stormwater (Ch. 13
 - Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 20

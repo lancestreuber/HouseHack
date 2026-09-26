@@ -92,4 +92,4 @@ Catalog caveats: a foreclosure filing does not mean the property changed hands; 
 - Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
 - Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
 - Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
-- [Adversarial critique](../../docs/04-critique.md) — rows 18, 32 (live buildability pull, §6)
+- [Adversarial critique](../../docs/04-critique.md) — rows 18, 32

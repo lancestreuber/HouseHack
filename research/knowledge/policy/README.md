@@ -18,22 +18,24 @@ Pittsburgh zoning rules, the approval pathway, and the reforms in flux. These ar
 
 - The current residential dimensional table and use-table ceilings (read in eCode360).
 - The ZBA process (official Dec 2024 handout).
-- Residential new-construction permits take months and several revision cycles (computed from OneStopPGH, censored, so a lower bound).
+- Residential new-construction permits take months elapsed, **including applicant time**, among the 35% (74 of 210) issued, with a median of ~5 reviewer-level "Revisions Required" flags (not rounds). Computed from OneStopPGH; heavily censored, so biased short ⚠ *(corrected 2026-09-26 per docs/04-critique.md rows 2–3)*.
 
 ## What is most likely to change under us
 
-- Parking minimums, ADUs and the IZ bonus (Bill 2025-1545: hearing held Sept 23, 2026; vote not found).
-- Dimensional standards and height rules (Bill 2026-0834: hearing Oct 13, 2026).
+- Parking minimums, ADUs and the IZ bonus (Bill 2025-1545: ⚠ Held In Council per Legistar; hearings 9/10/25 and 9/23/26; no final vote *(corrected 2026-09-26 per docs/04-critique.md row 9)*).
+- Dimensional standards and height rules, and ⚠ much more: Bill 2026-0834 amends Ch. 906, 915, 921, 922, 911–913, 918–920 and 925–926 per its Legistar title (hearing 10/13/26) *(corrected 2026-09-26 per docs/04-critique.md row 8)*.
 - Who runs pre-hearing community meetings (announced change, no ordinance found).
 
 ## Top re-read priorities
 
 1. Chapters 906, 914, 915, 922 in eCode360 via browser, to upgrade from `[skimmed]`.
 2. The IZ-O code text (threshold, set-aside, AMI).
-3. Council action on Bill 2025-1545 after Sept 23, 2026.
+3. Council's final vote on Bill 2025-1545 (Held In Council per Legistar, 2026-09-26), and a visual read of the June 2, 2026 PC redline (ADU, IZ-O, parking terms).
+4. Ch. 921 Nonconformities (lot-of-record relief) and the Bill 2026-0834 text, which amends Ch. 906, 921 and 922.
 
 ## Sources
 
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Source transcriptions: [../../sources/ecode360-2026-09-26-pittsburgh-903-03-dimensional-standards.md](../../sources/ecode360-2026-09-26-pittsburgh-903-03-dimensional-standards.md), [../../sources/ecode360-2026-09-26-pittsburgh-911-02-use-table-residential.md](../../sources/ecode360-2026-09-26-pittsburgh-911-02-use-table-residential.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 2, 3, 8, 9

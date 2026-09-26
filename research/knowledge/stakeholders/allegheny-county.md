@@ -44,7 +44,7 @@ From the County's Housing for All page ([allin.alleghenycounty.us](https://allin
 
 ## What this means for us (inference)
 
-- City and County want different things: growth vs. preservation, one city vs. ~130 municipalities with model ordinances.
+- City and County emphasize different things: the Mayor's office frames housing as growth; the County Executive stresses preservation. ⚠ Both agendas include both (the executive order above includes supply expansion and zoning-reform incentives) *(corrected 2026-09-26 per docs/04-critique.md row 16)*. The scale also differs: one city vs. ~130 municipalities with model ordinances.
 - A municipality-level "zoning barrier index" might serve the County's model-ordinance and incentive work more than a parcel score does. Untested with anyone at the County.
 - Preservation (losing existing affordable units) is a cited constraint a pure new-build "ease" score ignores.
 
@@ -75,4 +75,4 @@ From the County's Housing for All page ([allin.alleghenycounty.us](https://allin
 - Sweep: [../../sweeps/r3-stakeholder-needs.md](../../sweeps/r3-stakeholder-needs.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Working notes: [../../archive/working-notes-2026-09-26/04-stakeholders.md](../../archive/working-notes-2026-09-26/04-stakeholders.md)
-- [Adversarial critique](../../docs/04-critique.md) — rows 14, 27
+- [Adversarial critique](../../docs/04-critique.md) — rows 14, 16, 27

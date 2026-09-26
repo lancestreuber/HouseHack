@@ -34,7 +34,7 @@
 
 ## Pending change
 
-- **Bill 2025-1545** would **eliminate minimum parking** citywide (along with by-right ADUs and the optional Affordable Housing Bonus). Planning Commission recommended it June 2, 2026; Council held its public hearing Sept 23, 2026. **No Council vote was found as of 2026-09-26** `[read]` for the hearing page; vote status unknown. See [reforms in flux](reforms-in-flux-2025-2026.md).
+- **Bill 2025-1545** would **eliminate minimum parking** citywide (along with by-right ADUs and the optional Affordable Housing Bonus). Planning Commission recommended it June 2, 2026; Council held its public hearing Sept 23, 2026 `[read]` for the hearing page. ⚠ Legistar (checked 2026-09-26): Bill 2025-1545 is **Held In Council**; public hearings 9/10/25 and 9/23/26; committee substitute and PC referral 10/15/25; PC report received 6/12/26; **no final vote** *(corrected 2026-09-26 per docs/04-critique.md row 9)*. Whether the June 2026 PC redline strikes the parking minimums is undetermined from text extraction. See [reforms in flux](reforms-in-flux-2025-2026.md).
 - If it passes, parking minimums drop out of the variance triggers.
 
 ## Open questions
@@ -61,3 +61,4 @@
 - Sweep: [../../sweeps/r2-approval-pathway-and-timelines.md](../../sweeps/r2-approval-pathway-and-timelines.md)
 - Sweep: [../../sweeps/r1-zoning-data-code-and-reforms.md](../../sweeps/r1-zoning-data-code-and-reforms.md)
 - Working notes: [../../archive/working-notes-2026-09-26/02-approval-pathway.md](../../archive/working-notes-2026-09-26/02-approval-pathway.md)
+- [Adversarial critique](../../docs/04-critique.md) — row 9

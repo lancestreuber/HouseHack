@@ -40,12 +40,12 @@ Every regional tool found is a **data explorer**, not a scorer ([r3 sweep](../..
 ## Neighborhood and market typologies
 
 - **Pittsburgh Neighborhood Project** ([blog post, 2021-03-01](https://pittsburghneighborhoodproject.blog/2021/03/01/gentrification-and-displacement-in-pittsburgh/) `[read]`): UDP-style gentrification analysis of Allegheny tracts from 2000 to 2015–19; found East End and Northside tracts gentrified, with poor Black residents most affected. An ArcGIS map exists; raw data download not confirmed.
-- **Market Value Analysis 2021** (Reinvestment Fund) ([WPRDC dataset](https://data.wprdc.org/dataset/market-value-analysis-2021) `[skimmed]`): clusters block groups into 10 market types; open data. A market axis local stakeholders already recognize. See [indicators and data](../track3/indicators-and-data.md).
+- **Market Value Analysis 2021** (Reinvestment Fund) ([WPRDC dataset](https://data.wprdc.org/dataset/market-value-analysis-2021) `[skimmed]` here as a landing-page read; ⚠ the dataset itself was queried and is `[read]` in [indicators and data](../track3/indicators-and-data.md) and [displacement and equity](../track3/displacement-and-equity.md) *(corrected 2026-09-26 per docs/04-critique.md row 30)*): clusters block groups into 10 market types; open data. A market axis local stakeholders already recognize. See [indicators and data](../track3/indicators-and-data.md).
 
 ## Zoning atlas and academic work
 
 - **National Zoning Atlas, Pennsylvania** ([zoningatlas.org/pennsylvania](https://www.zoningatlas.org/pennsylvania) `[read]`): actively mapping the Pittsburgh metro; "Zoning Report: Pittsburgh" due fall 2026.
-- **Lenze, Hinojos and Grady (J. Urban Planning & Development, 2024)** ([ASCE](https://ascelibrary.com/doi/full/10.1061/JUPDDM.UPENG-4474) `[read]`): 210 Pittsburgh ZBA applications from 2020 against a social vulnerability index; no significant overall relationship, but significant links with pre-1940 housing share and multifamily share.
+- **Lenze, Hinojos and Grady (J. Urban Planning & Development, 2024)** ([ASCE](https://ascelibrary.com/doi/full/10.1061/JUPDDM.UPENG-4474) `[skimmed]`, abstract only ⚠ *(corrected 2026-09-26 per docs/04-critique.md row 29)*): per the abstract, 210 Pittsburgh ZBA applications from 2020 against a social vulnerability index; no significant overall relationship, but significant links with pre-1940 housing share and multifamily share.
 - CMU Remaking Cities Institute supported a "Residential Zoning by Race" project (round-1 sweep, `[skimmed]`, no URL).
 
 ## Open questions
@@ -82,7 +82,8 @@ Every regional tool found is a **data explorer**, not a scorer ([r3 sweep](../..
 - [Pittsburgh Neighborhood Project](https://pittsburghneighborhoodproject.blog/2021/03/01/gentrification-and-displacement-in-pittsburgh/) `[read]` *(accessed 2026-09-26)*
 - [MVA 2021 on WPRDC](https://data.wprdc.org/dataset/market-value-analysis-2021) `[skimmed]` *(accessed 2026-09-26)*
 - [National Zoning Atlas, Pennsylvania](https://www.zoningatlas.org/pennsylvania) `[read]` *(accessed 2026-09-26)*
-- [Lenze, Hinojos & Grady 2024](https://ascelibrary.com/doi/full/10.1061/JUPDDM.UPENG-4474) `[read]` *(accessed 2026-09-26)*
+- [Lenze, Hinojos & Grady 2024](https://ascelibrary.com/doi/full/10.1061/JUPDDM.UPENG-4474) `[skimmed]` ⚠ *(accessed 2026-09-26; abstract only; was `[read]`, lowered per critique row 29)*
 - Sweep: [../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md](../../sweeps/r1-prior-art-proforma-and-practitioner-barriers.md)
 - Sweep: [../../sweeps/r3-reality-check-existing-tools.md](../../sweeps/r3-reality-check-existing-tools.md)
 - Sweep: [../../sweeps/r4-track3-prior-art-and-hackathons.md](../../sweeps/r4-track3-prior-art-and-hackathons.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 29, 30
