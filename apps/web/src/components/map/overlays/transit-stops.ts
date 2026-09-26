@@ -77,7 +77,7 @@ export const transitStopsOverlay: OverlayDefinition = {
   ],
   meta: {
     source: "Pittsburgh Regional Transit stops (WPRDC, CC-BY)",
-    sourceUrl: "https://data.wprdc.org/dataset/pittsburgh-regional-transit-stops",
+    sourceUrl: "https://data.wprdc.org/dataset/prt-of-allegheny-county-transit-stops",
     asOf: "Updated 2026-09-22 (GTFS feed 2606, service from 2026-06-28)",
     geography: "Stop points; heatmap below zoom 12 is weighted by weekday trips",
     evidence: "observed",

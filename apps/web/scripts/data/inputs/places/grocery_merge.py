@@ -4,7 +4,9 @@ print('snap',len(snap))
 TIER_SNAP={'Supermarket':'full_grocery','Super Store':'full_grocery','Grocery Store':'full_grocery','Specialty Store':'specialty_food','Farmers and Markets':'farmers_market','Convenience Store':'convenience_limited','Other':'other_food_retail'}
 TIER_ACHD={'Supermarket':'full_grocery','Chain Supermarket':'full_grocery','Retail/Convenience Store':'convenience_limited','Chain Retail/Convenience Store':'convenience_limited',
            'Packaged Food Only':'other_food_retail','Chain Packaged Food Only':'other_food_retail','Bakery':'specialty_food','Chain Bakery':'specialty_food','Seasonal/Farmers Market':'farmers_market'}
+LAST=json.load(open('achd_last_inspection.json'))
 achd=[x for x in csv.DictReader(open('food.csv',encoding='utf-8-sig')) if not x.get('bus_cl_date') and x['description'] in TIER_ACHD and x['x'] and x['y']]
+for x in achd: x['last_inspection']=LAST.get(x['id'],'')
 print('achd candidates',len(achd),collections.Counter(x['description'] for x in achd))
 RANK=['full_grocery','specialty_food','farmers_market','other_food_retail','convenience_limited']
 def d(a,b): return math.hypot((a[0]-b[0])*85000,(a[1]-b[1])*111000)
@@ -13,21 +15,23 @@ recs=[]
 for s in snap:
     if s['Latitude'] is None: continue
     recs.append({'name':s['Store_Name'].strip(),'address':f"{s['Store_Street_Address']}, {s['City']} {s['Zip_Code']}",'lat':float(s['Latitude']),'lon':float(s['Longitude']),'tier':TIER_SNAP.get(s['Store_Type'],'other_food_retail'),
-                 'snap_store_type':s['Store_Type'],'achd_category':'','snap_authorized':True,'sources':'USDA_SNAP'})
+                 'snap_store_type':s['Store_Type'],'achd_category':'','snap_authorized':True,'sources':'USDA_SNAP','achd_last_inspection':''})
 n_merge=0
 for a in achd:
     p=(float(a['x']),float(a['y'])); t=TIER_ACHD[a['description']]; ta=tok(a['facility_name'])
-    best=None
-    for r in recs:
-        if abs(r['lat']-p[1])>0.001 or abs(r['lon']-p[0])>0.0013: continue
-        if d((r['lon'],r['lat']),p)<=90 and (tok(r['name'])&ta or d((r['lon'],r['lat']),p)<=25): best=r;break
+    best=None;named=False
+    near=[r for r in recs if abs(r['lat']-p[1])<=0.001 and abs(r['lon']-p[0])<=0.0013]
+    cand=sorted(((d((r['lon'],r['lat']),p),r) for r in near),key=lambda t:t[0])
+    for dd,r in cand:
+        if dd<=90 and tok(r['name'])&ta: best=r;named=True;break
+    if best is None and cand and cand[0][0]<=25: best=cand[0][1]
     if best:
-        n_merge+=1; best['achd_category']=a['description']; best['sources']='USDA_SNAP+ACHD'
-        if RANK.index(t)<RANK.index(best['tier']): best['tier']=t
-    else:
-        recs.append({'name':a['facility_name'].strip(),'address':a['address'],'lat':p[1],'lon':p[0],'tier':t,'snap_store_type':'','achd_category':a['description'],'snap_authorized':False,'sources':'ACHD'})
+        n_merge+=1; best['achd_category']=a['description']; best['sources']='USDA_SNAP+ACHD'; best['achd_last_inspection']=max(best['achd_last_inspection'],a['last_inspection'])
+        if named and RANK.index(t)<RANK.index(best['tier']): best['tier']=t
+    elif a['last_inspection']>='2023-01-01':
+        recs.append({'name':a['facility_name'].strip(),'address':a['address'],'lat':p[1],'lon':p[0],'tier':t,'snap_store_type':'','achd_category':a['description'],'snap_authorized':False,'sources':'ACHD','achd_last_inspection':a['last_inspection']})
 # drop closed chains / non-food mis-hits
-dead=re.compile(r'RITE ?AID',re.I)
+dead=re.compile(r'RITE ?AID|BLOCKBUSTER|BLOCK BUSTER|HOLLYWOOD VIDEO|\bAMES\b|PHAR-?MOR|ECKERD',re.I)
 recs=[r for r in recs if not dead.search(r['name'])]
 w=csv.DictWriter(open('allegheny_food_retail_merged.csv','w',newline=''),fieldnames=list(recs[0]));w.writeheader();w.writerows(recs)
 print('merged',n_merge,'total',len(recs),collections.Counter(r['tier'] for r in recs),collections.Counter(r['sources'] for r in recs))

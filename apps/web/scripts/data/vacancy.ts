@@ -94,7 +94,13 @@ export async function buildVacancy() {
       geometry: { type: "Point", coordinates: [Math.round(c.x * 1e4) / 1e4, Math.round(c.y * 1e4) / 1e4] },
       properties: { n: c.n },
     })),
-    metadata: { source: "WPRDC Allegheny County property assessments, vacant-land use codes", cell: overviewCell, builtAt: new Date().toISOString() },
+    metadata: {
+      source: "WPRDC Allegheny County property assessments, vacant-land use codes",
+      cell: overviewCell,
+      // The map requests only tiles listed here.
+      tiles: [...tiles.keys()].sort(),
+      builtAt: new Date().toISOString(),
+    },
   });
 }
 

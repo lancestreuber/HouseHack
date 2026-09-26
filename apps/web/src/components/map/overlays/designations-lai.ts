@@ -66,7 +66,7 @@ const LAI_STYLES: Record<string, { breaks: number[]; format: (v: number) => stri
   pct_transit_j2w: { breaks: [2, 5, 10, 20, 30], format: (v) => `${v}%`, colors: RAMPS.neutral },
   avg_h_cost: { breaks: [700, 850, 1000, 1250, 1600], format: (v) => `$${Math.round(v).toLocaleString()}`, colors: RAMPS.neutral },
   ht_median_family: { breaks: [45, 48, 51, 54, 58], format: (v) => `${v}%`, colors: RAMPS.warm },
-  ht_single_parent: { breaks: [60, 66, 72, 78, 85], format: (v) => `${v}%`, colors: RAMPS.warm },
+  ht_single_parent: { breaks: [64, 68, 72, 76, 80], format: (v) => `${v}%`, colors: RAMPS.warm },
   vmt_median_family: { breaks: [18000, 21000, 24000, 27000, 31000], format: (v) => Math.round(v).toLocaleString(), colors: RAMPS.warm },
 };
 
@@ -130,7 +130,7 @@ export const locationAffordabilityOverlay: OverlayDefinition = {
     evidence: "observed",
     caveats: [
       "Old inputs (2012–2016): relative differences between tracts are the useful part.",
-      "H+T share: HUD's affordability benchmark is 45% of income. It's modeled for a fixed household, so tracts differ only by location.",
+      "H+T share: HUD's LAI sets no affordability threshold; the Center for Neighborhood Technology's H+T Index uses 45% of income. It's modeled for a fixed household, so tracts differ only by location.",
       "Miles driven is HUD's modeled VMT for a fixed household profile (median income, 4 people, 2 commuters), so tracts differ only by location. HUD's observed VMT covers Illinois only.",
     ],
   },

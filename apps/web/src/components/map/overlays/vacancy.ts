@@ -10,46 +10,63 @@ import type { GeoJSONData, OverlayDefinition } from "./types";
 export const VACANT_LOT_GRID = { west: -80.4, south: 40.15, size: 0.02, overviewCell: 0.005 };
 const DETAIL_MAX_SPAN = 0.1; // degrees of longitude: zoom 14 on maps up to ~1,150 px wide
 
-const tileCache = new Map<string, Promise<unknown[]>>();
-let overviewCache: Promise<unknown[]> | null = null;
+type Overview = { features: unknown[]; tiles: Set<string> };
 
-function loadFeatures(url: string, signal: AbortSignal): Promise<unknown[]> {
-  return fetch(url, { signal })
-    .then((r) => (r.ok ? (r.json() as Promise<{ features: unknown[] }>) : { features: [] }))
-    .then((d) => d.features);
+// Shared, cached loads. They're deliberately not tied to one request's abort
+// signal: a newer view often reuses tiles an older (cancelled) view started.
+const tileCache = new Map<string, Promise<unknown[]>>();
+let overviewCache: Promise<Overview> | null = null;
+
+async function loadJSON<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  return (await res.json()) as T;
 }
 
-async function fetchVacantLots(bounds: LngLatBounds, signal: AbortSignal): Promise<GeoJSONData> {
-  if (bounds.getEast() - bounds.getWest() > DETAIL_MAX_SPAN) {
-    overviewCache ??= loadFeatures("/data/overlays/vacant-lots-overview.geojson", signal).catch((e) => {
+function loadOverview(): Promise<Overview> {
+  overviewCache ??= loadJSON<{ features: unknown[]; metadata?: { tiles?: string[] } }>(
+    "/data/overlays/vacant-lots-overview.geojson",
+  )
+    .then((d) => ({ features: d.features, tiles: new Set(d.metadata?.tiles ?? []) }))
+    .catch((e) => {
       overviewCache = null;
       throw e;
     });
-    return { type: "FeatureCollection", features: await overviewCache };
+  return overviewCache;
+}
+
+function loadTile(key: string): Promise<unknown[]> {
+  if (!tileCache.has(key)) {
+    tileCache.set(
+      key,
+      loadJSON<{ features: unknown[] }>(`/data/overlays/vacant-lots/${key}.geojson`)
+        .then((d) => d.features)
+        .catch((e) => {
+          tileCache.delete(key);
+          throw e;
+        }),
+    );
+  }
+  return tileCache.get(key)!;
+}
+
+async function fetchVacantLots(bounds: LngLatBounds, signal: AbortSignal): Promise<GeoJSONData> {
+  // The overview also lists which tiles exist, so empty cells (rivers, parks)
+  // are never requested.
+  const overview = await loadOverview();
+  if (bounds.getEast() - bounds.getWest() > DETAIL_MAX_SPAN) {
+    return { type: "FeatureCollection", features: overview.features };
   }
   const { west, south, size } = VACANT_LOT_GRID;
-  const ix0 = Math.floor((bounds.getWest() - west) / size);
-  const ix1 = Math.floor((bounds.getEast() - west) / size);
-  const iy0 = Math.floor((bounds.getSouth() - south) / size);
-  const iy1 = Math.floor((bounds.getNorth() - south) / size);
-  const loads: Promise<unknown[]>[] = [];
-  for (let ix = ix0; ix <= ix1; ix++) {
-    for (let iy = iy0; iy <= iy1; iy++) {
-      const key = `${ix}_${iy}`;
-      if (!tileCache.has(key)) {
-        // Missing tiles (no lots there) come back empty and are cached as such.
-        tileCache.set(
-          key,
-          loadFeatures(`/data/overlays/vacant-lots/${key}.geojson`, signal).catch((e) => {
-            tileCache.delete(key);
-            throw e;
-          }),
-        );
-      }
-      loads.push(tileCache.get(key)!);
+  const keys: string[] = [];
+  for (let ix = Math.floor((bounds.getWest() - west) / size); ix <= Math.floor((bounds.getEast() - west) / size); ix++) {
+    for (let iy = Math.floor((bounds.getSouth() - south) / size); iy <= Math.floor((bounds.getNorth() - south) / size); iy++) {
+      if (overview.tiles.has(`${ix}_${iy}`)) keys.push(`${ix}_${iy}`);
     }
   }
-  return { type: "FeatureCollection", features: (await Promise.all(loads)).flat() };
+  const tiles = await Promise.all(keys.map(loadTile));
+  if (signal.aborted) throw new DOMException("Aborted", "AbortError");
+  return { type: "FeatureCollection", features: tiles.flat() };
 }
 
 const LOT_USE: Record<string, { color: string; label: string }> = {
@@ -139,6 +156,7 @@ const BUILDING_CLASS: Record<string, { color: string; label: string }> = {
   COMMERCIAL: { color: "#fb923c", label: "Commercial" },
   INDUSTRIAL: { color: "#a8a29e", label: "Industrial" },
   GOVERNMENT: { color: "#60a5fa", label: "Government" },
+  OTHER: { color: "#e5e7eb", label: "Other" },
 };
 
 export const vacantBuildingsOverlay: OverlayDefinition = {
@@ -165,11 +183,14 @@ export const vacantBuildingsOverlay: OverlayDefinition = {
     [
       String(p.address ?? "Address not recorded"),
       p.use ? `${String(p.use).toLowerCase().replace(/^\w/, (c) => c.toUpperCase())}` : "",
-      p.owner_category && p.owner_category !== "Private" ? `Owner: ${p.owner_category}` : "Privately owned",
+      p.owner_category === "Private" ? "Privately owned" : p.owner_category ? `Owner: ${p.owner_category}` : "",
       p.zoning ? `Zoning ${p.zoning}${p.neighborhood ? ` · ${p.neighborhood}` : ""}` : "",
       `Parcel ${p.pin}`,
     ].filter(Boolean),
-  legend: () => Object.values(BUILDING_CLASS).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+  legend: () => [
+    ...Object.values(BUILDING_CLASS).map(({ color, label }) => ({ color, label, shape: "dot" as const })),
+    { color: "#a3a3a3", label: "Class not recorded", shape: "dot" as const },
+  ],
   meta: {
     source: "City of Pittsburgh, USPS vacancy flags by parcel (Vacant_USPS_Feb_24), joined to City parcel records",
     sourceUrl: "https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/Vacant_USPS_Feb_24/FeatureServer/0",

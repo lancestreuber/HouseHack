@@ -224,8 +224,9 @@ export const groceriesOverlay = pointOverlay({
   meta: {
     ...FOOD_META,
     caveats: [
-      "Store tier comes from USDA and county permit categories, not a store audit.",
-      "Permits can lag closures.",
+      "Store tier comes from USDA and county permit categories, not a store audit; dollar stores, gas stations and beer distributors are never counted as grocery stores.",
+      "County-permit-only stores are kept only if inspected since 2023; SNAP-listed stores are kept regardless.",
+      "'Not matched to a SNAP-authorized store' can mean the name or location didn't match the USDA list, not that the store refuses SNAP.",
     ],
   },
 });
@@ -270,8 +271,8 @@ export const pharmaciesOverlay = pointOverlay({
     asOf: "Registry pulled Sep 2026",
     geography: "Pharmacy locations (geocoded addresses)",
     caveats: [
-      "NPPES doesn't record closures, so a few listed pharmacies may be gone.",
-      "Rite Aid (84 county NPIs) is excluded: the chain closed all stores by Sep 2025.",
+      "Registry listings: NPPES doesn't record closures, so a few listed pharmacies may be gone.",
+      "Rite Aid (84 registrations in Allegheny ZIP codes) is excluded: the chain closed all stores by Sep 2025.",
     ],
   },
 });
@@ -351,7 +352,11 @@ const osmOverlay = (id: string, label: string, description: string, file: string
     file,
     color,
     radius: [2.5, 6],
-    tooltip: (p) => [String(p.name), p.address && String(p.address)],
+    tooltip: (p) => [
+      String(p.name),
+      p.address && String(p.address),
+      p.sources === "County_Assets" && "Listed by the county in 2017–2020; not confirmed by a second source since",
+    ],
     meta: { ...OSM_MERGE_META, caveats: ["Listed, not verified open today.", ...caveats] },
   });
 

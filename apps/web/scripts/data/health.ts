@@ -4,7 +4,7 @@
 // - CDC/NCHS USALEEP life expectancy at birth, 2010–2015, on 2010 tracts.
 
 import { fetchAllGeoJSON, writeOverlay, type GeoJSONFeature } from "./arcgis";
-import { parseCSV } from "./geo";
+import { parseCSV, polygonIndex } from "./geo";
 
 const HPSA = "https://gisportal.hrsa.gov/server/rest/services/Shortage/HealthProfessionalShortageAreas_FS/MapServer";
 const PLACES = "https://data.cdc.gov/resource/k9zj-b28y.json?countyfips=42003&$limit=500";
@@ -18,9 +18,25 @@ const BBOX = {
   spatialRel: "esriSpatialRelIntersects",
 };
 
+const COUNTY_BOUNDARY =
+  "https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/Allegheny_County_Boundary/FeatureServer/0";
+
+// Every vertex of every ring, for a cheap "does this area touch the county" test.
+function vertices(geometry: GeoJSONFeature["geometry"]): number[][] {
+  const out: number[][] = [];
+  const walk = (c: unknown) => {
+    if (Array.isArray(c) && typeof c[0] === "number") out.push(c as number[]);
+    else if (Array.isArray(c)) c.forEach(walk);
+  };
+  walk((geometry as { coordinates?: unknown })?.coordinates);
+  return out;
+}
+
 const PLACES_MEASURES = ["access2", "checkup", "casthma", "copd", "diabetes", "bphigh", "depression", "mhlth", "disability"];
 
 async function buildShortageAreas() {
+  const boundary = await fetchAllGeoJSON(COUNTY_BOUNDARY, { outFields: [] });
+  const inCounty = polygonIndex(boundary.map((f) => ({ key: true, geometry: f.geometry as never })));
   const features: GeoJSONFeature[] = [];
   for (const [layer, discipline] of [
     [10, "primary_care"],
@@ -47,9 +63,18 @@ async function buildShortageAreas() {
       });
     }
   }
+  // The bbox query also returns neighboring counties' areas (e.g. Aliquippa);
+  // keep areas with at least one vertex inside the county.
+  const local = features.filter((f) => vertices(f.geometry).some(([x, y]) => inCounty(x, y) === true));
+  // An area can have a current designation and an older record proposed for
+  // withdrawal; show only the current one when both exist.
+  const areaKey = (f: GeoJSONFeature) => `${f.properties.discipline}|${String(f.properties.name).replace(/\s+/g, "").toLowerCase()}`;
+  const designated = new Set(local.filter((f) => f.properties.status === "Designated").map(areaKey));
+  const kept = local.filter((f) => f.properties.status === "Designated" || !designated.has(areaKey(f)));
+  console.log(`shortage areas: ${features.length} in bbox, ${local.length} touch the county, ${kept.length} after dropping superseded records`);
   await writeOverlay("health-shortage-areas.geojson", {
     type: "FeatureCollection",
-    features,
+    features: kept,
     metadata: { source: HPSA, builtAt: new Date().toISOString() },
   });
 }
