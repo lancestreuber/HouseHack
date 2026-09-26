@@ -11,6 +11,9 @@ export const NO_DATA_COLOR = "rgba(120,120,120,0.35)";
 export const RAMPS = {
   // Warm "magma"-like ramp for air quality.
   warm: ["#3b0f70", "#8c2981", "#de4968", "#fe9f6d", "#fcfdbf", "#ffffff"],
+  // Neutral blue-teal ramp for values where "low" should not read as "bad"
+  // (income, rent, home value).
+  neutral: ["#0c2a3a", "#134e66", "#1f7a8c", "#3fa9b8", "#8fd3d6", "#e0f7f5"],
   // Purple ramp for weather risk, so it never reads as air quality.
   purple: ["#2d1b4e", "#4c2a85", "#6f42c1", "#a07fe0", "#d9c8ff"],
 };

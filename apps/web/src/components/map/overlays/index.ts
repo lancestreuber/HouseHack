@@ -6,6 +6,7 @@
 
 import { airQualityOverlay } from "./air-quality";
 import { floodZonesOverlay } from "./flood-zones";
+import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./landslides";
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { sewerLinesOverlay } from "./sewer-lines";
@@ -17,6 +18,8 @@ import { weatherRiskOverlay } from "./weather-risk";
 export const OVERLAYS: OverlayDefinition[] = [
   airQualityOverlay,
   weatherRiskOverlay,
+  housingCostsOverlay,
+  uspsVacancyOverlay,
   floodZonesOverlay,
   slopeOverlay,
   landslideSusceptibilityOverlay,
