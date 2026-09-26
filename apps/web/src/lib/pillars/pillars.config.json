@@ -1,7 +1,7 @@
 {
-  "version": "2026-09-26.9",
+  "version": "2026-09-26.11",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
-  "scale": "Every indicator and pillar is 0–100, where 100 is better for a future resident.",
+  "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
   "missing": {
     "rule": "exclude and renormalize the remaining weights",
@@ -24,7 +24,7 @@
         "demand"
       ],
       "weight": 1,
-      "description": "Signs that people want to live here: population and job growth, low vacancy, rising rents, recent construction."
+      "description": "Is there demand for new homes here? Household and job growth, low vacancy, an active sales market, rising rents and recent construction score high."
     },
     {
       "id": "site",
@@ -34,7 +34,7 @@
         "infrastructure capacity"
       ],
       "weight": 1,
-      "description": "Physical constraints on building on this lot: flooding, steep slopes, landslides, undermining, and known lead service lines. Zoning legality is applied per housing type, not averaged in.",
+      "description": "Can this lot physically take new housing? Flooding, steep slopes, landslides, undermining and known lead service lines score low. Zoning legality is applied per housing type, not averaged in.",
       "gates": [
         {
           "indicator": "site_floodway_share",
@@ -46,27 +46,28 @@
     },
     {
       "id": "afford",
-      "label": "Affordability & Displacement",
+      "label": "Housing Need & Displacement Risk",
       "brief_axes": [
         "affordability",
         "displacement risk"
       ],
       "weight": 1,
-      "description": "Two sub-scores: how affordable the area is for the people who live there, and how much displacement pressure it shows. 100 = affordable and low pressure.",
+      "description": "Two sub-scores. Housing need: where renters are most cost-burdened, new homes are needed most, so high burden scores high. Displacement risk: where prices and rents are surging, new building can speed displacement, so high pressure scores low.",
       "subscores": [
         {
           "id": "affordability",
-          "label": "Affordability",
+          "label": "Housing need",
           "weight": 1,
-          "description": "Housing, transportation and energy costs relative to local incomes (HUD 30% cost-burden standard; CNT 45% housing + transportation benchmark)."
+          "description": "Unmet need for homes people can afford: cost burden, rent relative to area median income, housing + transportation and energy costs. 100 = greatest need."
         },
         {
           "id": "displacement",
-          "label": "Displacement pressure",
+          "label": "Displacement risk",
           "weight": 1,
-          "description": "Signs that rising costs are pushing residents out: fast rent growth, sale prices outpacing incomes, eviction filings. 100 = low pressure."
+          "description": "Signs that rising costs are pushing residents out: fast rent and price growth, sale prices outpacing incomes. 100 = low risk."
         }
-      ]
+      ],
+      "direction_note": "Value judgment: need raises the score (the CDC and planner view of 'a good place to build'), displacement pressure lowers it. A market-first view would score high rents as good; the market_first preset leans that way."
     },
     {
       "id": "access",
@@ -75,7 +76,7 @@
         "access to opportunity"
       ],
       "weight": 1,
-      "description": "Walking-distance access to daily needs, transit service, and jobs reachable by transit."
+      "description": "Would new residents reach daily needs? Walking distance to groceries, health care, schools and services, transit service, and jobs reachable by transit."
     },
     {
       "id": "climate",
@@ -84,7 +85,7 @@
         "marginal carbon emissions"
       ],
       "weight": 1,
-      "description": "Two sub-scores that often pull in opposite directions: carbon (dense, walkable places mean less driving) and local environment (air, heat, tree canopy). Kept separate so the trade-off stays visible.",
+      "description": "Would homes here be low-carbon and healthy? Two sub-scores that often pull in opposite directions: carbon (dense, walkable places mean less driving) and local environment (air, heat, tree canopy). Kept separate so the trade-off stays visible.",
       "subscores": [
         {
           "id": "carbon",
@@ -427,6 +428,24 @@
       "unit": "index"
     },
     {
+      "id": "site_legal_pathway",
+      "pillar": "site",
+      "weight": 0,
+      "evidence": "policy",
+      "unit": "pathway",
+      "label": "Easiest legal pathway for mainstream housing types (current code)",
+      "geography": "parcel (zoning district)",
+      "source": {
+        "kind": "legal_pathway",
+        "file": "scripts/data/inputs/legal-feasibility/typology-district-matrix.json",
+        "zoning": "public/data/pittsburgh-zoning.geojson"
+      },
+      "normalize": {
+        "method": "identity"
+      },
+      "rationale": "Not averaged into Site Feasibility. It multiplies the overall score instead (see the legal block in this file)."
+    },
+    {
       "id": "afford_lowinc_renter_burden",
       "pillar": "afford",
       "weight": 2,
@@ -440,9 +459,9 @@
       },
       "normalize": {
         "method": "percentile",
-        "direction": "lower_is_better"
+        "direction": "higher_is_better"
       },
-      "rationale": "HUD's 30% cost-burden standard, for households at or below 80% AMI.",
+      "rationale": "HUD's 30% cost-burden standard for households at or below 80% AMI. More burdened renters = more need for homes they can afford.",
       "sub": "affordability",
       "unit": "%"
     },
@@ -461,10 +480,10 @@
       },
       "normalize": {
         "method": "linear",
-        "zero": 2,
-        "full": 0.8
+        "zero": 0.8,
+        "full": 2
       },
-      "rationale": "1242.5 = 30% × $49,700 (HUD FY2026 Pittsburgh 50% AMI, 3 persons) ÷ 12. The household size is an assumption. A ratio of 0.8 or less scores 100; 2.0 or more scores 0.",
+      "rationale": "1242.5 = 30% × $49,700 (HUD FY2026 Pittsburgh 50% AMI, 3 persons) ÷ 12. Rent at 2× what a 50% AMI household can afford scores 100 (high need); 0.8× or less scores 0. The household size is an assumption.",
       "sub": "affordability",
       "unit": "ratio"
     },
@@ -482,7 +501,7 @@
       },
       "normalize": {
         "method": "percentile",
-        "direction": "lower_is_better"
+        "direction": "higher_is_better"
       },
       "rationale": "All renters, not just low-income; ACS margins of error are large at block group level.",
       "sub": "affordability",
@@ -503,10 +522,10 @@
       },
       "normalize": {
         "method": "linear",
-        "zero": 75,
-        "full": 45
+        "zero": 45,
+        "full": 75
       },
-      "rationale": "CNT's H+T benchmark treats ≤45% of income as affordable, so 45% scores 100. The 75% zero point is our assumption. Modeled for a fixed household; inputs 2012–16 on 2010 tracts.",
+      "rationale": "CNT's H+T benchmark treats ≤45% of income as affordable, so 45% scores 0 need and 75% scores 100. The 75% point is our assumption. Modeled for a fixed household; inputs 2012–16 on 2010 tracts.",
       "unit": "%"
     },
     {
@@ -609,7 +628,7 @@
       },
       "normalize": {
         "method": "percentile",
-        "direction": "lower_is_better"
+        "direction": "higher_is_better"
       },
       "rationale": "Energy bills are part of housing cost. Modeled from ACS 2022 PUMS, not utility bills.",
       "sub": "affordability",
@@ -1125,5 +1144,254 @@
     "jobs": "jobs",
     "class": "class rank (10 = A)",
     "score": "0 = lead, 40 = galvanized"
+  },
+  "legal": {
+    "indicator": "site_legal_pathway",
+    "applies_to": "overall",
+    "typologies": [
+      "single_detached",
+      "single_attached",
+      "two_unit",
+      "three_unit",
+      "multi_unit"
+    ],
+    "border_m": 100,
+    "description": "Whether current zoning lets you build the brief's mainstream housing types (detached, townhouse, two-unit, three-unit, multi-unit) on this parcel. The overall score is multiplied by the factor for the easiest legal pathway among them. Legality is read from the City use table (§911.02), not estimated.",
+    "levels": [
+      {
+        "code": 0,
+        "id": "by_right",
+        "label": "Housing allowed by right",
+        "multiplier": 1.0
+      },
+      {
+        "code": 1,
+        "id": "za",
+        "label": "Housing allowed with Zoning Administrator approval",
+        "multiplier": 0.95
+      },
+      {
+        "code": 2,
+        "id": "zbe_special_exception",
+        "label": "Housing needs a ZBA special exception",
+        "multiplier": 0.85,
+        "note": "ZBA approved 90% of special exceptions in 2023–26 (n=30), counting only posted decisions."
+      },
+      {
+        "code": 3,
+        "id": "conditional_use",
+        "label": "Housing needs conditional use (Planning Commission + Council)",
+        "multiplier": 0.8
+      },
+      {
+        "code": 4,
+        "id": "not_permitted_border",
+        "label": "Housing not permitted, but the parcel borders a district that allows it",
+        "multiplier": 0.5,
+        "note": "Exceptions happen at district edges: a use variance (73% approved, n=30) or a map amendment extending the neighboring district (Council adopted all 42 rezonings since 2015). Still a long, uncertain process."
+      },
+      {
+        "code": 5,
+        "id": "not_permitted",
+        "label": "Housing not permitted: needs a rezoning or use variance",
+        "multiplier": 0.2,
+        "note": "Not legally impossible, but the slowest, least certain path."
+      },
+      {
+        "code": 6,
+        "id": "per_plan",
+        "label": "Planned district: depends on the site's approved plan",
+        "multiplier": 0.9
+      },
+      {
+        "code": 7,
+        "id": "not_city_jurisdiction",
+        "label": "Outside City zoning jurisdiction (Mount Oliver Borough)",
+        "multiplier": 1.0
+      }
+    ],
+    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5)."
+  },
+  "phrases": {
+    "overall": [
+      {
+        "min": 75,
+        "text": "A strong place to build new housing."
+      },
+      {
+        "min": 55,
+        "text": "A good place to build, with some trade-offs."
+      },
+      {
+        "min": 35,
+        "text": "A mixed case: real strengths and real drawbacks."
+      },
+      {
+        "min": 0,
+        "text": "A hard place to build new housing right now."
+      }
+    ],
+    "demand": [
+      {
+        "min": 75,
+        "text": "People really want to live here: households, sales and construction are active."
+      },
+      {
+        "min": 55,
+        "text": "Solid demand for new homes."
+      },
+      {
+        "min": 35,
+        "text": "Demand is middling."
+      },
+      {
+        "min": 0,
+        "text": "Not many people are looking to move here right now."
+      }
+    ],
+    "site": [
+      {
+        "min": 75,
+        "text": "An easy lot to build on: no major physical hazards."
+      },
+      {
+        "min": 55,
+        "text": "Mostly buildable, with minor site constraints."
+      },
+      {
+        "min": 35,
+        "text": "Real site constraints (slope, landslide, undermining or flood) to work around."
+      },
+      {
+        "min": 0,
+        "text": "Hard to build here: serious physical hazards."
+      }
+    ],
+    "afford": [
+      {
+        "min": 75,
+        "text": "High need for homes people can afford, with little displacement risk."
+      },
+      {
+        "min": 55,
+        "text": "Clear need for affordable homes and manageable displacement risk."
+      },
+      {
+        "min": 35,
+        "text": "Need and displacement risk pull against each other here."
+      },
+      {
+        "min": 0,
+        "text": "Either housing is already fairly affordable or displacement risk is high."
+      }
+    ],
+    "affordability": [
+      {
+        "min": 75,
+        "text": "Housing costs are a real burden here: new affordable homes are badly needed."
+      },
+      {
+        "min": 55,
+        "text": "Many renters are stretched: clear need for affordable homes."
+      },
+      {
+        "min": 35,
+        "text": "Somewhat affordable: moderate need."
+      },
+      {
+        "min": 0,
+        "text": "Fairly affordable already: less need for new affordable homes."
+      }
+    ],
+    "displacement": [
+      {
+        "min": 75,
+        "text": "Prices are stable: little displacement pressure."
+      },
+      {
+        "min": 55,
+        "text": "Mild price pressure."
+      },
+      {
+        "min": 35,
+        "text": "Prices are rising: watch for displacement."
+      },
+      {
+        "min": 0,
+        "text": "Prices are surging: new building here risks pushing people out."
+      }
+    ],
+    "access": [
+      {
+        "min": 75,
+        "text": "Everything is close: transit, groceries, health care and services."
+      },
+      {
+        "min": 55,
+        "text": "Good access to daily needs."
+      },
+      {
+        "min": 35,
+        "text": "Some needs are walkable; others take a car or bus."
+      },
+      {
+        "min": 0,
+        "text": "Car-dependent: daily needs are far away."
+      }
+    ],
+    "climate": [
+      {
+        "min": 75,
+        "text": "A low-carbon, healthy place to live."
+      },
+      {
+        "min": 55,
+        "text": "Mostly good on carbon and environment."
+      },
+      {
+        "min": 35,
+        "text": "Trade-offs between low driving and local air, heat or tree cover."
+      },
+      {
+        "min": 0,
+        "text": "High driving emissions and a poor local environment."
+      }
+    ],
+    "carbon": [
+      {
+        "min": 75,
+        "text": "Residents here would drive very little."
+      },
+      {
+        "min": 55,
+        "text": "Fairly low driving."
+      },
+      {
+        "min": 35,
+        "text": "Average driving for the region."
+      },
+      {
+        "min": 0,
+        "text": "Car-heavy location: high driving emissions."
+      }
+    ],
+    "local_env": [
+      {
+        "min": 75,
+        "text": "Clean air, cooler surfaces and good tree cover."
+      },
+      {
+        "min": 55,
+        "text": "A fairly healthy local environment."
+      },
+      {
+        "min": 35,
+        "text": "Some air pollution, heat or missing tree cover."
+      },
+      {
+        "min": 0,
+        "text": "Poor air quality and hot, paved surroundings."
+      }
+    ]
   }
 }

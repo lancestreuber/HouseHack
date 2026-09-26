@@ -91,6 +91,8 @@ function formatRaw(value: number | null, unit: string | undefined) {
       return `${value.toLocaleString()} t/yr`;
     case "per100":
       return `${value} per 100`;
+    case "pathway":
+      return config.legal.levels.find((l) => l.code === value)?.label ?? "unknown";
     case "ratio":
       return `${value.toFixed(2)}×`;
     default:
@@ -119,6 +121,12 @@ function ScoreBar({ score }: { score: number | null }) {
   );
 }
 
+function phrase(key: string, score: number | null) {
+  if (score == null) return null;
+  const bands = (config.phrases as Record<string, { min: number; text: string }[]>)[key];
+  return bands?.find((b) => score >= b.min)?.text ?? null;
+}
+
 const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
 
 function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: ParcelData; contribution?: number }) {
@@ -129,7 +137,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
     <li className="border-t border-border/40 py-1">
       <button type="button" onClick={() => setOpen((v) => !v)} className="grid w-full grid-cols-[1fr_auto] gap-x-2 text-left">
         <span className={ind.weight === 0 ? "text-muted-foreground" : ""}>{ind.label}</span>
-        <span className="tabular-nums">{norm == null ? "—" : norm}</span>
+        <span className="tabular-nums">{norm == null || ind.unit === "pathway" ? "—" : norm}</span>
         <span className="text-muted-foreground">{formatRaw(data.raw[ind.id], ind.unit)}</span>
         <span className="text-muted-foreground tabular-nums">
           {ind.weight === 0 ? "context" : contribution != null ? `+${contribution.toFixed(1)} pts` : "excluded"}
@@ -190,6 +198,7 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
           </span>
         </div>
         <ScoreBar score={score.score} />
+        {phrase(id, score.score) && <p className="text-foreground/90">{phrase(id, score.score)}</p>}
         {score.subscores.length > 0 && (
           <div className="flex gap-3 text-muted-foreground">
             {score.subscores.map((s) => (
@@ -208,6 +217,7 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
       {open && (
         <div className="space-y-2 px-2 pb-2">
           <p className="text-muted-foreground">{pillar.description}</p>
+          {"direction_note" in pillar && <p className="text-amber-400/90">⚖ {String(pillar.direction_note)}</p>}
           <p className="text-muted-foreground">
             {Math.round(score.coverage * 100)}% of indicator weight has data. Score = weighted mean of the normalized values
             {pillar.subscores ? " within each sub-score, then the mean of the sub-scores" : ""}; "pts" is each indicator's share of the score.
@@ -218,10 +228,13 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
             return (
               <div key={g.id || "all"}>
                 {g.id && (
-                  <p className="font-medium">
-                    {g.label} <span className="tabular-nums">{fmtScore(sub?.score ?? null)}</span>
-                    {sub?.score == null && <span className="text-muted-foreground"> (not enough data)</span>}
-                  </p>
+                  <>
+                    <p className="font-medium">
+                      {g.label} <span className="tabular-nums">{fmtScore(sub?.score ?? null)}</span>
+                      {sub?.score == null && <span className="text-muted-foreground"> (not enough data)</span>}
+                    </p>
+                    {phrase(g.id, sub?.score ?? null) && <p className="text-foreground/90">{phrase(g.id, sub?.score ?? null)}</p>}
+                  </>
                 )}
                 <div className="grid grid-cols-[1fr_auto] gap-x-2 text-muted-foreground">
                   <span>Indicator · raw value</span>
@@ -273,16 +286,32 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
                 </span>
               </div>
               <ScoreBar score={result.overall} />
+              {phrase("overall", result.overall) && <p className="mt-1">{phrase("overall", result.overall)}</p>}
               <p className="mt-1 text-muted-foreground">
-                Weighted {config.overall.method} mean of the five pillars, equal weights.
+                Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeLegal)}), equal weights
+                {result.legal ? `, × ${result.legal.multiplier} for zoning` : ""}.
                 {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
+              </p>
+            </section>
+            <section
+              className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
+            >
+              <p className="font-medium">Zoning (current code)</p>
+              <p>{result.legal ? result.legal.label : "Legal status unknown for this district"}</p>
+              {result.legal && result.legal.multiplier < 1 && (
+                <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
+              )}
+              {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
+              <p className="text-muted-foreground">
+                Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing. Simplified reading of §911.02;
+                verify with the Zoning Administrator.
               </p>
             </section>
             {config.pillars.map((p) => (
               <PillarCard key={p.id} id={p.id as PillarId} score={result.pillars[p.id as PillarId]} data={data} />
             ))}
             <p className="text-muted-foreground">
-              All scores 0–100, higher = better for a future resident. Weights are value judgments, published in
+              All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Weights are value judgments, published in
               pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
             </p>
           </>

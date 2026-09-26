@@ -1,4 +1,4 @@
-// Turns a parcel's normalized indicator values (0–100, 100 = better) into the
+// Turns a parcel's normalized indicator values (0–100, 100 = a good place to build) into the
 // five pillar scores and an overall number, using the open weights in
 // pillars.config.json. Pure and synchronous so it runs on every slider move.
 
@@ -12,6 +12,8 @@ export type PillarsConfig = typeof config;
 // User edits layered on top of the published defaults.
 export type WeightOverrides = {
   pillars?: Partial<Record<PillarId, number>>;
+  // Legal multipliers by level id, e.g. { not_permitted: 0.1 }.
+  legal?: LegalOverrides;
   subscores?: Record<string, number>;
   indicators?: Record<string, number>;
   overall?: "arithmetic" | "geometric";
@@ -31,10 +33,17 @@ export type PillarScore = {
   flags: string[];
 };
 
+export type LegalStatus = { code: number; id: string; label: string; multiplier: number; note?: string };
+
 export type ParcelScore = {
   pillars: Record<PillarId, PillarScore>;
+  // Overall after the legal multiplier; `overallBeforeLegal` is the pillar blend alone.
   overall: number | null;
+  overallBeforeLegal: number | null;
+  legal: LegalStatus | null;
 };
+
+export type LegalOverrides = Record<string, number>;
 
 type Gate = { indicator: string; below: number; cap: number; flag: string };
 type SubDef = { id: string; weight: number };
@@ -102,7 +111,20 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
     };
   }
 
-  return { pillars, overall: overallScore(pillars, overrides, cfg) };
+  const overallBeforeLegal = overallScore(pillars, overrides, cfg);
+  const legal = legalStatus(values, overrides, cfg);
+  const overall = overallBeforeLegal == null ? null : overallBeforeLegal * (legal?.multiplier ?? 1);
+  return { pillars, overall, overallBeforeLegal, legal };
+}
+
+// Zoning legality multiplies the overall score rather than being averaged in,
+// so a parcel where housing isn't permitted can't be rescued by good access.
+export function legalStatus(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): LegalStatus | null {
+  const code = values[cfg.legal.indicator];
+  if (code == null) return null;
+  const level = cfg.legal.levels.find((l) => l.code === code);
+  if (!level) return null;
+  return { code: level.code, id: level.id, label: level.label, multiplier: overrides.legal?.[level.id] ?? level.multiplier, note: (level as { note?: string }).note };
 }
 
 // Combines the pillars. Arithmetic lets a strong pillar offset a weak one;

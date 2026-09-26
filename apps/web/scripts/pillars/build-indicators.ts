@@ -1,5 +1,5 @@
 // Computes every indicator in src/lib/pillars/pillars.config.json for every City
-// parcel, normalizes each to 0–100 (100 = better), and writes
+// parcel, normalizes each to 0–100 (100 = a good place to build), and writes
 // public/data/pillars/parcel-indicators.json. Weights are NOT applied here, so
 // changing a weight never needs a rebuild; changing a source or normalization
 // rule does.
@@ -11,7 +11,7 @@ import { mkdir } from "node:fs/promises";
 import config from "../../src/lib/pillars/pillars.config.json";
 import { parseCSV } from "../data/geo";
 import { CACHE } from "./fetch-inputs";
-import { type Geometry, polygonLookup, polygonsOf, pointIndex, samplePoints } from "./spatial";
+import { distanceM, type Geometry, polygonLookup, polygonsOf, pointIndex, samplePoints } from "./spatial";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
 const OUT_DIR = `${ROOT}public/data/pillars/`;
@@ -218,6 +218,49 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
         raw: spine.map((p) => {
           const hit = index.nearest(p.x, p.y, src.max_m as number);
           return hit ? (map[hit.item.value] ?? null) : null;
+        }),
+        units: null,
+      };
+    }
+    case "legal_pathway": {
+      // Easiest pathway among the configured housing types for the parcel's
+      // district; "not permitted" parcels within border_m of a district that
+      // allows housing by right or with ZA approval get the border code.
+      const legal = config.legal;
+      const matrix = (await Bun.file(`${ROOT}${files[0]}`).json()) as {
+        pathway_order: string[];
+        districts: Record<string, Record<string, string>>;
+      };
+      const levelCode = Object.fromEntries(legal.levels.map((l) => [l.id, l.code]));
+      const rank = (pathway: string) => ["by_right", "za", "zbe_special_exception", "conditional_use", "not_permitted"].indexOf(pathway);
+      const best = new Map<string, string>();
+      for (const [district, row] of Object.entries(matrix.districts)) {
+        const paths = legal.typologies.map((t) => row[t]).filter(Boolean);
+        const ranked = paths.filter((p) => rank(p) >= 0).sort((a, b) => rank(a) - rank(b));
+        best.set(district, ranked[0] ?? paths.find((p) => p === "per_plan" || p === "not_city_jurisdiction") ?? "unknown");
+      }
+      const zoning = await features(src.zoning as string);
+      const allowed = [];
+      for (const f of zoning) {
+        const b = best.get(String(f.properties.zon_new));
+        if (b !== "by_right" && b !== "za") continue;
+        for (const poly of polygonsOf(f.geometry))
+          for (const ring of poly)
+            for (let k = 1; k < ring.length; k++) {
+              const [x0, y0] = ring[k - 1];
+              const [x1, y1] = ring[k];
+              const steps = Math.max(1, Math.ceil(distanceM(x0, y0, x1, y1) / 20));
+              for (let t = 0; t < steps; t++) allowed.push({ x: x0 + ((x1 - x0) * t) / steps, y: y0 + ((y1 - y0) * t) / steps, value: null });
+            }
+      }
+      const index = pointIndex(allowed);
+      return {
+        raw: spine.map((p) => {
+          const b = best.get(p.zoning);
+          if (!b || b === "unknown") return null;
+          if (b !== "not_permitted") return levelCode[b] ?? null;
+          const near = p.polys.some((poly) => poly[0].some(([x, y]) => index.nearest(x, y, legal.border_m) != null));
+          return near ? levelCode.not_permitted_border : levelCode.not_permitted;
         }),
         units: null,
       };
