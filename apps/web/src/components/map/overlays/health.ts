@@ -69,7 +69,7 @@ const OUTCOME_BREAKS: Record<string, number[]> = {
   casthma: [9.5, 10, 10.5, 11.5, 12.5],
   diabetes: [8, 10, 12, 14, 16],
   mhlth: [13, 14.5, 16, 17.5, 19],
-  depression: [22, 24, 26, 28, 30],
+  depression: [21, 22.5, 24, 25.5, 27],
   bphigh: [28, 32, 36, 40, 44],
   copd: [5, 6, 7, 8.5, 10],
   checkup: [74, 76, 78, 80, 82],

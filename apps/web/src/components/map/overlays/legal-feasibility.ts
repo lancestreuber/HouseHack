@@ -157,7 +157,7 @@ const SENIOR_TYPES: Record<string, { color: string; label: string }> = {
 const pathwayLabel = (v: unknown) =>
   String(v ?? "unknown")
     .split("|")
-    .map((x) => PATHWAY_META[x]?.label.toLowerCase() ?? "not in the use table")
+    .map((x) => PATHWAY_META[x]?.label.toLowerCase() ?? "unresolved in the code")
     .join(" or ");
 
 export const seniorHousingOverlay: OverlayDefinition = {

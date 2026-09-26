@@ -73,11 +73,19 @@ const KEEP = ["name", "address", "type", "capacity", "capacity_unit", "year", "y
 
 async function buildSeniorHousing() {
   const src = (await Bun.file(`${DIR}/senior-and-group-housing.geojson`).json()) as { features: GeoJSONFeature[] };
-  const features = src.features.map((f) => ({
-    type: "Feature" as const,
-    geometry: f.geometry,
-    properties: Object.fromEntries(KEEP.map((k) => [k, f.properties[k] ?? null])),
-  }));
+  // The points were coded against an earlier matrix; recompute both pathways
+  // from the current one so this layer agrees with the legal pathway map.
+  const matrix = ((await Bun.file(`${DIR}/typology-district-matrix.json`).json()) as Matrix).districts;
+  const features = src.features.map((f) => {
+    const properties: Record<string, unknown> = Object.fromEntries(KEEP.map((k) => [k, f.properties[k] ?? null]));
+    const row = matrix[String(f.properties.zon_new)];
+    const uses = String(f.properties.zoning_use_inferred ?? "").split("|").filter(Boolean);
+    if (row) {
+      properties.multi_unit_pathway = row.multi_unit ?? "unknown";
+      if (uses.length) properties.permission_pathway = [...new Set(uses.map((u) => row[u] ?? "unknown"))].join("|");
+    }
+    return { type: "Feature" as const, geometry: f.geometry, properties };
+  });
   await writeOverlay("senior-supportive-housing.geojson", {
     type: "FeatureCollection",
     features,
