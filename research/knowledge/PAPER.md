@@ -122,6 +122,14 @@ Read [`../docs/04-critique.md`](../docs/04-critique.md) and [`../docs/03-open-qu
    - The Land Bank *expects* about 9 months to clear title under its new sheriff-sale authority, per a third-party meeting summary and WESA. There is no outcome data.
    - The County reports that the count of apartments renting under a nominal $1,000 fell by 44,000+ from 2019 to 2024. How much of that is rent inflation and how much is physical loss is unknown.
 
+   ⭐ **Round 6 added primary testimony.** We counted 42 practitioner appearances across Council and Planning Commission hearings, from YouTube captions, because Legistar holds no testimony records. This is a count of testimony, not a survey, and the hearings concerned code text, not sites. The obstacles raised most:
+   - **the financing gap and cost to build**, quoted at $350k–$568k per unit
+   - **process complexity and delay**, including PWSA
+   - **parking minimums**, including lender-required parking
+   - **variances forced by minimum lot size**
+
+   City staff said some lots "can't build anything" under the residential-compatibility setbacks. Practitioners asked for current neighborhood cost/rent inputs, predictable rules, and a permit-pipeline dashboard (promised by the City, not released as of 9/23/26). The City already has a GIS layer of lots nonconforming under old vs new minimums. → [testimony sweep](../sweeps/r6-council-testimony-practitioner-voice.md)
+
    A feasibility tool that ignores site control and title may miss what practitioners raise. Whether it matters to the tool's actual users is the first open question.
    → [practitioners](stakeholders/practitioners.md) · [Land Bank](stakeholders/land-bank.md) · [County](stakeholders/allegheny-county.md)
 

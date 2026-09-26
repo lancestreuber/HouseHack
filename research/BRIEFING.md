@@ -11,7 +11,13 @@
   - Bill 2026-0834 would amend overlays, nonconformities and procedures; its hearing is 10/13.
 
   → [reforms](knowledge/policy/reforms-in-flux-2025-2026.md)
-- **What users actually complain about may not be "which site".** In the coverage we read, the problems named most often are **title and site control, financing, and preservation**. We haven't asked a real user yet. **Ask mentors first.** → [open questions](docs/03-open-questions.md)
+- **What users actually complain about may not be "which site".** We counted 42 practitioner appearances in public hearing testimony (round 6; a count of testimony, not a survey). The problems raised most were:
+  - the **financing gap and cost to build**, quoted at $350k–$568k per unit
+  - **process complexity and delay**, including PWSA
+  - **parking minimums**, including parking lenders require
+  - **variances forced by minimum lot size**
+
+  City staff said residential-compatibility setbacks leave some lots where you "can't build anything". Land Bank minutes cite **title and acquisition** taking years. Practitioners asked for current neighborhood cost/rent inputs, predictable rules, and a permit-pipeline dashboard that the City promised but hasn't released. **Ask mentors which of these our tool should serve.** → [testimony sweep](sweeps/r6-council-testimony-practitioner-voice.md) · [open questions](docs/03-open-questions.md)
 - **Build approach:** do all the geo work offline (Python/DuckDB → PMTiles + JSON). Score in the browser. Use the server only for LLM explanations and a planner-override log. **Remove the login wall.** → [architecture](knowledge/build-plan/architecture-options.md)
 
 ## What we could build (options, none picked)
