@@ -67,13 +67,23 @@ export const hospitalsOverlay = pointOverlay({
     labels: { general: "General hospital", specialty: "Specialty (psych, rehab, long-term acute)" },
   },
   radius: [5, 9],
-  tooltip: (p) => [String(p.name), String(p.address ?? ""), p.kind === "specialty" && "Specialty hospital"],
+  tooltip: (p) => [
+    String(p.name),
+    String(p.address ?? ""),
+    p.kind === "specialty" && "Specialty hospital",
+    p.emergency === true && "Emergency department",
+    p.cms_rated != null && `CMS overall rating: ${p.cms_rating != null ? `${p.cms_rating} of 5 stars` : "not available"}`,
+  ],
   meta: {
     source: "PA Department of Health licensed hospitals (PASDA)",
     sourceUrl: "https://mapservices.pasda.psu.edu/server/rest/services/pasda/DepHealth/MapServer/6",
     asOf: "DOH Hospitals, Nov 2025",
     geography: "Facility locations, Allegheny County",
-    caveats: ["The DOH data has no emergency-department flag; specialty is inferred from the name."],
+    caveats: [
+      "Specialty is inferred from the name.",
+      "Emergency department and star rating come from CMS Care Compare (Jul 2026), matched by address; specialty hospitals are not rated.",
+      "The CMS star rating is a composite of reported measures, not a full quality judgment.",
+    ],
   },
 });
 

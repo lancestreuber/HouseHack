@@ -30,21 +30,52 @@ async function countyContains() {
   return (lon: number, lat: number) => inCounty(lon, lat) === true;
 }
 
+// CMS Care Compare hospital general information: overall star rating and
+// emergency-services flag. CMS has no coordinates, so rows are matched to the
+// DOH points by street number + first street word (preferring general hospitals
+// where a specialty unit shares the address), with one name alias.
+const CMS = "https://data.cms.gov/provider-data/api/1/datastore/query/xubh-q36u/0?conditions[0][property]=state&conditions[0][value]=PA&conditions[1][property]=countyparish&conditions[1][value]=ALLEGHENY&limit=100";
+type CmsRow = { facility_name: string; address: string; hospital_overall_rating: string; emergency_services: string };
+// "320 E. North Avenue" and "320 EAST NORTH AVENUE" both become "320 north".
+const DIRECTIONS = new Set(["e", "east", "w", "west", "n", "north", "s", "south"]);
+const addressKey = (address: unknown) => {
+  const words = String(address ?? "").toLowerCase().replace(/\./g, "").split(/[\s,]+/).filter(Boolean);
+  const [num, ...rest] = words;
+  const street = rest.length > 1 && DIRECTIONS.has(rest[0]) ? rest[1] : rest[0];
+  return `${num} ${street ?? ""}`.trim();
+};
+
 async function buildHospitals() {
   const rows = await fetchAllGeoJSON(HOSPITALS, {
     where: "COUNTY = 'Allegheny'",
     outFields: ["NAME", "STREET", "CITY", "ZIP_CODE", "WEBSITE"],
   });
-  const features = rows.map((f) => ({
-    type: "Feature" as const,
-    geometry: f.geometry,
-    properties: {
-      name: f.properties.NAME,
-      address: [f.properties.STREET, f.properties.CITY].filter(Boolean).join(", "),
-      kind: SPECIALTY.test(String(f.properties.NAME)) ? "specialty" : "general",
-      website: f.properties.WEBSITE ?? null,
-    },
-  }));
+  const cms = ((await fetch(CMS).then((r) => r.json())) as { results: CmsRow[] }).results;
+  const cmsByKey = new Map(cms.map((c) => [addressKey(c.address), c]));
+  const childrens = cms.find((c) => /UPMC CHILDREN'S HOSPITAL/i.test(c.facility_name));
+
+  const features = rows.map((f) => {
+    const name = String(f.properties.NAME);
+    const kind = SPECIALTY.test(name) ? "specialty" : "general";
+    let match = kind === "general" ? cmsByKey.get(addressKey(f.properties.STREET)) : undefined;
+    if (/children's hospital of pittsburgh/i.test(name)) match = childrens;
+    const rating = Number(match?.hospital_overall_rating);
+    return {
+      type: "Feature" as const,
+      geometry: f.geometry,
+      properties: {
+        name,
+        address: [f.properties.STREET, f.properties.CITY].filter(Boolean).join(", "),
+        kind,
+        website: f.properties.WEBSITE ?? null,
+        cms_rating: Number.isFinite(rating) ? rating : null,
+        cms_rated: match ? match.hospital_overall_rating : null,
+        emergency: match ? match.emergency_services === "Yes" : null,
+      },
+    };
+  });
+  const matched = features.filter((f) => f.properties.cms_rated != null).length;
+  console.log(`hospitals: matched ${matched} of ${cms.length} CMS rows`);
   await writeOverlay("places-hospitals.geojson", { type: "FeatureCollection", features, metadata: { source: HOSPITALS } });
 }
 

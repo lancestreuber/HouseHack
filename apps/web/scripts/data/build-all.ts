@@ -8,6 +8,7 @@ import { buildChas } from "./chas";
 import { buildDesignations } from "./designations-lai";
 import { buildEquity } from "./equity";
 import { buildFloodZones } from "./flood-zones";
+import { buildHealth } from "./health";
 import { buildHousingCosts } from "./housing-costs";
 import { buildJobs } from "./jobs";
 import { buildLand } from "./land";
@@ -24,6 +25,6 @@ import { buildTransitStops } from "./transit-stops";
 import { buildWeatherRisk } from "./weather-risk";
 import { buildZoningPolicy } from "./zoning-policy";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity, buildSchoolQuality, buildZoningPolicy]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs, buildTornadoesAndMines, buildSubsidizedHousing, buildChas, buildDesignations, buildMarket, buildActivity, buildLand, buildEquity, buildSchoolQuality, buildZoningPolicy, buildHealth]) {
   await build();
 }
