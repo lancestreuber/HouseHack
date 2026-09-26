@@ -3,11 +3,14 @@
 // - Pharmacies, libraries, banks, etc.: Allegheny County Assets (WPRDC, CC0).
 //   Rows flagged do_not_display or sensitive are dropped; contact fields never kept.
 
-import { writeOverlay } from "./arcgis";
+import { fetchAllGeoJSON, writeOverlay } from "./arcgis";
 import { parseCSV } from "./geo";
 
 const FOOD = "https://data.wprdc.org/datastore/dump/112a3821-334d-4f3f-ab40-4de1220b1a0a";
 const ASSETS = "https://data.wprdc.org/datastore/dump/5c7825d2-6814-40c7-aefe-3d0f3d6f22e7";
+// Newer County layer. The Assets registry hides some real libraries (e.g.
+// Carnegie Library of Homestead) under do_not_display with no reason given.
+const LIBRARIES = "https://services1.arcgis.com/vdNDkVykv9vEWFX4/arcgis/rest/services/Libraries/FeatureServer/0";
 
 const round = (v: number) => Math.round(v * 1e5) / 1e5;
 const pt = (lon: number, lat: number) => ({ type: "Point", coordinates: [round(lon), round(lat)] });
@@ -18,7 +21,6 @@ const SHOP = /^(chain )?retail\/convenience store$/i;
 // Asset type -> output file (and optional name exclusions).
 const ASSET_LAYERS: Record<string, { file: string; exclude?: RegExp }> = {
   pharmacies: { file: "places-pharmacies.geojson", exclude: /rite ?aid/i }, // Rite Aid closed its stores in 2025
-  libraries: { file: "places-libraries.geojson" },
   health_centers: { file: "places-health-centers.geojson" },
   banks: { file: "places-banks.geojson" },
   post_offices: { file: "places-post-offices.geojson" },
@@ -90,9 +92,29 @@ async function buildAssets() {
   }
 }
 
+async function buildLibraries() {
+  const rows = await fetchAllGeoJSON(LIBRARIES, { outFields: ["Library", "Address", "City_1"] });
+  const features = rows.map((f) => ({
+    type: "Feature" as const,
+    geometry: f.geometry,
+    properties: {
+      name: f.properties.Library,
+      address: [f.properties.Address, f.properties.City_1].filter(Boolean).join(", ") || null,
+      municipality: f.properties.City_1 ?? null,
+      hours: null,
+    },
+  }));
+  await writeOverlay("places-libraries.geojson", {
+    type: "FeatureCollection",
+    features,
+    metadata: { source: LIBRARIES, builtAt: new Date().toISOString() },
+  });
+}
+
 export async function buildAmenities() {
   await buildFood();
   await buildAssets();
+  await buildLibraries();
 }
 
 if (import.meta.main) await buildAmenities();
