@@ -5,6 +5,7 @@ import { buildAirQuality } from "./air-quality";
 import { buildAmenities } from "./amenities";
 import { buildFloodZones } from "./flood-zones";
 import { buildHousingCosts } from "./housing-costs";
+import { buildJobs } from "./jobs";
 import { buildLandslides } from "./landslides";
 import { buildLeadServiceLines } from "./lead-service-lines";
 import { buildParks } from "./parks";
@@ -13,6 +14,6 @@ import { buildSafety } from "./safety";
 import { buildTransitStops } from "./transit-stops";
 import { buildWeatherRisk } from "./weather-risk";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides, buildTransitStops, buildHousingCosts, buildSafety, buildPlaces, buildParks, buildAmenities, buildJobs]) {
   await build();
 }
