@@ -12,11 +12,19 @@ import maplibreWorkerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 setWorkerUrl(maplibreWorkerUrl);
 
 import {
+  Popover,
+  PopoverContent,
+  PopoverHeader,
+  PopoverTitle,
+  PopoverTrigger,
+} from "@HouseHack/ui/components/popover";
+import {
   type PanelImperativeHandle,
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@HouseHack/ui/components/resizable";
+import { SlidersHorizontal } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -503,44 +511,62 @@ export function ParcelMap() {
                     <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
-                  <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
-                    <button
-                      type="button"
-                      onClick={() => setBasemap("carto")}
-                      className={`px-2 py-1 ${basemap === "carto" ? "bg-foreground text-background" : ""}`}
-                    >
-                      CARTO
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setBasemap("osm")}
-                      className={`px-2 py-1 ${basemap === "osm" ? "bg-foreground text-background" : ""}`}
-                    >
-                      OSM
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowZoning((v) => !v)}
-                      className={`border-l px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-                    >
-                      Zoning
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSpinning((v) => !v)}
-                      className={`border-l px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
-                    >
-                      Spin
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setThreeDEnabled((v) => !v)}
-                      disabled={!can3d}
-                      title={can3d ? undefined : "3D buildings need the CARTO basemap"}
-                      className={`border-l px-2 py-1 disabled:opacity-40 ${threeDEnabled && can3d ? "bg-foreground text-background" : ""}`}
-                    >
-                      3D
-                    </button>
+                  <div className="absolute bottom-2 left-2 z-10">
+                    <Popover>
+                      <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
+                        <SlidersHorizontal className="size-3.5" />
+                        Map options
+                      </PopoverTrigger>
+                      <PopoverContent side="top" align="start" className="w-56">
+                        <PopoverHeader>
+                          <PopoverTitle>Basemap</PopoverTitle>
+                        </PopoverHeader>
+                        <div className="flex overflow-hidden rounded-md border">
+                          <button
+                            type="button"
+                            onClick={() => setBasemap("carto")}
+                            className={`flex-1 px-2 py-1 ${basemap === "carto" ? "bg-foreground text-background" : ""}`}
+                          >
+                            CARTO
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setBasemap("osm")}
+                            className={`flex-1 border-l px-2 py-1 ${basemap === "osm" ? "bg-foreground text-background" : ""}`}
+                          >
+                            OSM
+                          </button>
+                        </div>
+                        <PopoverHeader>
+                          <PopoverTitle>View</PopoverTitle>
+                        </PopoverHeader>
+                        <div className="flex overflow-hidden rounded-md border">
+                          <button
+                            type="button"
+                            onClick={() => setShowZoning((v) => !v)}
+                            className={`flex-1 px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
+                          >
+                            Zoning
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSpinning((v) => !v)}
+                            className={`flex-1 border-l px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
+                          >
+                            Spin
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setThreeDEnabled((v) => !v)}
+                            disabled={!can3d}
+                            title={can3d ? undefined : "3D buildings need the CARTO basemap"}
+                            className={`flex-1 border-l px-2 py-1 disabled:opacity-40 ${threeDEnabled && can3d ? "bg-foreground text-background" : ""}`}
+                          >
+                            3D
+                          </button>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   </div>
                   <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
                     <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
