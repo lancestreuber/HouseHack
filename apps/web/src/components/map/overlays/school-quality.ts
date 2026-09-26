@@ -46,7 +46,7 @@ export const schoolQualityOverlay: OverlayDefinition = {
     [
       String(p.name),
       `${TYPE_LABELS[String(p.type)] ?? "School"}${p.grades ? `, grades ${p.grades}` : ""}${p.enrollment ? ` · ${Math.round(Number(p.enrollment))} students` : ""}`,
-      `Growth (PVAAS): ELA ${v(p.ela_growth)} · math ${v(p.math_growth)}`,
+      `Growth (PVAAS, 50–100): ELA ${v(p.ela_growth)} · math ${v(p.math_growth)}`,
       `Proficient: ELA ${v(p.ela_prof_pct, "%")} · math ${v(p.math_prof_pct, "%")} (economically disadvantaged: ${v(p.econ_disadv_pct, "%")})`,
       `Regular attendance: ${v(p.attendance_pct, "%")}${p.grad_4yr_pct != null ? ` · 4-yr graduation: ${p.grad_4yr_pct}%` : ""}`,
       p.essa && p.essa !== "DFLT" ? `State support designation: ${p.essa}` : "",
@@ -61,7 +61,7 @@ export const schoolQualityOverlay: OverlayDefinition = {
     caveats: [
       "Proficiency closely tracks family income (r ≈ −0.87 across Allegheny schools); growth reflects what the school adds.",
       "Schools are not color-ranked by scores on purpose.",
-      "The PVAAS growth figure is shown on Future Ready's index scale; its exact meaning is unverified.",
+      "PVAAS growth score is on a 50–100 scale (higher = more growth than the statewide average for similar students); there is no pass/fail line.",
       "Attendance zones differ from enrollment (charters, magnets, district lines).",
     ],
   },
