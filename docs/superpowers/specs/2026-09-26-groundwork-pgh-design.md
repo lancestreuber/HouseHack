@@ -1,0 +1,100 @@
+# Groundwork PGH — Design (Tracks 1 + 3)
+
+## Context
+AI Horizons 2026 AI for Housing Hackathon. Build window: now (Sat Sep 26, 11am ET) → **submissions close Sun Sep 27, 11:59pm ET** (~37h). Team of 4, work split not yet decided. Repo is an untouched Better-T-Stack scaffold (TanStack Start, oRPC, Drizzle/Neon, Better-Auth, shadcn/base-ui, Tailwind v4, Vercel). We're on branch `vid-branch`.
+
+Goal: one polished, reliable, demo-first product that combines **Track 1 (Development Ease Score for parcels, plain-language barriers, multi-parcel comparison)** and **Track 3 (location → housing-typology matching, tradeoffs across demand/transit/equity/climate, adjustable value weights, evidence vs. assumptions)**, for the City of Pittsburgh. Judges score: problem value, usability, reliable demo, data/AI integrity (citations, uncertainty, no PII), actionability, continuation potential. Required: 3–5 min demo video + public repo + Google Form.
+
+Decisions made: Claude API (key available) · no login, public app · precomputed static data files (no DB at runtime) · scope = City of Pittsburgh.
+
+**Bar: a real tool, not a demo.** A CDC, planner, small developer or resident should be able to use it on Monday: *any* address or parcel in the city gets a real, sourced report, every number traces to a public dataset with its date, links can be shared, and the data pipeline can be re-run so the tool stays current after the hackathon. The demo video simply records the product working.
+
+What "works for real" means concretely:
+- **Full parcel coverage**, not just sample sites. All ~140k City of Pittsburgh parcels get precomputed features (zoning, hazards, lot size, transit, canopy/heat, ownership), sharded by neighborhood and loaded on demand. Any address resolves to its parcel.
+- **Satellite / remote-sensing layers**: tree canopy, impervious surface and land-surface heat, per parcel and per neighborhood, which feed the climate score (heat exposure, stormwater, canopy loss if built). Candidate sources, to verify in hour 1: MRLC NLCD 2021 impervious + tree canopy (30 m, public domain), Landsat 9 summer LST (USGS / Microsoft Planetary Computer STAC, no key), and the Allegheny County / Tree Pittsburgh canopy layer on WPRDC. We sample the rasters at parcel centroids offline.
+- **Sourced and dated**: every factor shows its source and "as of" date. The methodology page lists everything, and the zoning interpretation carries a "verify with Zoning Administrator" note.
+- **Shareable and actionable**: the URL encodes site + weights + scenario. Reports print or save as PDF. Each report ends with "next steps": the zoning district's permitted uses, whether a variance is needed, the city/Land Bank acquisition path for city-owned lots, and contacts.
+- **Refreshable**: `bun run data:refresh` rebuilds everything from the source APIs, and a README tells a partner org how to keep it running. That covers the continuation criterion.
+- **Robust**: works without the AI (scores are deterministic, and the AI only explains them), without JS-heavy waits (static files on a CDN), and on phones.
+
+## The product (what the demo shows)
+Primary persona: a **CDC / municipal planner** (secondary: small developer). Demo story: *"Homewood CDC wants to know which city-owned vacant lots can become housing fastest, and what kind."*
+
+1. **Search** — address, ZIP, or neighborhood. Census geocoder (free, no key) → point; ZIP → neighborhoods it touches.
+2. **Map explorer** — MapLibre + CARTO Positron basemap. Neighborhood choropleth (Opportunity score), toggleable layers: zoning, 25% slope, landslide-prone, undermined, FEMA flood, transit frequency, **city-owned parcels (12,477, the "where to build" layer)**, recent permits.
+3. **Value sliders** (Track 3 core) — Demand · Transit · Equity · Climate · Feasibility. Scores recompute in the browser instantly; map recolors.
+4. **Site report** (parcel or neighborhood):
+   - **Development Ease Score 0–100** with a breakdown: zoning fit, lot size, slope/landslide/undermined/flood, city ownership, nearby permit activity (infrastructure/market proxy). Each factor has a pass/warn/block chip + source link.
+   - **Typology matches**: ADU, duplex/triplex, townhomes, small multifamily (4–19), mid-rise. Each shows fit score + confidence range + status: *allowed by right / needs variance / allowed only under the pending 2026 reform*.
+   - **Tradeoff table** per typology: estimated units, affordability reach (vs. Pittsburgh AMI), transit access, climate (embodied carbon/energy per unit, hazard exposure), displacement-risk flag.
+   - **AI brief** (Claude): a plain-language narrative that cites only the computed facts (fact-id chips). Each claim is tagged **Evidence / Assumption / Value choice**. Includes a "What this tool can't tell you" section.
+5. **Policy toggle, the showpiece**: "Apply 2026 zoning reform (ADUs by right citywide, no parking minimums, Affordable Housing Bonus)". Scores and typology statuses flip, and a delta summary appears ("+1,840 city-owned lots newly ADU-eligible").
+6. **Compare**: pin up to 3 sites side by side (Track 1's comparative requirement).
+7. **Export**: a printable one-page site brief. **Methodology page** listing sources, weights, known limitations and who could be harmed.
+
+## Architecture
+```
+scripts/data/*.ts        (bun, run offline) fetch → clip to city → spatial joins (turf) → simplify (mapshaper)
+        │                 → writes apps/web/public/data/*.json (committed, total < ~8 MB)
+packages/scoring/        pure TS: zoning→typology rules, factor normalization, weights, confidence,
+        │                 policy-scenario overrides. Shared by pipeline + browser + API. bun test.
+packages/api/routers/    oRPC: site.lookup (geocode → point-in-polygon vs static layers → WPRDC parcel via
+        │                 datastore_search?filters/q), ai.brief (Claude streaming, facts JSON in, cited text out)
+apps/web/                routes: / (landing+search), /explore (map + panel), /site/$id (report),
+                          /compare, /methodology. MapLibre via react-map-gl.
+```
+- Data contract is defined in hour 1 (`packages/scoring/src/types.ts`: `NeighborhoodMetrics`, `ParcelFeatures`, `TypologyResult`, `Factor`, `Fact`). All four people build against mock JSON matching it until the real data lands.
+- Reuse: the oRPC pattern in `packages/api/src/index.ts` (`publicProcedure`) and `routers/index.ts`; the client in `apps/web/src/utils/orpc.ts`; the full-height layout in `apps/web/src/routes/__root.tsx`; shadcn primitives in `packages/ui` (add: sheet, tabs, slider, badge, select, table, dialog, switch, chart, popover).
+- Remove or hide the scaffold: the todos route, the `/dashboard` stub, the header links, the "My App" title, the BETTER-T ASCII art. Auth code stays but nothing links to it.
+- Env: the scaffold requires DATABASE_URL and BETTER_AUTH_*. The quickest fix is a free Neon DB plus a generated secret, which keeps the scaffold intact. Add `ANTHROPIC_API_KEY` to `apps/web/.env.schema`.
+- Model: `claude-sonnet-5` for briefs. Cache briefs per (site, weights-bucket, scenario) so the demo never waits.
+- Visual design: light theme with Horizons-inspired branding (warm yellow accent `#F2C230`, bold geometric headings, lots of white space). This replaces the forced dark mode.
+
+## Data sources (verified live today unless noted)
+| Layer | Source |
+|---|---|
+| Zoning (1,069 polys, `zon_new`) | City ArcGIS `PGHWebZoning` / WPRDC zoning.geojson |
+| Neighborhoods (90) | WPRDC `neighborhoods2` |
+| Slope 25%, landslide-prone, undermined, FEMA flood | City ArcGIS `PGHWebSlope25`, `PGHWebLandslideProne`, `PGHWebUndermined`, `PGHWebFEMA2014` (+ FEMA NFHL live) |
+| City-owned parcels (12,477, lat/lon, zoning, status) | WPRDC datastore e1dcee82-… |
+| Assessments (lot area, use, value, year built) | WPRDC assessments + `datastore_search` (the SQL endpoint is blocked; use filters/q) |
+| Permits (65k, lat/lon) | WPRDC PLI permits f4d1177a-… |
+| Transit frequency | PRT GTFS zip → trips/hr per stop |
+| Demand/equity (rent, income, cost burden, change over time) | WPRDC UCSUR neighborhood profiles 2024 (no key); HUD CHAS tract file (manual browser download) |
+| AMI | FY2025 Pittsburgh HMFA, 4-person household: 30% $33.1k / 50% $55.2k / 80% $88.3k |
+| Zoning→use rules | Municode Title 9 Ch. 911 use table (hand-coded lookup) |
+| Needs context | 2022 Housing Needs Assessment (8,200-unit gap below 30% AMI; 40% of renters cost-burdened) |
+
+## Work split (4 people, parallel from hour 1)
+- **A: Data pipeline**: `scripts/data/*`: fetch, clip, join, simplify all layers; all-parcel features sharded by neighborhood (centroids + assessments + point-in-polygon); satellite raster sampling (canopy, impervious, heat); neighborhood metrics; GTFS frequency; `data:refresh` script. Ships mock files by 1pm and real files by 7pm.
+- **B: Scoring + AI**: `packages/scoring` (zoning→typology table, Development Ease Score, Track 3 weights, confidence, policy scenario), tests; `ai.brief` endpoint and prompt (fact-id citations, Evidence/Assumption/Value tags); methodology content.
+- **C: Map + explorer**: MapLibre map, layers, legend, search and geocoding, sliders, choropleth recolor, parcel click → report.
+- **D: Report, compare, polish, submission**: site report UI (score gauge, factor chips, typology cards, tradeoff table, AI brief panel), compare view, policy toggle UX, landing page, export/print, demo video script and recording, Google Form.
+(Vidyut picks a lane; I'll pair on whichever one.)
+
+## Timeline (ET)
+- **Sat 11am–1pm**: env + bun setup, Neon, Vercel link, contracts/types, mock data, GitHub issues, scaffold cleanup.
+- **1–7pm**: parallel build of v1.
+- **7pm checkpoint**: end-to-end on real data, deployed to Vercel preview.
+- **Sat night**: policy toggle, compare, AI brief caching, design pass.
+- **Sun 2pm feature freeze** → bug bash, copy, methodology, "what it gets wrong".
+- **Sun 5–8pm**: record the 3–5 min video (opens with the hackathon name + team; says plainly what's real vs. placeholder).
+- **Sun 9pm**: submit the form (a 3-hour buffer before 11:59pm). Repo public, keys stripped.
+
+## Immediate next steps after approval
+1. Write the design doc at `docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md` plus a team-facing plan page to share, and commit on `vid-branch`.
+2. Create GitHub issues (one per work item above, labeled A/B/C/D and with milestones for the 7pm checkpoint and the Sun 2pm freeze) via `gh`, after confirming with you.
+3. Implementation plan via writing-plans, starting with the contracts + mocks so all four people can build in parallel.
+
+## Verification
+- `bun test` in `packages/scoring`: golden cases (an R1D-L steep hillside lot → low ease; an RM-M flat city-owned lot near a frequent bus → high; the ADU status flips under the reform scenario).
+- Three real demo sites checked by hand against the City zoning map: a city-owned lot in Homewood, an address in Lawrenceville (IZ overlay), and a hillside parcel in Beechview.
+- `bun run check-types`, `bun run build`, then a Vercel preview URL opened in a fresh browser (no login, loads in under 3 s, works at mobile width).
+- AI brief: every sentence traces to a fact id. Test with the API key removed → a graceful "brief unavailable" message, and the scores still show.
+
+## Risks / mitigations
+- bun isn't installed locally → install it first thing (`curl -fsSL https://bun.sh/install | bash`).
+- The HUD site blocks bots → download CHAS by hand; the UCSUR profiles are the fallback.
+- The parcel polygons file is large (587k county rows) → use the parcel centroids CSV filtered to the city (~140k), shard per neighborhood (~1.5k parcels, ~100 KB each), and draw the clicked parcel's polygon on demand via the WPRDC Property API.
+- Satellite rasters are heavy → sample them once, offline, at centroids; ship only the numbers plus a pre-rendered neighborhood choropleth. If the Landsat LST pipeline eats more than 2h, fall back to NLCD canopy/impervious only.
+- Zoning→typology rules are hand-coded → label them "simplified interpretation, verify with Zoning Administrator", which counts toward the integrity criterion.
