@@ -16,6 +16,7 @@ import { AMENITY_OVERLAYS, PLACE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { sewerLinesOverlay } from "./sewer-lines";
 import { slopeOverlay } from "./slope";
+import { mineSubsidenceOverlay, minedOutAreasOverlay, tornadoPathsOverlay } from "./tornadoes-mines";
 import { transitStopsOverlay } from "./transit-stops";
 import type { Indicator, OverlayDefinition } from "./types";
 import { weatherRiskOverlay } from "./weather-risk";
@@ -32,6 +33,9 @@ export const OVERLAYS: OverlayDefinition[] = [
   landslideSusceptibilityOverlay,
   landslideIncidentsOverlay,
   seriousCrashesOverlay,
+  tornadoPathsOverlay,
+  minedOutAreasOverlay,
+  mineSubsidenceOverlay,
   leadServiceLinesOverlay,
   sewerLinesOverlay,
   transitStopsOverlay,
