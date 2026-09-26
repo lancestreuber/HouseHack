@@ -90,47 +90,51 @@ export const hospitalsOverlay = pointOverlay({
 export const fireStationsOverlay = pointOverlay({
   id: "places-fire",
   label: "Fire stations",
-  description: "Fire department stations across Allegheny County.",
+  description: "Fire stations: county departments, City of Pittsburgh stations and other mapped stations.",
   file: "places-fire.geojson",
   color: "#f97316",
-  tooltip: (p) => [String(p.name), p.station != null && `Station ${p.station}`, p.municipality && String(p.municipality)],
+  tooltip: (p) => [String(p.name), p.station != null && `Station ${p.station}`, p.municipality && String(p.municipality), p.address && String(p.address)],
   meta: {
-    source: "Allegheny County fire departments (ConnectGovs GIS)",
+    source: "Allegheny County fire departments (ConnectGovs GIS), City of Pittsburgh fire stations, and OpenStreetMap (ODbL)",
     sourceUrl: "https://services.arcgis.com/Kwm2c3YqtFhUC26N/arcgis/rest/services/Fire_Departments_Allegheny_County/FeatureServer/0",
-    asOf: "Edited Jan 2024",
-    geography: "Station locations",
+    asOf: "County list Jan 2024; City layer and OSM Sep 2026",
+    geography: "Station locations, clipped to the county",
+    caveats: ["Sources merged within 200 m; union halls, museums and training sites excluded."],
   },
 });
 
 export const policeStationsOverlay = pointOverlay({
   id: "places-police",
   label: "Police stations",
-  description: "Municipal, campus and state police stations.",
+  description: "Municipal police departments, plus campus, transit and state police.",
   file: "places-police.geojson",
   color: "#3b82f6",
-  tooltip: (p) => [String(p.name)],
+  tooltip: (p) => [String(p.name), p.address && String(p.address), p.serves && `Serves: ${p.serves}`],
   meta: {
-    source: "OpenStreetMap contributors (ODbL), plus PA State Police stations (PASDA)",
-    sourceUrl: "https://www.openstreetmap.org/copyright",
-    asOf: "OSM as of Sep 2026; PSP stations Mar 2025",
+    source: "Allegheny County municipal police (ConnectGovs GIS) + OpenStreetMap (ODbL) + PA State Police stations (PASDA)",
+    sourceUrl: "https://services.arcgis.com/Kwm2c3YqtFhUC26N/arcgis/rest/services/Police_Departments_Allegheny_County/FeatureServer/0",
+    asOf: "County list Jan 2024; OSM Sep 2026; PSP Mar 2025",
     geography: "Station locations, clipped to the county",
-    caveats: ["Crowd-sourced: unnamed stations are dropped and coverage may be incomplete."],
+    caveats: [
+      "One point per department headquarters; some departments cover several municipalities (listed under 'Serves').",
+      "Pittsburgh zone stations come from OSM.",
+    ],
   },
 });
 
 export const emsStationsOverlay = pointOverlay({
   id: "places-ems",
   label: "EMS stations",
-  description: "Ambulance / EMS stations.",
+  description: "The designated EMS agency for every municipality, plus City medic stations and other ambulance stations.",
   file: "places-ems.geojson",
   color: "#a855f7",
-  tooltip: (p) => [String(p.name)],
+  tooltip: (p) => [String(p.name), p.address && String(p.address), p.serves && `Serves: ${p.serves}`],
   meta: {
-    source: "OpenStreetMap contributors (ODbL)",
-    sourceUrl: "https://www.openstreetmap.org/copyright",
-    asOf: "OSM as of Sep 2026",
-    geography: "Station locations, clipped to the county",
-    caveats: ["Crowd-sourced; coverage may be incomplete."],
+    source: "Allegheny County EMS agencies (ConnectGovs GIS) + City of Pittsburgh EMS stations + OpenStreetMap (ODbL)",
+    sourceUrl: "https://services.arcgis.com/Kwm2c3YqtFhUC26N/arcgis/rest/services/EMS_Departments_Allegheny_County/FeatureServer/0",
+    asOf: "County list Feb 2024; City layer and OSM Sep 2026",
+    geography: "Agency bases, clipped to the county",
+    caveats: ["Agency headquarters or base addresses, not every sub-station."],
   },
 });
 
@@ -229,13 +233,12 @@ export const groceriesOverlay = pointOverlay({
 export const foodOtherOverlay = pointOverlay({
   id: "places-food-other",
   label: "Other food retail",
-  description: "Farmers markets, dollar and packaged-food stores, and convenience stores.",
+  description: "Dollar and packaged-food stores, and convenience stores.",
   file: "places-food-other.geojson",
   color: {
     property: "tier",
-    colors: { farmers_market: "#22c55e", other_food_retail: "#a8a29e", convenience_limited: "#78716c" },
+    colors: { other_food_retail: "#a8a29e", convenience_limited: "#78716c" },
     labels: {
-      farmers_market: "Farmers market or seasonal stand",
       other_food_retail: "Dollar / packaged-food store",
       convenience_limited: "Convenience store (limited food)",
     },
@@ -423,6 +426,135 @@ export const AMENITY_OVERLAYS = [
     "Doesn't say which dentists take Medicaid. Pair with the dental shortage areas layer.",
   ]),
   osmOverlay("places-community-centers", "Community centers", "Community and recreation centers.", "places-community-centers.geojson", "#c084fc", []),
+];
+
+const pois = (
+  id: string,
+  label: string,
+  description: string,
+  file: string,
+  color: PointOverlayOptions["color"],
+  tooltip: PointOverlayOptions["tooltip"],
+  meta: PointOverlayOptions["meta"],
+) => pointOverlay({ id, label, description, file, color, radius: [2.5, 6], tooltip, meta });
+
+export const SERVICE_OVERLAYS = [
+  pois(
+    "places-courts",
+    "Magisterial district courts",
+    "District courts, where landlord-tenant (eviction) cases are heard.",
+    "places-courts.geojson",
+    "#94a3b8",
+    (p) => [String(p.name), p.address && String(p.address), p.coverage && `Covers: ${p.coverage}`],
+    {
+      source: "Allegheny County Magisterial District Courts (ConnectGovs GIS)",
+      sourceUrl: "https://services.arcgis.com/Kwm2c3YqtFhUC26N/arcgis/rest/services/Magisterial_District_Judges_Office_Locations/FeatureServer/0",
+      asOf: "Edited Dec 2023",
+      geography: "Court office locations",
+      caveats: ["Pairs with the eviction filings layer."],
+    },
+  ),
+  pois(
+    "places-treatment",
+    "Drug & alcohol treatment",
+    "PA DOH licensed drug and alcohol treatment facilities.",
+    "places-treatment.geojson",
+    "#2dd4bf",
+    (p) => [String(p.name), p.address && String(p.address)],
+    {
+      source: "PA Department of Health licensed drug & alcohol facilities (PASDA)",
+      sourceUrl: "https://mapservices.pasda.psu.edu/server/rest/services/pasda/DepHealth/MapServer/3",
+      asOf: "Dec 2025 release",
+      geography: "Facility locations",
+    },
+  ),
+  pois(
+    "places-nursing-homes",
+    "Nursing homes",
+    "PA DOH licensed nursing homes, county-wide.",
+    "places-nursing-homes.geojson",
+    "#f472b6",
+    (p) => [String(p.name), p.address && String(p.address)],
+    {
+      source: "PA Department of Health nursing homes (PASDA)",
+      sourceUrl: "https://mapservices.pasda.psu.edu/server/rest/services/pasda/DepHealth/MapServer/12",
+      asOf: "Sep 2026 release",
+      geography: "Facility locations",
+      caveats: ["The Legal feasibility senior-housing layer also shows the City's nursing homes."],
+    },
+  ),
+  pois(
+    "places-farmers-markets",
+    "Farmers markets",
+    "Farmers markets and farm stands.",
+    "places-farmers-markets.geojson",
+    { property: "type", colors: { "Farm Market": "#22c55e", "Farm Stand": "#86efac" }, labels: { "Farm Market": "Farmers market", "Farm Stand": "Farm stand" } },
+    (p) => [String(p.name), p.type && String(p.type), p.address && String(p.address)],
+    {
+      source: "WPRDC farmers markets (CC0)",
+      sourceUrl: "https://data.wprdc.org/dataset/allegheny-county-farmers-markets-locations",
+      asOf: "Updated Aug 2026",
+      geography: "Market locations",
+      caveats: ["Most are seasonal."],
+    },
+  ),
+  pois(
+    "places-bike-share",
+    "Bike share (POGOH)",
+    "POGOH bike-share stations.",
+    "places-bike-share.geojson",
+    "#facc15",
+    (p) => [String(p.name), p.capacity && `${p.capacity} docks`],
+    {
+      source: "POGOH station information (GBFS feed)",
+      sourceUrl: "https://pittsburgh.publicbikesystem.net/customer/gbfs/v2/en/station_information",
+      asOf: "Snapshot Sep 2026",
+      geography: "Station locations",
+    },
+  ),
+  pois(
+    "places-playgrounds",
+    "Playgrounds (City)",
+    "City of Pittsburgh playgrounds.",
+    "places-playgrounds.geojson",
+    "#fb923c",
+    (p) => [String(p.name), p.park && String(p.park), p.neighborhood && String(p.neighborhood)],
+    {
+      source: "City of Pittsburgh playgrounds (WPRDC, CC-BY)",
+      sourceUrl: "https://data.wprdc.org/dataset/playgrounds",
+      asOf: "Pulled Sep 2026",
+      geography: "Playground locations, City only",
+    },
+  ),
+  pois(
+    "places-citiparks",
+    "City pools & rec centers",
+    "Citiparks swimming pools and recreation centers.",
+    "places-citiparks.geojson",
+    { property: "kind", colors: { pool: "#38bdf8", rec_center: "#c084fc" }, labels: { pool: "Pool", rec_center: "Recreation center" } },
+    (p) => [String(p.name), p.address && String(p.address), p.status && String(p.status), p.hours && String(p.hours)],
+    {
+      source: "Citiparks facilities (City of Pittsburgh ArcGIS)",
+      sourceUrl: "https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/Citipark_Facilities/FeatureServer",
+      asOf: "Pulled Sep 2026",
+      geography: "Facility locations, City only",
+      caveats: ["Pools are seasonal; hours shown are as published."],
+    },
+  ),
+  pois(
+    "places-colleges",
+    "Colleges & universities",
+    "Postsecondary institutions, including CCAC campuses.",
+    "places-colleges.geojson",
+    "#818cf8",
+    (p) => [String(p.name), p.address && String(p.address)],
+    {
+      source: "NCES EDGE postsecondary school locations",
+      sourceUrl: "https://nces.ed.gov/programs/edge/Geographic/SchoolLocations",
+      asOf: "2023–24",
+      geography: "Campus locations",
+    },
+  ),
 ];
 
 export const PLACE_OVERLAYS = [

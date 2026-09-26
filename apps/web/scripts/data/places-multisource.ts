@@ -49,10 +49,11 @@ export async function buildPlacesMultisource() {
   });
   const FOOD_SOURCE = "USDA FNS SNAP retailers + ACHD food permits (inputs/places/allegheny_food_retail_merged.csv)";
   // The pillars read places-groceries for grocery distance, so it keeps the
-  // grocery tiers only; everything else goes to places-food-other.
+  // grocery tiers only; everything else goes to places-food-other, except
+  // farmers markets, which come from the cleaner WPRDC list (services.ts).
   const groceryTiers = new Set(["full_grocery", "specialty_food"]);
   await write("places-groceries.geojson", food.filter((r) => groceryTiers.has(r.tier)), "lon", "lat", foodProps, FOOD_SOURCE);
-  await write("places-food-other.geojson", food.filter((r) => !groceryTiers.has(r.tier)), "lon", "lat", foodProps, FOOD_SOURCE);
+  await write("places-food-other.geojson", food.filter((r) => !groceryTiers.has(r.tier) && r.tier !== "farmers_market"), "lon", "lat", foodProps, FOOD_SOURCE);
 
   await write(
     "places-pharmacies.geojson",
