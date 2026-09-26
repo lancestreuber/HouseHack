@@ -33,9 +33,15 @@ async function features(file: string): Promise<Feature[]> {
   return f;
 }
 
-const matches = (props: Record<string, unknown>, where?: Record<string, unknown>) =>
+// `where` keeps rows whose fields equal (or are in) the given values; a
+// `$not` entry excludes rows instead, e.g. { $not: { facility: [...] } }.
+const matches = (props: Record<string, unknown>, where?: Record<string, unknown>): boolean =>
   !where ||
-  Object.entries(where).every(([k, v]) => (Array.isArray(v) ? v.includes(props[k]) : props[k] === v));
+  Object.entries(where).every(([k, v]) =>
+    k === "$not" ? !matchesAny(props, v as Record<string, unknown>) : Array.isArray(v) ? v.includes(props[k]) : props[k] === v,
+  );
+const matchesAny = (props: Record<string, unknown>, where: Record<string, unknown>) =>
+  Object.entries(where).some(([k, v]) => (Array.isArray(v) ? v.includes(props[k]) : props[k] === v));
 
 const num = (v: unknown) => {
   if (v == null || v === "") return null;
@@ -52,9 +58,15 @@ const passes = (props: Record<string, unknown>, r: Rule) =>
 function readValue(props: Record<string, unknown>, src: Source): number | null {
   // Blank the value when a reliability rule fails (e.g. too few addresses or sales).
   if (((src.require as Rule[] | undefined) ?? []).some((r) => !passes(props, r))) return null;
-  // Replace the value with a neutral one when it is within noise (e.g. inside the ACS margin of error).
+  const value = readRawValue(props, src);
+  // Replace a real value with a neutral one when it is within noise (e.g. inside
+  // the ACS margin of error). Missing stays missing.
   const neutral = src.neutral_unless as (Rule & { value: number }) | undefined;
-  if (neutral && !passes(props, neutral)) return neutral.value;
+  if (value != null && neutral && !passes(props, neutral)) return neutral.value;
+  return value;
+}
+
+function readRawValue(props: Record<string, unknown>, src: Source): number | null {
   const property = src.property as string | string[] | undefined;
   const map = src.map as Record<string, number> | undefined;
   if (Array.isArray(property)) {
@@ -115,7 +127,7 @@ const rawParcels = ((await Bun.file(`${CACHE}parcels.geojson`).json()) as { feat
 const byPin = new Map<string, Feature>();
 for (const f of rawParcels) {
   const pin = f.properties.pin as string;
-  if (!pin || !f.geometry) continue;
+  if (!pin || polygonsOf(f.geometry).length === 0) continue;
   const prev = byPin.get(pin);
   if (!prev || (num(f.properties.Shape__Area) ?? 0) > (num(prev.properties.Shape__Area) ?? 0)) byPin.set(pin, f);
 }
@@ -143,6 +155,18 @@ const spine = parcels.map((f) => {
 });
 console.timeEnd("load parcels");
 console.log(`${rawParcels.length} features → ${spine.length} unique parcels; ${spine.filter((p) => p.tract).length} matched to census geography`);
+
+// Points every `stepM` meters along a ring.
+function densify(ring: number[][], stepM: number) {
+  const out: { x: number; y: number; value: null }[] = [];
+  for (let k = 1; k < ring.length; k++) {
+    const [x0, y0] = ring[k - 1];
+    const [x1, y1] = ring[k];
+    const steps = Math.max(1, Math.ceil(distanceM(x0, y0, x1, y1) / stepM));
+    for (let t = 0; t < steps; t++) out.push({ x: x0 + ((x1 - x0) * t) / steps, y: y0 + ((y1 - y0) * t) / steps, value: null });
+  }
+  return out;
+}
 
 // Points from a CSV with lat/lon or latitude/longitude columns.
 async function csvPoints(file: string, where?: Record<string, unknown>) {
@@ -184,7 +208,8 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       };
     }
     case "nearest": {
-      const pts = [];
+      const pts: { x: number; y: number; value: null }[] = [];
+      const polys: { value: true; geometry: Geometry | null }[] = [];
       for (const file of files) {
         if (file.endsWith(".csv")) {
           for (const p of await csvPoints(file, where)) pts.push({ x: p.x, y: p.y, value: null });
@@ -195,11 +220,17 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
           if (f.geometry.type === "Point") {
             const [x, y] = f.geometry.coordinates as number[];
             pts.push({ x, y, value: null });
-          } else for (const poly of polygonsOf(f.geometry)) for (const [x, y] of poly[0]) pts.push({ x, y, value: null });
+          } else {
+            // Polygons: distance to the boundary, sampled every 25 m so long
+            // straight edges aren't missed; a parcel inside counts as 0.
+            polys.push({ value: true as const, geometry: f.geometry });
+            for (const poly of polygonsOf(f.geometry)) pts.push(...densify(poly[0], 25));
+          }
         }
       }
       const index = pointIndex(pts);
-      return { raw: spine.map((p) => index.nearest(p.x, p.y)?.distance ?? 10_000), units: null };
+      const inside = polys.length ? polygonLookup(polys) : () => undefined;
+      return { raw: spine.map((p) => (inside(p.x, p.y) ? 0 : (index.nearest(p.x, p.y)?.distance ?? 10_000))), units: null };
     }
     case "count_within":
     case "sum_within":
@@ -212,6 +243,19 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
               const [x, y] = (f.geometry as Geometry).coordinates as number[];
               return { x, y, value: f.properties };
             });
+      // Several permits for one project (phases, trades) count once: keep the
+      // row with the largest `property` per `dedupe_by` key.
+      const dedupeBy = src.dedupe_by as string | undefined;
+      if (dedupeBy) {
+        const best = new Map<string, (typeof pts)[number]>();
+        const keyless: typeof pts = [];
+        for (const p of pts) {
+          const key = String(p.value[dedupeBy] ?? "");
+          if (!key) keyless.push(p);
+          else if ((num(p.value[src.property as string]) ?? 0) >= (num(best.get(key)?.value[src.property as string]) ?? -1)) best.set(key, p);
+        }
+        pts.splice(0, pts.length, ...best.values(), ...keyless);
+      }
       const index = pointIndex(pts);
       if (src.kind === "count_within") return { raw: spine.map((p) => index.within(p.x, p.y, src.radius_m as number).length), units: null };
       if (src.kind === "sum_within") {
@@ -309,14 +353,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       const allowed = [];
       for (const f of zoning) {
         if (!bordersHousing(String(f.properties.zon_new))) continue;
-        for (const poly of polygonsOf(f.geometry))
-          for (const ring of poly)
-            for (let k = 1; k < ring.length; k++) {
-              const [x0, y0] = ring[k - 1];
-              const [x1, y1] = ring[k];
-              const steps = Math.max(1, Math.ceil(distanceM(x0, y0, x1, y1) / 20));
-              for (let t = 0; t < steps; t++) allowed.push({ x: x0 + ((x1 - x0) * t) / steps, y: y0 + ((y1 - y0) * t) / steps, value: null });
-            }
+        for (const poly of polygonsOf(f.geometry)) for (const ring of poly) allowed.push(...densify(ring, 20));
       }
       const index = pointIndex(allowed);
       return {

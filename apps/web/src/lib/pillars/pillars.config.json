@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.16",
+  "version": "2026-09-26.17",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -354,14 +354,15 @@
             "3_4_unit",
             "multifamily_5plus"
           ]
-        }
+        },
+        "dedupe_by": "parcel_num"
       },
       "normalize": {
         "method": "percentile",
         "reference": "parcels",
         "direction": "higher_is_better"
       },
-      "rationale": "Revealed demand: builders are building nearby. Counts homes, not permits, on a log scale so one 224-unit building counts more than one house but doesn't swamp everything, and includes apartment buildings, which the City files as 'Commercial'. Unit counts are parsed from permit text (assumption where missing: 1).",
+      "rationale": "Revealed demand: builders are building nearby. Counts homes, not permits, on a log scale so one 224-unit building counts more than one house but doesn't swamp everything, and includes apartment buildings, which the City files as 'Commercial'. Unit counts are parsed from permit text (assumption where missing: 1). Several permits on one parcel (phases, trades) count once, at the largest unit count.",
       "unit": "index"
     },
     {
@@ -823,23 +824,13 @@
         "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
         "key": "tract",
         "join": "tract",
-        "property": "chg_pct_pooled_2021_to_2425",
-        "require": [
-          {
-            "property": "n_2020_2021",
-            "min": 10
-          },
-          {
-            "property": "n_2024_2025",
-            "min": 10
-          }
-        ]
+        "property": "chg_pct_pooled_reliable"
       },
       "normalize": {
         "method": "percentile",
         "direction": "lower_is_better"
       },
-      "rationale": "Fast price appreciation is the market-pressure signal in the Urban Displacement Project and Portland (Bates 2013) methods. Pooled two-year medians; tracts with fewer than 10 sales in a pool are blank."
+      "rationale": "Median sale price change from pooled 2020–21 to pooled 2024–25 (county sales file). Blank unless both pools have at least 10 arm's-length sales."
     },
     {
       "id": "afford_evictions",
@@ -1278,14 +1269,21 @@
         "file": "scripts/pillars/inputs/achd_facilities_latest.csv",
         "property": "pm25_total_tpy",
         "full_m": 1000,
-        "zero_m": 10000
+        "zero_m": 10000,
+        "where": {
+          "$not": {
+            "facility": [
+              "NRG - Cheswick Power Station"
+            ]
+          }
+        }
       },
       "normalize": {
         "method": "percentile",
         "reference": "parcels",
         "direction": "lower_is_better"
       },
-      "rationale": "PM2.5 tons/yr from current permitted facilities, full weight within 1 km, fading to zero at 10 km so Clairton Coke Works reaches the Mon Valley neighborhoods (round-1 review). Emissions, not measured exposure; NRG Cheswick may have retired after 2021.",
+      "rationale": "PM2.5 tons/yr (filterable + condensable) from current permitted facilities, full weight within 1 km, fading to zero at 10 km so Clairton Coke Works reaches the Mon Valley neighborhoods. Excludes NRG Cheswick, which stopped generating on March 31, 2022. Emissions, not measured exposure; the inventory ends in 2021.",
       "sub": "local_env",
       "unit": "tons"
     },
