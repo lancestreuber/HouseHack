@@ -5,6 +5,7 @@
 // The layers panel, legend, tooltips and composite indicators all read from here.
 
 import { airQualityOverlay } from "./air-quality";
+import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
 import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
@@ -44,6 +45,9 @@ export const OVERLAYS: OverlayDefinition[] = [
   trailsOverlay,
   ...AMENITY_OVERLAYS,
   commerceDensityOverlay,
+  surfaceHeatOverlay,
+  treeCanopyOverlay,
+  imperviousOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
@@ -53,6 +57,7 @@ export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: strin
   { group: "hazard", title: "Hazards" },
   { group: "infrastructure", title: "Infrastructure" },
   { group: "places", title: "Places" },
+  { group: "environment", title: "Environment" },
 ];
 export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 
