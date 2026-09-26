@@ -81,7 +81,8 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
       totalWeight += total;
       availableWeight += available;
       const coverage = total > 0 ? available / total : 0;
-      const score = available > 0 && coverage >= cfg.missing.min_coverage ? sum / available : null;
+      const minCoverage = (pillar as { min_coverage?: number }).min_coverage ?? cfg.missing.min_coverage;
+      const score = available > 0 && coverage >= minCoverage ? sum / available : null;
       return { id: sub.id, weight: overrides.subscores?.[sub.id] ?? sub.weight, score, coverage, used, available };
     });
 
@@ -133,15 +134,22 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
   const method = overrides.overall ?? cfg.overall.method;
   let weightSum = 0;
   let acc = 0;
+  let missing = false;
   for (const pillar of cfg.pillars) {
     const id = pillar.id as PillarId;
     const weight = overrides.pillars?.[id] ?? pillar.weight;
     const score = pillars[id].score;
-    if (weight <= 0 || score == null) continue;
+    if (weight <= 0) continue;
+    if (score == null) {
+      missing = true;
+      continue;
+    }
     weightSum += weight;
     acc += method === "geometric" ? weight * Math.log(Math.max(score, cfg.overall.floor ?? 1)) : weight * score;
   }
   if (weightSum === 0) return null;
+  // Without every weighted pillar, the blend over-rewards whatever is left.
+  if ((cfg.overall as { require_all_pillars?: boolean }).require_all_pillars && missing) return null;
   return method === "geometric" ? Math.exp(acc / weightSum) : acc / weightSum;
 }
 

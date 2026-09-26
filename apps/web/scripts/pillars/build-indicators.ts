@@ -9,6 +9,7 @@
 
 import { mkdir } from "node:fs/promises";
 import config from "../../src/lib/pillars/pillars.config.json";
+import { type PillarId, scoreParcel } from "../../src/lib/pillars/score";
 import { parseCSV } from "../data/geo";
 import { CACHE } from "./fetch-inputs";
 import { distanceM, type Geometry, polygonLookup, polygonsOf, pointIndex, samplePoints } from "./spatial";
@@ -44,12 +45,28 @@ const num = (v: unknown) => {
 
 // Reads one raw value from a feature/row: a single property, a mapped category,
 // or the mean of several properties.
+type Rule = { property: string; min?: number; equals?: string };
+const passes = (props: Record<string, unknown>, r: Rule) =>
+  r.min != null ? (num(props[r.property]) ?? -Infinity) >= r.min : String(props[r.property]) === r.equals;
+
 function readValue(props: Record<string, unknown>, src: Source): number | null {
+  // Blank the value when a reliability rule fails (e.g. too few addresses or sales).
+  if (((src.require as Rule[] | undefined) ?? []).some((r) => !passes(props, r))) return null;
+  // Replace the value with a neutral one when it is within noise (e.g. inside the ACS margin of error).
+  const neutral = src.neutral_unless as (Rule & { value: number }) | undefined;
+  if (neutral && !passes(props, neutral)) return neutral.value;
   const property = src.property as string | string[] | undefined;
   const map = src.map as Record<string, number> | undefined;
   if (Array.isArray(property)) {
     const vals = property.map((p) => num(props[p])).filter((v): v is number => v != null);
     return vals.length === property.length ? vals.reduce((a, b) => a + b, 0) / vals.length : null;
+  }
+  // A share computed from two count fields, e.g. renters ≤30% AMI ÷ all renters.
+  const ratio = src.ratio_of as [string, string] | undefined;
+  if (ratio) {
+    const n = num(props[ratio[0]]);
+    const d = num(props[ratio[1]]);
+    return n != null && d != null && d > 0 ? n / d : null;
   }
   const raw = props[property as string];
   const value = map ? (map[String(raw)] ?? null) : num(raw);
@@ -127,6 +144,14 @@ const spine = parcels.map((f) => {
 console.timeEnd("load parcels");
 console.log(`${rawParcels.length} features → ${spine.length} unique parcels; ${spine.filter((p) => p.tract).length} matched to census geography`);
 
+// Points from a CSV with lat/lon or latitude/longitude columns.
+async function csvPoints(file: string, where?: Record<string, unknown>) {
+  return parseCSV(await Bun.file(`${ROOT}${file}`).text())
+    .map((r) => ({ r, x: num(r.lon ?? r.longitude), y: num(r.lat ?? r.latitude) }))
+    .filter((p) => p.x != null && p.y != null && matches(p.r, where))
+    .map((p) => ({ x: p.x as number, y: p.y as number, value: p.r as Record<string, unknown> }));
+}
+
 // ---------- indicators ----------
 async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; units: number[] | null }> {
   const src = ind.source as Source;
@@ -162,8 +187,7 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       const pts = [];
       for (const file of files) {
         if (file.endsWith(".csv")) {
-          for (const r of parseCSV(await Bun.file(`${ROOT}${file}`).text()))
-            if (matches(r, where) && num(r.lat) != null && num(r.lon) != null) pts.push({ x: Number(r.lon), y: Number(r.lat), value: null });
+          for (const p of await csvPoints(file, where)) pts.push({ x: p.x, y: p.y, value: null });
           continue;
         }
         for (const f of await features(file)) {
@@ -178,11 +202,10 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
       return { raw: spine.map((p) => index.nearest(p.x, p.y)?.distance ?? 10_000), units: null };
     }
     case "count_within":
+    case "sum_within":
     case "decay_sum": {
       const pts = files[0].endsWith(".csv")
-        ? parseCSV(await Bun.file(`${ROOT}${files[0]}`).text())
-            .filter((r) => matches(r, where) && num(r.lon) != null && num(r.lat) != null)
-            .map((r) => ({ x: Number(r.lon), y: Number(r.lat), value: r as Record<string, unknown> }))
+        ? await csvPoints(files[0], where)
         : (await features(files[0]))
             .filter((f) => f.geometry?.type === "Point" && matches(f.properties, where))
             .map((f) => {
@@ -191,6 +214,18 @@ async function computeRaw(ind: Indicator): Promise<{ raw: (number | null)[]; uni
             });
       const index = pointIndex(pts);
       if (src.kind === "count_within") return { raw: spine.map((p) => index.within(p.x, p.y, src.radius_m as number).length), units: null };
+      if (src.kind === "sum_within") {
+        // Σ transform(property) over points within the radius; a blank property counts as `default`.
+        const f = src.transform === "log1p" ? Math.log1p : (v: number) => v;
+        return {
+          raw: spine.map((p) =>
+            index
+              .within(p.x, p.y, src.radius_m as number)
+              .reduce((sum, { item }) => sum + f(num(item.value[src.property as string]) ?? ((src.default as number) ?? 1)), 0),
+          ),
+          units: null,
+        };
+      }
       const full = src.full_m as number;
       const zero = src.zero_m as number;
       const modeWeight = (src.mode_weight as Record<string, number>) ?? {};
@@ -326,8 +361,28 @@ spine.forEach((p, i) => {
 });
 await mkdir(`${OUT_DIR}parcels/`, { recursive: true });
 for (const [key, shard] of shards) await Bun.write(`${OUT_DIR}parcels/${key}.json`, JSON.stringify(shard));
+// Default-weight score distribution, so the panel can say "better than X% of
+// City parcels" instead of a raw number on a compressed scale.
+const dist: Record<string, number[]> = { overall: [] };
+for (const p of config.pillars) dist[p.id] = [];
+for (let i = 0; i < spine.length; i++) {
+  const values: Record<string, number | null> = {};
+  config.indicators.forEach((ind, k) => (values[ind.id] = normColumns[k][i] === MISSING ? null : normColumns[k][i]));
+  const s = scoreParcel(values);
+  if (s.overall != null) dist.overall.push(s.overall);
+  for (const p of config.pillars) {
+    const v = s.pillars[p.id as PillarId].score;
+    if (v != null) dist[p.id].push(v);
+  }
+}
+const quantiles = Object.fromEntries(
+  Object.entries(dist).map(([k, v]) => {
+    v.sort((a, b) => a - b);
+    return [k, Array.from({ length: 101 }, (_, q) => Number(v[Math.min(v.length - 1, Math.floor((q / 100) * (v.length - 1)))].toFixed(2)))];
+  }),
+);
 await Bun.write(
   `${OUT_DIR}parcels/index.json`,
-  JSON.stringify({ config_version: config.version, built: new Date().toISOString(), indicators: config.indicators.map((i) => i.id), shards: [...shards.keys()].sort() }),
+  JSON.stringify({ config_version: config.version, built: new Date().toISOString(), indicators: config.indicators.map((i) => i.id), shards: [...shards.keys()].sort(), quantiles }),
 );
 console.log(`wrote ${shards.size} parcel shards`);

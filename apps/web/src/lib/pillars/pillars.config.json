@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.11",
+  "version": "2026-09-26.14",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -14,7 +14,8 @@
       "arithmetic"
     ],
     "floor": 1,
-    "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle."
+    "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle.",
+    "require_all_pillars": true
   },
   "pillars": [
     {
@@ -24,7 +25,8 @@
         "demand"
       ],
       "weight": 1,
-      "description": "Is there demand for new homes here? Household and job growth, low vacancy, an active sales market, rising rents and recent construction score high."
+      "description": "Is there demand for new homes here? Household and job growth, low vacancy, an active sales market, rising rents and recent construction score high.",
+      "min_coverage": 0.75
     },
     {
       "id": "site",
@@ -46,28 +48,42 @@
     },
     {
       "id": "afford",
-      "label": "Housing Need & Displacement Risk",
+      "label": "Housing Need",
       "brief_axes": [
         "affordability",
         "displacement risk"
       ],
       "weight": 1,
-      "description": "Two sub-scores. Housing need: where renters are most cost-burdened, new homes are needed most, so high burden scores high. Displacement risk: where prices and rents are surging, new building can speed displacement, so high pressure scores low.",
+      "description": "How much unmet need for homes people can afford is here, measured by households: low-income renters who are cost-burdened and the share of renters with extremely low incomes. Displacement pressure is shown alongside as a flag, not scored.",
       "subscores": [
         {
           "id": "affordability",
           "label": "Housing need",
           "weight": 1,
-          "description": "Unmet need for homes people can afford: cost burden, rent relative to area median income, housing + transportation and energy costs. 100 = greatest need."
+          "description": "Unmet need among households: cost-burdened low-income renters and the share of renters at or below 30% of area median income. 100 = greatest need."
         },
         {
           "id": "displacement",
-          "label": "Displacement risk",
-          "weight": 1,
-          "description": "Signs that rising costs are pushing residents out: fast rent and price growth, sale prices outpacing incomes. 100 = low risk."
+          "label": "Displacement pressure (shown, not scored)",
+          "weight": 0,
+          "description": "Sale-price growth relative to incomes (Reinvestment Fund DRR), recent price growth and 5-year rent growth. 100 = little pressure. Weight 0 by default; raise it in the config to score it."
         }
       ],
-      "direction_note": "Value judgment: need raises the score (the CDC and planner view of 'a good place to build'), displacement pressure lowers it. A market-first view would score high rents as good; the market_first preset leans that way."
+      "direction_note": "Value judgment: greater need raises the score. Displacement pressure is shown, not scored: research finds new supply tends to relieve nearby rents and displacement (Asquith, Mast & Reed 2023; Pennington 2021), and the right response to pressure is usually income-restricted homes and tenant protections, not avoiding the area. Round-1 review found that scoring price growth pushed down the poorest, mostly Black neighborhoods.",
+      "gates": [
+        {
+          "indicator": "afford_displacement_ratio",
+          "below": 20,
+          "cap": 100,
+          "flag": "Sale prices have outpaced local incomes (DRR): income-restricted homes and tenant protections matter most here"
+        },
+        {
+          "indicator": "afford_price_growth",
+          "below": 10,
+          "cap": 100,
+          "flag": "Strong recent price growth: income-restricted homes and tenant protections matter most here"
+        }
+      ]
     },
     {
       "id": "access",
@@ -115,35 +131,40 @@
         "file": "scripts/pillars/inputs/allegheny_tract_household_growth_2020_2024.csv",
         "key": "tract",
         "join": "tract",
-        "property": "hh_change_pct"
+        "property": "hh_change_pct",
+        "neutral_unless": {
+          "property": "change_exceeds_moe",
+          "equals": "True",
+          "value": 0
+        }
       },
       "normalize": {
         "method": "percentile",
         "direction": "higher_is_better"
       },
-      "rationale": "Household growth is the core of HUD market-analysis demand. Weak signal: only 35 of 394 tracts change by more than the ACS margin of error, so it carries weight 1.",
+      "rationale": "Household growth is the core of HUD market-analysis demand. Weak signal: only 35 of 394 tracts change by more than the ACS margin of error, so it carries weight 1. Changes inside the ACS margin of error are treated as zero change.",
       "unit": "fraction_pct"
     },
     {
       "id": "demand_sales_turnover",
       "pillar": "demand",
-      "weight": 2,
+      "weight": 1.5,
       "evidence": "observed",
-      "label": "Home sales per 100 housing units, 2024–25",
+      "label": "Home sales per 100 owner-occupied units, 2024–25",
       "geography": "tract",
       "unit": "per100",
       "source": {
         "kind": "table",
-        "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
+        "file": "scripts/pillars/inputs/derived_tract_turnover.csv",
         "key": "tract",
         "join": "tract",
-        "property": "sales_per_100hu_2024_2025"
+        "property": "sales_per_100_owner_units"
       },
       "normalize": {
         "method": "percentile",
         "direction": "higher_is_better"
       },
-      "rationale": "Arm's-length residential sales (county sales file) relative to housing stock: an active market absorbs new homes."
+      "rationale": "Arm's-length sales relative to the owner-occupied stock they come from. Dividing by all housing units measured homeownership share instead of market activity (round-1 review). Blank where a tract has fewer than 150 owner-occupied units."
     },
     {
       "id": "demand_low_vacancy",
@@ -155,19 +176,25 @@
       "source": {
         "kind": "area",
         "file": "public/data/overlays/usps-vacancy.geojson",
-        "property": "res_vacancy_pct"
+        "property": "res_vacancy_pct",
+        "require": [
+          {
+            "property": "res_addresses",
+            "min": 200
+          }
+        ]
       },
       "normalize": {
         "method": "percentile",
         "direction": "lower_is_better"
       },
-      "rationale": "Low vacancy means existing homes are being absorbed.",
+      "rationale": "Low vacancy means existing homes are being absorbed. Blank for tracts with fewer than 200 residential addresses.",
       "unit": "%"
     },
     {
       "id": "demand_job_growth",
       "pillar": "demand",
-      "weight": 1,
+      "weight": 0.5,
       "evidence": "observed",
       "label": "Job change, 2019 to 2023",
       "geography": "block group",
@@ -176,19 +203,25 @@
         "file": "scripts/data/inputs/allegheny_jobs_demand_bg_2023.csv",
         "key": "geoid",
         "join": "bg",
-        "property": "jobs_change_pct"
+        "property": "jobs_change_pct",
+        "require": [
+          {
+            "property": "jobs_2019",
+            "min": 250
+          }
+        ]
       },
       "normalize": {
         "method": "percentile",
         "direction": "higher_is_better"
       },
-      "rationale": "Employment growth drives household formation (LEHD LODES).",
+      "rationale": "Employment growth drives household formation (LEHD LODES). Blank where a block group had fewer than 250 jobs in 2019, since small bases give meaningless growth rates.",
       "unit": "fraction_pct"
     },
     {
       "id": "demand_rent_growth",
       "pillar": "demand",
-      "weight": 1,
+      "weight": 0.5,
       "evidence": "observed",
       "label": "Rent growth, last 12 months (Zillow ZORI)",
       "geography": "ZIP",
@@ -201,31 +234,40 @@
         "method": "percentile",
         "direction": "higher_is_better"
       },
-      "rationale": "Rising asking rents signal demand exceeding supply.",
+      "rationale": "Rising asking rents signal demand, but 12-month ZIP rent change is lowest exactly where new supply lands, so low weight.",
       "unit": "%"
     },
     {
       "id": "demand_new_construction",
       "pillar": "demand",
-      "weight": 1,
-      "evidence": "observed",
-      "label": "New residential permits within 800 m",
+      "weight": 1.5,
+      "evidence": "assumption",
+      "label": "New homes permitted within 800 m, 2019–26 (log units)",
       "geography": "parcel",
       "source": {
-        "kind": "count_within",
-        "file": "public/data/overlays/permits-activity.geojson",
+        "kind": "sum_within",
+        "file": "scripts/pillars/inputs/pgh_new_residential_permits_classified.csv",
+        "property": "units_guess",
+        "transform": "log1p",
+        "default": 1,
+        "radius_m": 800,
         "where": {
-          "kind": "new_residential"
-        },
-        "radius_m": 800
+          "housing_type_guess": [
+            "single_family",
+            "townhouse",
+            "2_unit",
+            "3_4_unit",
+            "multifamily_5plus"
+          ]
+        }
       },
       "normalize": {
         "method": "percentile",
         "reference": "parcels",
         "direction": "higher_is_better"
       },
-      "rationale": "Revealed demand: builders are already building nearby. City of Pittsburgh permits only.",
-      "unit": "permits"
+      "rationale": "Revealed demand: builders are building nearby. Counts homes, not permits, on a log scale so one 224-unit building counts more than one house but doesn't swamp everything, and includes apartment buildings, which the City files as 'Commercial'. Unit counts are parsed from permit text (assumption where missing: 1).",
+      "unit": "index"
     },
     {
       "id": "demand_market_strength",
@@ -448,7 +490,7 @@
     {
       "id": "afford_lowinc_renter_burden",
       "pillar": "afford",
-      "weight": 2,
+      "weight": 3,
       "evidence": "observed",
       "label": "Low-income renters paying 30%+ of income on housing (CHAS)",
       "geography": "tract",
@@ -466,9 +508,38 @@
       "unit": "%"
     },
     {
+      "id": "afford_eli_renter_share",
+      "pillar": "afford",
+      "sub": "affordability",
+      "weight": 2,
+      "evidence": "observed",
+      "unit": "fraction_pct",
+      "label": "Renters at or below 30% of area median income (CHAS)",
+      "geography": "tract",
+      "source": {
+        "kind": "area",
+        "file": "public/data/overlays/chas-cost-burden.geojson",
+        "ratio_of": [
+          "renter_le30",
+          "renter_hh"
+        ],
+        "require": [
+          {
+            "property": "renter_hh",
+            "min": 50
+          }
+        ]
+      },
+      "normalize": {
+        "method": "percentile",
+        "direction": "higher_is_better"
+      },
+      "rationale": "Extremely low-income renters are the households the private market serves least. Tract share of renter households; blank under 50 renter households. Student-heavy tracts can inflate it (not yet corrected)."
+    },
+    {
       "id": "afford_rent_vs_ami",
       "pillar": "afford",
-      "weight": 2,
+      "weight": 0,
       "evidence": "assumption",
       "label": "Median gross rent vs. rent affordable at 50% AMI (3-person household)",
       "geography": "block group",
@@ -483,7 +554,7 @@
         "zero": 0.8,
         "full": 2
       },
-      "rationale": "1242.5 = 30% × $49,700 (HUD FY2026 Pittsburgh 50% AMI, 3 persons) ÷ 12. Rent at 2× what a 50% AMI household can afford scores 100 (high need); 0.8× or less scores 0. The household size is an assumption.",
+      "rationale": "Context only (weight 0): rent relative to AMI measures how expensive the market is, not how many households are struggling (round-1 review). 1242.5 = 30% × $49,700 (HUD FY2026 Pittsburgh 50% AMI, 3 persons) ÷ 12.",
       "sub": "affordability",
       "unit": "ratio"
     },
@@ -511,7 +582,7 @@
       "id": "afford_housing_transport",
       "pillar": "afford",
       "sub": "affordability",
-      "weight": 2,
+      "weight": 0.5,
       "evidence": "assumption",
       "label": "Housing + transportation cost share, median-income family (HUD LAI v3)",
       "geography": "tract",
@@ -525,7 +596,7 @@
         "zero": 45,
         "full": 75
       },
-      "rationale": "CNT's H+T benchmark treats ≤45% of income as affordable, so 45% scores 0 need and 75% scores 100. The 75% point is our assumption. Modeled for a fixed household; inputs 2012–16 on 2010 tracts.",
+      "rationale": "CNT's H+T benchmark treats ≤45% of income as affordable, so 45% scores 0 need and 75% scores 100. The 75% point is our assumption. Modeled for a fixed household; inputs 2012–16 on 2010 tracts. Low weight: it barely varies within the city.",
       "unit": "%"
     },
     {
@@ -551,7 +622,7 @@
     {
       "id": "afford_displacement_ratio",
       "pillar": "afford",
-      "weight": 0.5,
+      "weight": 2,
       "evidence": "observed",
       "label": "Displacement Risk Ratio, 2019/20 (Reinvestment Fund)",
       "geography": "block group",
@@ -572,7 +643,7 @@
       "id": "afford_price_growth",
       "pillar": "afford",
       "sub": "displacement",
-      "weight": 2,
+      "weight": 1,
       "evidence": "observed",
       "label": "Median home sale price change, 2020–21 to 2024–25",
       "geography": "tract",
@@ -582,7 +653,17 @@
         "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
         "key": "tract",
         "join": "tract",
-        "property": "chg_pct_pooled_2021_to_2425"
+        "property": "chg_pct_pooled_2021_to_2425",
+        "require": [
+          {
+            "property": "n_2020_2021",
+            "min": 10
+          },
+          {
+            "property": "n_2024_2025",
+            "min": 10
+          }
+        ]
       },
       "normalize": {
         "method": "percentile",
@@ -666,13 +747,17 @@
       "pillar": "access",
       "weight": 2,
       "evidence": "observed",
-      "label": "Walking distance to nearest grocery",
+      "label": "Walking distance to nearest supermarket",
       "geography": "parcel",
       "source": {
         "kind": "nearest",
         "file": "public/data/overlays/places-groceries.geojson",
         "where": {
-          "tier": "full_grocery"
+          "tier": "full_grocery",
+          "snap_type": [
+            "Super Store",
+            "Supermarket"
+          ]
         }
       },
       "normalize": {
@@ -680,8 +765,51 @@
         "zero": 2400,
         "full": 400
       },
-      "rationale": "Full-service groceries from USDA SNAP retailers + ACHD food permits (deduped, tier full_grocery). Walk Score decay: full credit within 400 m, none beyond 2.4 km. Straight-line distance.",
+      "rationale": "USDA SNAP-authorized supermarkets and super stores only. The broader 'full_grocery' tier included convenience/dollar stores and stale permit rows (round-1 review). Walk Score decay: full credit within 400 m, none beyond 2.4 km. Straight-line distance.",
       "unit": "m"
+    },
+    {
+      "id": "access_small_grocer",
+      "pillar": "access",
+      "weight": 0.5,
+      "evidence": "observed",
+      "unit": "m",
+      "label": "Walking distance to nearest small grocery store",
+      "geography": "parcel",
+      "source": {
+        "kind": "nearest",
+        "file": "public/data/overlays/places-groceries.geojson",
+        "where": {
+          "tier": "full_grocery",
+          "snap_type": "Grocery Store"
+        }
+      },
+      "normalize": {
+        "method": "linear",
+        "zero": 1600,
+        "full": 400
+      },
+      "rationale": "SNAP 'Grocery Store' type: smaller grocers that carry staples."
+    },
+    {
+      "id": "access_shops_restaurants",
+      "pillar": "access",
+      "weight": 1,
+      "evidence": "observed",
+      "unit": "count",
+      "label": "Shops and restaurants within 800 m",
+      "geography": "parcel",
+      "source": {
+        "kind": "count_within",
+        "file": "public/data/overlays/commerce-density.geojson",
+        "radius_m": 800
+      },
+      "normalize": {
+        "method": "percentile",
+        "reference": "parcels",
+        "direction": "higher_is_better"
+      },
+      "rationale": "A main-street proxy (WPRDC food-facility and business points). Raised agreement with Walk Score from 0.85 to 0.90 in the round-1 review."
     },
     {
       "id": "access_pharmacy",
@@ -737,10 +865,10 @@
       },
       "normalize": {
         "method": "linear",
-        "zero": 2400,
-        "full": 400
+        "zero": 1200,
+        "full": 200
       },
-      "rationale": "Distance to the nearest park boundary vertex.",
+      "rationale": "Distance to the nearest park boundary. Tightened (full credit within 200 m, none beyond 1.2 km) because nearly every parcel was near some park.",
       "unit": "m"
     },
     {
@@ -760,7 +888,7 @@
       },
       "normalize": {
         "method": "linear",
-        "zero": 4800,
+        "zero": 3200,
         "full": 800
       },
       "unit": "m",
@@ -928,7 +1056,7 @@
     {
       "id": "climate_traffic_combustion",
       "pillar": "climate",
-      "weight": 2,
+      "weight": 1,
       "evidence": "observed",
       "label": "Traffic combustion (mean of diesel PM, NO2 and traffic proximity percentiles)",
       "geography": "block group",
@@ -973,21 +1101,21 @@
       "pillar": "climate",
       "weight": 1,
       "evidence": "observed",
-      "label": "Industrial criteria-pollutant emissions nearby, distance-weighted (ACHD, ≤2021)",
+      "label": "Industrial PM2.5 emissions nearby, distance-weighted (ACHD, ≤2021)",
       "geography": "parcel",
       "source": {
         "kind": "decay_sum",
         "file": "scripts/pillars/inputs/achd_facilities_latest.csv",
-        "property": "criteria_tpy",
+        "property": "pm25_total_tpy",
         "full_m": 1000,
-        "zero_m": 5000
+        "zero_m": 10000
       },
       "normalize": {
         "method": "percentile",
         "reference": "parcels",
         "direction": "lower_is_better"
       },
-      "rationale": "Tons/yr from current permitted facilities, full weight within 1 km, fading to zero at 5 km. Emissions, not measured exposure; NRG Cheswick may have retired after 2021.",
+      "rationale": "PM2.5 tons/yr from current permitted facilities, full weight within 1 km, fading to zero at 10 km so Clairton Coke Works reaches the Mon Valley neighborhoods (round-1 review). Emissions, not measured exposure; NRG Cheswick may have retired after 2021.",
       "sub": "local_env",
       "unit": "tons"
     },
@@ -1059,21 +1187,21 @@
       "pillar": "climate",
       "weight": 1,
       "evidence": "observed",
-      "label": "Tree canopy at the parcel (NLCD 2021, 30 m)",
-      "geography": "parcel (30 m pixel at centroid)",
+      "label": "Tree canopy around the parcel (block-group mean, NLCD 2021)",
+      "geography": "block group",
       "source": {
         "kind": "table",
-        "file": "scripts/pillars/inputs/pgh_parcel_lst_canopy.csv",
-        "key": "pin",
-        "join": "pin",
-        "property": "canopy_pct"
+        "file": "scripts/pillars/inputs/allegheny_bg_canopy_impervious_lst.csv",
+        "key": "geoid",
+        "join": "bg",
+        "property": "canopy_pct_mean"
       },
       "normalize": {
         "method": "linear",
         "zero": 0,
         "full": 50
       },
-      "rationale": "Canopy cools and filters air. 50%+ canopy scores 100. The 30 m grid misses small street trees.",
+      "rationale": "Block-group mean canopy. The single 30 m pixel at the parcel centroid read 0 for a quarter of parcels (round-1 review).",
       "sub": "local_env",
       "unit": "%"
     }
@@ -1137,13 +1265,14 @@
     "tons": "tons/yr, distance-weighted",
     "miles": "miles per year",
     "degC": "°C above the scene's county median",
-    "index": "FEMA NRI score",
+    "index": "log-scaled count",
     "ratio": "ratio",
     "per100": "per 100 renter households",
     "permits": "permits",
     "jobs": "jobs",
     "class": "class rank (10 = A)",
-    "score": "0 = lead, 40 = galvanized"
+    "score": "0 = lead, 40 = galvanized",
+    "count": "count"
   },
   "legal": {
     "indicator": "site_legal_pathway",
@@ -1168,20 +1297,20 @@
         "code": 1,
         "id": "za",
         "label": "Housing allowed with Zoning Administrator approval",
-        "multiplier": 0.95
+        "multiplier": 0.98
       },
       {
         "code": 2,
         "id": "zbe_special_exception",
         "label": "Housing needs a ZBA special exception",
-        "multiplier": 0.85,
+        "multiplier": 0.94,
         "note": "ZBA approved 90% of special exceptions in 2023–26 (n=30), counting only posted decisions."
       },
       {
         "code": 3,
         "id": "conditional_use",
         "label": "Housing needs conditional use (Planning Commission + Council)",
-        "multiplier": 0.8
+        "multiplier": 0.92
       },
       {
         "code": 4,
@@ -1201,7 +1330,7 @@
         "code": 6,
         "id": "per_plan",
         "label": "Planned district: depends on the site's approved plan",
-        "multiplier": 0.9
+        "multiplier": 0.96
       },
       {
         "code": 7,
@@ -1210,43 +1339,43 @@
         "multiplier": 1.0
       }
     ],
-    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5)."
+    "rationale": "The multipliers are value judgments about how much approval risk should cost. 'Not permitted' is penalized heavily (×0.2) but not zeroed, because rezonings and use variances do get approved, especially where a parcel borders a district that already allows housing (×0.5). Approval-path multipliers were softened in round 1 (ZA 0.98, special exception 0.94, conditional use 0.92, planned 0.96) because the pillar blend is compressed: ×0.85 was costing a median 39 percentile points for a path approved 90% of the time."
   },
   "phrases": {
     "overall": [
       {
         "min": 75,
-        "text": "A strong place to build new housing."
+        "text": "Among the stronger places in the City to build new housing."
       },
       {
-        "min": 55,
+        "min": 50,
         "text": "A good place to build, with some trade-offs."
       },
       {
-        "min": 35,
+        "min": 25,
         "text": "A mixed case: real strengths and real drawbacks."
       },
       {
         "min": 0,
-        "text": "A hard place to build new housing right now."
+        "text": "One of the harder places in the City to build new housing right now."
       }
     ],
     "demand": [
       {
-        "min": 75,
-        "text": "People really want to live here: households, sales and construction are active."
+        "min": 65,
+        "text": "Strong demand: people are buying, renting and building here."
       },
       {
-        "min": 55,
+        "min": 50,
         "text": "Solid demand for new homes."
       },
       {
         "min": 35,
-        "text": "Demand is middling."
+        "text": "Moderate demand."
       },
       {
         "min": 0,
-        "text": "Not many people are looking to move here right now."
+        "text": "Weak market signals right now (few sales, more empty homes). New homes here will likely need public or nonprofit support."
       }
     ],
     "site": [
@@ -1270,43 +1399,43 @@
     "afford": [
       {
         "min": 75,
-        "text": "High need for homes people can afford, with little displacement risk."
+        "text": "Very high need: many renters here are struggling with housing costs."
       },
       {
         "min": 55,
-        "text": "Clear need for affordable homes and manageable displacement risk."
+        "text": "Clear need for homes people can afford."
       },
       {
         "min": 35,
-        "text": "Need and displacement risk pull against each other here."
+        "text": "Moderate need."
       },
       {
         "min": 0,
-        "text": "Either housing is already fairly affordable or displacement risk is high."
+        "text": "Lower measured cost burden than most of the county. Subsidized housing and small samples can hide need."
       }
     ],
     "affordability": [
       {
         "min": 75,
-        "text": "Housing costs are a real burden here: new affordable homes are badly needed."
+        "text": "Very high need: many renters here are struggling with housing costs."
       },
       {
         "min": 55,
-        "text": "Many renters are stretched: clear need for affordable homes."
+        "text": "Clear need for homes people can afford."
       },
       {
         "min": 35,
-        "text": "Somewhat affordable: moderate need."
+        "text": "Moderate need."
       },
       {
         "min": 0,
-        "text": "Fairly affordable already: less need for new affordable homes."
+        "text": "Lower measured cost burden than most of the county. Subsidized housing and small samples can hide need."
       }
     ],
     "displacement": [
       {
         "min": 75,
-        "text": "Prices are stable: little displacement pressure."
+        "text": "Prices flat or falling. That can mean stability, or disinvestment."
       },
       {
         "min": 55,
@@ -1318,7 +1447,7 @@
       },
       {
         "min": 0,
-        "text": "Prices are surging: new building here risks pushing people out."
+        "text": "Strong price pressure on current residents. Income-restricted homes and tenant protections matter most here."
       }
     ],
     "access": [
@@ -1341,15 +1470,15 @@
     ],
     "climate": [
       {
-        "min": 75,
-        "text": "A low-carbon, healthy place to live."
+        "min": 70,
+        "text": "Low driving and a healthy local environment."
       },
       {
         "min": 55,
         "text": "Mostly good on carbon and environment."
       },
       {
-        "min": 35,
+        "min": 40,
         "text": "Trade-offs between low driving and local air, heat or tree cover."
       },
       {
@@ -1378,7 +1507,7 @@
     "local_env": [
       {
         "min": 75,
-        "text": "Clean air, cooler surfaces and good tree cover."
+        "text": "Cleaner air, cooler surfaces and more tree cover than most of the county."
       },
       {
         "min": 55,
@@ -1390,8 +1519,9 @@
       },
       {
         "min": 0,
-        "text": "Poor air quality and hot, paved surroundings."
+        "text": "Worse air, heat or tree cover than most of the county."
       }
     ]
-  }
+  },
+  "phrases_note": "The overall phrase uses the parcel's City percentile rank at default weights; pillar and sub-score phrases use the 0–100 score."
 }

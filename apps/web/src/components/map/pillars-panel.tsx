@@ -4,7 +4,14 @@ import config from "@/lib/pillars/pillars.config.json";
 import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
 
 type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
-type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
+type ShardIndex = {
+  config_version: string;
+  built: string;
+  indicators: string[];
+  shards: string[];
+  // 101 quantiles (0–100th percentile) of default-weight scores across City parcels.
+  quantiles?: Record<string, number[]>;
+};
 type ParcelRow = [zoning: string, norm: (number | null)[], raw: (number | null)[]];
 
 const EVIDENCE_LABEL: Record<string, string> = {
@@ -33,7 +40,20 @@ function loadShard(key: string) {
   return shard;
 }
 
-type ParcelData = { zoning: string; norm: Record<string, number | null>; raw: Record<string, number | null> };
+type ParcelData = {
+  zoning: string;
+  norm: Record<string, number | null>;
+  raw: Record<string, number | null>;
+  quantiles?: Record<string, number[]>;
+};
+
+// Share of City parcels (at default weights) scoring below this value.
+function percentileRank(q: number[] | undefined, v: number | null) {
+  if (!q || v == null) return null;
+  let i = 0;
+  while (i < q.length && q[i] < v) i++;
+  return Math.max(0, Math.min(100, i - 1));
+}
 
 function useParcelData(pin: string | null) {
   const [state, setState] = useState<{ pin: string | null; data: ParcelData | null; status: "idle" | "loading" | "ready" | "missing" }>({
@@ -57,7 +77,7 @@ function useParcelData(pin: string | null) {
         norm[id] = row[1][i];
         raw[id] = row[2][i];
       });
-      setState({ pin, data: { zoning: row[0], norm, raw }, status: "ready" });
+      setState({ pin, data: { zoning: row[0], norm, raw, quantiles: index.quantiles }, status: "ready" });
     })();
     return () => {
       cancelled = true;
@@ -199,6 +219,9 @@ function PillarCard({ id, score, data }: { id: PillarId; score: PillarScore; dat
         </div>
         <ScoreBar score={score.score} />
         {phrase(id, score.score) && <p className="text-foreground/90">{phrase(id, score.score)}</p>}
+        {percentileRank(data.quantiles?.[id], score.score) != null && (
+          <p className="text-muted-foreground">Better than {percentileRank(data.quantiles?.[id], score.score)}% of City parcels</p>
+        )}
         {score.subscores.length > 0 && (
           <div className="flex gap-3 text-muted-foreground">
             {score.subscores.map((s) => (
@@ -286,7 +309,16 @@ export function PillarsPanel({ pin, onClose }: { pin: string; onClose: () => voi
                 </span>
               </div>
               <ScoreBar score={result.overall} />
-              {phrase("overall", result.overall) && <p className="mt-1">{phrase("overall", result.overall)}</p>}
+              {result.overall == null && <p className="mt-1">Not enough data for an overall score (a pillar is missing).</p>}
+              {percentileRank(data.quantiles?.overall, result.overall) != null && (
+                <p className="mt-1">
+                  Better than <span className="font-semibold">{percentileRank(data.quantiles?.overall, result.overall)}%</span> of City parcels
+                  as a place to build (default weights).
+                </p>
+              )}
+              {phrase("overall", percentileRank(data.quantiles?.overall, result.overall)) && (
+                <p className="mt-1">{phrase("overall", percentileRank(data.quantiles?.overall, result.overall))}</p>
+              )}
               <p className="mt-1 text-muted-foreground">
                 Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeLegal)}), equal weights
                 {result.legal ? `, × ${result.legal.multiplier} for zoning` : ""}.

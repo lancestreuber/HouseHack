@@ -8,7 +8,17 @@ import config from "../../src/lib/pillars/pillars.config.json";
 import { PILLAR_IDS, scoreParcel } from "../../src/lib/pillars/score";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
-const index = (await Bun.file(`${ROOT}public/data/pillars/parcels/index.json`).json()) as { indicators: string[] };
+const index = (await Bun.file(`${ROOT}public/data/pillars/parcels/index.json`).json()) as {
+  indicators: string[];
+  quantiles?: Record<string, number[]>;
+};
+const rank = (key: string, v: number | null) => {
+  const q = index.quantiles?.[key];
+  if (!q || v == null) return null;
+  let i = 0;
+  while (i < q.length && q[i] < v) i++;
+  return Math.max(0, i - 1);
+};
 const parcels = (await Bun.file(`${ROOT}.cache/pillars/parcels.geojson`).json()) as {
   features: { properties: Record<string, unknown> }[];
 };
@@ -37,11 +47,11 @@ for (const pin of process.argv.slice(2)) {
   const m = meta.get(pin) ?? {};
   console.log(`\n=== ${pin} · ${m.hood ?? "?"} · zoning ${row[0]} · ${m.classdesc ?? ""} / ${m.usedesc ?? ""} · vacant=${m.Vacant ?? "?"} · owner=${m.OwnerCateg ?? "?"} · lot ${Math.round(Number(m.Shape__Area) || 0)} sq ft`);
   console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1})`);
-  console.log(`Overall ${f1(s.overall)} (before legal ${f1(s.overallBeforeLegal)}): ${phrase("overall", s.overall)}`);
+  console.log(`Overall ${f1(s.overall)} (before legal ${f1(s.overallBeforeLegal)}), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${phrase("overall", rank("overall", s.overall))}`);
   for (const p of PILLAR_IDS) {
     const ps = s.pillars[p];
     const def = config.pillars.find((x) => x.id === p)!;
-    console.log(`\n  ${def.label}: ${f1(ps.score)} — ${phrase(p, ps.score)}${ps.flags.length ? ` [${ps.flags.join("; ")}]` : ""}`);
+    console.log(`\n  ${def.label}: ${f1(ps.score)} (p${rank(p, ps.score) ?? "?"}) — ${phrase(p, ps.score)}${ps.flags.length ? ` [${ps.flags.join("; ")}]` : ""}`);
     for (const sub of ps.subscores) console.log(`    sub ${sub.id}: ${f1(sub.score)} — ${phrase(sub.id, sub.score)}`);
     const shares = new Map(ps.contributions.map((c) => [c.indicator, c.share]));
     for (const ind of config.indicators.filter((i) => i.pillar === p)) {
