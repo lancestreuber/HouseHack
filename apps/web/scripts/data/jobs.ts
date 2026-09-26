@@ -3,6 +3,10 @@
 //   block-level counts summed to block groups.
 // - Jobs reachable by transit: UMN Accessibility Observatory, Access Across America:
 //   Transit 2024 (CC BY-NC 4.0), block-group weighted average, 30 and 45 minutes.
+// - Job change 2019–2023, resident workers and in-commuters: LODES WAC/RAC/OD,
+//   from the extract in inputs/ (made by inputs/jobs_extract.py).
+
+import path from "node:path";
 
 import { writeOverlay, type GeoJSONFeature } from "./arcgis";
 import { parseCSV } from "./geo";
@@ -12,7 +16,11 @@ const UMN_ZIP = "https://conservancy.umn.edu/server/api/core/bitstreams/82f5db0b
 const UMN_MEMBER = "Pennsylvania_42_transit_block_group_2024.csv";
 const CR_GEO = "https://api.censusreporter.org/1.0/geo/show/latest?geo_ids=150|05000US42003";
 
+const DEMAND = path.resolve(import.meta.dirname, "inputs/allegheny_jobs_demand_bg_2023.csv");
+
 const SQ_M_PER_SQ_MI = 2_589_988;
+// Percent change on a small 2019 base is mostly noise.
+const MIN_BASE_JOBS = 50;
 
 async function gunzipText(url: string) {
   const buf = new Uint8Array(await (await fetch(url)).arrayBuffer());
@@ -52,12 +60,18 @@ export async function buildJobs() {
     access.set(id, acc);
   }
 
+  const demand = new Map(parseCSV(await Bun.file(DEMAND).text()).map((r) => [r.geoid, r]));
+  const num = (v: string | undefined) => (v == null || v === "" ? null : Number(v));
+
   const geo = await fetch(CR_GEO).then((r) => r.json() as Promise<{ features: GeoJSONFeature[] }>);
   const features = geo.features.map((f) => {
     const id = String(f.properties.geoid).replace(/^15000US/, "");
     const j = jobs.get(id);
     const landSqMi = Number(f.properties.aland ?? 0) / SQ_M_PER_SQ_MI;
     const a = access.get(id);
+    const d = demand.get(id);
+    const base = num(d?.jobs_2019);
+    const share = num(d?.in_commuter_share);
     return {
       type: "Feature" as const,
       geometry: f.geometry,
@@ -70,13 +84,20 @@ export async function buildJobs() {
         low_wage_share_pct: j && j.total > 0 ? Math.round((j.lowWage / j.total) * 1000) / 10 : null,
         transit_jobs_30: a?.t30 ?? null,
         transit_jobs_45: a?.t45 ?? null,
+        jobs_2019: base,
+        jobs_change: num(d?.jobs_change),
+        jobs_change_pct:
+          base != null && base >= MIN_BASE_JOBS && d?.jobs_change_pct ? Math.round(Number(d.jobs_change_pct) * 1000) / 10 : null,
+        resident_workers: num(d?.resident_workers),
+        jobs_per_resident_worker: num(d?.jobs_per_resident_worker),
+        in_commuter_share_pct: share == null ? null : Math.round(share * 1000) / 10,
       },
     };
   });
   await writeOverlay("jobs.geojson", {
     type: "FeatureCollection",
     features,
-    metadata: { sources: [WAC, UMN_ZIP], builtAt: new Date().toISOString() },
+    metadata: { sources: [WAC, UMN_ZIP, "inputs/allegheny_jobs_demand_bg_2023.csv"], builtAt: new Date().toISOString() },
   });
 }
 
