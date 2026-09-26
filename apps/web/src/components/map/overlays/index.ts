@@ -6,6 +6,7 @@
 
 import { codeViolationsOverlay, condemnedPropertiesOverlay, permitsActivityOverlay } from "./activity";
 import { airQualityOverlay } from "./air-quality";
+import { alprOverlay, camerasOverlay } from "./cameras";
 import { chasOverlay } from "./chas";
 import { designationAreasOverlay, locationAffordabilityOverlay } from "./designations-lai";
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
@@ -104,6 +105,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   zbaHousingOverlay,
   zbaOtherOverlay,
   careSpacingOverlay,
+  camerasOverlay,
+  alprOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
@@ -118,6 +121,7 @@ export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: strin
   { group: "development", title: "Development & conditions" },
   { group: "land", title: "Land & acquisition" },
   { group: "legal", title: "Legal feasibility" },
+  { group: "cameras", title: "Live cameras" },
 ];
 export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 

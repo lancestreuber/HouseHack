@@ -20,7 +20,9 @@ export type OverlayGroup =
   // - "land": acquisition signals (city-owned land, tax sales, delinquency), stackable.
   | "land"
   // - "legal": what zoning allows vs what exists (senior and supportive housing), stackable.
-  | "legal";
+  | "legal"
+  // - "cameras": public live camera feeds (click a point to watch), stackable.
+  | "cameras";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.
@@ -96,6 +98,9 @@ export type OverlayDefinition = {
   // Layers that show hover tooltips, if any.
   tooltipLayerIds?: string[];
   tooltip?: (properties: Record<string, unknown>, metric?: OverlayMetric) => string[];
+  // Layers whose features open something on click (e.g. a live camera view).
+  clickLayerIds?: string[];
+  onClick?: (properties: Record<string, unknown>) => void;
   legend: (metric?: OverlayMetric) => LegendItem[];
   meta: OverlayMeta;
   indicators?: Indicator[];

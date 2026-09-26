@@ -1,4 +1,4 @@
-import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent } from "maplibre-gl";
+import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent, PointLike } from "maplibre-gl";
 import { Popup } from "maplibre-gl";
 
 import { OVERLAYS } from "./overlays";
@@ -29,7 +29,7 @@ export function selectedMetric(def: OverlayDefinition, state: OverlayState): Ove
 // Area fills (heat, hazard) draw beneath the zoning/parcel layers so outlines
 // stay readable; infrastructure and places draw on top of everything.
 function beforeIdFor(map: MapLibreMap, def: OverlayDefinition, underLayerIds: string[]) {
-  const onTop = def.group === "infrastructure" || def.group === "places";
+  const onTop = def.group === "infrastructure" || def.group === "places" || def.group === "cameras";
   if (onTop && !def.drawBelowOutlines) return undefined;
   return underLayerIds.find((id) => map.getLayer(id));
 }
@@ -160,5 +160,18 @@ export function registerTooltips(map: MapLibreMap, getState: () => OverlayState)
         popup.remove();
       });
     }
+    for (const layerId of def.clickLayerIds ?? []) {
+      map.on("click", layerId, (e: MapLayerMouseEvent) => {
+        const feature = e.features?.[0];
+        if (feature) def.onClick?.(feature.properties ?? {});
+      });
+    }
   }
+}
+
+// Whether a click at this point landed on an overlay feature that handles
+// clicks itself, so the parcel underneath shouldn't also be selected.
+export function hitsClickableOverlay(map: MapLibreMap, point: PointLike) {
+  const layers = OVERLAYS.flatMap((def) => def.clickLayerIds ?? []).filter((id) => map.getLayer(id));
+  return layers.length > 0 && map.queryRenderedFeatures(point, { layers }).length > 0;
 }

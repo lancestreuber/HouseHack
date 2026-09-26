@@ -23,11 +23,13 @@ import { client } from "@/utils/orpc";
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
 import { BreakdownPanel } from "./map/breakdown-panel";
+import { CameraViewer } from "./map/camera-viewer";
 import { useChatContext } from "./chat/chat-context-store";
 import { SAMPLE } from "./chat/chat-launcher";
 import { ChatPane } from "./chat/chat-pane";
 import { LayersPanel } from "./map/layers-panel";
 import {
+  hitsClickableOverlay,
   INITIAL_OVERLAY_STATE,
   loadingOverlayIds,
   type OverlayState,
@@ -294,6 +296,7 @@ export function ParcelMap() {
     registerTooltips(map, () => overlayStateRef.current);
 
     map.on("click", PARCEL_HIT_LAYER_ID, (e) => {
+      if (hitsClickableOverlay(map, e.point)) return;
       const pin = e.features?.[0]?.properties?.pin;
       if (typeof pin === "string") setSelectedPin(pin);
     });
@@ -385,6 +388,7 @@ export function ParcelMap() {
                     <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
+                  <CameraViewer />
                   <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
                     <button
                       type="button"
