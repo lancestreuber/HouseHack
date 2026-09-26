@@ -151,4 +151,14 @@ Being wrong in the open is the point of this table. When a closer read overturns
 
 ## Source status
 
-*(Updated as the base grows. Counts belong here, not in prose.)* See [`../docs/02-bibliography.md`](../docs/02-bibliography.md).
+*(Updated as the base grows. Counts belong here, not in prose.)* Generated from node Sources sections on 2026-09-26. See [`../docs/02-bibliography.md`](../docs/02-bibliography.md).
+
+| Tag (strongest per source) | Count |
+|---|---|
+| `[read]` | 136 |
+| `[skimmed]` | 74 |
+| `[found]` | 23 |
+| `[inaccessible]` | 1 |
+| **total unique external sources** | **234** |
+
+There are 13 sweeps and 49 nodes. ⚠ **A high `[read]` count is not a high confidence count.** Most `[read]` sources are GIS endpoints and City web pages. The kinds of source we have *not* reached (practitioners, Council records, and hackathon-project archives) are listed in [`../docs/03-open-questions.md`](../docs/03-open-questions.md).

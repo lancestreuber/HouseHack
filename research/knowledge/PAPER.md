@@ -23,7 +23,7 @@ Every claim links to a node that carries its sources. Verification is marked sou
 - `[found]`: known but not opened, or recalled from memory
 - `[inaccessible]`: blocked, with the blocker logged in [`../admin/source-access.md`](../admin/source-access.md)
 
-The raw evidence is **13 research sweeps** in [`../sweeps/`](../sweeps/), archived at full fidelity. Each sweep was run by a separate research agent on 2026-09-26, and most of them probed live data endpoints rather than only reading about them.
+The base holds **234 unique external sources (136 `[read]`, 74 `[skimmed]`, 23 `[found]`, 1 `[inaccessible]`)** across 49 nodes. The raw evidence is **13 research sweeps** in [`../sweeps/`](../sweeps/), archived at full fidelity. Each sweep was run by a separate research agent on 2026-09-26, and most of them probed live data endpoints rather than only reading about them.
 
 ⚠ **This was a single day of research.** It is broad in one direction (public data endpoints and City documents) and thin elsewhere:
 - We have spoken to **no practitioners**.
