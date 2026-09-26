@@ -57,6 +57,15 @@ function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState })
   );
 }
 
+function LoadingBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 text-muted-foreground" aria-live="polite">
+      <span className="inline-block h-2 w-2 animate-spin rounded-full border border-current border-t-transparent" />
+      loading
+    </span>
+  );
+}
+
 function minZoomOf(def: OverlayDefinition) {
   return "minZoom" in def.source ? (def.source.minZoom ?? 0) : 0;
 }
@@ -68,12 +77,14 @@ function StackableSection({
   state,
   toggle,
   zoom,
+  loadingIds,
 }: {
   title: string;
   overlays: OverlayDefinition[];
   state: OverlayState;
   toggle: (id: string) => void;
   zoom: number;
+  loadingIds: string[];
 }) {
   if (!overlays.length) return null;
   return (
@@ -88,6 +99,7 @@ function StackableSection({
               <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
               {def.label}
               {checked && zoom < minZoom && <span className="text-muted-foreground">(zoom in to {minZoom}+)</span>}
+              {checked && zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
             </label>
             {checked && <Legend def={def} state={state} />}
           </div>
@@ -101,9 +113,10 @@ type Props = {
   state: OverlayState;
   onChange: (next: OverlayState) => void;
   zoom: number;
+  loadingIds: string[];
 };
 
-export function LayersPanel({ state, onChange, zoom }: Props) {
+export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
   const setHeat = (heatId: string | null) => onChange({ ...state, heatId });
   const setMetric = (overlayId: string, metricId: string) =>
     onChange({ ...state, metricByOverlay: { ...state.metricByOverlay, [overlayId]: metricId } });
@@ -125,6 +138,7 @@ export function LayersPanel({ state, onChange, zoom }: Props) {
           <label className="flex items-center gap-1.5" title={def.description}>
             <input type="radio" name="heat-overlay" checked={state.heatId === def.id} onChange={() => setHeat(def.id)} />
             {def.label}
+            {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
           </label>
           {state.heatId === def.id && (
             <>
@@ -153,6 +167,7 @@ export function LayersPanel({ state, onChange, zoom }: Props) {
         state={state}
         toggle={toggleStackable}
         zoom={zoom}
+        loadingIds={loadingIds}
       />
       <StackableSection
         title="Infrastructure"
@@ -160,6 +175,7 @@ export function LayersPanel({ state, onChange, zoom }: Props) {
         state={state}
         toggle={toggleStackable}
         zoom={zoom}
+        loadingIds={loadingIds}
       />
     </div>
   );

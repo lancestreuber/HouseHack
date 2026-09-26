@@ -25,7 +25,7 @@ const RENDERING_RULE = {
 const IMAGE_SERVER = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer";
 
 const TILE_URL =
-  `${IMAGE_SERVER}/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=256,256` +
+  `${IMAGE_SERVER}/exportImage?bbox={bbox-epsg-3857}&bboxSR=3857&imageSR=3857&size=512,512` +
   `&format=png32&transparent=true&f=image&renderingRule=${encodeURIComponent(JSON.stringify(RENDERING_RULE))}`;
 
 export const slopeOverlay: OverlayDefinition = {
@@ -33,14 +33,16 @@ export const slopeOverlay: OverlayDefinition = {
   label: "Steep slopes",
   group: "hazard",
   description: "Terrain slope from USGS 3DEP elevation, in Pittsburgh's code thresholds (zoom in to load).",
-  source: { kind: "raster", tiles: [TILE_URL], tileSize: 256, minZoom: 11, attribution: "USGS 3DEP" },
+  // 512px tiles = ~4x fewer requests to the (slow, ~3 s/tile) USGS server, and
+  // tiles past zoom 16 are overzoomed rather than re-requested.
+  source: { kind: "raster", tiles: [TILE_URL], tileSize: 512, minZoom: 11, maxZoom: 16, attribution: "USGS 3DEP" },
   layers: (sourceId) => [
     {
       id: "slope-raster",
       type: "raster",
       source: sourceId,
       minzoom: 11,
-      paint: { "raster-opacity": 0.6 },
+      paint: { "raster-opacity": 0.6, "raster-fade-duration": 0 },
     },
   ],
   legend: () => [

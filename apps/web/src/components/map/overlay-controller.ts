@@ -42,8 +42,19 @@ export function syncOverlays(map: MapLibreMap, state: OverlayState, underLayerId
     const specs = def.layers(sourceId, selectedMetric(def, state));
 
     if (!visible) {
-      for (const spec of specs) {
-        if (map.getLayer(spec.id)) map.setLayoutProperty(spec.id, "visibility", "none");
+      if (def.source.kind === "static") {
+        // Static files are cheap to keep: hide them so re-checking is instant.
+        for (const spec of specs) {
+          if (map.getLayer(spec.id)) map.setLayoutProperty(spec.id, "visibility", "none");
+        }
+      } else {
+        // Live sources (server-rendered tiles, viewport fetches) are removed
+        // outright so MapLibre cancels their pending requests immediately.
+        abortViewportFetch(def.id);
+        for (const spec of specs) {
+          if (map.getLayer(spec.id)) map.removeLayer(spec.id);
+        }
+        if (map.getSource(sourceId)) map.removeSource(sourceId);
       }
       continue;
     }
@@ -55,6 +66,7 @@ export function syncOverlays(map: MapLibreMap, state: OverlayState, underLayerId
           tiles: def.source.tiles,
           tileSize: def.source.tileSize,
           minzoom: def.source.minZoom,
+          maxzoom: def.source.maxZoom,
           attribution: def.source.attribution,
         });
       } else {
@@ -80,8 +92,14 @@ export function syncOverlays(map: MapLibreMap, state: OverlayState, underLayerId
   }
 }
 
+// In-flight viewport fetches, so a newer request (or unchecking) can cancel them.
+const inFlight = new Map<string, AbortController>();
+function abortViewportFetch(overlayId: string) {
+  inFlight.get(overlayId)?.abort();
+  inFlight.delete(overlayId);
+}
+
 // Reload viewport-bound overlays (e.g. sewers) for the current map area.
-const requestCounters = new Map<string, number>();
 export async function refreshViewportOverlays(map: MapLibreMap, state: OverlayState) {
   for (const def of OVERLAYS) {
     if (def.source.kind !== "viewport" || !isVisible(def, state)) continue;
@@ -91,18 +109,30 @@ export async function refreshViewportOverlays(map: MapLibreMap, state: OverlaySt
       source.setData({ type: "FeatureCollection", features: [] });
       continue;
     }
-    const request = (requestCounters.get(def.id) ?? 0) + 1;
-    requestCounters.set(def.id, request);
+    // Cancel the previous request for this overlay; only the latest view matters.
+    abortViewportFetch(def.id);
+    const controller = new AbortController();
+    inFlight.set(def.id, controller);
     try {
-      const data = await def.source.fetch(map.getBounds());
-      // Drop stale responses if the map moved again meanwhile.
-      if (requestCounters.get(def.id) === request) {
-        source.setData(data as Parameters<GeoJSONSource["setData"]>[0]);
-      }
+      const data = await def.source.fetch(map.getBounds(), controller.signal);
+      if (!controller.signal.aborted) source.setData(data as Parameters<GeoJSONSource["setData"]>[0]);
     } catch (error) {
-      console.warn(`[overlays] ${def.id} failed to load`, error);
+      if (!controller.signal.aborted) console.warn(`[overlays] ${def.id} failed to load`, error);
+    } finally {
+      if (inFlight.get(def.id) === controller) inFlight.delete(def.id);
     }
   }
+}
+
+// Overlays that are visible but whose data hasn't finished loading. Viewport
+// overlays count as loading while their fetch is in flight.
+export function loadingOverlayIds(map: MapLibreMap, state: OverlayState): string[] {
+  return OVERLAYS.filter((def) => {
+    if (!isVisible(def, state)) return false;
+    if (inFlight.has(def.id)) return true;
+    const sourceId = sourceIdFor(def);
+    return Boolean(map.getSource(sourceId)) && !map.isSourceLoaded(sourceId);
+  }).map((def) => def.id);
 }
 
 // One shared popup. Registered once per tooltip layer; MapLibre keeps

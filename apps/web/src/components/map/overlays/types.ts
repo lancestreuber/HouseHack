@@ -54,13 +54,15 @@ export type OverlaySource =
       tiles: string[];
       tileSize: number;
       minZoom: number;
+      // Beyond this zoom, tiles are overzoomed instead of re-requested.
+      maxZoom?: number;
       attribution?: string;
     }
   | {
       // Fetched for the visible map area once zoomed in far enough.
       kind: "viewport";
       minZoom: number;
-      fetch: (bounds: LngLatBounds) => Promise<GeoJSONData>;
+      fetch: (bounds: LngLatBounds, signal: AbortSignal) => Promise<GeoJSONData>;
     };
 
 export type OverlayDefinition = {

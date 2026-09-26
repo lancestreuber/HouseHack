@@ -10,7 +10,7 @@ const MIN_ZOOM = 15;
 const PAGE_SIZE = 1000;
 const MAX_PAGES = 5;
 
-async function fetchSewers(bounds: LngLatBounds): Promise<GeoJSONData> {
+async function fetchSewers(bounds: LngLatBounds, signal: AbortSignal): Promise<GeoJSONData> {
   const features: unknown[] = [];
   for (let page = 0; page < MAX_PAGES; page++) {
     const params = new URLSearchParams({
@@ -26,7 +26,7 @@ async function fetchSewers(bounds: LngLatBounds): Promise<GeoJSONData> {
       resultRecordCount: String(PAGE_SIZE),
       f: "geojson",
     });
-    const res = await fetch(`${LAYER_URL}/query?${params}`);
+    const res = await fetch(`${LAYER_URL}/query?${params}`, { signal });
     if (!res.ok) break;
     const data = (await res.json()) as { features?: unknown[] };
     const batch = data.features ?? [];

@@ -15,6 +15,7 @@ import { client } from "@/utils/orpc";
 import { LayersPanel } from "./map/layers-panel";
 import {
   INITIAL_OVERLAY_STATE,
+  loadingOverlayIds,
   type OverlayState,
   refreshViewportOverlays,
   registerTooltips,
@@ -160,6 +161,7 @@ export function ParcelMap() {
   const overlayStateRef = useRef(overlayState);
   overlayStateRef.current = overlayState;
   const [zoom, setZoom] = useState(0);
+  const [loadingIds, setLoadingIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -197,6 +199,14 @@ export function ParcelMap() {
       void refreshViewportOverlays(map, overlayStateRef.current);
     };
     map.on("style.load", applyOverlays);
+
+    // Keep the panel's "loading" badges in sync with MapLibre's source state.
+    const updateLoading = () => {
+      const next = loadingOverlayIds(map, overlayStateRef.current);
+      setLoadingIds((prev) => (prev.join() === next.join() ? prev : next));
+    };
+    map.on("sourcedata", updateLoading);
+    map.on("idle", updateLoading);
     registerTooltips(map, () => overlayStateRef.current);
 
     return () => {
@@ -236,7 +246,10 @@ export function ParcelMap() {
     const map = mapRef.current;
     if (!map || !map.isStyleLoaded()) return;
     syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
-    void refreshViewportOverlays(map, overlayState);
+    setLoadingIds(loadingOverlayIds(map, overlayState));
+    void refreshViewportOverlays(map, overlayState).then(() =>
+      setLoadingIds(loadingOverlayIds(map, overlayStateRef.current)),
+    );
   }, [overlayState]);
 
   useEffect(() => {
@@ -251,7 +264,7 @@ export function ParcelMap() {
   return (
     <div className="relative h-[640px] w-full overflow-hidden rounded-lg border">
       <div className="absolute left-2 top-2 z-10 flex max-h-[calc(100%-3.5rem)]">
-        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} />
+        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
       </div>
       <div ref={containerRef} className="h-full w-full" />
       <div className="absolute bottom-2 left-2 z-10 flex overflow-hidden rounded-md border bg-background/80 text-xs backdrop-blur">
