@@ -271,7 +271,7 @@ export const pharmaciesOverlay = pointOverlay({
     geography: "Pharmacy locations (geocoded addresses)",
     caveats: [
       "NPPES doesn't record closures, so a few listed pharmacies may be gone.",
-      "Rite Aid (84 county NPIs) is excluded: the chain closed all stores by Sep 2025.",
+      "Rite Aid (84 registrations in Allegheny ZIP codes) is excluded: the chain closed all stores by Sep 2025.",
     ],
   },
 });
