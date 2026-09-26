@@ -60,31 +60,24 @@ export const evictionsOverlay: OverlayDefinition = {
   },
 };
 
-const LEAD_METRICS: OverlayMetric[] = [
-  { id: "ebll_2015_20_pct", label: "Elevated blood lead, 2015–2020", property: "ebll_2015_20_pct" },
-  { id: "ebll_2021_24_pct", label: "Elevated blood lead, 2021–2024 (see caveat)", property: "ebll_2021_24_pct" },
-];
-const LEAD_BREAKS: Record<string, number[]> = {
-  ebll_2015_20_pct: [1, 2.5, 5, 8, 12],
-  ebll_2021_24_pct: [5, 10, 15, 25, 35],
-};
-const unstableProp = (m: OverlayMetric) => (m.id === "ebll_2015_20_pct" ? "ebll_2015_20_unstable" : "ebll_2021_24_unstable");
+// ACHD also publishes 2021–2024 columns, but their definition isn't documented
+// and they run 5–10× ACHD's reported county rate, so they aren't mapped.
+const LEAD_BREAKS = [1, 2.5, 5, 8, 12];
 
 export const childBloodLeadOverlay: OverlayDefinition = {
   id: "child-blood-lead",
   label: "Children's elevated blood lead",
   group: "heat",
-  description: "Share of tested children under 6 with a confirmed elevated blood lead level, by census tract (ACHD).",
+  description: "Share of tested children under 6 with a confirmed blood lead level of 5 µg/dL or more, 2015–2020, by census tract (ACHD).",
   source: { kind: "static", url: "/data/overlays/child-blood-lead.geojson" },
-  metrics: LEAD_METRICS,
-  layers: (sourceId, metric = LEAD_METRICS[0]) => [
+  layers: (sourceId) => [
     {
       id: "child-blood-lead-fill",
       type: "fill",
       source: sourceId,
       paint: {
-        "fill-color": stepFill(metric.property, LEAD_BREAKS[metric.id], RAMPS.warm) as never,
-        "fill-opacity": ["case", ["==", ["get", unstableProp(metric)], true], 0.35, 0.65] as never,
+        "fill-color": stepFill("ebll_2015_20_pct", LEAD_BREAKS, RAMPS.warm) as never,
+        "fill-opacity": ["case", ["==", ["get", "ebll_2015_20_unstable"], true], 0.35, 0.65] as never,
       },
     },
     {
@@ -95,31 +88,30 @@ export const childBloodLeadOverlay: OverlayDefinition = {
     },
   ],
   tooltipLayerIds: ["child-blood-lead-fill"],
-  tooltip: (p, metric = LEAD_METRICS[0]) =>
+  tooltip: (p) =>
     [
-      p[metric.property] == null
-        ? `${metric.label}: suppressed (fewer than 50 children tested)`
-        : `${metric.label}: ${p[metric.property]}% of tested children`,
-      p[unstableProp(metric)] ? "⚠ Unstable: fewer than 10 elevated results" : "",
-      metric.id === "ebll_2015_20_pct" && p.ebll_2021_24_pct != null ? `2021–2024 figure: ${p.ebll_2021_24_pct}% (see caveat)` : "",
+      p.ebll_2015_20_pct == null
+        ? "Elevated blood lead 2015–2020: suppressed (fewer than 50 children tested)"
+        : `Elevated blood lead 2015–2020: ${p.ebll_2015_20_pct}% of tested children`,
+      p.ebll_2015_20_unstable ? "⚠ Unstable: fewer than 10 elevated results" : "",
       `Tract ${p.geoid} (2010)`,
     ].filter(Boolean),
-  legend: (metric = LEAD_METRICS[0]) => [
-    ...stepLegend(LEAD_BREAKS[metric.id], RAMPS.warm, (lo, hi) => (hi ? `${lo}–${hi}%` : `${lo}%+`)).map((item, i) =>
-      i === 0 ? { ...item, label: `Under ${LEAD_BREAKS[metric.id][0]}%` } : item,
+  legend: () => [
+    ...stepLegend(LEAD_BREAKS, RAMPS.warm, (lo, hi) => (hi ? `${lo}–${hi}%` : `${lo}%+`)).map((item, i) =>
+      i === 0 ? { ...item, label: `Under ${LEAD_BREAKS[0]}%` } : item,
     ),
     { color: NO_DATA_COLOR, label: "Suppressed (under 50 tested)", shape: "fill" as const },
   ],
   meta: {
     source: "Allegheny County Health Department, Elevated Blood Lead Level Rates (WPRDC, CC0)",
     sourceUrl: "https://data.wprdc.org/dataset/allegheny-county-elevated-blood-lead-level-rates",
-    asOf: "Pooled 2015–2020 and 2021–2024 (updated May 2026)",
+    asOf: "Pooled 2015–2020 (dataset updated May 2026)",
     geography: "Census tract (2010 boundaries)",
     evidence: "observed",
     caveats: [
       "Share of children tested, not all children; testing has been mandatory for under-6s since 2018.",
-      "2015–2020 uses ACHD's documented definition (venous-confirmed ≥ 5 µg/dL).",
-      "2021–2024 values run about 10× higher (tract median 15% vs 1.6%) and ACHD doesn't document that column's definition; confirm with ACHD before citing.",
+      "Venous-confirmed ≥ 5 µg/dL (ACHD's documented definition; CDC's reference level has been 3.5 since 2021).",
+      "ACHD's newer 2021–2024 columns aren't shown: their definition isn't published and they run 5–10× ACHD's reported county rate (~3.1% in 2023).",
       "Faded tracts had fewer than 10 elevated results. Pre-1978 paint is the main local source, not only water lines.",
     ],
   },
