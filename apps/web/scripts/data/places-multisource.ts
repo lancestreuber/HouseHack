@@ -38,14 +38,24 @@ export async function buildPlacesMultisource() {
     return features;
   }
 
-  const food = await read("allegheny_food_retail_merged.csv");
+  // Two guards on the merged extract:
+  // - SNAP status comes from the USDA store type. The merge can relabel two
+  //   county permits merged together as "USDA_SNAP+ACHD" without a SNAP match.
+  // - Dollar stores, gas stations, pharmacies and beer distributors never count
+  //   as grocery stores, whatever their permit category says.
+  const NOT_GROCERY =
+    /dollar ?tree|dollar general|family dollar|get ?go|sheetz|sunoco|\bbp\b|7-?eleven|speedway|circle k|\bcvs\b|walgreens|uni-?mart|\bbeer\b|beverage|distributor/i;
+  const food = (await read("allegheny_food_retail_merged.csv")).map((r) =>
+    (r.tier === "full_grocery" || r.tier === "specialty_food") && NOT_GROCERY.test(r.name) ? { ...r, tier: "other_food_retail" } : r,
+  );
   const foodProps = (r: Row) => ({
     name: r.name,
     address: r.address || null,
     tier: r.tier,
-    snap: r.snap_authorized === "True",
+    snap: Boolean(r.snap_store_type),
     snap_type: r.snap_store_type || null,
     permit_category: r.achd_category || null,
+    last_inspected: r.achd_last_inspection || null,
   });
   const FOOD_SOURCE = "USDA FNS SNAP retailers + ACHD food permits (inputs/places/allegheny_food_retail_merged.csv)";
   // The pillars read places-groceries for grocery distance, so it keeps the
