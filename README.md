@@ -18,7 +18,7 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 > **Team: start here.** This branch (`vid-branch`) holds the plan and research. The app's starting point (map, parcels in PostGIS, zoning layer) is on the `zoning-parcels` branch, which gets merged into `main` first. See [PLAN.md](PLAN.md) §0.
 
 ### What we're building
-**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. Sliders reweight Demand, Site and Access. You can show city-owned lots, compare up to 3 parcels, and print a one-page brief. There's no LLM: a transparent, rule-based engine suggests, and people decide.
+**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. Sliders reweight Demand, Site and Access. You can show city-owned lots, compare up to 3 parcels, and print a one-page brief. A transparent, rule-based engine suggests, and people decide. An explain-only chatbot answers questions about any parcel, using only the engine's sourced facts.
 
 ### Read these, in order
 1. **[PLAN.md](PLAN.md)**: lanes, contracts, tasks, milestones and the cut order. This is the source of truth for the 30-hour build.

@@ -12,7 +12,7 @@ The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-gro
 | Base code | The `zoning-parcels` branch (commit `8ab6c34`), merged into `main` now without review. Every lane branches from `main`. |
 | Data store | One **shared Neon Postgres + PostGIS** DB. **City parcels only** (~140k). Owner names stripped. |
 | Stack | bun, Turborepo, TanStack Start, oRPC, Drizzle, shadcn (`packages/ui`), `maplibre-gl` 6, Vercel. One new package, `packages/scoring`. **No new runtime dependencies.** |
-| AI | **None.** No LLM and no trained model. A transparent rule-based engine suggests, and people decide. |
+| AI | **The engine is rule-based:** it suggests, and people decide. **One chatbot sits on top, explain-only:** it answers questions about a parcel, its cards and the methodology, using only facts the engine and API return, each with its source chip. It never produces a score, fit or legal status. The app works fully without it. Provider: a free Gemini tier (model TBD), called with plain `fetch` (no new dependency), key server-side only. |
 | Typologies | `sfd`, `adu`, `duplex`, `townhome`, `apartments`, `senior` |
 | Scores | Demand (neighborhood), Site (parcel), Access (parcel). Three user sliders. Scoring runs in the browser. |
 | Hospitals / fire | Scored under Access |
@@ -29,13 +29,14 @@ What the branch already gives us:
 - a `maplibre-gl` map (`apps/web/src/components/parcel-map.tsx`) with a zoning layer from `public/data/pittsburgh-zoning.geojson` (1,068 polygons with `zon_new`, `full_zoning_type`, `non_housing`)
 - Vite fixes for the MapLibre worker
 
-## 1. Lanes (4; a 5th person takes the A5/A6 neighborhood and air work)
+## 1. Lanes (4 + chatbot; a 5th person takes the A5/A6 neighborhood and air work)
 | Lane | Owner | Owns (files) |
 |---|---|---|
 | **A: Data** | _Discord_ | `packages/db/src/schema/*`, `packages/db/src/scripts/*`, `packages/db/sql/*` |
 | **B: Engine + API** (lead / integrator) | _Discord_ | `packages/scoring/*`, `packages/api/src/routers/*` |
 | **C: Map** | _Discord_ | `apps/web/src/components/map/*` (move `parcel-map.tsx` here), search |
 | **D: Experience + submission** | _Discord_ | `apps/web/src/components/{report,compare}/*`, `apps/web/src/routes/*`, methodology, video |
+| **E: Chatbot** | Vidyut | `packages/api/src/routers/chat.ts`, `packages/api/src/chat/*`, `apps/web/src/components/chat/*` |
 
 Each lane opens PRs to `main` and merges with **merge commits**. Never commit `.env` or keys.
 
@@ -96,6 +97,19 @@ export function factsFor(p: ParcelFeatures, h: NeighborhoodMetrics): Fact[];
 | `parcels.getMany` | `{ pins: string[] }` (≤3) | the same shape as an array, used by compare |
 | `parcels.atPoint` | `{ lng, lat }` | `{ pin } \| null`, used by search |
 | `hoods.all` | – | `NeighborhoodMetrics[]` + a static `public/data/neighborhoods.geojson` |
+
+### 2d. Chatbot (Lane E)
+| Procedure | Input | Output |
+|---|---|---|
+| `chat.ask` | `{ pin?: string, pins?: string[], weights: Weights, messages: { role: "user" \| "assistant", text: string }[] }` | Streamed `{ text: string, fact_ids: string[] }` chunks; a final `{ done: true }` or `{ unavailable: true, reason }` |
+
+- **Grounding:** the server calls the same code as the UI: `parcels.get` / `getMany`, then `scoreParcel` and `factsFor`. It sends those results plus the methodology text to the model as the only allowed facts. The model cites `fact_id`s, which the UI renders as the same source chips as the cards.
+- **Rules in the system prompt:**
+  - Never state a number, score, legal status or rule that isn't in the facts.
+  - Say "the data doesn't cover that" and point to the methodology's "what this tool can't tell you" list.
+  - Treat everything as suggestions, never advice.
+- **Answers it's built for:** "Why is duplex ranked first here?", "What would change if I weight Access higher?" (it re-scores via `scoring`, never guesses), "Compare these two lots", "What does 'needs approval' mean?", "Where does the air quality number come from?".
+- **Fallback:** no key, a rate limit or an error → `{ unavailable }`. The panel then shows the card's deterministic reasons instead. Nothing else in the app depends on the chatbot.
 
 **Mocks:** `packages/scoring/fixtures/{parcel-homewood,parcel-beechview,parcel-lawrenceville}.json` + `hoods.json`. Lanes C and D use these until M2.
 
@@ -178,7 +192,7 @@ Get dataset download URLs from `https://data.wprdc.org/api/3/action/package_show
 - [ ] **D6 (M3)** `/methodology` route:
   - typologies and the factor table (source, as-of, Evidence/Assumption)
   - weights and legality rules, with the "simplified interpretation, verify with Zoning Administrator" note
-  - "No AI: how suggestions are made"
+  - "How suggestions are made" (rule-based engine) + "What the chatbot does and doesn't do" (from E6)
   - "What this tool can't tell you" (from the spec)
 - [ ] **D7 (M3)** Landing state: a first-load overlay card with a one-line pitch and a "Start with Homewood" button, plus 2 other demo parcels.
 - [ ] **D8 (M4)** Video, recording and submission:
@@ -186,6 +200,14 @@ Get dataset download URLs from `https://data.wprdc.org/api/3/action/package_show
   - Record the video.
   - Submit the Google Form.
   - Make the repo public after a key scrub.
+
+### Lane E: Chatbot (Vidyut)
+- [ ] **E1 (M1)** Pick the Gemini model on the free tier; record limits and the model id here. Add `GEMINI_API_KEY` to `apps/web/.env.schema` (optional, sensitive, server-only).
+- [ ] **E2 (M2)** `packages/api/src/chat/`: a provider wrapper (plain `fetch`, streaming), the system prompt, and a grounding builder (parcel + cards + facts + methodology → context). Build against the fixtures until the real data lands.
+- [ ] **E3 (M2)** `chat.ask` router with the fallback. Lane B registers it in `routers/index.ts`.
+- [ ] **E4 (M2)** `components/chat/`: a chat panel docked beside the report (a sheet on mobile). It shows streaming text, fact chips (same component as the cards), and 3 suggested starter questions per parcel. Lane D places it in the layout.
+- [ ] **E5 (M3)** Test set: 10 questions across the 3 demo parcels. Every number in an answer must match a fact. Include 2 "out of scope" questions (crime, sewer) that must be declined. Add a response cache keyed by (pin, weights, question) so the demo replays instantly.
+- [ ] **E6 (M3)** Methodology copy for "What the chatbot does and doesn't do" (Lane D places it).
 
 ## 4. Timeline (ET)
 | When | What |
@@ -203,10 +225,11 @@ Get dataset download URLs from `https://data.wprdc.org/api/3/action/package_show
 
 ## 5. Cut order if behind (cut from the top first)
 1. A7 shops, C7 live parcel recolor (the choropleth still recolors)
-2. A7 AQI context row
-3. C6 layer toggles
-4. D5 print
-5. D4 compare (becomes a "pin" list only)
+2. E5 cache/test set beyond the 3 demo parcels; if the chatbot isn't solid by M3, hide the panel (the app works without it)
+3. A7 AQI context row
+4. C6 layer toggles
+5. D5 print
+6. D4 compare (becomes a "pin" list only)
 
 **Never cut:** Homewood search → city-owned layer → parcel click → ranked cards with sources, sliders, methodology page, video.
 
@@ -217,6 +240,8 @@ Get dataset download URLs from `https://data.wprdc.org/api/3/action/package_show
 | Feature SQL is slow | GiST indexes on every geom. KNN `<->` for nearest. Run it once offline, never per request. |
 | WPRDC layer CRS/format differs | Check `crs` in each GeoJSON. Reproject with `ST_Transform` from 2272 when needed (same as the parcel import). |
 | Zoning rules wrong | Show the "simplified interpretation, verify with Zoning Administrator" note. Check 3 demo parcels by hand. |
-| Judges expect AI at an "AI for Housing" event | Say it up front in the video and on the methodology page: a transparent engine was a deliberate integrity choice. Every suggestion is explainable and sourced. |
+| Judges expect AI at an "AI for Housing" event | The chatbot is the AI, used where it's trustworthy: explaining sourced facts in plain language. The engine stays transparent and rule-based. The video shows both and says why. |
+| Chatbot states something false | Facts-only grounding, `fact_id` citations, a scripted test set (E5) and a cache for demo questions. If it's shaky at M3, hide the panel. |
+| Gemini free-tier rate limits or key | Server-side key only, a response cache, and a graceful `unavailable` fallback to deterministic reasons. |
 | Vercel cold start + DB latency | `getByBounds` LIMIT 5000 already exists. Add `Cache-Control` on `hoods.all` / static geojson. |
 | Merge collisions | Lanes own folders (§1). Only Lane B touches `routers/index.ts`. Only Lane D touches `__root.tsx`. |

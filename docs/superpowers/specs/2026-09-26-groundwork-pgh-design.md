@@ -10,7 +10,7 @@ Revised Sat Sep 26, ~3pm ET, from the team whiteboard (demand, site consideratio
 - **Guiding rule: demoability over coverage.** One flow must work flawlessly on real data. Every factor we can't source well in about 1 hour gets cut, not faked.
 
 ## The product in one sentence
-Click any City of Pittsburgh parcel and see **which of six housing types fit there, and why**. That means a ranked list of typology cards, each built from a few sourced factors. Sliders let you reweight Demand, Site and Access. **No LLM is involved.** A transparent, deterministic engine makes suggestions, and people decide.
+Click any City of Pittsburgh parcel and see **which of six housing types fit there, and why**. That means a ranked list of typology cards, each built from a few sourced factors. Sliders let you reweight Demand, Site and Access. A transparent, deterministic engine makes suggestions, and people decide. **A chatbot explains them:** ask about any parcel and it answers in plain language, only from the engine's sourced facts.
 
 ## Demo story: "Homewood CDC wants to know which vacant lots fit what housing"
 1. The map opens on Pittsburgh. Neighborhoods are shaded by a **Demand** score built from age mix, household size, vacancy and recent permits.
@@ -91,10 +91,14 @@ Legality is a **gate**. When a type is "not allowed", its card still shows but i
   - The 300-draw Monte Carlo and P10–P90 bands are **cut**.
 - **Where it runs.** Scoring runs **in the browser** (`packages/scoring`, pure TS), so sliders are instant. The server only serves features.
 
-## No AI/LLM (team decision)
-- The product uses no LLM and no trained model. The pitch: a transparent, rule-based suggestion engine where every number traces to a public dataset. It suggests, and people decide.
-- The video and the methodology page say this plainly.
-- **Cut:** the Claude brief, the companion chat, "ask the map", personas.
+## AI: an explain-only chatbot (team decision)
+- **The engine stays rule-based.** Every score, fit, legal status and ranking comes from `packages/scoring`, where every number traces to a public dataset. It suggests, and people decide.
+- **One chatbot sits on top** (owner: Vidyut; see PLAN.md Lane E). It answers questions like "Why is duplex first here?", "What changes if I weight Access higher?", "Compare these two lots" or "What does 'needs approval' mean?".
+- **It uses only facts from the engine and API**, cites them with the same source chips as the cards, and never produces a number, fit or legal status of its own. When it's asked something the data doesn't cover (crime, sewer capacity), it says so and points to "What this tool can't tell you".
+- **Provider:** a free Gemini tier, called with plain `fetch`, key server-side only. The exact model is picked in PLAN.md E1.
+- **Fallback:** without a key, or on errors, the panel shows the card's deterministic reasons. Nothing depends on the chatbot, and it's first to hide if it's shaky at the Sun 2pm freeze.
+- **Pitch:** the AI is used where it's trustworthy, explaining sourced facts in plain language, not deciding. The video and the methodology page say this plainly.
+- **Still cut:** the Claude brief, "ask the map" (natural-language filters), personas.
 
 ## Equity and integrity (what judges check)
 - Income and cost of living appear as context on every report. They never lower a typology's fit.
@@ -124,7 +128,7 @@ Legality is a **gate**. When a type is "not allowed", its card still shows but i
 - **No new runtime dependencies.** Everything is already installed or comes from shadcn.
 
 ## Explicitly cut (don't build; mention on the methodology page if relevant)
-- Every LLM feature: Claude brief, companion, "ask the map"
+- LLM features other than the explain-only chatbot: Claude brief, "ask the map"
 - ADU reform toggle
 - Pro forma, reverse lot finder
 - Personas and commute (r5py)
