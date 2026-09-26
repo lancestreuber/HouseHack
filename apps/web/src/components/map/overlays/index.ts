@@ -4,6 +4,7 @@
 //   3. add it to OVERLAYS below
 // The layers panel, legend, tooltips and composite indicators all read from here.
 
+import { codeViolationsOverlay, condemnedPropertiesOverlay, permitsActivityOverlay } from "./activity";
 import { airQualityOverlay } from "./air-quality";
 import { chasOverlay } from "./chas";
 import { designationAreasOverlay, locationAffordabilityOverlay } from "./designations-lai";
@@ -35,6 +36,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   locationAffordabilityOverlay,
   marketMvaOverlay,
   marketZipOverlay,
+  codeViolationsOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
@@ -59,6 +61,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   treeCanopyOverlay,
   imperviousOverlay,
   designationAreasOverlay,
+  permitsActivityOverlay,
+  condemnedPropertiesOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
@@ -70,6 +74,7 @@ export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: strin
   { group: "places", title: "Places" },
   { group: "environment", title: "Environment" },
   { group: "policy", title: "Policy & designations" },
+  { group: "development", title: "Development & conditions" },
 ];
 export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 

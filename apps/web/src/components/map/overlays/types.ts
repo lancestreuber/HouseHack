@@ -8,7 +8,15 @@ import type { AddLayerObject, LngLatBounds } from "maplibre-gl";
 // - "places": points of interest (hospitals, schools, parks, shops, ...), stackable.
 // - "environment": environmental rasters (surface heat, canopy, impervious), stackable.
 // - "policy": zoning overlays and program designation areas, stackable.
-export type OverlayGroup = "heat" | "hazard" | "infrastructure" | "places" | "environment" | "policy";
+// - "development": permits, demolitions and property conditions, stackable.
+export type OverlayGroup =
+  | "heat"
+  | "hazard"
+  | "infrastructure"
+  | "places"
+  | "environment"
+  | "policy"
+  | "development";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.
