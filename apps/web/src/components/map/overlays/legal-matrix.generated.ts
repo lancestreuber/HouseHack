@@ -2195,3 +2195,204 @@ export const CELL_NOTES: Record<string, Record<string, { unconfirmed: boolean; n
     }
   }
 };
+
+// ZBA decisions 2023–2026 by base district × project type (all relief types),
+// only where the research team didn't flag the sample as too small.
+export const ZBA_OUTCOMES: Record<string, Record<string, { n: number; approved: number; denied: number; split: number }>> = {
+  "EMI": {
+    "ALL": {
+      "n": 13,
+      "approved": 11,
+      "denied": 1,
+      "split": 1
+    },
+    "non_residential": {
+      "n": 12,
+      "approved": 10,
+      "denied": 1,
+      "split": 1
+    }
+  },
+  "H": {
+    "ALL": {
+      "n": 12,
+      "approved": 10,
+      "denied": 1,
+      "split": 1
+    }
+  },
+  "LNC": {
+    "ALL": {
+      "n": 49,
+      "approved": 45,
+      "denied": 3,
+      "split": 1
+    },
+    "non_residential": {
+      "n": 38,
+      "approved": 36,
+      "denied": 2,
+      "split": 0
+    }
+  },
+  "R1A": {
+    "ALL": {
+      "n": 83,
+      "approved": 74,
+      "denied": 7,
+      "split": 2
+    },
+    "non_residential": {
+      "n": 19,
+      "approved": 18,
+      "denied": 1,
+      "split": 0
+    },
+    "other_residential": {
+      "n": 12,
+      "approved": 10,
+      "denied": 1,
+      "split": 1
+    },
+    "single_detached": {
+      "n": 21,
+      "approved": 16,
+      "denied": 4,
+      "split": 1
+    },
+    "two_unit": {
+      "n": 19,
+      "approved": 19,
+      "denied": 0,
+      "split": 0
+    }
+  },
+  "R1D": {
+    "ALL": {
+      "n": 101,
+      "approved": 87,
+      "denied": 11,
+      "split": 3
+    },
+    "non_residential": {
+      "n": 19,
+      "approved": 18,
+      "denied": 1,
+      "split": 0
+    },
+    "other_residential": {
+      "n": 11,
+      "approved": 10,
+      "denied": 1,
+      "split": 0
+    },
+    "single_detached": {
+      "n": 45,
+      "approved": 35,
+      "denied": 8,
+      "split": 2
+    },
+    "two_unit": {
+      "n": 12,
+      "approved": 10,
+      "denied": 1,
+      "split": 1
+    }
+  },
+  "R2": {
+    "ALL": {
+      "n": 62,
+      "approved": 46,
+      "denied": 13,
+      "split": 3
+    },
+    "non_residential": {
+      "n": 17,
+      "approved": 14,
+      "denied": 1,
+      "split": 2
+    },
+    "other_residential": {
+      "n": 12,
+      "approved": 9,
+      "denied": 2,
+      "split": 1
+    },
+    "single_detached": {
+      "n": 18,
+      "approved": 13,
+      "denied": 5,
+      "split": 0
+    }
+  },
+  "RIV": {
+    "ALL": {
+      "n": 29,
+      "approved": 27,
+      "denied": 2,
+      "split": 0
+    },
+    "non_residential": {
+      "n": 24,
+      "approved": 22,
+      "denied": 2,
+      "split": 0
+    }
+  },
+  "RM": {
+    "ALL": {
+      "n": 31,
+      "approved": 30,
+      "denied": 1,
+      "split": 0
+    },
+    "non_residential": {
+      "n": 13,
+      "approved": 13,
+      "denied": 0,
+      "split": 0
+    }
+  },
+  "SP": {
+    "ALL": {
+      "n": 12,
+      "approved": 10,
+      "denied": 2,
+      "split": 0
+    },
+    "non_residential": {
+      "n": 11,
+      "approved": 9,
+      "denied": 2,
+      "split": 0
+    }
+  },
+  "UI": {
+    "ALL": {
+      "n": 23,
+      "approved": 20,
+      "denied": 2,
+      "split": 1
+    },
+    "non_residential": {
+      "n": 11,
+      "approved": 9,
+      "denied": 2,
+      "split": 0
+    }
+  },
+  "UNC": {
+    "ALL": {
+      "n": 17,
+      "approved": 12,
+      "denied": 3,
+      "split": 2
+    },
+    "non_residential": {
+      "n": 16,
+      "approved": 11,
+      "denied": 3,
+      "split": 2
+    }
+  }
+};
