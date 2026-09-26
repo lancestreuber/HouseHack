@@ -9,6 +9,7 @@
 
 | Node | What it holds |
 |---|---|
+| ⭐ [Ideas and considerations](ideas-and-considerations.md) | **Start here since the Track 3 pivot.** An idea bank anchored line by line to the brief: framings, the seven axes, the four success tests, equity, personas, risks |
 | [Brief and requirements](brief-and-requirements.md) | The brief quoted verbatim, including the success criteria; what "scenarios not one answer" and "data vs. value judgments" require concretely |
 | [Indicators and data](indicators-and-data.md) | Every indicator with source, geography level, vintage, and access gotchas (CHAS UA, Census key, 2010 vs. 2020 tracts, NRI caveats, RCO PII, H+T registration) |
 | [Typology prototypes](typology-prototypes.md) | Envision Tomorrow-style prototypes, per-typology parameters labelled data / assumption / value, and use-table gates |
