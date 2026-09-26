@@ -9,6 +9,7 @@ import { airQualityOverlay } from "./air-quality";
 import { chasOverlay } from "./chas";
 import { designationAreasOverlay, locationAffordabilityOverlay } from "./designations-lai";
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
+import { equityOverlay, holcOverlay, opportunityAtlasOverlay } from "./equity";
 import { floodZonesOverlay } from "./flood-zones";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
 import { jobsOverlay } from "./jobs";
@@ -38,6 +39,8 @@ export const OVERLAYS: OverlayDefinition[] = [
   marketMvaOverlay,
   marketZipOverlay,
   codeViolationsOverlay,
+  equityOverlay,
+  opportunityAtlasOverlay,
   safetyOverlay,
   jobsOverlay,
   housingVouchersOverlay,
@@ -62,6 +65,7 @@ export const OVERLAYS: OverlayDefinition[] = [
   treeCanopyOverlay,
   imperviousOverlay,
   designationAreasOverlay,
+  holcOverlay,
   permitsActivityOverlay,
   condemnedPropertiesOverlay,
   cityOwnedLandOverlay,
