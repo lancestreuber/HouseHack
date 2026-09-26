@@ -3,9 +3,10 @@
 
 import { buildAirQuality } from "./air-quality";
 import { buildFloodZones } from "./flood-zones";
+import { buildLandslides } from "./landslides";
 import { buildLeadServiceLines } from "./lead-service-lines";
 import { buildWeatherRisk } from "./weather-risk";
 
-for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones]) {
+for (const build of [buildAirQuality, buildWeatherRisk, buildLeadServiceLines, buildFloodZones, buildLandslides]) {
   await build();
 }
