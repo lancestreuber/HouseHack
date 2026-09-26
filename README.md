@@ -19,12 +19,13 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 > Shared plan doc (comment there): https://claude.ai/code/artifact/fdc6bb41-5dda-4a0a-a185-f8062534171a
 
 ### What we're building
-One tool that combines **Track 1** (Development Feasibility & Pro Forma) and **Track 3** (Typology, Equity & Climate) for the City of Pittsburgh. Enter any address, ZIP or neighborhood. For any of the city's ~142k parcels you get:
-- a **Development Ease Score** (0–100) and the biggest barriers, in plain language: zoning, steep slope, landslide, undermining, flood, ownership;
-- the **housing types that fit** (ADU, duplex, triplex, townhomes, small multifamily, mid-rise) and the **tradeoffs** of each across demand, transit, equity and climate, weighted by sliders the user controls;
-- a **pro forma** showing cost, rent and the funding gap per unit, plus which subsidy programs could close it;
-- a **policy toggle** that applies Pittsburgh's pending 2026 zoning reform (ADUs by right, no parking minimums) and shows what changes;
-- an **AI brief** (Claude) that explains the numbers and cites the source data for every claim.
+**Track 3 only: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. About 60% of teams are on Track 1, so we stand out here. Enter any address, ZIP or neighborhood. For any of the city's ~142k parcels you get:
+- the **housing types that fit** (ADU, duplex, triplex, townhomes, small multifamily, mid-rise), each with a fit score and a confidence range;
+- the **tradeoffs** of each type across demand, access (jobs, schools, transit, healthcare, parks, shops), equity and displacement risk, and climate (heat, flood, air quality, carbon), weighted by sliders the user controls. Every number is labeled as evidence, assumption or value choice;
+- a **household lens**: pick who will live there (family with kids, senior, young worker without a car, and so on) and optionally a workplace. The map re-weights for that household, including commute time to job centers in the suburbs;
+- a **reality check**: zoning permission, hazards, and the funding gap per unit, plus which subsidies could close it;
+- a **policy simulation** that applies Pittsburgh's pending 2026 zoning reform (ADUs by right, no parking minimums, affordable-housing bonus) and shows what changes;
+- an **AI brief** (Claude) that explains the tradeoffs, says who benefits and who could be harmed, and cites the source data for every claim.
 
 The goal is a real tool a CDC, planner, small developer or resident could use on Monday. It's not just a demo. **The map and UI are the product**, so aim for Felt/Linear-level polish.
 
