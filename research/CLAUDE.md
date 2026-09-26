@@ -33,9 +33,18 @@ It uses a cross-linked wiki with a paper as the entry point ([`knowledge/PAPER.m
 
 **Never upgrade a tag without the artefact.**
 
+## Link, don't copy
+
+This base is a **research hub**: external links plus our synthesis. It is not a data warehouse.
+- **Store:** the link, what it contains, how to query it (endpoint, resource ID, fields, gotchas), when we checked it, and what we concluded.
+- **Don't store:** bulk datasets, full downloads or large extracts. Pull those at build time from the source.
+- **Exceptions:**
+  - small coded extractions we produced ourselves, such as the ZBA sample CSV
+  - load-bearing primary *text* that is perishable or hard to reach (see below)
+
 ## If we cite it, we hold it
 
-Save load-bearing code text, policy text and data dictionaries to `sources/` as `<publisher>-<yyyy-mm-dd>-<slug>.<ext>`, with the date accessed.
+Save load-bearing, perishable code text, policy text and data dictionaries (text only, small) to `sources/` as `<publisher>-<yyyy-mm-dd>-<slug>.<ext>`, with the date accessed.
 
 ## Hard rules
 

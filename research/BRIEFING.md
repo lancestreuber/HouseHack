@@ -115,6 +115,7 @@ More framings and their evidence: [framings](knowledge/landscape/framings.md)
 
 | I need… | Go to |
 |---|---|
+| **Every external link** (datasets, APIs, code, news, papers), grouped and tagged | [`docs/02-bibliography.md`](docs/02-bibliography.md) |
 | The one-line list of every topic | [`knowledge/INDEX.md`](knowledge/INDEX.md) |
 | An endpoint URL, resource ID or field name | [`knowledge/data/`](knowledge/data/) (one node per data family) |
 | A zoning rule or the approval steps | [`knowledge/policy/`](knowledge/policy/) and the saved code text in [`sources/`](sources/) |
