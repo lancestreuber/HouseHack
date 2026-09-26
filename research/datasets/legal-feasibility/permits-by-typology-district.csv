@@ -13,7 +13,7 @@ zon_new,R1D-M,single_detached,26,13,12,1,13,72.0,107.2,72,12,26,26,7,0,26,0,2019
 zon_new,R1D-VL,single_detached,8,7,6,1,1,179.0,305.2,204,6,8,8,7,0,8,0,2020,2026
 zon_new,R2-H,single_detached,29,28,25,3,1,233.0,550.0,237,25,29,29,16,0,29,0,2019,2026
 zon_new,R2-L,single_detached,7,4,3,1,3,146.0,173.5,146,3,7,7,1,0,6,0,2020,2026
-zon_new,R2-M,single_detached,14,14,14,0,0,76.0,101.0,74,14,14,14,10,0,14,0,2019,2023
+zon_new,R2-M,single_detached,15,15,15,0,0,74.0,101.0,74,15,15,15,11,0,15,0,2019,2023
 zon_new,R2-VH,single_detached,5,2,2,0,3,133.0,142.5,114,2,5,5,2,0,5,0,2019,2023
 zon_new,R3-M,single_detached,6,5,5,0,1,103.0,103.0,103,5,6,6,3,0,6,0,2019,2026
 zon_new,RIV-IMU,single_detached,3,3,3,0,0,156.0,235.5,156,3,7,3,0,0,3,1,2024,2026
@@ -52,7 +52,7 @@ zon_new,R1D-L,two_unit,3,3,2,1,0,352.0,467.0,582,2,6,3,1,3,3,0,2023,2025
 zon_new,R1D-M,two_unit,4,4,3,1,0,118.0,195.0,118,3,8,4,2,4,4,0,2021,2026
 zon_new,R2-H,two_unit,14,14,10,4,0,22.5,49.5,30,10,28,14,9,6,13,0,2022,2026
 zon_new,R2-L,two_unit,7,6,6,0,1,135.0,173.2,120,6,14,7,2,6,7,0,2020,2025
-zon_new,R2-M,two_unit,3,3,3,0,0,70.0,79.5,70,3,6,3,2,1,3,0,2019,2024
+zon_new,R2-M,two_unit,2,2,2,0,0,72.5,80.8,56,2,4,2,1,1,2,0,2019,2024
 zon_new,R2-VH,two_unit,2,1,1,0,1,51.0,51.0,51,1,4,2,1,0,2,0,2020,2022
 zon_new,R3-M,two_unit,1,1,1,0,0,60.0,60.0,60,1,2,1,0,1,1,0,2025,2025
 zon_new,RIV-IMU,two_unit,2,2,2,0,0,365.5,444.8,207,2,4,2,1,2,2,0,2023,2025
@@ -165,6 +165,7 @@ neighborhood,Lincoln-Lemington-Belmar,single_detached,1,1,1,0,0,238.0,238.0,238,
 neighborhood,Lower Lawrenceville,single_detached,14,10,10,0,4,123.0,201.2,92,10,14,14,9,0,14,0,2019,2024
 neighborhood,Manchester,single_detached,7,7,7,0,0,28.0,172.0,28,7,7,7,7,0,7,0,2020,2025
 neighborhood,Middle Hill,single_detached,6,6,6,0,0,334.0,334.0,334,6,6,6,6,0,6,0,2021,2022
+neighborhood,Morningside,single_detached,1,1,1,0,0,70.0,70.0,70,1,1,1,1,0,1,0,2023,2023
 neighborhood,Mount Washington,single_detached,32,32,31,1,0,168.0,219.5,168,31,32,32,28,0,30,3,2019,2026
 neighborhood,New Homestead,single_detached,4,4,4,0,0,74.5,93.8,72,4,4,4,3,0,4,0,2020,2025
 neighborhood,Perry North,single_detached,1,1,0,1,0,,,,0,1,1,1,1,1,0,2025,2025
@@ -239,7 +240,7 @@ neighborhood,Homewood South,two_unit,5,3,1,2,2,153.0,153.0,153,1,10,5,3,1,5,0,20
 neighborhood,Homewood West,two_unit,2,2,2,0,0,46.0,46.0,46,2,4,2,2,0,2,0,2023,2023
 neighborhood,Larimer,two_unit,2,2,1,1,0,56.0,56.0,56,1,4,2,2,0,2,0,2022,2025
 neighborhood,Marshall-Shadeland,two_unit,1,1,1,0,0,231.0,231.0,231,1,2,1,0,1,1,0,2023,2024
-neighborhood,Morningside,two_unit,2,2,2,0,0,59.5,64.8,49,2,4,2,1,1,2,0,2021,2023
+neighborhood,Morningside,two_unit,1,1,1,0,0,49.0,49.0,49,1,2,1,0,1,1,0,2021,2021
 neighborhood,Mount Washington,two_unit,4,4,4,0,0,72.0,148.5,32,4,8,4,2,4,4,0,2021,2026
 neighborhood,Perry South,two_unit,1,1,1,0,0,89.0,89.0,89,1,2,1,0,1,1,0,2025,2025
 neighborhood,Point Breeze,two_unit,1,1,0,1,0,,,,0,2,1,0,1,1,0,2024,2024
