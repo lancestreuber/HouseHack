@@ -25,7 +25,14 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 - a **household lens**: pick who will live there (family with kids, senior, young worker without a car, and so on) and optionally a workplace. The map re-weights for that household, including commute time to job centers in the suburbs;
 - a **reality check**: zoning permission, hazards, and the funding gap per unit, plus which subsidies could close it;
 - a **policy simulation** that applies Pittsburgh's pending 2026 zoning reform (ADUs by right, no parking minimums, affordable-housing bonus) and shows what changes;
-- an **AI brief** (Claude) that explains the tradeoffs, says who benefits and who could be harmed, and cites the source data for every claim.
+- an **AI companion** (Claude), a conversational guide beside the map. It answers questions like "why is this better for my mom?" by calling our data tools live, cites every fact, says who benefits and who could be harmed, and explains terms as you go.
+
+**The experience:**
+1. Pick an area and, optionally, who you're planning for.
+2. The dashboard shows **scenario cards**, each one "this housing type, here, for this household", with fit, confidence, top tradeoffs, and who benefits and who might be harmed.
+3. Ask the companion to explain, compare or find alternatives.
+
+**The engine underneath:** fit = benefits − (place exposure × household sensitivity × (1 − what the housing type mitigates)). For example, poor air matters most for seniors, and a filtered, elevator building reduces that harm. See [track3-methodology.md](docs/research/track3-methodology.md).
 
 The goal is a real tool a CDC, planner, small developer or resident could use on Monday. It's not just a demo. **The map and UI are the product**, so aim for Felt/Linear-level polish.
 
