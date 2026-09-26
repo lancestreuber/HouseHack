@@ -17,6 +17,8 @@
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "drizzle-orm": "catalog:",
+    "stream-chain": "^4.2.5",
+    "stream-json": "^3.7.0",
     "zod": "catalog:"
   },
   "devDependencies": {
