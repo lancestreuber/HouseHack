@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildFacts, DEFINITIONS, parcelScore } from "./facts";
+import { buildFacts, parcelScore, reportContext } from "./facts";
 import { homewoodEvals, homewoodReport } from "./fixtures";
 import type { Weights } from "./types";
 
@@ -71,8 +71,11 @@ describe("buildFacts", () => {
     expect(two.some((f) => f.id === "p2.t.duplex")).toBe(true);
   });
 
-  test("always includes the definitions and limits", () => {
-    for (const d of DEFINITIONS) expect(byId.has(d.id)).toBe(true);
-    expect(byId.get("def.limits")?.text).toContain("crime");
+  test("reportContext adds the score definitions, a rescore model and starter questions", () => {
+    const ctx = reportContext([{ report: homewoodReport, evals: homewoodEvals }], flat);
+    expect(ctx.facts.some((f) => f.id === "def.parcel_score")).toBe(true);
+    expect(ctx.scoring?.method).toBe("arithmetic");
+    expect(ctx.scoring?.parts).toHaveLength(11);
+    expect(ctx.suggestions).toHaveLength(3);
   });
 });

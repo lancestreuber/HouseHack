@@ -1,97 +1,85 @@
-import { buildFacts, DEFINITIONS, parcelScore } from "./facts";
+import { DEFINITIONS } from "./definitions";
 import type { FunctionDeclaration, GeminiContent, GeminiPart, GenerateFn } from "./gemini";
-import { keepVerified, parseReply, unverifiedNumbers } from "./guard";
+import { keepVerified, numbersIn, parseReply, unverifiedNumbers } from "./guard";
 import { systemPrompt } from "./prompt";
-import type { ChatDataSource } from "./source";
-import { GENERAL_QUESTIONS, suggestionsFor } from "./suggestions";
-import type {
-  ChatFact,
-  ChatMessage,
-  ChatResult,
-  ConsiderationId,
-  Note,
-  ParcelReport,
-  ReplyBlock,
-  TypologyEval,
-  Weights,
-} from "./types";
+import { overallScore } from "./rescore";
+import { GENERAL_QUESTIONS } from "./suggestions";
+import type { ChatContext, ChatFact, ChatMessage, ChatResult, ReplyBlock, ScoringModel } from "./types";
 
 export interface ChatInput {
-  pins: string[];
-  weights?: Partial<Weights>;
+  context?: ChatContext;
   messages: ChatMessage[];
 }
 
-const CONSIDERATIONS: ConsiderationId[] = [
-  "lot", "zoning", "hazards", "slope", "air", "transit", "parks", "health", "schools", "shops", "demand",
-];
-const DEFAULT_WEIGHTS = Object.fromEntries(CONSIDERATIONS.map((id) => [id, 1])) as Weights;
 const MAX_HISTORY = 10;
 const MAX_TOOL_STEPS = 3;
 const CACHE_LIMIT = 200;
 
-const RESCORE_TOOL: FunctionDeclaration = {
-  name: "rescore_parcel",
-  description:
-    "Recompute the Parcel Score with different slider weights. Use this whenever the user asks what happens if they change, raise or lower a weight or slider.",
-  parameters: {
-    type: "object",
-    properties: {
-      parcel: { type: "integer", description: "Which parcel, 1-based, when several are being compared. Default 1." },
-      weights: {
-        type: "object",
-        description: "Weights to change, each 0 (ignore) to 3 (most important). Unlisted ones keep their current value.",
-        properties: Object.fromEntries(CONSIDERATIONS.map((id) => [id, { type: "number" }])),
+function rescoreTool(model: ScoringModel): FunctionDeclaration {
+  return {
+    name: "rescore",
+    description:
+      "Recompute the overall score with different weights. Use this whenever the user asks what happens if they change, raise or lower a weight, slider or priority.",
+    parameters: {
+      type: "object",
+      properties: {
+        weights: {
+          type: "object",
+          description: `New weights, each from 0 (ignore) to 3 (most important). Unlisted ones keep their current value. Keys: ${model.parts.map((p) => `${p.id} (${p.label})`).join(", ")}.`,
+          properties: Object.fromEntries(model.parts.map((p) => [p.id, { type: "number" }])),
+        },
       },
+      required: ["weights"],
     },
-    required: ["weights"],
-  },
-};
+  };
+}
 
-const clampWeight = (v: unknown) => Math.min(3, Math.max(0, Number(v) || 0));
+const textOf = (parts: GeminiPart[]) => parts.map((p) => ("text" in p ? p.text : "")).join("");
+const fmt = (n: number | null) => (n === null ? "unavailable" : String(Math.round(n)));
 
-function textOf(parts: GeminiPart[]): string {
-  return parts.map((p) => ("text" in p ? p.text : "")).join("");
+/** Facts from the screen, plus the standing definitions (screen facts win on id clashes). */
+function factsFrom(context: ChatContext | undefined): ChatFact[] {
+  const seen = new Set<string>();
+  const facts: ChatFact[] = [];
+  for (const f of [...(context?.facts ?? []), ...DEFINITIONS]) {
+    if (seen.has(f.id)) continue;
+    seen.add(f.id);
+    facts.push({ ...f, numbers: numbersIn(f.text) });
+  }
+  return facts;
 }
 
 /**
  * Create the chat handler. `generate` is null when no API key is configured,
- * in which case every answer falls back to the deterministic notes.
+ * in which case every answer falls back to the screen's own notes.
  */
-export function createChat(deps: { source: ChatDataSource; generate: GenerateFn | null }) {
+export function createChat(deps: { generate: GenerateFn | null }) {
   const cache = new Map<string, ChatResult>();
 
   return async function chat(input: ChatInput): Promise<ChatResult> {
-    const weights: Weights = { ...DEFAULT_WEIGHTS, ...input.weights };
-    const parcels: { report: ParcelReport; evals: TypologyEval[] }[] = [];
-    for (const pin of input.pins.slice(0, 3)) {
-      const report = await deps.source.getReport(pin);
-      if (report) parcels.push({ report, evals: await deps.source.getEvals(pin) });
-    }
-    const first = parcels[0];
-    const suggestions = first ? suggestionsFor(first.report, first.evals) : GENERAL_QUESTIONS;
-    const notes: Note[] = first
-      ? first.report.notes.length
-        ? first.report.notes
-        : first.report.considerations.map((c) => ({ severity: c.severity, text: `${c.name}: ${c.comment}` }))
-      : [];
-    const unavailable = (reason: string): ChatResult => ({ status: "unavailable", reason, notes, suggestions });
+    const suggestions = input.context?.suggestions?.length ? input.context.suggestions.slice(0, 3) : GENERAL_QUESTIONS;
+    const unavailable = (reason: string): ChatResult => ({
+      status: "unavailable",
+      reason,
+      notes: input.context?.notes ?? [],
+      suggestions,
+    });
+    if (!deps.generate) return unavailable("The chat assistant isn't set up yet (no API key).");
 
-    if (!deps.generate) return unavailable("The chat assistant is not configured (no API key).");
-
-    const key = JSON.stringify([input.pins, weights, input.messages.slice(-MAX_HISTORY)]);
+    const history = input.messages.slice(-MAX_HISTORY);
+    const key = JSON.stringify([input.context, history]);
     const cached = cache.get(key);
     if (cached) return cached;
 
-    const facts: ChatFact[] = parcels.length ? buildFacts(parcels, weights) : [...DEFINITIONS];
-    const contents: GeminiContent[] = input.messages.slice(-MAX_HISTORY).map((m) => ({
+    const facts = factsFrom(input.context);
+    const contents: GeminiContent[] = history.map((m) => ({
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.text }],
     }));
+    const run = () => runWithTools(deps.generate as GenerateFn, input.context, facts, contents);
 
-    let reply = "";
     try {
-      reply = await runWithTools(deps.generate, facts, contents, parcels, weights);
+      let reply = await run();
       let blocks = parseReply(reply, facts.map((f) => f.id));
       const bad = unverifiedIn(blocks, facts);
       if (bad.length) {
@@ -106,84 +94,72 @@ export function createChat(deps: { source: ChatDataSource; generate: GenerateFn 
             ],
           },
         );
-        reply = await runWithTools(deps.generate, facts, contents, parcels, weights);
+        reply = await run();
         blocks = parseReply(reply, facts.map((f) => f.id));
       }
-      const allowed = allNumbers(facts);
+      const allowed = facts.flatMap((f) => f.numbers);
       const verified = blocks.map((b) => keepVerified(b, allowed)).filter((b): b is ReplyBlock => b !== null);
-      if (!verified.length) return unavailable("I couldn't verify an answer against the data.");
+      if (!verified.length) return unavailable("I couldn't give an answer I could verify against the data. Try rephrasing.");
 
       const cited = new Set(verified.flatMap((b) => b.fact_ids));
-      const result: ChatResult = {
-        status: "ok",
-        blocks: verified,
-        facts: facts.filter((f) => cited.has(f.id)),
-        suggestions,
-      };
+      const result: ChatResult = { status: "ok", blocks: verified, facts: facts.filter((f) => cited.has(f.id)), suggestions };
       if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
       cache.set(key, result);
       return result;
     } catch {
-      return unavailable("The chat assistant is busy right now. Here are the key notes instead.");
+      return unavailable("The assistant is busy right now. Please try again in a moment.");
     }
   };
 }
 
-function allNumbers(facts: ChatFact[]): string[] {
-  return facts.flatMap((f) => f.numbers);
-}
-
 function unverifiedIn(blocks: ReplyBlock[], facts: ChatFact[]): string[] {
-  const allowed = allNumbers(facts);
+  const allowed = facts.flatMap((f) => f.numbers);
   return [...new Set(blocks.flatMap((b) => unverifiedNumbers(b.text, allowed)))];
 }
 
-/** Call the model, running rescore tool calls, until it returns text. Mutates `facts`/`contents`. */
+/** Call the model, running rescore calls, until it returns text. Mutates `facts` and `contents`. */
 async function runWithTools(
   generate: GenerateFn,
+  context: ChatContext | undefined,
   facts: ChatFact[],
   contents: GeminiContent[],
-  parcels: { report: ParcelReport }[],
-  weights: Weights,
 ): Promise<string> {
+  const scoring = context?.scoring;
   for (let step = 0; step < MAX_TOOL_STEPS; step++) {
     const parts = await generate({
-      system: systemPrompt(facts),
+      system: systemPrompt(facts, context?.subject),
       contents,
-      tools: parcels.length ? [RESCORE_TOOL] : undefined,
+      tools: scoring ? [rescoreTool(scoring)] : undefined,
     });
     const calls = parts.filter((p): p is Extract<GeminiPart, { functionCall: unknown }> => "functionCall" in p);
     if (!calls.length) return textOf(parts);
 
     contents.push({ role: "model", parts });
     const responses: GeminiPart[] = calls.map((call) => {
-      const args = call.functionCall.args as { parcel?: number; weights?: Record<string, unknown> };
-      const index = Math.max(1, Math.min(parcels.length, Number(args.parcel) || 1));
-      const report = parcels[index - 1]?.report;
-      if (!report) return { functionResponse: { name: "rescore_parcel", response: { error: "No such parcel." } } };
-
-      const next: Weights = { ...weights };
-      for (const [k, v] of Object.entries(args.weights ?? {})) {
-        if ((CONSIDERATIONS as string[]).includes(k)) next[k as ConsiderationId] = clampWeight(v);
+      if (!scoring) return { functionResponse: { name: call.functionCall.name, response: { error: "No scores to recompute." } } };
+      const requested = (call.functionCall.args as { weights?: Record<string, unknown> }).weights ?? {};
+      const changes: Record<string, number> = {};
+      for (const part of scoring.parts) {
+        if (part.id in requested) changes[part.id] = Math.min(3, Math.max(0, Number(requested[part.id]) || 0));
       }
-      const before = parcelScore(report.considerations, weights);
-      const after = parcelScore(report.considerations, next);
-      const changed = Object.entries(next)
-        .filter(([k, v]) => v !== weights[k as ConsiderationId])
-        .map(([k, v]) => `${k} weight ${v}`)
+      const before = overallScore(scoring);
+      const after = overallScore(scoring, changes);
+      const described = Object.entries(changes)
+        .filter(([id, w]) => w !== scoring.parts.find((p) => p.id === id)?.weight)
+        .map(([id, w]) => `${scoring.parts.find((p) => p.id === id)?.label ?? id} weight ${w}`)
         .join(", ");
       const id = `rescore.${facts.filter((f) => f.id.startsWith("rescore.")).length + 1}`;
-      const label = parcels.length > 1 ? `Parcel ${index}: ` : "";
+      const text = `With ${described || "the same weights"}, the overall score changes from ${fmt(before)} to ${fmt(after)} out of 100.`;
       facts.push({
         id,
-        text: `${label}With ${changed || "the same weights"}, the Parcel Score changes from ${before} to ${after} of 100.`,
-        source: "Groundwork PGH algorithm (recomputed)",
+        text,
+        source: "Recomputed with the tool's published weights and formula",
         source_url: "/methodology",
         as_of: new Date().toISOString().slice(0, 10),
-        kind: "assumption",
-        numbers: [before, after].filter((n): n is number => n !== null).map(String),
+        kind: "value",
+        numbers: numbersIn(text),
       });
-      return { functionResponse: { name: "rescore_parcel", response: { fact_id: id, before, after } } };
+      return { functionResponse: { name: call.functionCall.name, response: { fact_id: id, text } } };
     });
     contents.push({ role: "user", parts: responses });
   }

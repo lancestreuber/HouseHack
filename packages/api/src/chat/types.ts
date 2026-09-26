@@ -103,15 +103,39 @@ export interface ChatMessage {
   text: string;
 }
 
-/** One citable fact. `numbers` are the numeric tokens a reply may quote from it. */
-export interface ChatFact {
+/** How a fact is known. Matches pillars.config.json `evidence` plus the plan's labels. */
+export type FactKind = Label | "observed" | "policy" | "value" | "definition";
+
+/** A fact a screen panel hands to the chat: exactly what the user is looking at. */
+export interface ContextFact {
   id: string;
   text: string;
   source: string;
   source_url: string;
   as_of: string;
-  kind: Label | "definition";
+  kind: FactKind;
+}
+
+/** One citable fact. `numbers` are the numeric tokens a reply may quote from it. */
+export interface ChatFact extends ContextFact {
   numbers: string[];
+}
+
+/** Enough of the scoring model to answer "what if I change the weights" exactly. */
+export interface ScoringModel {
+  method: "geometric" | "arithmetic";
+  floor: number;
+  parts: { id: string; label: string; score: number | null; weight: number }[];
+}
+
+/** What the screen shows right now. Every panel that wants chat support builds one. */
+export interface ChatContext {
+  subject: string;
+  facts: ContextFact[];
+  scoring?: ScoringModel;
+  suggestions?: string[];
+  /** Plain notes shown if the assistant is unavailable. */
+  notes?: string[];
 }
 
 /** A rendered unit of a reply: a paragraph or one bullet, with the facts it cites. */
@@ -123,4 +147,4 @@ export interface ReplyBlock {
 
 export type ChatResult =
   | { status: "ok"; blocks: ReplyBlock[]; facts: ChatFact[]; suggestions: string[] }
-  | { status: "unavailable"; reason: string; notes: Note[]; suggestions: string[] };
+  | { status: "unavailable"; reason: string; notes: string[]; suggestions: string[] };

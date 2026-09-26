@@ -1,4 +1,4 @@
-import { TYPOLOGY_NAMES } from "./facts";
+import { TYPOLOGY_NAMES } from "./names";
 import type { ParcelReport, TypologyEval } from "./types";
 
 /** Starter questions people most often need, shown when a chat opens. */
