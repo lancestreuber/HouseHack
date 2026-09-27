@@ -15,7 +15,7 @@ const contextFact = z.object({
   kind: factKind,
 });
 
-const chatContext = z.object({
+export const chatContext = z.object({
   subject: z.string().max(200),
   facts: z.array(contextFact).max(300),
   scoring: z
@@ -23,8 +23,17 @@ const chatContext = z.object({
       method: z.enum(["geometric", "arithmetic"]),
       floor: z.number().min(0).max(100),
       parts: z
-        .array(z.object({ id: z.string().max(40), label: z.string().max(80), score: z.number().nullable(), weight: z.number().min(0).max(10) }))
+        .array(
+          z.object({
+            id: z.string().max(40),
+            label: z.string().max(80),
+            score: z.number().nullable(),
+            weight: z.number().min(0).max(10),
+            impute: z.number().nullable().optional(),
+          }),
+        )
         .max(20),
+      multiplier: z.number().min(0).max(1).optional(),
     })
     .optional(),
   suggestions: z.array(z.string().max(200)).max(6).optional(),

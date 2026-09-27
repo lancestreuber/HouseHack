@@ -206,6 +206,7 @@ function Conversation({ chat, suggestions }: { chat: ReturnType<typeof useChat>;
                 key={turn.id}
                 turn={turn}
                 onFollowUp={chat.send}
+                followUps={suggestions.slice(0, 3)}
                 isLast={turn.id === last?.id}
                 onListen={() => (chat.speaking ? chat.stop() : chat.speakTurn(turn.result))}
                 speaking={chat.speaking}
@@ -272,12 +273,15 @@ function revealed(blocks: ReplyBlock[], words: number): { block: ReplyBlock; tex
 function AssistantTurn({
   turn,
   onFollowUp,
+  followUps,
   isLast,
   onListen,
   speaking,
 }: {
   turn: Extract<ChatTurn, { role: "assistant" }>;
   onFollowUp: (q: string) => void;
+  /** From the live context, so they track the screen (e.g. after a weight change). */
+  followUps: string[];
   isLast: boolean;
   onListen: () => void;
   speaking: boolean;
@@ -333,9 +337,9 @@ function AssistantTurn({
         </div>
       )}
 
-      {done && isLast && result.suggestions.length > 0 && (
+      {done && isLast && followUps.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {result.suggestions.map((q) => (
+          {followUps.map((q) => (
             <button
               key={q}
               type="button"

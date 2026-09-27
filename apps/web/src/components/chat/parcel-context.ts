@@ -5,11 +5,13 @@ import type { ChatContext, ContextFact, FactKind } from "@HouseHack/api/chat/typ
 import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { type PillarId, scoreParcel } from "@/lib/pillars/score";
+import { overallPhrase, pillarPhrase } from "@/lib/pillars/phrases";
+import { type ParcelScore, type PillarId, scoreParcel } from "@/lib/pillars/score";
+import { DEFAULT_WEIGHTS, type PillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 
 import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibility";
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
-import { formatRaw, INDICATORS, type ParcelData, useParcelData } from "../map/pillars-panel";
+import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData } from "../map/pillars-panel";
 import { PATHWAY_SCORE } from "../map/typology-panel";
 
 const SCORES_AS_OF = config.version.slice(0, 10);
@@ -23,19 +25,34 @@ function fact(id: string, text: string, kind: FactKind, source = SCORES_SOURCE, 
   return { id, text: clip(text), kind, source, source_url, as_of };
 }
 
-function pillarFacts(result: ReturnType<typeof scoreParcel>): ContextFact[] {
+// Codes rather than 0–100 scores (legal pathway, current use); covered by their own facts.
+const CODE_UNITS = new Set(["pathway", "use"]);
+
+function imputeFor(pillar: (typeof config.pillars)[number]): number | null {
+  return (pillar as { impute?: number }).impute ?? (config.overall as { missing_pillar?: { impute: number } }).missing_pillar?.impute ?? null;
+}
+
+function pillarFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
   return config.pillars.map((p) => {
-    const score = result.pillars[p.id as PillarId];
+    const id = p.id as PillarId;
+    const score = result.pillars[id];
+    const rank = percentileRank(data.quantiles?.[id], score.score);
+    const phrase = pillarPhrase(result, id, data.norm);
+    const impute = imputeFor(p);
     const subLabels = (p as { subscores?: { id: string; label: string }[] }).subscores ?? [];
     const subs = score.subscores
       .map((s) => `${subLabels.find((l) => l.id === s.id)?.label ?? s.id} ${round(s.score) ?? "not enough data"}`)
       .join(", ");
     const parts = [
-      score.score == null ? `${p.label} pillar: not enough data to score.` : `${p.label} pillar: ${round(score.score)} of 100.`,
+      score.score == null
+        ? `${p.label} pillar: not enough data to score${impute != null ? `; the overall score counts it as ${impute}, a conservative City value` : ""}.`
+        : `${p.label} pillar: ${round(score.score)} of 100.`,
+      phrase && `In plain words: ${phrase}.`,
+      rank != null && `Better than ${rank}% of City parcels.`,
       p.description,
       subs && `Sub-scores: ${subs}.`,
       `${Math.round(score.coverage * 100)}% of its indicator weight has data.`,
-      ...score.flags.map((f) => `Warning: ${f}, so this pillar is capped.`),
+      ...score.flags.map((f) => (f.capped ? `Warning: ${f.text}, so this pillar is capped.` : `Note: ${f.text}.`)),
     ];
     return fact(`pillar.${p.id}`, parts.filter(Boolean).join(" "), "value");
   });
@@ -49,14 +66,16 @@ const WEAKNESSES = 2;
 
 function keyIndicators(data: ParcelData) {
   return config.pillars.flatMap((p) => {
-    const scored = INDICATORS.filter((i) => i.pillar === p.id && i.weight > 0 && data.norm[i.id] != null);
+    const scored = INDICATORS.filter(
+      (i) => i.pillar === p.id && i.weight > 0 && data.norm[i.id] != null && !CODE_UNITS.has(i.unit ?? ""),
+    );
     const byValue = [...scored].sort((a, b) => (data.norm[b.id] as number) - (data.norm[a.id] as number));
     const picked = new Set([...byValue.slice(0, STRENGTHS), ...byValue.slice(-WEAKNESSES)]);
     return [...picked];
   });
 }
 
-function indicatorFacts(data: ParcelData, result: ReturnType<typeof scoreParcel>): ContextFact[] {
+function indicatorFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
   const points = new Map<string, number>();
   for (const p of Object.values(result.pillars)) for (const c of p.contributions) points.set(c.indicator, c.share);
   return keyIndicators(data).map((ind) => {
@@ -105,26 +124,66 @@ function definitions(): ContextFact[] {
     def("def.scale", config.scale),
     def(
       "def.overall",
-      `The overall score combines the five pillars with a weighted ${config.overall.method} mean, equal weights, so one strong pillar can't fully make up for a weak one.`,
+      `The overall score blends the five pillars with a weighted ${config.overall.method} mean, so one strong pillar can't fully make up for a weak one. It is then multiplied by a zoning factor (whether housing is legal here) and a site factor (what is on the parcel now), so good access can't rescue a parcel where housing isn't allowed. The weights are the user's priorities, equal by default.`,
     ),
     def("def.missing", `Missing data is excluded and the remaining weights renormalized; a score needs at least ${Math.round(config.missing.min_coverage * 100)}% of its weight to have data.`),
   ];
 }
 
-/** What the chat may say about one explorer parcel: scores, key indicators and zoning. `data` is null when the parcel has no scores. */
-export function parcelChatContext(pin: string, data: ParcelData | null): ChatContext {
+function weightsText(weights: PillarWeights): string {
+  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  if (isDefault) return "equal weights";
+  const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
+  return `the user's priorities (${config.pillars.map((p) => `${p.label} ${Math.round((weights[p.id as PillarId] / total) * 100)}%`).join(", ")})`;
+}
+
+// The zoning and site factors that multiply the overall score, when they apply.
+function statusFacts(result: ParcelScore): ContextFact[] {
+  const facts: ContextFact[] = [];
+  const { legal, availability } = result;
+  if (legal) {
+    const factor = legal.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${legal.multiplier}`;
+    facts.push(fact("legal", `Zoning: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF));
+  }
+  if (availability) {
+    const factor = availability.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${availability.multiplier}`;
+    facts.push(fact("site_use", `On the parcel now: ${availability.label}, ${factor}.${availability.note ? ` ${availability.note}` : ""}`, "observed"));
+  }
+  return facts;
+}
+
+/** What the chat may say about one explorer parcel: scores, key indicators and zoning, at the user's weights. */
+export function parcelChatContext(pin: string, data: ParcelData | null, weights: PillarWeights = DEFAULT_WEIGHTS): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
     const text = "No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.";
     return { subject, facts: [fact("parcel", `Parcel ${pin}: ${text}`, "observed")], notes: [text] };
   }
 
-  const result = scoreParcel(data.norm);
+  const result = scoreParcel(data.norm, { pillars: weights });
+  const multiplier = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
   const districtName = DISTRICT_PATHWAYS[data.zoning]?.full_zoning_type;
   const overall = round(result.overall);
+  const rank = percentileRank(data.quantiles?.overall, result.overall);
+  const phrase = overallPhrase(result, rank);
   const pillars = config.pillars.map((p) => ({ id: p.id, label: p.label, score: result.pillars[p.id as PillarId].score }));
   const weakest = pillars.filter((p) => p.score != null).sort((a, b) => (a.score as number) - (b.score as number))[0];
   const duplex = PATHWAY_META[DISTRICT_PATHWAYS[data.zoning]?.two_unit ?? ""];
+
+  const overallText =
+    overall == null
+      ? "Overall score: not enough data to score."
+      : [
+          `Overall score: ${overall} of 100, blending the five pillars at ${weightsText(weights)}: ${pillars
+            .map((p) => `${p.label} ${round(p.score) ?? "no data"}`)
+            .join(", ")}.`,
+          multiplier < 1 && result.overallBeforeMultipliers != null &&
+            `The pillar blend alone is ${round(result.overallBeforeMultipliers)}; zoning and site factors bring it to ${overall}.`,
+          phrase && `In plain words: ${phrase}.`,
+          rank != null && `Better than ${rank}% of City parcels.`,
+        ]
+          .filter(Boolean)
+          .join(" ");
 
   const facts: ContextFact[] = [
     fact(
@@ -135,16 +194,9 @@ export function parcelChatContext(pin: string, data: ParcelData | null): ChatCon
       LEGAL_MATRIX_SOURCE,
       LEGAL_MATRIX_AS_OF,
     ),
-    fact(
-      "overall",
-      overall == null
-        ? "Overall score: not enough data to score."
-        : `Overall score: ${overall} of 100, from the five pillars with equal weights: ${pillars
-            .map((p) => `${p.label} ${round(p.score) ?? "no data"}`)
-            .join(", ")}.`,
-      "value",
-    ),
-    ...pillarFacts(result),
+    fact("overall", overallText, "value"),
+    ...statusFacts(result),
+    ...pillarFacts(data, result),
     ...typologyFacts(data.zoning),
     ...indicatorFacts(data, result),
     ...definitions(),
@@ -156,17 +208,19 @@ export function parcelChatContext(pin: string, data: ParcelData | null): ChatCon
     scoring: {
       method: config.overall.method as "geometric" | "arithmetic",
       floor: config.overall.floor,
+      multiplier,
       parts: config.pillars.map((p) => ({
         id: p.id,
         label: p.label,
         score: result.pillars[p.id as PillarId].score,
-        weight: p.weight,
+        weight: weights[p.id as PillarId],
+        impute: imputeFor(p),
       })),
     },
     suggestions: [
       overall != null ? `Why is the overall score ${overall}?` : "Why can't this parcel be scored?",
       weakest ? `What's holding back ${weakest.label}?` : "What do the pillars measure?",
-      duplex ? "Could I build a duplex here?" : "What housing is allowed here?",
+      multiplier < 0.9 ? "Why does zoning or the site lower the score?" : duplex ? "Could I build a duplex here?" : "What housing is allowed here?",
     ],
     notes: [
       overall != null ? `Overall score ${overall} of 100.` : "Not enough data for an overall score.",
@@ -178,10 +232,11 @@ export function parcelChatContext(pin: string, data: ParcelData | null): ChatCon
 /** The chat context for the explorer's selected parcel; null while nothing is selected or it's loading. */
 export function useParcelChatContext(pin: string | null): ChatContext | null {
   const { pin: loadedPin, data, status } = useParcelData(pin);
+  const weights = usePillarWeights();
   return useMemo(() => {
     if (!pin || loadedPin !== pin) return null;
-    if (status === "ready" && data) return parcelChatContext(pin, data);
+    if (status === "ready" && data) return parcelChatContext(pin, data, weights);
     if (status === "missing") return parcelChatContext(pin, null);
     return null;
-  }, [pin, loadedPin, data, status]);
+  }, [pin, loadedPin, data, status, weights]);
 }

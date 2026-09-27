@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { DEFAULT_WEIGHTS, setPillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
@@ -54,7 +55,7 @@ export type ParcelData = {
 };
 
 // Share of City parcels (at default weights) scoring below this value.
-function percentileRank(q: number[] | undefined, v: number | null) {
+export function percentileRank(q: number[] | undefined, v: number | null) {
   if (!q || v == null) return null;
   let i = 0;
   while (i < q.length && q[i] < v) i++;
@@ -307,17 +308,6 @@ function PillarCard({
   );
 }
 
-const WEIGHTS_KEY = "pillars-weights-v1";
-const DEFAULT_WEIGHTS = Object.fromEntries(config.pillars.map((p) => [p.id, p.weight])) as Record<PillarId, number>;
-
-function loadWeights(): Record<PillarId, number> {
-  try {
-    const saved = JSON.parse(localStorage.getItem(WEIGHTS_KEY) ?? "null");
-    if (saved && typeof saved === "object") return { ...DEFAULT_WEIGHTS, ...saved };
-  } catch {}
-  return DEFAULT_WEIGHTS;
-}
-
 // Pillar weights as 0–5 ratings (the OECD Better Life Index pattern). Shown as
 // percentages of the total. Weights are value judgments, so the panel says so.
 function WeightsControl({ weights, onChange }: { weights: Record<PillarId, number>; onChange: (w: Record<PillarId, number>) => void }) {
@@ -456,14 +446,9 @@ export function PillarsPanel({
   onToggleCollapse?: () => void;
 }) {
   const { data, status } = useParcelData(pin);
-  const [weights, setWeightsState] = useState<Record<PillarId, number>>(DEFAULT_WEIGHTS);
-  useEffect(() => setWeightsState(loadWeights()), []);
-  const setWeights = (w: Record<PillarId, number>) => {
-    setWeightsState(w);
-    try {
-      localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w));
-    } catch {}
-  };
+  // Shared with the chat, so it explains the scores at the same weights.
+  const weights = usePillarWeights();
+  const setWeights = setPillarWeights;
   const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
   const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
