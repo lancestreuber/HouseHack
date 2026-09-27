@@ -68,7 +68,7 @@ export function Inspector({
   const chatContext: ChatContext | undefined = useParcelChatContext(pin) ?? undefined;
 
   return (
-    <aside className="flex w-[390px] shrink-0 flex-col border-l border-border bg-card">
+    <aside className="flex w-[390px] shrink-0 flex-col border-l border-border bg-card max-lg:fixed max-lg:inset-y-0 max-lg:right-0 max-lg:z-40 max-lg:w-full max-lg:max-w-[390px] max-lg:shadow-[0_8px_32px_rgba(0,0,0,0.45)]">
       <div className="flex shrink-0 flex-col gap-2 border-b border-border px-4 pt-3.5 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex min-w-0 items-center gap-2">

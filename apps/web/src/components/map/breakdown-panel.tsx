@@ -113,6 +113,7 @@ export function IndicatorBreakdowns({ score }: { score: ParcelScoreView }) {
  * one scroll. */
 export function BreakdownsTab({ score, onSelectPillar }: { score: ParcelScoreView; onSelectPillar?: (id: PillarId) => void }) {
   const { data, status, pin } = score;
+  if (!pin) return null;
   if (status === "loading") return <p className="p-4 text-muted-foreground">Loading scores…</p>;
   if (status === "missing" || !data)
     return <p className="p-4 text-muted-foreground">No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.</p>;

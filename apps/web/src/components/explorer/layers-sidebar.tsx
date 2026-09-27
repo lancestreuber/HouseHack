@@ -287,7 +287,7 @@ export function LayersSidebar() {
   };
 
   return (
-    <aside className="flex w-80 shrink-0 flex-col border-r border-border bg-card">
+    <aside className="flex h-full w-80 shrink-0 flex-col border-r border-border bg-card">
       <div className="flex h-14 shrink-0 items-center justify-between border-b border-border/50 px-3.5">
         <div className="flex items-center gap-2">
           <span className="flex size-6 items-center justify-center rounded border border-border bg-popover text-brass">

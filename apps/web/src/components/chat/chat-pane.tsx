@@ -222,7 +222,7 @@ function AssistantTurn({
               <p key={`${i}-${j}`}>
                 <BlockText text={item.text} ids={item.done ? item.block.fact_ids : []} facts={facts} />
               </p>
-            )),
+            ))
           ),
         )}
       </div>
@@ -318,7 +318,7 @@ function Composer({
   // server HTML differ from the browser's (a hydration error).
   const [micSupported, setMicSupported] = useState(false);
   useEffect(() => setMicSupported(canListen()), []);
-  const stopListening = useRef<(() => void> | null>(null);
+  const stopListening = useRef<(() => void) | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {

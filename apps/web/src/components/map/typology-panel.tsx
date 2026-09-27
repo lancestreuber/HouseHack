@@ -61,7 +61,7 @@ function hexToHsl(hex: string): [number, number, number] {
   const d = max - min;
   const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
   let h: number;
-  if (max === r) h = (g - b) / d + (g < b ? 6) : 0;
+  if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
   else if (max === g) h = (b - r) / d + 2;
   else h = (r - g) / d + 4;
   return [h * 60, s * 100, l * 100];

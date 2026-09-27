@@ -18,7 +18,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@HouseHack/ui/components/popover";
-import { Minus, Navigation, Plus, Settings2 } from "lucide-react";
+import { Navigation, Settings2 } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -621,14 +621,17 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
         </div>
       </div>
       {inspectorOpen && (
-        <Inspector
-          pin={selectedPin}
-          weights={pillarWeights}
-          tab={tab}
-          onTab={setTab}
-          onSelectPillar={handleSelectPillar}
-          onSelectTypology={handleSelectTypology}
-        />
+        <>
+          <div className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={() => setShellState({ inspectorOpen: false })} aria-hidden />
+          <Inspector
+            pin={selectedPin}
+            weights={pillarWeights}
+            tab={tab}
+            onTab={setTab}
+            onSelectPillar={handleSelectPillar}
+            onSelectTypology={handleSelectTypology}
+          />
+        </>
       )}
     </div>
   );
