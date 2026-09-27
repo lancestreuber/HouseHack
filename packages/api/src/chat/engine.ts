@@ -1,10 +1,11 @@
 import { DEFINITIONS } from "./definitions";
 import type { FunctionDeclaration, GeminiContent, GeminiPart, GenerateFn } from "./gemini";
 import { keepVerified, numbersIn, parseReply, unverifiedNumbers } from "./guard";
+import { describeView, MAP_TOOL, mapTool, resolveMapCall } from "./map-tool";
 import { systemPrompt } from "./prompt";
 import { overallScore } from "./rescore";
 import { GENERAL_QUESTIONS } from "./suggestions";
-import type { ChatContext, ChatFact, ChatMessage, ChatResult, ReplyBlock, ScoringModel } from "./types";
+import type { ChatAction, ChatContext, ChatFact, ChatMessage, ChatResult, ReplyBlock, ScoringModel } from "./types";
 
 export interface ChatInput {
   context?: ChatContext;
@@ -74,11 +75,14 @@ export function createChat(deps: { generate: GenerateFn | null }) {
     if (cached) return cached;
 
     const facts = factsFrom(input.context);
+    const map = input.context?.map;
+    if (map) facts.push(toolFact("map.now", `The map currently shows ${describeView(map.current, map)}`, "Yinzone map layers"));
+    const actions: ChatAction[] = [];
     const contents: GeminiContent[] = history.map((m) => ({
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.text }],
     }));
-    const run = () => runWithTools(deps.generate as GenerateFn, input.context, facts, contents);
+    const run = () => runWithTools(deps.generate as GenerateFn, input.context, facts, contents, actions);
 
     try {
       let reply = await run();
@@ -100,11 +104,21 @@ export function createChat(deps: { generate: GenerateFn | null }) {
         blocks = parseReply(reply, facts.map((f) => f.id));
       }
       const allowed = facts.flatMap((f) => f.numbers);
-      const verified = blocks.map((b) => keepVerified(b, allowed)).filter((b): b is ReplyBlock => b !== null);
+      let verified = blocks.map((b) => keepVerified(b, allowed)).filter((b): b is ReplyBlock => b !== null);
+      // The map changed, so say what it shows even if the rest didn't verify.
+      const mapFact = actions.length ? facts.findLast((f) => f.id.startsWith("map.") && f.id !== "map.now") : undefined;
+      if (!verified.length && mapFact) verified = [{ type: "paragraph", text: mapFact.text, fact_ids: [mapFact.id] }];
       if (!verified.length) return unavailable("I couldn't give an answer I could verify against the data. Try rephrasing.");
 
       const cited = new Set(verified.flatMap((b) => b.fact_ids));
-      const result: ChatResult = { status: "ok", blocks: verified, facts: facts.filter((f) => cited.has(f.id)), suggestions };
+      // Only the final view matters; the page applies it once.
+      const result: ChatResult = {
+        status: "ok",
+        blocks: verified,
+        facts: facts.filter((f) => cited.has(f.id)),
+        suggestions,
+        ...(actions.length ? { actions: [actions.at(-1)!] } : {}),
+      };
       if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
       cache.set(key, result);
       return result;
@@ -119,27 +133,55 @@ export function unverifiedIn(blocks: ReplyBlock[], facts: ChatFact[]): string[] 
   return [...new Set(blocks.flatMap((b) => unverifiedNumbers(b.text, allowed)))];
 }
 
-/** Call the model, running rescore calls, until it returns text. Mutates `facts` and `contents`. */
+function toolFact(id: string, text: string, source: string): ChatFact {
+  return {
+    id,
+    text,
+    source,
+    source_url: "/resources",
+    as_of: new Date().toISOString().slice(0, 10),
+    kind: "observed",
+    numbers: numbersIn(text),
+  };
+}
+
+/** Call the model, running its tool calls, until it returns text. Mutates `facts`, `contents` and `actions`. */
 async function runWithTools(
   generate: GenerateFn,
   context: ChatContext | undefined,
   facts: ChatFact[],
   contents: GeminiContent[],
+  actions: ChatAction[],
 ): Promise<string> {
   const scoring = context?.scoring;
+  let map = context?.map;
+  const tools = [...(scoring ? [rescoreTool(scoring)] : []), ...(map ? [mapTool(map)] : [])];
   for (let step = 0; step < MAX_TOOL_STEPS; step++) {
     const parts = await generate({
-      system: systemPrompt(facts, context?.subject),
+      system: systemPrompt(facts, context?.subject, Boolean(map)),
       contents,
-      tools: scoring ? [rescoreTool(scoring)] : undefined,
+      tools: tools.length ? tools : undefined,
     });
     const calls = parts.filter((p): p is Extract<GeminiPart, { functionCall: unknown }> => "functionCall" in p);
     if (!calls.length) return textOf(parts);
 
     contents.push({ role: "model", parts });
     const responses: GeminiPart[] = calls.map((call) => {
-      if (!scoring) return { functionResponse: { name: call.functionCall.name, response: { error: "No scores to recompute." } } };
-      const requested = (call.functionCall.args as { weights?: Record<string, unknown> }).weights ?? {};
+      const { name, args } = call.functionCall;
+      const respond = (response: Record<string, unknown>): GeminiPart => ({ functionResponse: { name, response } });
+      if (name === MAP_TOOL) {
+        if (!map) return respond({ error: "There is no map on this page." });
+        const result = resolveMapCall(args ?? {}, map);
+        if (!result.ok) return respond({ error: result.error });
+        // Later calls in this answer build on this view.
+        map = { ...map, current: result.view };
+        const id = `map.${facts.filter((f) => f.id.startsWith("map.") && f.id !== "map.now").length + 1}`;
+        facts.push(toolFact(id, result.text, "Yinzone map layers"));
+        actions.push({ type: "map", view: result.view, summary: result.text });
+        return respond({ fact_id: id, text: result.text });
+      }
+      if (!scoring) return respond({ error: "No scores to recompute." });
+      const requested = (args as { weights?: Record<string, unknown> }).weights ?? {};
       const changes: Record<string, number> = {};
       for (const part of scoring.parts) {
         if (part.id in requested) changes[part.id] = Math.min(MAX_WEIGHT, Math.max(0, Number(requested[part.id]) || 0));
@@ -152,16 +194,8 @@ async function runWithTools(
         .join(", ");
       const id = `rescore.${facts.filter((f) => f.id.startsWith("rescore.")).length + 1}`;
       const text = `With ${described || "the same weights"}, the overall score changes from ${fmt(before)} to ${fmt(after)} out of 100.`;
-      facts.push({
-        id,
-        text,
-        source: "Recomputed with the tool's published weights and formula",
-        source_url: "/methodology",
-        as_of: new Date().toISOString().slice(0, 10),
-        kind: "value",
-        numbers: numbersIn(text),
-      });
-      return { functionResponse: { name: call.functionCall.name, response: { fact_id: id, text } } };
+      facts.push({ ...toolFact(id, text, "Recomputed with the tool's published weights and formula"), source_url: "/methodology", kind: "value" });
+      return respond({ fact_id: id, text });
     });
     contents.push({ role: "user", parts: responses });
   }
