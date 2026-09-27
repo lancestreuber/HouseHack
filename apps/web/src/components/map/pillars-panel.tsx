@@ -9,7 +9,6 @@ import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { usePillarWeights } from "./pillar-weights-store";
 import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
@@ -315,10 +314,6 @@ function PillarCard({
  * the exact same (cached) System One result instead of issuing their own
  * near-duplicate requests. */
 export function useTypologyFit(pin: string, data: ParcelData) {
-  // Global navbar weights, fed straight into Jev's state so a borderline
-  // physical-fit rating can be nudged by what the evaluator says they
-  // prioritize (site-fit.ts's siteFitQuestion explains how to the model).
-  const weights = usePillarWeights();
   return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
@@ -331,7 +326,6 @@ export function useTypologyFit(pin: string, data: ParcelData) {
           landslideProne: data.raw.site_landslide_prone_share,
           undermined: data.raw.site_undermined_share,
         },
-        weights,
       },
       staleTime: Number.POSITIVE_INFINITY,
     }),
