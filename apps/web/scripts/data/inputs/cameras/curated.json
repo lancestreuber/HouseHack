@@ -326,5 +326,20 @@
   "page_url": "https://www.discovertheburgh.com/pittsburgh-skyline/",
   "attribution": "Discover the Burgh (private residence)",
   "verified_at": "2026-09-26"
+ },
+ {
+  "id": "ppg-place-plaza",
+  "name": "PPG Place Plaza",
+  "operator": "PPG Place",
+  "category": "skyline",
+  "lat": 40.4406,
+  "lon": -80.003,
+  "coord_quality": "approx",
+  "feed_type": "jpeg",
+  "feed_url": "/api/cam?u=http://96.69.79.178/image.jpg",
+  "page_url": "https://www.ppgplace.com/webcam/",
+  "refresh_s": 10,
+  "attribution": "PPG Place (StarDot cam)",
+  "verified_at": "2026-09-26"
  }
 ]

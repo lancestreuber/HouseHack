@@ -8,21 +8,36 @@ import { createFileRoute } from "@tanstack/react-router";
 const ALLOWED_HOSTS = [
   /\.cloudfront\.net$/,
   /\.arcadis-ivds\.com$/,
+  // PPG Place downtown plaza cam (StarDot), HTTP-only — proxied so it works on
+  // an HTTPS page without mixed-content blocking.
+  /^96\.69\.79\.178$/,
+  // Still-image cameras. These send ACAO:* but pair it with
+  // Allow-Credentials:true, which browsers reject, so a direct fetch() fails —
+  // proxying makes them same-origin and lets us read their Last-Modified.
+  /^www\.511pa\.com$/,
+  /^usgs-nims-images\.s3\.amazonaws\.com$/,
+  /^images\.weatherstem\.com$/,
 ];
 
-// The Referer each upstream expects. Requests without an allowed Referer get a
-// 403 from these CDNs.
-const REFERER_FOR = (host: string) =>
-  host.endsWith("arcadis-ivds.com") ? "https://www.511pa.com/" : "https://www.paturnpike.com/";
+// The Referer the gated CDNs expect (a wrong/absent Referer gets a 403). Other
+// allowlisted hosts (e.g. the PPG cam) need none.
+const REFERER_FOR = (host: string): string | undefined => {
+  if (host.endsWith("cloudfront.net")) return "https://www.paturnpike.com/";
+  if (host.endsWith("arcadis-ivds.com")) return "https://www.511pa.com/";
+  return undefined;
+};
 
 function allowed(target: URL) {
   return ALLOWED_HOSTS.some((re) => re.test(target.hostname));
 }
 
-const CORS = {
-  "access-control-allow-origin": "*",
-  "cache-control": "no-store",
-};
+const CORS = { "access-control-allow-origin": "*" };
+// The live playlist must always be refetched (its segment window slides every
+// few seconds). Segments are immutable — each URL is a unique sequence number —
+// so let Vercel's CDN cache them: repeat viewers of the same camera are served
+// from the edge instead of re-invoking this function.
+const PLAYLIST_CACHE = "no-store";
+const SEGMENT_CACHE = "public, max-age=60, s-maxage=60";
 
 async function handle({ request }: { request: Request }) {
   const url = new URL(request.url);
@@ -35,12 +50,13 @@ async function handle({ request }: { request: Request }) {
   } catch {
     return new Response("bad u", { status: 400, headers: CORS });
   }
-  if (target.protocol !== "https:" || !allowed(target)) {
+  if (!/^https?:$/.test(target.protocol) || !allowed(target)) {
     return new Response("host not allowed", { status: 403, headers: CORS });
   }
 
+  const referer = REFERER_FOR(target.hostname);
   const upstream = await fetch(target.toString(), {
-    headers: { Referer: REFERER_FOR(target.hostname), "User-Agent": "Mozilla/5.0" },
+    headers: { "User-Agent": "Mozilla/5.0", ...(referer ? { Referer: referer } : {}) },
   }).catch(() => null);
   if (!upstream || !upstream.ok) {
     return new Response(`upstream ${upstream?.status ?? "unreachable"}`, { status: 502, headers: CORS });
@@ -70,15 +86,20 @@ async function handle({ request }: { request: Request }) {
       })
       .join("\n");
     return new Response(body, {
-      headers: { ...CORS, "content-type": "application/vnd.apple.mpegurl" },
+      headers: { ...CORS, "content-type": "application/vnd.apple.mpegurl", "cache-control": PLAYLIST_CACHE },
     });
   }
 
-  // Segment / key bytes: stream straight through.
+  // Still images must stay fresh (no edge caching); HLS segments are immutable
+  // and cacheable. Forward Last-Modified so the viewer can show true frame age.
+  const isImage = /^image\//i.test(contentType);
+  const lastModified = upstream.headers.get("last-modified");
   return new Response(upstream.body, {
     headers: {
       ...CORS,
       "content-type": contentType || "application/octet-stream",
+      "cache-control": isImage ? "no-store" : SEGMENT_CACHE,
+      ...(lastModified ? { "last-modified": lastModified } : {}),
     },
   });
 }

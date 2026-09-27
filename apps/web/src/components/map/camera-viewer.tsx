@@ -7,36 +7,71 @@ function withCacheBust(url: string, tick: number) {
   return `${url}${url.includes("?") ? "&" : "?"}_=${tick}`;
 }
 
-// Still image that re-fetches every refresh_s seconds.
+// Auto-refreshing still. These CDNs (511PA/CloudFront, USGS S3) ignore
+// cache-busting query strings and cache each frame ~60s, so a plain <img> that
+// swaps its src looks frozen. Instead we fetch the bytes ourselves, read the
+// real Last-Modified, and only swap the picture when the frame actually changes
+// — and we show the true frame age so it's honest about how live it is.
 function RefreshingImage({ camera }: { camera: CameraFeed }) {
-  const [tick, setTick] = useState(() => Date.now());
+  const [src, setSrc] = useState<string | null>(null);
+  // Real capture time from Last-Modified; null until first successful load.
+  const [frameAt, setFrameAt] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
-  const [loadedAt, setLoadedAt] = useState<number | null>(null);
   const [now, setNow] = useState(() => Date.now());
-  const refreshMs = (camera.refresh_s ?? 10) * 1000;
+  // Poll often enough to catch the next ~60s frame promptly, without hammering.
+  const pollMs = Math.min(camera.refresh_s ?? 15, 15) * 1000;
 
   useEffect(() => {
-    const refresh = setInterval(() => setTick(Date.now()), refreshMs);
+    let cancelled = false;
+    let lastModified = "";
+    let objectUrl: string | null = null;
+    let everLoaded = false;
+
+    const tick = async () => {
+      try {
+        const res = await fetch(withCacheBust(camera.feed_url, Date.now()), { cache: "no-store" });
+        if (!res.ok) throw new Error(String(res.status));
+        const lm = res.headers.get("last-modified") ?? "";
+        const blob = await res.blob();
+        if (cancelled) return;
+        everLoaded = true;
+        setFailed(false);
+        // Swap when the frame is genuinely new. Some cams send no Last-Modified
+        // (empty lm) — treat every fetch as fresh so they still animate.
+        if (!lm || lm !== lastModified || !objectUrl) {
+          lastModified = lm;
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          objectUrl = URL.createObjectURL(blob);
+          setSrc(objectUrl);
+          setFrameAt(lm ? Date.parse(lm) : Date.now());
+        }
+      } catch {
+        if (!cancelled && !everLoaded) setFailed(true);
+      }
+    };
+
+    void tick();
+    const poll = setInterval(tick, pollMs);
     const clock = setInterval(() => setNow(Date.now()), 1000);
     return () => {
-      clearInterval(refresh);
+      cancelled = true;
+      clearInterval(poll);
       clearInterval(clock);
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [refreshMs]);
+  }, [camera.feed_url, pollMs]);
 
-  if (failed) return <p className="p-4 text-center text-muted-foreground">Feed is offline right now.</p>;
+  if (failed && !src) return <p className="p-4 text-center text-muted-foreground">Feed is offline right now.</p>;
   return (
     <div className="relative">
-      <img
-        src={withCacheBust(camera.feed_url, tick)}
-        alt={camera.name}
-        className="block w-full bg-black"
-        onLoad={() => setLoadedAt(Date.now())}
-        onError={() => setFailed(true)}
-      />
-      {loadedAt && (
+      {src ? (
+        <img src={src} alt={camera.name} className="block w-full bg-black" />
+      ) : (
+        <div className="flex aspect-video w-full items-center justify-center bg-black text-[10px] text-white/70">loading…</div>
+      )}
+      {frameAt && (
         <span className="absolute bottom-1 right-1 rounded bg-black/70 px-1 text-[10px] text-white">
-          updated {Math.max(0, Math.round((now - loadedAt) / 1000))}s ago · every {refreshMs / 1000}s
+          frame {Math.max(0, Math.round((now - frameAt) / 1000))}s old
         </span>
       )}
     </div>

@@ -26,8 +26,11 @@ const TURNPIKE_ROADWAYS = [
   "ef2829cb-fea1-4083-af4c-9bfbd85b8568", // I-76 mainline
   "2e8b2a93-1f81-4fed-8919-58b33b638eb8", // PA-576 Southern Beltway
 ];
-// The Turnpike CDN is Referer-gated, so play it through our same-origin proxy.
-const hlsProxy = (streamUrl: string) => `/api/cam?u=${encodeURIComponent(streamUrl)}`;
+// Play/refresh through our same-origin proxy (adds the Referer the Turnpike CDN
+// needs; makes still images fetchable despite their broken CORS). Already-proxied
+// or relative URLs are left as-is.
+const proxied = (url: string) => (url.startsWith("http") ? `/api/cam?u=${encodeURIComponent(url)}` : url);
+const hlsProxy = proxied;
 
 const round = (v: number) => Math.round(v * 1e5) / 1e5;
 const distMeters = (aLat: number, aLon: number, bLat: number, bLon: number) => {
@@ -139,10 +142,10 @@ export async function buildCameras() {
         operator,
         category: "traffic",
         feed_type: stream ? "hls" : "jpeg",
-        feed_url: stream ? hlsProxy(stream.StreamURL!) : snapshotUrl,
-        snapshot_url: stream ? snapshotUrl : null,
+        feed_url: stream ? hlsProxy(stream.StreamURL!) : proxied(snapshotUrl),
+        snapshot_url: stream ? proxied(snapshotUrl) : null,
         page_url: `${PA511}/map#Cameras-${site.id}`,
-        refresh_s: stream ? null : 10,
+        refresh_s: stream ? null : 60,
         coord_quality: "exact",
         attribution: `${operator} via 511PA`,
       }),
@@ -179,6 +182,9 @@ export async function buildCameras() {
   for (const cam of curated) {
     if (!inCounty(cam.lon, cam.lat)) console.warn(`curated camera outside county line, kept: ${cam.id}`);
     const { lat, lon, ...rest } = cam;
+    // Still images (and any other feed with broken cross-origin CORS) go through
+    // the proxy so the viewer can fetch them; iframes/youtube stay direct.
+    if (rest.feed_type === "jpeg" || rest.feed_type === "mjpeg") rest.feed_url = proxied(rest.feed_url);
     features.push(feature(lon, lat, { coord_quality: "exact", refresh_s: null, ...rest }));
   }
 
