@@ -13,7 +13,10 @@ export type OverlayState = {
   metricByOverlay: Record<string, string>;
 };
 
-export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: null, infraIds: [], metricByOverlay: {} };
+// Residential zoning is the one heat overlay shown by default (it used to be
+// a separate always-on "Zoning" toggle); like every other heat overlay, it
+// can be turned off via the Layers pane's "None" option.
+export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: "residential-zoning", infraIds: [], metricByOverlay: {} };
 
 const sourceIdFor = (def: OverlayDefinition) => `overlay-${def.id}`;
 

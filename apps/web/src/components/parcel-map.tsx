@@ -82,13 +82,6 @@ const PARCEL_LAYER_ID = "parcels-outline";
 const PARCEL_HIT_LAYER_ID = "parcels-hit";
 const PARCEL_SELECTED_LAYER_ID = "parcels-selected";
 
-// Pittsburgh CITY zoning only (not county-wide) -- static file, small enough
-// (1068 features) to ship as one asset instead of a DB-backed bbox query.
-const ZONING_SOURCE_ID = "zoning";
-const ZONING_FILL_LAYER_ID = "zoning-fill";
-const ZONING_LINE_LAYER_ID = "zoning-outline";
-const ZONING_DATA_URL = "/data/pittsburgh-zoning.geojson";
-
 // Full Allegheny County extent, so the map opens zoomed out to the whole
 // county rather than any single neighborhood.
 const COUNTY_BOUNDS: [[number, number], [number, number]] = [
@@ -96,9 +89,12 @@ const COUNTY_BOUNDS: [[number, number], [number, number]] = [
   [-79.69, 40.68],
 ];
 
-// Heat overlays are inserted beneath the first of these that exists, so zoning
-// and parcel outlines stay readable on top of the color fill.
-const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PARCEL_LAYER_ID];
+// Heat overlays are inserted beneath parcel outlines, so parcel boundaries
+// stay readable on top of the color fill. Zoning used to be its own always-on
+// layer here; it's now just the default heat overlay (registered in
+// overlays/legal-feasibility.ts as "residential-zoning"), so it no longer
+// needs its own entry in this list.
+const UNDER_OVERLAY_LAYER_IDS = [PARCEL_LAYER_ID];
 
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
@@ -117,50 +113,6 @@ const SPIN_DEGREES_PER_SECOND = 6;
 // full indicator coverage, used so the panels show real demo data on first
 // load instead of empty "select a parcel" placeholders everywhere.
 const DEMO_PIN = "0001N00154000000";
-
-function addZoningLayer(map: MapLibreMap) {
-  if (map.getSource(ZONING_SOURCE_ID)) return;
-  map.addSource(ZONING_SOURCE_ID, {
-    type: "geojson",
-    data: ZONING_DATA_URL,
-  });
-  // Added before the parcel layer, so parcel outlines always draw on top of
-  // the zoning fill/border.
-  map.addLayer({
-    id: ZONING_FILL_LAYER_ID,
-    type: "fill",
-    source: ZONING_SOURCE_ID,
-    paint: {
-      "fill-color": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        "#ef4444",
-        "rgba(0,0,0,0)",
-      ],
-      "fill-opacity": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        0.4,
-        0,
-      ],
-    },
-  });
-  map.addLayer({
-    id: ZONING_LINE_LAYER_ID,
-    type: "line",
-    source: ZONING_SOURCE_ID,
-    paint: {
-      "line-color": "#ef4444",
-      "line-width": 1,
-      "line-opacity": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        0.7,
-        0.15,
-      ],
-    },
-  });
-}
 
 // MapLibre's compact attribution control briefly shows its full text next to
 // the (i) icon the first time it enters compact mode (and again on some
@@ -283,7 +235,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   const isDark = resolvedTheme !== "light";
   const isDarkRef = useRef(isDark);
   isDarkRef.current = isDark;
-  const [showZoning, setShowZoning] = useState(true);
   const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
   const overlayStateRef = useRef(overlayState);
   overlayStateRef.current = overlayState;
@@ -394,7 +345,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     map.addControl(new NavigationControl({}), "top-right");
 
     map.on("load", () => {
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       collapseAttribution(map);
@@ -409,7 +359,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       }
     });
     map.on("styledata", () => {
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
@@ -447,7 +396,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     // in ./map/overlays. Re-applied after every style load, since a basemap
     // swap drops all sources and layers.
     const applyOverlays = () => {
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
@@ -566,15 +514,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
   }, [selectedPin, basemap]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
-    const visibility = showZoning ? "visible" : "none";
-    map.setLayoutProperty(ZONING_FILL_LAYER_ID, "visibility", visibility);
-    map.setLayoutProperty(ZONING_LINE_LAYER_ID, "visibility", visibility);
-    // Re-applied on every style swap too, since setStyle drops layout state.
-  }, [showZoning, basemap]);
-
   return (
     <div className="h-full w-full overflow-hidden">
       <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
@@ -635,15 +574,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                         <div className="flex overflow-hidden rounded-md border">
                           <button
                             type="button"
-                            onClick={() => setShowZoning((v) => !v)}
-                            className={`flex-1 px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-                          >
-                            Zoning
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => setSpinning((v) => !v)}
-                            className={`flex-1 border-l px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
+                            className={`flex-1 px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
                           >
                             Spin
                           </button>
