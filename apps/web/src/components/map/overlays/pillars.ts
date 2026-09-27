@@ -5,14 +5,14 @@ import { RAMPS, stepFill, stepLegend } from "./styles";
 import { detailSourceId, type OverlayDefinition } from "./types";
 
 // Breaks at the p10/p30/p50/p70/p90 of the fine City hexes, as printed by
-// scripts/pillars/build-hexes.ts (2026-09-26 build), so each pillar spreads
+// scripts/pillars/build-hexes.ts (2026-09-26 build; overall and site 2026-09-27), so each pillar spreads
 // across the ramp even where its scores sit in a narrow band (Climate ~50–70).
 type MetricId = PillarId | "overall";
 
 const BREAKS: Record<MetricId, number[]> = {
-  overall: [37, 46, 50, 54, 60],
+  overall: [35, 43, 47, 52, 59],
   demand: [27, 35, 44, 53, 64],
-  site: [53, 77, 85, 94, 100],
+  site: [53, 69, 74, 94, 100],
   afford: [33, 44, 55, 63, 78],
   access: [45, 56, 64, 75, 88],
   climate: [51, 57, 61, 64, 70],
@@ -20,7 +20,7 @@ const BREAKS: Record<MetricId, number[]> = {
 
 // What the tooltip counts among the parcels inside a hex.
 const CAPPED_NOTE: Record<MetricId, string> = {
-  overall: "reduced for zoning or site availability",
+  overall: "reduced for zoning, site availability or a deal-killer hazard",
   demand: "capped by a gate",
   site: "capped by a hazard (floodway, slope, …)",
   afford: "capped by a gate",

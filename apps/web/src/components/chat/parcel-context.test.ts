@@ -4,7 +4,7 @@ import { overallScore } from "@HouseHack/api/chat/rescore";
 import { chatContext } from "@HouseHack/api/routers/chat";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { type PillarId, scoreParcel } from "@/lib/pillars/score";
+import { type PillarId, scoreMultiplier, scoreParcel } from "@/lib/pillars/score";
 import { DEFAULT_WEIGHTS, type PillarWeights } from "@/lib/pillars/weights";
 
 import type { ParcelData } from "../map/pillars-panel";
@@ -105,7 +105,7 @@ describe("across real parcels", () => {
             }
           }
           const result = scoreParcel(data.norm);
-          if ((result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1) < 1) multiplied++;
+          if (scoreMultiplier(result) < 1) multiplied++;
           if (Object.values(result.pillars).some((p) => p.score == null)) imputed++;
           parcels++;
         }

@@ -6,7 +6,7 @@ import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase, pillarPhrase } from "@/lib/pillars/phrases";
-import { type ParcelScore, type PillarId, scoreParcel } from "@/lib/pillars/score";
+import { type ParcelScore, type PillarId, scoreMultiplier, scoreParcel } from "@/lib/pillars/score";
 import { DEFAULT_WEIGHTS, type PillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 
 import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibility";
@@ -137,10 +137,10 @@ function weightsText(weights: PillarWeights): string {
   return `the user's priorities (${config.pillars.map((p) => `${p.label} ${Math.round((weights[p.id as PillarId] / total) * 100)}%`).join(", ")})`;
 }
 
-// The zoning and site factors that multiply the overall score, when they apply.
+// The zoning, site and hazard factors that multiply the overall score, when they apply.
 function statusFacts(result: ParcelScore): ContextFact[] {
   const facts: ContextFact[] = [];
-  const { legal, availability } = result;
+  const { legal, availability, hazard } = result;
   if (legal) {
     const factor = legal.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${legal.multiplier}`;
     facts.push(fact("legal", `Zoning: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF));
@@ -148,6 +148,9 @@ function statusFacts(result: ParcelScore): ContextFact[] {
   if (availability) {
     const factor = availability.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${availability.multiplier}`;
     facts.push(fact("site_use", `On the parcel now: ${availability.label}, ${factor}.${availability.note ? ` ${availability.note}` : ""}`, "observed"));
+  }
+  if (hazard) {
+    facts.push(fact("site_hazard", `Deal-killer site hazard: ${hazard.flags.join("; ")}, so the overall score is multiplied by ${hazard.multiplier}.`, "observed"));
   }
   return facts;
 }
@@ -161,7 +164,7 @@ export function parcelChatContext(pin: string, data: ParcelData | null, weights:
   }
 
   const result = scoreParcel(data.norm, { pillars: weights });
-  const multiplier = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
+  const multiplier = scoreMultiplier(result);
   const districtName = DISTRICT_PATHWAYS[data.zoning]?.full_zoning_type;
   const overall = round(result.overall);
   const rank = percentileRank(data.quantiles?.overall, result.overall);
@@ -178,7 +181,7 @@ export function parcelChatContext(pin: string, data: ParcelData | null, weights:
             .map((p) => `${p.label} ${round(p.score) ?? "no data"}`)
             .join(", ")}.`,
           multiplier < 1 && result.overallBeforeMultipliers != null &&
-            `The pillar blend alone is ${round(result.overallBeforeMultipliers)}; zoning and site factors bring it to ${overall}.`,
+            `The pillar blend alone is ${round(result.overallBeforeMultipliers)}; zoning, site and hazard factors bring it to ${overall}.`,
           phrase && `In plain words: ${phrase}.`,
           rank != null && `Better than ${rank}% of City parcels.`,
         ]

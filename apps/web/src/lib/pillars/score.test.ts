@@ -57,9 +57,24 @@ describe("scoreParcel", () => {
   });
 
   test("flag-only gates warn without capping", () => {
-    const s = scoreParcel(parcel(90, { site_undermined_share: 20 }));
-    const flag = s.pillars.site.flags.find((f) => f.text.includes("mines"));
+    const s = scoreParcel(parcel(90, { site_lead_line: 0 }));
+    const flag = s.pillars.site.flags.find((f) => f.text.includes("lead"));
     expect(flag?.capped).toBe(false);
+    expect(s.hazard).toBeNull();
+  });
+
+  test("deal-killer hazards multiply the overall score instead of being averaged away", () => {
+    const base = scoreParcel(parcel(90));
+    const mines = scoreParcel(parcel(90, { site_undermined_share: 20 }));
+    expect(mines.pillars.site.flags.find((f) => f.text.includes("mines"))?.capped).toBe(true);
+    expect(mines.hazard?.multiplier).toBe(0.9);
+    expect(mines.overall).toBeCloseTo((mines.overallBeforeMultipliers as number) * 0.9, 5);
+    expect(mines.overall as number).toBeLessThan((base.overall as number) * 0.9);
+
+    // Both floodway gates fire; the lowest factor applies, not their product.
+    const floodway = scoreParcel(parcel(90, { site_floodway_share: 40 }));
+    expect(floodway.hazard?.multiplier).toBe(0.2);
+    expect(floodway.hazard?.flags).toHaveLength(2);
   });
 
   test("zoning and site-availability multiply the overall score", () => {

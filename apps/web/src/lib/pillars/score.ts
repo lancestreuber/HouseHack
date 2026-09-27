@@ -39,22 +39,27 @@ export type PillarScore = {
 export type LegalStatus = { code: number; id: string; label: string; multiplier: number; note?: string };
 // Same shape for "is this even a development site?" (parks, rail, condo units...).
 export type AvailabilityStatus = LegalStatus;
+// Deal-killer site gates that also multiply the overall score (lowest factor wins).
+export type HazardStatus = { multiplier: number; flags: string[] };
 
 export type ParcelScore = {
   pillars: Record<PillarId, PillarScore>;
-  // Overall after the zoning and site-availability multipliers; `overallBeforeMultipliers` is the pillar blend alone.
+  // Overall after the zoning, site-availability and hazard multipliers; `overallBeforeMultipliers` is the pillar blend alone.
   overall: number | null;
   overallBeforeMultipliers: number | null;
   legal: LegalStatus | null;
   availability: AvailabilityStatus | null;
+  hazard: HazardStatus | null;
 };
 
 export type LegalOverrides = Record<string, number>;
 
 // A gate fires when every condition holds. It caps the pillar score (cap 100 =
-// flag only). The single-indicator form { indicator, below } is shorthand.
+// flag only); `overall`, if set, also multiplies the overall score, for
+// deal-killers a weighted mean would dilute. The single-indicator form
+// { indicator, below } is shorthand.
 type Condition = { indicator: string; below?: number; atLeast?: number; equals?: number; notEquals?: number };
-type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; flag: string };
+type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; overall?: number; flag: string };
 
 function conditionHolds(values: IndicatorValues, c: Condition) {
   const v = values[c.indicator];
@@ -75,6 +80,7 @@ export const PILLAR_IDS = config.pillars.map((p) => p.id) as PillarId[];
 // Pillars without sub-scores are one implicit sub-score.
 export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): ParcelScore {
   const pillars = {} as Record<PillarId, PillarScore>;
+  let hazard: HazardStatus | null = null;
 
   for (const pillar of cfg.pillars) {
     const id = pillar.id as PillarId;
@@ -120,6 +126,11 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
         const capped = score != null && gate.cap < score;
         flags.push({ text: gate.flag, capped });
         if (score != null) score = Math.min(score, gate.cap);
+        if (gate.overall != null) {
+          hazard ??= { multiplier: 1, flags: [] };
+          hazard.multiplier = Math.min(hazard.multiplier, gate.overall);
+          hazard.flags.push(gate.flag);
+        }
       }
     }
 
@@ -139,9 +150,13 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
   const overallBeforeMultipliers = overallScore(pillars, overrides, cfg);
   const legal = legalStatus(values, overrides, cfg);
   const availability = levelStatus(cfg.availability, values, overrides.legal);
-  const multiplier = (legal?.multiplier ?? 1) * (availability?.multiplier ?? 1);
-  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * multiplier;
-  return { pillars, overall, overallBeforeMultipliers, legal, availability };
+  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * scoreMultiplier({ legal, availability, hazard });
+  return { pillars, overall, overallBeforeMultipliers, legal, availability, hazard };
+}
+
+// Product of the zoning, availability and hazard factors applied to the pillar blend.
+export function scoreMultiplier(s: Pick<ParcelScore, "legal" | "availability" | "hazard">) {
+  return (s.legal?.multiplier ?? 1) * (s.availability?.multiplier ?? 1) * (s.hazard?.multiplier ?? 1);
 }
 
 type LevelBlock = { indicator: string; levels: { code: number; id: string; label: string; multiplier: number; note?: string }[] };

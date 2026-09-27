@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.21",
+  "version": "2026-09-27.1",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -15,9 +15,12 @@
     ],
     "floor": 1,
     "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle.",
+    "hazard_multiplier": {
+      "rationale": "A few Site gates are deal-killers, not just a low Site score: most of the lot in the floodway, a sliver lot, or mapped mines under anything larger than a house. Capping only the Site pillar let the other four pillars average them away (a fully undermined lot moved the overall about 2%). Those gates carry an `overall` factor that multiplies the overall score, like zoning and availability; the lowest fired factor applies. Hackathon SMEs (2026-09-27) called undermining and environmental conditions up-front deal killers. Undermining gets a mild factor (×0.9) because about 30% of City parcels (43,001 of 142,365) are over mapped mines and the layer gives no depth of cover: it means a mine investigation, not a ban. The factors are value judgments."
+    },
     "missing_pillar": {
       "impute": 50,
-      "rationale": "A pillar without enough data counts as that pillar's City 25th-percentile score (the per-pillar `impute` value, from the 2026-09-26 build) and is flagged: conservative, so missing data is never rewarded (round-2 review). 50 is the fallback if a pillar has no `impute`."
+      "rationale": "A pillar without enough data counts as that pillar's City 25th-percentile score (the per-pillar `impute` value, from the 2026-09-26 build; Site re-taken 2026-09-27 after the undermined gate started capping) and is flagged: conservative, so missing data is never rewarded (round-2 review). 50 is the fallback if a pillar has no `impute`."
     }
   },
   "pillars": [
@@ -51,6 +54,7 @@
             }
           ],
           "cap": 5,
+          "overall": 0.2,
           "flag": "Half or more of the lot is in the FEMA regulatory floodway"
         },
         {
@@ -61,6 +65,7 @@
             }
           ],
           "cap": 40,
+          "overall": 0.6,
           "flag": "Part of the lot is in the FEMA regulatory floodway"
         },
         {
@@ -114,8 +119,9 @@
               "below": 51
             }
           ],
-          "cap": 100,
-          "flag": "Over mapped mines: multi-unit needs a mine investigation first"
+          "cap": 70,
+          "overall": 0.9,
+          "flag": "Over mapped mines: anything larger than a single house is prohibited until a mine investigation clears it (§906.05)"
         },
         {
           "when": [
@@ -139,10 +145,11 @@
             }
           ],
           "cap": 30,
+          "overall": 0.3,
           "flag": "Sliver lot under 600 sq ft"
         }
       ],
-      "impute": 79
+      "impute": 70
     },
     {
       "id": "afford",
@@ -432,7 +439,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Used only as a gate: half or more of the lot in the floodway caps Site Feasibility at 5; any part caps it at 40. Never averaged.",
+      "rationale": "Used only as a gate: half or more of the lot in the floodway caps Site Feasibility at 5 and multiplies the overall score by 0.2; any part caps it at 40 and multiplies the overall by 0.6. Never averaged.",
       "unit": "share"
     },
     {
@@ -539,7 +546,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Triggers the City undermined overlay (Ch. 906); subsidence risk.",
+      "rationale": "Triggers the City undermined overlay (Ch. 906); subsidence risk. Half or more of the lot over mapped mines caps Site Feasibility at 70 and multiplies the overall score by 0.9: anything larger than a single house needs a mine investigation first (§906.05).",
       "unit": "share"
     },
     {
@@ -786,7 +793,7 @@
         "zero": 0,
         "full": 600
       },
-      "rationale": "Not averaged. Lots under 600 sq ft (slivers) cap Site Feasibility at 30 unless they are condo units."
+      "rationale": "Not averaged. Lots under 600 sq ft (slivers) cap Site Feasibility at 30 and multiply the overall score by 0.3, unless they are condo units."
     },
     {
       "id": "afford_lowinc_renter_burden",
@@ -1624,6 +1631,26 @@
     "count": "count",
     "use": "parcel use category",
     "sqft_score": "0–100 = 0–600 sq ft"
+  },
+  "verdict": {
+    "about": "Can this housing type be built here? A red / yellow / green verdict per typology, computed from pass/fail checks (zoning pathway, site hazards, site availability, lot size, physical fit), never from the weighted score. It answers a different question from the pillars: the pillars rank how good a place is; the verdict says what stands in the way. Framing suggested by a hackathon housing SME (2026-09-27): red = not developable, yellow = could be developable with variances or subsidy, green = developable as-is. Money is not checked: whether the project pencils is not assessed.",
+    "levels": {
+      "red": "Deal-killer found",
+      "yellow": "Possible, with extra approvals or site cost",
+      "green": "No blockers found in our checks",
+      "unknown": "Can't tell from our data"
+    },
+    "not_checked": "Not checked: whether it pencils (construction cost vs. value), soils, contamination, and utility lines. Decision support only, not legal, financial or zoning advice.",
+    "rezoning_yellow_closeness": 0.5,
+    "share": {
+      "floodway_red": 0.5,
+      "floodplain_yellow": 0.5,
+      "steep_yellow": 0.5,
+      "landslide_yellow": 0.5,
+      "undermined_yellow": 0.1
+    },
+    "single_house_typologies": ["single_detached"],
+    "fit_yellow_below": 0.5
   },
   "legal": {
     "indicator": "site_legal_pathway",

@@ -4,11 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { Disclaimer } from "@/components/disclaimer";
-import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
+import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -336,6 +338,54 @@ export function useTypologyFit(pin: string, data: ParcelData) {
   );
 }
 
+// The brief's mainstream housing types, in size order.
+const VERDICT_TYPOLOGIES = ["single_detached", "single_attached", "two_unit", "three_unit", "multi_unit"];
+
+/** Red / yellow / green "can it be built?" per housing type, from pass/fail
+ * checks only (see lib/pillars/verdict.ts), kept apart from the weighted score. */
+function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useTypologyFit(pin, data);
+  const fitsById = useMemo(() => {
+    if (!query.data) return undefined;
+    const map: FitsById = {};
+    for (const t of query.data.typologies) map[t.id] = t.fit;
+    return map;
+  }, [query.data]);
+  const [open, setOpen] = useState<string | null>(null);
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <p className="font-medium">Can it be built?</p>
+      <ul className="mt-1 space-y-0.5">
+        {VERDICT_TYPOLOGIES.map((id) => {
+          const verdict = verdictFor(data.zoning, id, data.norm, fitsById);
+          const blockers = verdict.reasons.filter((r) => r.level !== "green");
+          const shown = open === id ? verdict.reasons : blockers.slice(0, 1);
+          return (
+            <li key={id}>
+              <button type="button" onClick={() => setOpen((cur) => (cur === id ? null : id))} className="w-full text-left">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+                  <span className="font-medium">{SHORT_LABEL[id] ?? id}</span>
+                  <span style={{ color: VERDICT_COLOR[verdict.level] }}>{verdict.label}</span>
+                </span>
+                {shown.map((r) => (
+                  <span key={r.text} className="block pl-3.5 text-muted-foreground">
+                    <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text}
+                  </span>
+                ))}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-1 text-muted-foreground">
+        {query.isPending ? "Checking physical fit… " : ""}
+        {VERDICT_NOT_CHECKED}
+      </p>
+    </section>
+  );
+}
+
 export function PillarsPanel({
   pin,
   onClose,
@@ -360,7 +410,7 @@ export function PillarsPanel({
     if (!result) return null;
     const r = weightSensitivity(result.pillars, overrides);
     // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
-    const m = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
+    const m = scoreMultiplier(result);
     return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
   }, [result, overrides]);
   const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
@@ -389,6 +439,7 @@ export function PillarsPanel({
         )}
         {data && result && (
           <>
+            <BuildVerdicts pin={pin} data={data} />
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>
@@ -415,10 +466,22 @@ export function PillarsPanel({
                 Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
                 {hasCustomWeights ? "your weights" : "equal weights"}
                 {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
-                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
+                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}
+                {result.hazard ? `, × ${result.hazard.multiplier} for a deal-killer hazard` : ""}.
                 {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
             </section>
+            {result.hazard && (
+              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
+                <p className="font-medium">Deal-killer site hazard</p>
+                {result.hazard.flags.map((f) => (
+                  <p key={f}>{f}</p>
+                ))}
+                <p className="text-muted-foreground">
+                  Overall score × {result.hazard.multiplier}, so a good neighborhood can't average it away.
+                </p>
+              </section>
+            )}
             {result.availability && result.availability.multiplier < 1 && (
               <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
                 <p className="font-medium">{result.availability.label}</p>

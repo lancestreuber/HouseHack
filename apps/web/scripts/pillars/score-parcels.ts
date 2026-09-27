@@ -46,7 +46,7 @@ if (data.config_version !== config.version)
 
 const columns = Object.fromEntries(data.indicators.map((id) => [id, Buffer.from(data.columns[id], "base64")]));
 const fmt = (v: number | null) => (v == null ? "" : v.toFixed(1));
-const lines = [["pin", "zoning", ...PILLAR_IDS, "pillar_blend", "zoning_status", "zoning_x", "site_use", "site_use_x", "overall", "flags"].join(",")];
+const lines = [["pin", "zoning", ...PILLAR_IDS, "pillar_blend", "zoning_status", "zoning_x", "site_use", "site_use_x", "hazard_x", "overall", "flags"].join(",")];
 for (let i = 0; i < data.count; i++) {
   const values: Record<string, number | null> = {};
   for (const id of data.indicators) values[id] = columns[id][i] === data.missing ? null : columns[id][i];
@@ -62,6 +62,7 @@ for (let i = 0; i < data.count; i++) {
       s.legal?.multiplier ?? "",
       s.availability?.id ?? "",
       s.availability?.multiplier ?? "",
+      s.hazard?.multiplier ?? "",
       fmt(s.overall),
       flags ? `"${flags}"` : "",
     ].join(","),
