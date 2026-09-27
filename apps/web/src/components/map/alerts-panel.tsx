@@ -27,7 +27,10 @@ function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
  * and what color its reasons render in. Exported (not just used below) so
  * the chat can cite the same alerts it sees on screen (parcel-context.ts). */
 export function typologyAlerts(fit: NonNullable<ReturnType<typeof useTypologyFit>["data"]>) {
-  return fit.typologies.filter((t) => t.verdict.level !== "green").map((t) => ({ ...t, notes: t.verdict.reasons }));
+  // A cached response fetched before this field shipped (staleTime is
+  // infinite, so a parcel visited earlier in the same session can still be
+  // showing an old shape) won't have `verdict` -- skip it rather than throw.
+  return fit.typologies.filter((t) => t.verdict).map((t) => ({ ...t, notes: t.verdict.reasons })).filter((t) => t.verdict.level !== "green");
 }
 
 function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {

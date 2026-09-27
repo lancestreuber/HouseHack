@@ -236,17 +236,23 @@ function TypologyTile({
               </p>
             </>
           )}
-          <div
-            className="flex items-center gap-1.5"
-            title={entry.verdict.reasons.join(" ")}
-            onClick={canJumpToAlerts ? (e) => e.stopPropagation() : undefined}
-          >
-            <span className={`size-2 shrink-0 rounded-full ${VERDICT_DOT[entry.verdict.level]}`} />
-            <span className="truncate">{VERDICT_LABEL[entry.verdict.level]}</span>
-          </div>
-          <p className="text-muted-foreground" title="Order-of-magnitude hard + site construction cost. Not a pro forma; excludes land, financing and soft costs.">
-            Est. cost: {fmtUsd(entry.cost.low)}–{fmtUsd(entry.cost.high)}
-          </p>
+          {/* A cached response fetched before verdict/cost shipped (staleTime
+           * is infinite) won't have these fields -- skip rather than throw. */}
+          {entry.verdict && (
+            <div
+              className="flex items-center gap-1.5"
+              title={entry.verdict.reasons.join(" ")}
+              onClick={canJumpToAlerts ? (e) => e.stopPropagation() : undefined}
+            >
+              <span className={`size-2 shrink-0 rounded-full ${VERDICT_DOT[entry.verdict.level]}`} />
+              <span className="truncate">{VERDICT_LABEL[entry.verdict.level]}</span>
+            </div>
+          )}
+          {entry.cost && (
+            <p className="text-muted-foreground" title="Order-of-magnitude hard + site construction cost. Not a pro forma; excludes land, financing and soft costs.">
+              Est. cost: {fmtUsd(entry.cost.low)}–{fmtUsd(entry.cost.high)}
+            </p>
+          )}
         </div>
       )}
     </div>
