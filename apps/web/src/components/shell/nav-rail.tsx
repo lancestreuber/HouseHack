@@ -2,6 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { CircleDot, FileText, LayoutGrid, Map } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { ThemeToggle } from "../theme-toggle";
 import UserMenu from "../user-menu";
 import { EngineSettings } from "./engine-settings";
 
@@ -45,6 +46,7 @@ export function NavRail() {
         <FileText className="size-5" />
       </RailLink>
       <div className="flex-1" />
+      <ThemeToggle className="size-10 rounded-lg text-muted-foreground hover:bg-accent/40 hover:text-foreground [&_svg]:size-5" />
       <EngineSettings />
       <UserMenu />
     </nav>

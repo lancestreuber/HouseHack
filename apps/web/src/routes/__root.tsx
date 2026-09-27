@@ -60,15 +60,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    // Dark-only console: the design tokens define dark surfaces only, so the
-    // dark variant is pinned (and forced for anything still reading
-    // next-themes, e.g. the map's basemap choice).
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider attribute="class" forcedTheme="dark" disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AppShell />
           <ChatLauncher />
           <Toaster richColors />

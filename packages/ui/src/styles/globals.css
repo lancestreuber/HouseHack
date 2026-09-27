@@ -6,10 +6,52 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* Cartographic Precision: dark-only console palette. Surfaces differentiate
-   through tonal steps (#0A0A0B canvas, #141416 docked panels, #1C1C20 cards,
-   #2A2A30 hairlines); brass #D4A359 is the single accent. */
+/* Cartographic Precision palette. Light (default :root) and dark (.dark,
+   toggled by next-themes) share the same roles: tonal surface steps, one
+   brass accent, three semantic statuses. */
 :root {
+  --background: #fafaf9;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #9a6d24;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #e7e5e4;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #9a6d24;
+  --chart-1: #9a6d24;
+  --chart-2: #52525b;
+  --chart-3: #a1a1aa;
+  --chart-4: #b91c1c;
+  --chart-5: #059669;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #9a6d24;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #9a6d24;
+  --faint: #71717a;
+  --brass: #9a6d24;
+  --critical: #b91c1c;
+  --warn: #d97706;
+  --ok: #059669;
+}
+
+/* Dark console: #0A0A0B canvas, #141416 docked panels, #1C1C20 cards,
+   #2A2A30 hairlines; brass #D4A359 is the single accent. */
+.dark {
   --background: #0a0a0b;
   --foreground: #f4f4f5;
   --card: #141416;
