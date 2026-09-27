@@ -7,12 +7,12 @@ import { useMemo } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase, pillarPhrase } from "@/lib/pillars/phrases";
 import { type ParcelScore, type PillarId, scoreParcel } from "@/lib/pillars/score";
-import { DEFAULT_WEIGHTS, type PillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 
 import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibility";
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData } from "../map/pillars-panel";
-import { PATHWAY_SCORE } from "../map/typology-panel";
+import { type PillarWeights, usePillarWeights } from "../map/pillar-weights-store";
+import { notPermittedScore, PATHWAY_SCORE, rezoningCloseness, rezoningLikelihood } from "../map/typology-panel";
 
 const SCORES_AS_OF = config.version.slice(0, 10);
 const SCORES_SOURCE = `Groundwork pillars v${config.version}`;
@@ -106,10 +106,15 @@ function typologyFacts(zoning: string): ContextFact[] {
     if (!pathwayId || !(MAIN_TYPOLOGIES.has(id) || EASY_PATHWAYS.has(pathwayId))) return [];
     const meta = PATHWAY_META[pathwayId];
     const pathway = PATHWAYS[pathwayId];
-    const score = PATHWAY_SCORE[pathwayId];
+    // Same number as the typology tile: a fixed score per pathway, except
+    // "not permitted", which reflects how realistic a rezoning would be.
+    const notPermitted = pathwayId === "not_permitted";
+    const score = notPermitted ? notPermittedScore(zoning, id) : PATHWAY_SCORE[pathwayId];
     const parts = [
       `${label}: ${meta?.label ?? pathwayId}.`,
       score != null && `Typology score ${score} of 100 (higher means fewer approvals or hearings).`,
+      notPermitted &&
+        `Not-permitted types score 5 to 35 depending on how close a rezoning would be: rezoning closeness ${Math.round(rezoningCloseness(zoning, id) * 100)}%, and this district's Zoning Board relief approval rate is ${Math.round(rezoningLikelihood(zoning) * 100)}%.`,
       pathway && `Decided by ${pathway.decider}; public hearing: ${pathway.hearing}.`,
       CELL_NOTES[zoning]?.[id]?.unconfirmed && "This reading of the code is unconfirmed.",
       zbaLine(zoning, id) && `${zbaLine(zoning, id)}.`,
@@ -130,11 +135,13 @@ function definitions(): ContextFact[] {
   ];
 }
 
+// The navbar's weights hold only what the user changed; the rest are the published defaults.
+const weightOf = (weights: PillarWeights, p: (typeof config.pillars)[number]) => weights[p.id as PillarId] ?? p.weight;
+
 function weightsText(weights: PillarWeights): string {
-  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
-  if (isDefault) return "equal weights";
-  const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
-  return `the user's priorities (${config.pillars.map((p) => `${p.label} ${Math.round((weights[p.id as PillarId] / total) * 100)}%`).join(", ")})`;
+  if (config.pillars.every((p) => weightOf(weights, p) === p.weight)) return "equal weights";
+  const total = config.pillars.reduce((a, p) => a + weightOf(weights, p), 0) || 1;
+  return `the user's priorities (${config.pillars.map((p) => `${p.label} ${Math.round((weightOf(weights, p) / total) * 100)}%`).join(", ")})`;
 }
 
 // The zoning and site factors that multiply the overall score, when they apply.
@@ -153,7 +160,7 @@ function statusFacts(result: ParcelScore): ContextFact[] {
 }
 
 /** What the chat may say about one explorer parcel: scores, key indicators and zoning, at the user's weights. */
-export function parcelChatContext(pin: string, data: ParcelData | null, weights: PillarWeights = DEFAULT_WEIGHTS): ChatContext {
+export function parcelChatContext(pin: string, data: ParcelData | null, weights: PillarWeights = {}): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
     const text = "No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.";
@@ -213,7 +220,7 @@ export function parcelChatContext(pin: string, data: ParcelData | null, weights:
         id: p.id,
         label: p.label,
         score: result.pillars[p.id as PillarId].score,
-        weight: weights[p.id as PillarId],
+        weight: weightOf(weights, p),
         impute: imputeFor(p),
       })),
     },

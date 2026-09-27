@@ -5,14 +5,14 @@ import { chatContext } from "@HouseHack/api/routers/chat";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { type PillarId, scoreParcel } from "@/lib/pillars/score";
-import { DEFAULT_WEIGHTS, type PillarWeights } from "@/lib/pillars/weights";
-
+import type { PillarWeights } from "../map/pillar-weights-store";
 import type { ParcelData } from "../map/pillars-panel";
 
 // The panels import the API client, which needs the server env; these tests
 // only use the pure scoring helpers, so stub it.
 mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
 const { parcelChatContext } = await import("./parcel-context");
+const { notPermittedScore } = await import("../map/typology-panel");
 
 // Real data, read the way useParcelData reads it.
 const DATA = "public/data/pillars/parcels";
@@ -41,12 +41,14 @@ async function shard(key: string) {
 const PIN = "0001N00154000000";
 const demo = toData((await shard("0001"))[PIN]!);
 
-const CUSTOM: PillarWeights = { demand: 5, site: 1, afford: 3, access: 0, climate: 2 };
+// The navbar store holds only the pillars the user changed ({} = defaults).
+const CUSTOM: PillarWeights = { demand: 3, site: 1, afford: 2.5, access: 0, climate: 0.25 };
+const PARTIAL: PillarWeights = { climate: 3 };
 
 describe("parcelChatContext", () => {
   test("matches what the panels show", () => {
     const ctx = parcelChatContext(PIN, demo);
-    const result = scoreParcel(demo.norm, { pillars: DEFAULT_WEIGHTS });
+    const result = scoreParcel(demo.norm, { pillars: {} });
     const text = (id: string) => ctx.facts.find((f) => f.id === id)?.text ?? "";
 
     expect(text("overall")).toContain(`${Math.round(result.overall!)} of 100`);
@@ -56,8 +58,18 @@ describe("parcelChatContext", () => {
     expect(text("t.single_detached")).toContain("By right");
     expect(text("t.single_detached")).toContain("100 of 100");
     expect(text("t.two_unit")).toContain("Not permitted");
+    // Not-permitted tiles show a rezoning-based score, not 0.
+    expect(text("t.two_unit")).toContain(`Typology score ${notPermittedScore(demo.zoning, "two_unit")} of 100`);
+    expect(text("overall")).toContain("equal weights");
     expect(ctx.suggestions![0]).toBe(`Why is the overall score ${Math.round(result.overall!)}?`);
     expect(ctx.facts.map((f) => f.text).join(" ")).not.toContain("[object Object]");
+  });
+
+  test("one changed slider keeps the other pillars at their defaults", () => {
+    const ctx = parcelChatContext(PIN, demo, PARTIAL);
+    const result = scoreParcel(demo.norm, { pillars: PARTIAL });
+    expect(ctx.facts.find((f) => f.id === "overall")!.text).toContain(`${Math.round(result.overall!)} of 100`);
+    expect(ctx.scoring!.parts.map((p) => p.weight)).toEqual(config.pillars.map((p) => (p.id === "climate" ? 3 : p.weight)));
   });
 
   test("uses the user's priorities, like the scores panel", () => {
@@ -82,7 +94,7 @@ describe("parcelChatContext", () => {
 // included), and every context must pass the server's validation.
 describe("across real parcels", () => {
   const keys = index.shards.filter((_, i) => i % 10 === 0);
-  const whatIfs: Record<string, number>[] = [{}, { climate: 2 }, { demand: 0 }, { access: 5, afford: 0.5 }];
+  const whatIfs: Record<string, number>[] = [{}, { climate: 2 }, { demand: 0 }, { access: 3, afford: 0.5 }];
 
   test(
     "what-if rescoring equals scoreParcel, and contexts validate",
@@ -93,7 +105,7 @@ describe("across real parcels", () => {
       for (const key of keys) {
         for (const [pin, row] of Object.entries(await shard(key))) {
           const data = toData(row);
-          for (const weights of [DEFAULT_WEIGHTS, CUSTOM]) {
+          for (const weights of [{}, PARTIAL, CUSTOM]) {
             const ctx = parcelChatContext(pin, data, weights);
             const parsed = chatContext.safeParse(ctx);
             if (!parsed.success) throw new Error(`${pin}: ${parsed.error.message}`);

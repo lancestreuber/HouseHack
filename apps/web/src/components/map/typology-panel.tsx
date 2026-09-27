@@ -38,7 +38,7 @@ const PERMITTING_PATHWAYS = new Set(["by_right", "za", "conditional_use", "zbe_s
  * change) permits this typology; 0.5 = a one-step-away district on the
  * density ladder does; 0.2 = only a distant/unrelated district does;
  * 0 = no district anywhere permits it (not a realistic rezoning ask). */
-function rezoningCloseness(zone: string, typologyId: string): number {
+export function rezoningCloseness(zone: string, typologyId: string): number {
   const currentBase = baseOf(zone);
   const currentRank = BASE_ORDER.indexOf(currentBase);
   let best = 0;
@@ -58,7 +58,7 @@ function rezoningCloseness(zone: string, typologyId: string): number {
  * something the code doesn't otherwise allow here", not the exact rezoning
  * (map-amendment) approval rate specifically. Falls back to a neutral
  * estimate where there's no local ZBA data at all. */
-function rezoningLikelihood(zone: string): number {
+export function rezoningLikelihood(zone: string): number {
   const outcomes = ZBA_OUTCOMES[baseOf(zone)]?.ALL;
   if (!outcomes || outcomes.n === 0) return 0.7;
   return outcomes.approved / outcomes.n;
@@ -71,7 +71,7 @@ function rezoningLikelihood(zone: string): number {
 const NOT_PERMITTED_FLOOR = 5;
 const NOT_PERMITTED_RANGE = 30;
 
-function notPermittedScore(zone: string, typologyId: string): number {
+export function notPermittedScore(zone: string, typologyId: string): number {
   const closeness = rezoningCloseness(zone, typologyId);
   const likelihood = rezoningLikelihood(zone);
   return Math.round(NOT_PERMITTED_FLOOR + closeness * likelihood * NOT_PERMITTED_RANGE);
