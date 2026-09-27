@@ -222,14 +222,6 @@ function TypologyTile({
       </span>
       {entry && (
         <div className="space-y-0.5 border-t border-border/40 pt-1">
-          <div
-            className="flex items-center gap-1.5"
-            title={entry.verdict.reasons.join(" ")}
-            onClick={canJumpToAlerts ? (e) => e.stopPropagation() : undefined}
-          >
-            <span className={`size-2 shrink-0 rounded-full ${VERDICT_DOT[entry.verdict.level]}`} />
-            <span className="truncate">{VERDICT_LABEL[entry.verdict.level]}</span>
-          </div>
           {fit && (
             <>
               <div className="flex items-center gap-1.5">
@@ -244,6 +236,14 @@ function TypologyTile({
               </p>
             </>
           )}
+          <div
+            className="flex items-center gap-1.5"
+            title={entry.verdict.reasons.join(" ")}
+            onClick={canJumpToAlerts ? (e) => e.stopPropagation() : undefined}
+          >
+            <span className={`size-2 shrink-0 rounded-full ${VERDICT_DOT[entry.verdict.level]}`} />
+            <span className="truncate">{VERDICT_LABEL[entry.verdict.level]}</span>
+          </div>
           <p className="text-muted-foreground" title="Order-of-magnitude hard + site construction cost. Not a pro forma; excludes land, financing and soft costs.">
             Est. cost: {fmtUsd(entry.cost.low)}–{fmtUsd(entry.cost.high)}
           </p>
@@ -288,7 +288,7 @@ function TypologyTiles({
       <p className="text-muted-foreground">
         {query.data?.facts.lot ?? "Checking lot size and shape…"}
       </p>
-      <div className="flex h-full w-full gap-2">
+      <div className="flex min-h-full w-full gap-2">
         {typologyIds.map((id, i) => (
           <TypologyTile
             key={i}
@@ -352,7 +352,7 @@ export function TypologyPanel({
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
         </div>
       </div>
-      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-auto">{body}</div>}
+      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-auto">{body}</div>}
       {!collapsed && <Disclaimer className="shrink-0" />}
     </div>
   );
