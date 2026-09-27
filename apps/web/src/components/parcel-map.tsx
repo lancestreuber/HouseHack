@@ -36,6 +36,7 @@ import { decodeWeights, encodeWeights, setPillarWeights, usePillarWeights } from
 import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { CameraViewer } from "./map/camera-viewer";
+import { DISCLAIMER, LIMITATIONS_URL } from "./disclaimer";
 import { ChatPane } from "./chat/chat-pane";
 import { useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
@@ -345,7 +346,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       container: containerRef.current,
       style: basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDarkRef.current),
       bounds: COUNTY_BOUNDS,
-      attributionControl: { compact: true },
+      attributionControl: { compact: true, customAttribution: `${DISCLAIMER} <a href="${LIMITATIONS_URL}">Limitations</a>` },
     });
     mapRef.current = map;
     map.addControl(new NavigationControl({}), "top-right");
