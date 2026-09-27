@@ -77,9 +77,20 @@ function availabilityReason(code: number | null | undefined): VerdictReason | nu
   return null;
 }
 
+const HAZARD_NAMES: Record<string, string> = {
+  site_floodway_share: "floodway",
+  site_sfha_share: "floodplain",
+  site_steep_slope_share: "steep slope",
+  site_landslide_prone_share: "landslide-prone",
+  site_undermined_share: "undermined",
+};
+
 function hazardReasons(values: IndicatorValues, typology: string): VerdictReason[] {
   const s = V.share;
   const out: VerdictReason[] = [];
+  // Missing hazard data must not read as "no hazard".
+  const missing = Object.keys(HAZARD_NAMES).filter((id) => values[id] == null);
+  if (missing.length) out.push({ level: "unknown", text: `No ${missing.map((id) => HAZARD_NAMES[id]).join(", ")} data for this lot` });
   const floodway = share(values, "site_floodway_share");
   if (floodway != null && floodway >= s.floodway_red) out.push({ level: "red", text: "Half or more of the lot is in the FEMA floodway: effectively no-build" });
   else if (floodway != null && floodway > 0) out.push({ level: "yellow", text: "Part of the lot is in the FEMA floodway: build only outside it" });

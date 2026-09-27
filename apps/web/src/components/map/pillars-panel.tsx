@@ -461,6 +461,16 @@ export function PillarsPanel({
                   counted as a below-typical score (the City's 25th percentile for that pillar).
                 </p>
               )}
+              {(() => {
+                // Missing indicators are dropped and the rest reweighted, so say how much was actually measured.
+                const coverage = config.pillars.reduce((a, p) => a + result.pillars[p.id as PillarId].coverage, 0) / config.pillars.length;
+                return (
+                  <p className={`mt-1 ${coverage < 0.8 ? "text-amber-400/90" : "text-muted-foreground"}`}>
+                    Data coverage: {Math.round(coverage * 100)}% of indicator weight has data for this parcel
+                    {coverage < 0.8 ? "; the score leans on fewer measurements than usual." : "."}
+                  </p>
+                );
+              })()}
               {rank != null && (
                 <p className="mt-1">
                   Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build

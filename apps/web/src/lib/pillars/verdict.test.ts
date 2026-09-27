@@ -86,4 +86,10 @@ describe("typologyVerdict", () => {
     // Unknown district or width: no claim either way.
     expect(typologyVerdict({ ...base, zoning: "UC-MU", lotWidthFt: 10 }).level).toBe("green");
   });
+
+  test("missing hazard data is unknown, not green", () => {
+    const v = typologyVerdict({ typology: "two_unit", pathway: "by_right", values: clean({ site_undermined_share: null }) });
+    expect(v.level).toBe("unknown");
+    expect(v.reasons[0].text).toContain("undermined");
+  });
 });
