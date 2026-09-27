@@ -12,6 +12,8 @@ export interface ChatInput {
 }
 
 const MAX_HISTORY = 10;
+// Matches the navbar's pillar weight sliders (weights-popover.tsx, 0–3).
+const MAX_WEIGHT = 3;
 const MAX_TOOL_STEPS = 3;
 const CACHE_LIMIT = 200;
 
@@ -25,7 +27,7 @@ function rescoreTool(model: ScoringModel): FunctionDeclaration {
       properties: {
         weights: {
           type: "object",
-          description: `New weights, each from 0 (ignore) to 3 (most important). Unlisted ones keep their current value. Keys: ${model.parts.map((p) => `${p.id} (${p.label})`).join(", ")}.`,
+          description: `New weights, each from 0 (ignore) to ${MAX_WEIGHT} (most important); 1 is the default. Unlisted ones keep their current value. Keys: ${model.parts.map((p) => `${p.id} (${p.label})`).join(", ")}.`,
           properties: Object.fromEntries(model.parts.map((p) => [p.id, { type: "number" }])),
         },
       },
@@ -140,7 +142,7 @@ async function runWithTools(
       const requested = (call.functionCall.args as { weights?: Record<string, unknown> }).weights ?? {};
       const changes: Record<string, number> = {};
       for (const part of scoring.parts) {
-        if (part.id in requested) changes[part.id] = Math.min(3, Math.max(0, Number(requested[part.id]) || 0));
+        if (part.id in requested) changes[part.id] = Math.min(MAX_WEIGHT, Math.max(0, Number(requested[part.id]) || 0));
       }
       const before = overallScore(scoring);
       const after = overallScore(scoring, changes);

@@ -1,6 +1,6 @@
 # Briefing: Track 3, with what works and what doesn't
 
-*A 2-minute read. Last updated 2026-09-26. Every line links to where the evidence lives. For the full argument, see [`knowledge/PAPER.md`](knowledge/PAPER.md). To look up one fact, see [`knowledge/INDEX.md`](knowledge/INDEX.md).*
+*A 2-minute read. Last updated 2026-09-27. Every line links to where the evidence lives. For the full argument, see [`knowledge/PAPER.md`](knowledge/PAPER.md). To look up one fact, see [`knowledge/INDEX.md`](knowledge/INDEX.md).*
 
 ## TL;DR: we're building for Track 3
 
@@ -88,10 +88,11 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
   - **Most-varied sections:** setbacks (§903.03, 18 cases), accessory structures / front-yard parking pads (§912.04, 15), signs (§919, 14). Use (§911) is the most cited once special exceptions are counted (24).
   - **Signs and parking pads are the riskiest requests.** Every change of a nonconforming use (§921.02) was approved.
   - **Time:** a median of 34 days from the *final* hearing to the decision. At least 15 cases needed more than one hearing.
-  - **Coverage and bias:** about two-thirds of 2026 case numbers are covered, and withdrawn cases are missing, so the approval rate is biased upward. About 1,000 older decision PDFs (2021–2024) exist on the Internet Archive.
+  - **Coverage and bias:** about two-thirds of 2026 case numbers are covered, and withdrawn cases are missing, so the approval rate is biased upward. ⚠ **A second selection bias (SMEs, 2026-09-27):** developers check whether a deal pencils *before* going to the ZBA, so only projects that already pencil reach it. A high approval rate does not mean the process is cheap. About 1,000 older decision PDFs (2021–2024) exist on the Internet Archive.
 
   → [sweep](sweeps/r5-zba-decisions-sample.md) · [CSV](sources/pittsburghpa-2026-09-26-zba-decisions-sample.csv)
 - **Approval timelines from OneStopPGH:** alterations take a median of 8 days. New construction takes a median of 153 days, but that includes applicant time and counts only the 35% of cases already issued. → [timelines](knowledge/policy/permit-timelines.md)
+- **Legal feasibility by housing type (new):** a typology × zoning-district pathway matrix (912 cells), 1,088 permits, 476 ZBA decisions, 284 Council actions and 124 existing senior/care sites. In R1D/R1A/R2, **apartments are not permitted but senior housing is a ZBA special exception**. Boards approve most requests that reach them (ZBA 85%, n=470), so the use table is the real gate. ⚠ The City code's "deemed denial" conflicts with PA MPC "deemed approval". → [legal feasibility](knowledge/data/legal-feasibility-datasets.md)
 - **City-owned vacant lots:** 5,786 in total, 3,260 "Available for Sale", with status and inventory type. → [land](knowledge/data/land-availability-and-title.md)
 - **Track 3 layers:**
   - MVA market types and the displacement risk ratio (block group)
@@ -121,7 +122,7 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
   → [infrastructure](knowledge/data/infrastructure.md) · [sweep](sweeps/r5-council-records-and-methodologies.md)
 - **The zoning code can't be scraped.** eCode360 blocks scripts; a real browser works. → [access log](admin/source-access.md)
 - **WPRDC's SQL endpoint blocks WHERE clauses.** Use `filters` or bulk CSV instead.
-- **Census API needs a key. HUD needs a token. CHAS needs browser headers.**
+- **Census API needs a key** (but Census Reporter's API serves current ACS by tract/block group keylessly). **HUD needs a token. CHAS needs browser headers.**
 - **Permit-type recode in 2025:** query both `NEW CONSTRUCTION` and `New Construction`.
 - **Slope layer geometry:** the polygons have holes. Intersect with the parcel polygon, not its centroid.
 - **No countywide zoning.** Only the city plus 9 suburban layers, with no code text for the suburbs. → [municipal](knowledge/data/municipal-zoning-outside-city.md)
@@ -145,9 +146,9 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
 
 1. Who the primary user is, and whether "which site is easiest" is a real pain for them.
 2. How judges treat a T1 + T3 combination, and whether "Policy-to-Permit" was merged into Track 1.
-3. Where projects actually stall. Our ZBA sample says variances are usually granted (81% of posted decisions), which suggests the ZBA may be more *delay* than *denial*. But the Planning Commission, RCO and PWSA steps are still untimed.
+3. ~~Where projects actually stall.~~ **SMEs answered 2026-09-27 (chat opinion):** cost exceeding market value comes first, and developers check it *before* pursuing a variance. Variances are then usually granted but slow and costly. So the ZBA is *delay*, and the delay costs money. The Planning Commission, RCO and PWSA steps are still untimed. → [sme-feedback-gap-analysis.md](knowledge/build-plan/sme-feedback-gap-analysis.md)
 4. Which code version to score: current, 2025-1545, or 2026-0834.
-5. What "approved affordability assumptions" means for the pro forma.
+5. What "approved affordability assumptions" means for the pro forma. *Scope is answered (SMEs, 2026-09-27): "ideally both" financial and zoning feasibility, and the tool should build the pro forma if one is needed. The literal wording is still open.*
 
 → All of these, ranked: [`docs/03-open-questions.md`](docs/03-open-questions.md)
 
@@ -155,6 +156,9 @@ The prototype menu from the brief, assessed, and persona needs: → [idea bank �
 
 | I need… | Go to |
 |---|---|
+| **How to join parcel size, zoning, air quality and weather onto the parcel GeoJSON** | [`knowledge/data/parcel-enrichment-join-plan.md`](knowledge/data/parcel-enrichment-join-plan.md) |
+| **Demo test cases: 17 real Pittsburgh buildings that "can't be built here"** (address, parcel, district, blocking rules; 15 predate the 2025 lot-size reform) | [`sweeps/r9-sme-pointed-resources.md`](sweeps/r9-sme-pointed-resources.md#ycbth-test-case-table) |
+| **SME feedback and what we must change** (verdict colors, pencil check, deal-killers) | [`knowledge/build-plan/sme-feedback-gap-analysis.md`](knowledge/build-plan/sme-feedback-gap-analysis.md) |
 | **Every external link** (datasets, APIs, code, news, papers), grouped and tagged | [`docs/02-bibliography.md`](docs/02-bibliography.md) |
 | The one-line list of every topic | [`knowledge/INDEX.md`](knowledge/INDEX.md) |
 | An endpoint URL, resource ID or field name | [`knowledge/data/`](knowledge/data/) (one node per data family) |

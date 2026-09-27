@@ -1,4 +1,4 @@
-// Turns a parcel's normalized indicator values (0–100, 100 = better) into the
+// Turns a parcel's normalized indicator values (0–100, 100 = a good place to build) into the
 // five pillar scores and an overall number, using the open weights in
 // pillars.config.json. Pure and synchronous so it runs on every slider move.
 
@@ -12,6 +12,11 @@ export type PillarsConfig = typeof config;
 // User edits layered on top of the published defaults.
 export type WeightOverrides = {
   pillars?: Partial<Record<PillarId, number>>;
+  // Legal multipliers by level id, e.g. { not_permitted: 0.1 }.
+  legal?: LegalOverrides;
+  // Use this legal level (by id) instead of the parcel's easiest pathway among
+  // the mainstream types, e.g. when the user is asking about one housing type.
+  legalLevel?: string;
   subscores?: Record<string, number>;
   indicators?: Record<string, number>;
   overall?: "arithmetic" | "geometric";
@@ -23,20 +28,51 @@ export type Contribution = { indicator: string; sub: string | null; value: numbe
 
 export type SubScore = { id: string; score: number | null; coverage: number; weight: number };
 
+// `capped` is true when the gate lowered the score, false for flag-only gates.
+export type Flag = { text: string; capped: boolean };
+
 export type PillarScore = {
   score: number | null;
   coverage: number;
   subscores: SubScore[];
   contributions: Contribution[];
-  flags: string[];
+  flags: Flag[];
 };
+
+export type LegalStatus = { code: number; id: string; label: string; multiplier: number; note?: string };
+// Same shape for "is this even a development site?" (parks, rail, condo units...).
+export type AvailabilityStatus = LegalStatus;
+// Deal-killer site gates that also multiply the overall score (lowest factor wins).
+export type HazardStatus = { multiplier: number; flags: string[] };
 
 export type ParcelScore = {
   pillars: Record<PillarId, PillarScore>;
+  // Overall after the zoning, site-availability and hazard multipliers; `overallBeforeMultipliers` is the pillar blend alone.
   overall: number | null;
+  overallBeforeMultipliers: number | null;
+  legal: LegalStatus | null;
+  availability: AvailabilityStatus | null;
+  hazard: HazardStatus | null;
 };
 
-type Gate = { indicator: string; below: number; cap: number; flag: string };
+export type LegalOverrides = Record<string, number>;
+
+// A gate fires when every condition holds. It caps the pillar score (cap 100 =
+// flag only); `overall`, if set, also multiplies the overall score, for
+// deal-killers a weighted mean would dilute. The single-indicator form
+// { indicator, below } is shorthand.
+type Condition = { indicator: string; below?: number; atLeast?: number; equals?: number; notEquals?: number };
+type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; overall?: number; flag: string };
+
+function conditionHolds(values: IndicatorValues, c: Condition) {
+  const v = values[c.indicator];
+  if (v == null) return false;
+  if (c.below != null && !(v < c.below)) return false;
+  if (c.atLeast != null && !(v >= c.atLeast)) return false;
+  if (c.equals != null && v !== c.equals) return false;
+  if (c.notEquals != null && v === c.notEquals) return false;
+  return true;
+}
 type SubDef = { id: string; weight: number };
 
 export const PILLAR_IDS = config.pillars.map((p) => p.id) as PillarId[];
@@ -47,6 +83,7 @@ export const PILLAR_IDS = config.pillars.map((p) => p.id) as PillarId[];
 // Pillars without sub-scores are one implicit sub-score.
 export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): ParcelScore {
   const pillars = {} as Record<PillarId, PillarScore>;
+  let hazard: HazardStatus | null = null;
 
   for (const pillar of cfg.pillars) {
     const id = pillar.id as PillarId;
@@ -69,23 +106,34 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
         sum += weight * value;
         used.push({ indicator: ind.id, sub: sub.id || null, value, weight });
       }
-      totalWeight += total;
-      availableWeight += available;
+      const subWeight = overrides.subscores?.[sub.id] ?? sub.weight;
+      // Sub-scores shown but not scored (weight 0) don't count toward coverage.
+      if (subWeight > 0) {
+        totalWeight += total;
+        availableWeight += available;
+      }
       const coverage = total > 0 ? available / total : 0;
-      const score = available > 0 && coverage >= cfg.missing.min_coverage ? sum / available : null;
-      return { id: sub.id, weight: overrides.subscores?.[sub.id] ?? sub.weight, score, coverage, used, available };
+      const minCoverage = (pillar as { min_coverage?: number }).min_coverage ?? cfg.missing.min_coverage;
+      const score = available > 0 && coverage >= minCoverage ? sum / available : null;
+      return { id: sub.id, weight: subWeight, score, coverage, used, available };
     });
 
     const scored = groups.filter((g) => g.score != null && g.weight > 0);
     const subWeight = scored.reduce((a, g) => a + g.weight, 0);
     let score = subWeight > 0 ? scored.reduce((a, g) => a + g.weight * (g.score as number), 0) / subWeight : null;
 
-    const flags: string[] = [];
+    const flags: Flag[] = [];
     for (const gate of (pillar as { gates?: Gate[] }).gates ?? []) {
-      const value = values[gate.indicator];
-      if (value != null && value < gate.below) {
-        flags.push(gate.flag);
+      const when = gate.when ?? [{ indicator: gate.indicator as string, below: gate.below }];
+      if (when.every((c) => conditionHolds(values, c))) {
+        const capped = score != null && gate.cap < score;
+        flags.push({ text: gate.flag, capped });
         if (score != null) score = Math.min(score, gate.cap);
+        if (gate.overall != null) {
+          hazard ??= { multiplier: 1, flags: [] };
+          hazard.multiplier = Math.min(hazard.multiplier, gate.overall);
+          hazard.flags.push(gate.flag);
+        }
       }
     }
 
@@ -102,7 +150,37 @@ export function scoreParcel(values: IndicatorValues, overrides: WeightOverrides 
     };
   }
 
-  return { pillars, overall: overallScore(pillars, overrides, cfg) };
+  const overallBeforeMultipliers = overallScore(pillars, overrides, cfg);
+  const legal = legalStatus(values, overrides, cfg);
+  const availability = levelStatus(cfg.availability, values, overrides.legal);
+  const overall = overallBeforeMultipliers == null ? null : overallBeforeMultipliers * scoreMultiplier({ legal, availability, hazard });
+  return { pillars, overall, overallBeforeMultipliers, legal, availability, hazard };
+}
+
+// Product of the zoning, availability and hazard factors applied to the pillar blend.
+export function scoreMultiplier(s: Pick<ParcelScore, "legal" | "availability" | "hazard">) {
+  return (s.legal?.multiplier ?? 1) * (s.availability?.multiplier ?? 1) * (s.hazard?.multiplier ?? 1);
+}
+
+type LevelBlock = { indicator: string; levels: { code: number; id: string; label: string; multiplier: number; note?: string }[] };
+
+function levelStatus(block: LevelBlock, values: IndicatorValues, overrides: Record<string, number> = {}): LegalStatus | null {
+  const code = values[block.indicator];
+  if (code == null) return null;
+  const level = block.levels.find((l) => l.code === code);
+  if (!level) return null;
+  return { code: level.code, id: level.id, label: level.label, multiplier: overrides[level.id] ?? level.multiplier, note: level.note };
+}
+
+// Zoning legality multiplies the overall score rather than being averaged in,
+// so a parcel where housing isn't permitted can't be rescued by good access.
+export function legalStatus(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): LegalStatus | null {
+  const block = cfg.legal as LevelBlock;
+  if (overrides.legalLevel) {
+    const code = block.levels.find((l) => l.id === overrides.legalLevel)?.code;
+    if (code != null) return levelStatus(block, { [block.indicator]: code }, overrides.legal);
+  }
+  return levelStatus(block, values, overrides.legal);
 }
 
 // Combines the pillars. Arithmetic lets a strong pillar offset a weak one;
@@ -115,9 +193,14 @@ export function overallScore(pillars: Record<PillarId, PillarScore>, overrides: 
     const id = pillar.id as PillarId;
     const weight = overrides.pillars?.[id] ?? pillar.weight;
     const score = pillars[id].score;
-    if (weight <= 0 || score == null) continue;
+    if (weight <= 0) continue;
+    // A missing pillar counts as that pillar's typical (City median) value if
+    // the config gives one, else the global neutral value.
+    const impute = (pillar as { impute?: number }).impute ?? (cfg.overall as { missing_pillar?: { impute: number } }).missing_pillar?.impute;
+    if (score == null && impute == null) continue;
+    const value = score ?? (impute as number);
     weightSum += weight;
-    acc += method === "geometric" ? weight * Math.log(Math.max(score, cfg.overall.floor ?? 1)) : weight * score;
+    acc += method === "geometric" ? weight * Math.log(Math.max(value, cfg.overall.floor ?? 1)) : weight * value;
   }
   if (weightSum === 0) return null;
   return method === "geometric" ? Math.exp(acc / weightSum) : acc / weightSum;

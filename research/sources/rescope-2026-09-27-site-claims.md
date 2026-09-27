@@ -1,0 +1,13 @@
+# Rescope (rescope.co): marketing and docs claims, as published
+
+- **Retrieved:** 2026-09-27 by curl of static HTML: `/`, `/products/rezone`, `/resources/documentation`, `/solutions/developers`, `/resources/faq`, `/resources/case-studies`, `/resources/blog`, `/company/about`
+- **Why saved:** a vendor site changes without notice, and an SME named Rescope as the closest analogue. Everything here is **the vendor's own claim**. No report was generated and nothing was verified.
+
+Verbatim excerpts:
+
+- Home: "Know what you can build on any lot, in seconds." / "Enter an address to see zoning, overlays, setbacks, height, and lot coverage, with every result linked to its source." / "We recommend confirming critical decisions with the local planning department." The hero mock-up shows "Compliance Sample 94.7 %", "Zone C-2", "Setback 12.5 ft", "FAR 0.85", "Violations 3", "Height 35 ft", plus pipeline steps "Zoning Code live · Parcel Data live · Code extraction · Violation scan · Report ready".
+- Rezone product: "A clear go/no-go before you commit design time or a site visit." / "30s Go/no-go answer · 5 Jurisdictions covered today · 24h Full report delivery · 100% Rules cited to source" / "Our AI reads the local zoning code and calculates all applicable restrictions for your specific parcel." / Coverage: "Los Angeles (city and county), San Diego (city and county), and San Jose today, expanding across California." (The same page's CTA also says "any parcel in the US".)
+- Documentation: "Uses are categorized as Permitted (by-right), Conditional (requires CUP), or Prohibited. For conditional uses, we show typical approval requirements and timelines based on historical data." / "Red flags indicate potential problems … Orange warnings highlight items requiring additional review. Green checkmarks confirm compliance." / "If you search an address outside our coverage area, you'll see a 'Coverage Unavailable' message" / "Combine Parcels" for multi-parcel projects / plan upload in "PDF, DWG, DXF, or RVT" / "REST API. Available on Team and Enterprise plans." / "Your first property analysis is free".
+- Developers page: "Development Potential: Calculate maximum buildable area, unit count, and parking requirements." / "Entitlement Risk Assessment: Identify variances, conditional uses, and special permits needed." / "Market Comparables: See what's been approved nearby." / "Investment Memos".
+- About: "We're building the operating system for construction permits … We're using AI".
+- No pricing page (`/pricing` returns 404). The FAQ page lists questions (pricing, trial, API) but its answers are not in the static HTML.

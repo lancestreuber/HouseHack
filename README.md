@@ -20,6 +20,8 @@ Judging favors practical, source-grounded prototypes with clear benefit to devel
 ### What we're building
 **Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. There are two ways in. **Explore** starts from a parcel: you see its considerations, each scored like a review comment, plus one Parcel Score built from your own weights, plus a card for each housing type. **Find** starts from a goal ("I want to build senior housing in Homewood") and returns a ranked shortlist of parcels. A deterministic algorithm handles the scores and legality. [Jev](https://developers.cloudflare.com/ai/models/typesafe/jev/), a typed decision model, judges how well a parcel suits a purpose and reports a confidence. An explain-only chatbot answers questions using only those sourced facts. It never scores.
 
+> **Decision support only, not legal, financial or zoning advice.** Zoning is a simplified reading of the City code; verify with the Zoning Administrator and a qualified professional before acting. See [limitations.md](limitations.md) for what the tool doesn't assess, and the app's `/resources` page for every source, equation and assumption.
+
 ### Read these, in order
 1. **[PLAN.md](PLAN.md)**: lanes, contracts, tasks, milestones and the cut order. This is the source of truth for the 30-hour build.
 2. **[Design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md)**: the two modes, typologies, considerations, algorithm vs. Jev, the pane layout, and what's cut.
@@ -110,6 +112,22 @@ Import the generated `ENV` accessor in application code. Shared database and aut
 Bun's automatic env loading is disabled in `bunfig.toml`; the framework integration or server bootstrap loads Varlock. Node deployments must include Varlock and its dependencies alongside the app schema.
 
 Run standalone Node/Bun tools that use Varlock from the owning app directory so they load that app's schema and env files. `env:generate` only generates TypeScript files; it does not initialize environment values in a subsequent command.
+
+### System One decisions (Jev)
+
+Housing-type site-fit ratings come from a System One decision model: TypeSafe's **Jev**, currently called through **OpenRouter**. System One models return typed decisions (`noul` yes/no, `choice`, `score`) with calibrated probabilities instead of text, via `POST /v1/systemone`.
+
+```env
+OPENROUTER_API_KEY=                          # server-only; put it in apps/web/.env, never in the schema
+SYSTEM_ONE_BASE_URL=https://openrouter.ai/api
+SYSTEM_ONE_MODEL=jev-1.13                    # pinned so ratings don't shift
+```
+
+- The layer lives in `packages/api/src/system-one/`. Application code calls `context.systemOne.decide({ state, questions })` and doesn't know the provider, endpoint or auth. It's provider-independent: any `/v1/systemone`-compatible API works by changing the base URL and model.
+- The client is created server-side in `apps/web/src/services.ts` and passed to routers through the oRPC context, like `db`. The key never reaches the browser.
+- Without a key the app still runs: zoning permissions still show, and site-fit ratings are marked unavailable. Failed requests are logged server-side and never shown as ratings.
+- First use: `parcels.typologyFit` (`packages/api/src/typology/site-fit.ts`). Code decides what zoning permits; Jev only judges physical fit from lot facts that code computes. Ratings below 30% confidence are flagged for human review.
+- Tests: `cd packages/api && bun test` (the provider is mocked; no key needed).
 
 ## Deployment
 

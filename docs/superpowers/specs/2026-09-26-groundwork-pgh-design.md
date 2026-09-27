@@ -1,5 +1,7 @@
 # Groundwork PGH: Design (Track 3, 30-hour cut)
 
+> **Superseded scoring (2026-09-27).** This spec's consideration scores, hazard values and "What this tool can't tell you" list describe the first design. Scoring now lives in `apps/web/src/lib/pillars/` (five pillars, plus a red/yellow/green verdict and a rough pencil check). See the app's `/resources` page and `limitations.md`. Where they disagree, the code wins.
+
 Revised Sat Sep 26, ~3pm ET, from two team whiteboards: the factor list, and the pane-layout sketch. This replaces the earlier Track 1+3 design. Git history holds the old version. The implementation plan (owners, files, milestones, tasks) is in [`/PLAN.md`](../../../PLAN.md).
 
 ## Context

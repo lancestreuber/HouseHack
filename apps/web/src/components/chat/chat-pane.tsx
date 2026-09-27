@@ -22,6 +22,7 @@ import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
 import { PaneCollapseButton } from "../map/pane-collapse-button";
+import { Disclaimer } from "../disclaimer";
 
 export interface ChatPaneProps {
   /**
@@ -33,6 +34,8 @@ export interface ChatPaneProps {
   className?: string;
   /** Show only as a floating window (no docked state) with a close button. */
   onClose?: () => void;
+  /** Keep the pane mounted (so the conversation survives) but not shown. */
+  hidden?: boolean;
   /** Docked only: collapses the pane to just its header. */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -54,12 +57,14 @@ const EDGES: { edge: Edge; className: string }[] = [
  * pane sets the size). Popped out, it's a floating window you can drag by its
  * header and resize from any edge or corner; size and position are remembered.
  */
-export function ChatPane({ context, className, onClose, collapsed, onToggleCollapse }: ChatPaneProps) {
+export function ChatPane({ context, className, onClose, hidden, collapsed, onToggleCollapse }: ChatPaneProps) {
   const chat = useChat(context);
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
   const hasSubject = Boolean(context?.facts.length);
+  // Parcel contexts always carry a "parcel" fact; others (e.g. how the tool works) don't.
+  const aboutParcel = Boolean(context?.facts.some((f) => f.id === "parcel"));
 
   const pane = (
     <section
@@ -71,7 +76,10 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
           : "h-full w-full",
         !floating && className,
       )}
-      style={floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : undefined}
+      style={{
+        ...(floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : {}),
+        ...(hidden ? { display: "none" } : {}),
+      }}
       {...(floating ? win.handlers : {})}
     >
       <header
@@ -82,7 +90,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
         onPointerDown={floating ? win.begin("move") : undefined}
       >
         {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
-        <h2 className="mr-auto text-[15px] font-medium">{hasSubject ? "Ask about this parcel" : "Ask Groundwork"}</h2>
+        <h2 className="mr-auto text-xs font-medium">{aboutParcel ? "Ask about this parcel" : "Ask Yinzone"}</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
           pressed={chat.readAloud}
@@ -114,14 +122,14 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
       {!(collapsed && !floating) && (
         <>
           {hasSubject && context?.subject && (
-            <p className="shrink-0 truncate border-b border-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
+            <p className="shrink-0 truncate border-b border-border px-4 py-2 text-xs text-muted-foreground" title={context.subject}>
               {context.subject}
             </p>
           )}
 
           <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
 
-          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={hasSubject} />
+          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={aboutParcel} />
         </>
       )}
 
@@ -147,7 +155,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
-        <p className="text-[15px] text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
+        <p className="text-xs text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
         <Button variant="outline" onClick={() => setFloating(false)}>
           <PanelRightClose /> Dock it back here
         </Button>
@@ -206,6 +214,7 @@ function Conversation({ chat, suggestions }: { chat: ReturnType<typeof useChat>;
                 key={turn.id}
                 turn={turn}
                 onFollowUp={chat.send}
+                followUps={suggestions.slice(0, 3)}
                 isLast={turn.id === last?.id}
                 onListen={() => (chat.speaking ? chat.stop() : chat.speakTurn(turn.result))}
                 speaking={chat.speaking}
@@ -223,19 +232,19 @@ function Conversation({ chat, suggestions }: { chat: ReturnType<typeof useChat>;
 function Welcome({ suggestions, onPick }: { suggestions: string[]; onPick: (q: string) => void }) {
   return (
     <div className="flex flex-col gap-5 pt-2">
-      <p className="text-[15px] leading-7 text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         Ask me anything about what you're seeing. I'll explain it in plain language, using only this tool's data, and
         show you where each answer comes from.
       </p>
       {suggestions.length > 0 && (
         <div className="flex flex-col gap-2">
-          <p className="text-[12px] font-medium tracking-wide text-muted-foreground uppercase">Top questions</p>
+          <p className="text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Top questions</p>
           {suggestions.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => onPick(q)}
-              className="rounded-lg border border-border px-4 py-3 text-left text-[15px] leading-6 transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+              className="rounded-lg border border-border px-4 py-3 text-left text-xs transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               {q}
             </button>
@@ -249,7 +258,7 @@ function Welcome({ suggestions, onPick }: { suggestions: string[]; onPick: (q: s
 function UserTurn({ text }: { text: string }) {
   return (
     <div className="flex justify-end">
-      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-muted px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap">
+      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-muted px-4 py-2.5 text-xs whitespace-pre-wrap">
         {text}
       </p>
     </div>
@@ -272,12 +281,15 @@ function revealed(blocks: ReplyBlock[], words: number): { block: ReplyBlock; tex
 function AssistantTurn({
   turn,
   onFollowUp,
+  followUps,
   isLast,
   onListen,
   speaking,
 }: {
   turn: Extract<ChatTurn, { role: "assistant" }>;
   onFollowUp: (q: string) => void;
+  /** From the live context, so they track the screen (e.g. after a weight change). */
+  followUps: string[];
   isLast: boolean;
   onListen: () => void;
   speaking: boolean;
@@ -300,7 +312,7 @@ function AssistantTurn({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 text-[15px] leading-7">
+      <div className="flex flex-col gap-3 text-xs">
         {groups.map((g, i) =>
           g.bullets ? (
             <ul key={i} className="flex flex-col gap-1.5 pl-5 [&>li]:list-disc [&>li]:marker:text-muted-foreground">
@@ -325,7 +337,7 @@ function AssistantTurn({
           <button
             type="button"
             onClick={onListen}
-            className="inline-flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground"
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
           >
             {speaking ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
             {speaking ? "Stop" : "Listen"}
@@ -333,14 +345,14 @@ function AssistantTurn({
         </div>
       )}
 
-      {done && isLast && result.suggestions.length > 0 && (
+      {done && isLast && followUps.length > 0 && (
         <div className="flex flex-wrap gap-2 pt-1">
-          {result.suggestions.map((q) => (
+          {followUps.map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => onFollowUp(q)}
-              className="rounded-full border border-border px-3.5 py-1.5 text-left text-[13px] leading-5 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+              className="rounded-full border border-border px-3.5 py-1.5 text-left text-xs text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             >
               {q}
             </button>
@@ -369,7 +381,7 @@ function BlockText({ text, ids, facts }: { text: string; ids: string[]; facts: M
 
 function Unavailable({ result }: { result: Extract<ChatResult, { status: "unavailable" }> }) {
   return (
-    <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-[15px] leading-7">
+    <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-xs">
       <p className="text-muted-foreground">{result.reason}</p>
       {result.notes.length > 0 && (
         <ul className="mt-2 flex flex-col gap-1 pl-5 [&>li]:list-disc">
@@ -407,6 +419,10 @@ function Composer({
 }) {
   const [text, setText] = useState("");
   const [listening, setListening] = useState(false);
+  // Checked after mount: the server can't know, and guessing there makes the
+  // server HTML differ from the browser's (a hydration error).
+  const [micSupported, setMicSupported] = useState(false);
+  useEffect(() => setMicSupported(canListen()), []);
   const stopListening = useRef<(() => void) | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
@@ -458,9 +474,9 @@ function Composer({
           }}
           placeholder={listening ? "Listening…" : hasParcel ? "Ask anything about this parcel…" : "Ask how this tool works…"}
           aria-label="Your question"
-          className="max-h-[180px] min-h-7 flex-1 resize-none bg-transparent py-1 text-[15px] leading-6 outline-none placeholder:text-muted-foreground"
+          className="max-h-[180px] min-h-7 flex-1 resize-none bg-transparent py-1 text-xs outline-none placeholder:text-muted-foreground"
         />
-        {canListen() && (
+        {micSupported && (
           <Button
             type="button"
             variant="ghost"
@@ -487,6 +503,7 @@ function Composer({
           <ArrowUp />
         </Button>
       </div>
+      <Disclaimer className="mx-auto mt-1.5 max-w-3xl text-center" />
     </form>
   );
 }

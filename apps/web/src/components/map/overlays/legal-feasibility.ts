@@ -24,7 +24,7 @@ export const TYPOLOGIES: [string, string][] = [
 // Ranked pathways run cyan (easiest) to red (hardest). The non-ranked states sit
 // off that ramp: planned-unit districts purple, Mount Oliver light grey.
 export const PATHWAY_META: Record<string, { color: string; label: string }> = {
-  by_right: { color: "#22d3ee", label: "By right (staff review)" },
+  by_right: { color: "#22d3ee", label: "By right" },
   za: { color: "#60a5fa", label: "Administrator exception" },
   zbe_special_exception: { color: "#fbbf24", label: "Special exception (Zoning Board hearing)" },
   conditional_use: { color: "#fb923c", label: "Conditional use (Planning Commission + Council)" },
@@ -61,7 +61,7 @@ const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
 const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
 const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Golden Triangle (GT-A…E) pooled" };
 
-function zbaLine(zone: string, typology: string) {
+export function zbaLine(zone: string, typology: string) {
   const base = zbaBase(zone);
   if (ZBA_POOLED_SKIP.has(base)) return "";
   const byType = ZBA_OUTCOMES[base];
@@ -491,6 +491,77 @@ export const careSpacingOverlay: OverlayDefinition = {
     caveats: [
       "Partial: only licensed facilities are drawn; unlicensed group homes also count under the rule but aren't mapped (privacy).",
       "A parcel-level gate the district map can't show.",
+    ],
+  },
+};
+
+// Density tiers for the plain "what does zoning allow here" choropleth,
+// distinct from the per-typology Legal pathway overlay above: this colors
+// every district by its own residential density tier (or red if it excludes
+// housing entirely), regardless of which typology you're asking about.
+const DENSITY_TIER_COLORS: Record<string, string> = {
+  R1D: "#4ade80",
+  R1A: "#38bdf8",
+  R2: "#818cf8",
+  R3: "#a78bfa",
+  RM: "#e879f9",
+};
+const NON_RESIDENTIAL_ZONING_COLOR = "#ef4444";
+const OTHER_ZONING_COLOR = "#71717a";
+
+export const residentialZoningOverlay: OverlayDefinition = {
+  id: "residential-zoning",
+  label: "Zoning: residential density allowed",
+  group: "heat",
+  description:
+    "City zoning districts colored by residential density tier (single-unit detached through multi-unit); red where housing is excluded entirely.",
+  source: { kind: "static", url: "/data/pittsburgh-zoning.geojson" },
+  layers: (sourceId) => [
+    {
+      id: "residential-zoning-fill",
+      type: "fill",
+      source: sourceId,
+      paint: {
+        "fill-color": [
+          "case",
+          ["==", ["get", "non_housing"], true],
+          NON_RESIDENTIAL_ZONING_COLOR,
+          matchColor("zoning_base", DENSITY_TIER_COLORS, OTHER_ZONING_COLOR),
+        ] as never,
+        "fill-opacity": 0.45,
+      },
+    },
+    {
+      id: "residential-zoning-outline",
+      type: "line",
+      source: sourceId,
+      paint: { "line-color": "#111111", "line-width": 0.5, "line-opacity": 0.4 },
+    },
+  ],
+  tooltipLayerIds: ["residential-zoning-fill"],
+  tooltip: (p) =>
+    [
+      `${p.zon_new ?? "Unknown"}${p.full_zoning_type ? ` (${String(p.full_zoning_type).toLowerCase()})` : ""}`,
+      p.non_housing ? "Excludes housing entirely" : "",
+    ].filter(Boolean),
+  legend: () => [
+    { color: DENSITY_TIER_COLORS.R1D!, label: "Single-unit detached (R1D)", shape: "fill" },
+    { color: DENSITY_TIER_COLORS.R1A!, label: "Single-unit attached (R1A)", shape: "fill" },
+    { color: DENSITY_TIER_COLORS.R2!, label: "Two-unit (R2)", shape: "fill" },
+    { color: DENSITY_TIER_COLORS.R3!, label: "Three-unit (R3)", shape: "fill" },
+    { color: DENSITY_TIER_COLORS.RM!, label: "Multi-unit (RM)", shape: "fill" },
+    { color: NON_RESIDENTIAL_ZONING_COLOR, label: "Excludes housing", shape: "fill" },
+    { color: OTHER_ZONING_COLOR, label: "Other (commercial, mixed-use, planned)", shape: "fill" },
+  ],
+  meta: {
+    source: "PGHWebZoning (City of Pittsburgh), transcribed by the research team",
+    sourceUrl: "https://ecode360.com/45476524",
+    asOf: LEGAL_MATRIX_AS_OF,
+    geography: "City zoning district (city only; Mount Oliver Borough uses its own code)",
+    evidence: "policy",
+    caveats: [
+      "Colored by the base district's typical density tier only; the actual permitted-use table has exceptions per typology -- see the Legal pathway overlay for exact rules.",
+      "Working research, not legal advice.",
     ],
   },
 };

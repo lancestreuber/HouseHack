@@ -33,6 +33,16 @@ describe("overallScore (mirrors apps/web/src/lib/pillars/score.ts)", () => {
     expect(overallScore(model)).toBeCloseTo(Math.sqrt(80), 6);
   });
 
+  test("a missing part counts as its imputed value", () => {
+    const model = pillars("arithmetic");
+    model.parts[2] = { id: "afford", label: "Affordability", score: null, weight: 1, impute: 50 };
+    expect(overallScore(model)).toBe(50); // (80 + 20 + 50) / 3
+  });
+
+  test("the multiplier scales the blended score (zoning, site availability)", () => {
+    expect(overallScore({ ...pillars("arithmetic"), multiplier: 0.35 })).toBeCloseTo(17.5, 6);
+  });
+
   test("null when every weight is zero", () => {
     expect(overallScore(pillars("arithmetic"), { demand: 0, climate: 0 })).toBeNull();
   });

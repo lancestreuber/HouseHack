@@ -9,8 +9,11 @@ import type { AddLayerObject, LngLatBounds } from "maplibre-gl";
 // - "environment": environmental rasters (surface heat, canopy, impervious), stackable.
 // - "policy": zoning overlays and program designation areas, stackable.
 // - "development": permits, demolitions and property conditions, stackable.
+// - "pillar": the five pillar scores rolled up to hexes. Shares the single
+//   "heat" slot, so a pillar and a census choropleth never draw together.
 export type OverlayGroup =
   | "heat"
+  | "pillar"
   | "hazard"
   | "infrastructure"
   | "places"
@@ -20,7 +23,9 @@ export type OverlayGroup =
   // - "land": acquisition signals (city-owned land, tax sales, delinquency), stackable.
   | "land"
   // - "legal": what zoning allows vs what exists (senior and supportive housing), stackable.
-  | "legal";
+  | "legal"
+  // - "cameras": public live camera feeds (click a point to watch), stackable.
+  | "cameras";
 
 // The brief asks us to separate observed evidence from assumptions, policy
 // choices and value judgments. Every overlay declares which it is.
@@ -80,6 +85,8 @@ export type OverlaySource =
       fetch: (bounds: LngLatBounds, signal: AbortSignal) => Promise<GeoJSONData>;
     };
 
+export const detailSourceId = (sourceId: string) => `${sourceId}-detail`;
+
 export type OverlayDefinition = {
   id: string;
   label: string;
@@ -89,6 +96,12 @@ export type OverlayDefinition = {
   drawBelowOutlines?: boolean;
   description: string;
   source: OverlaySource;
+  // Overlays with the same sharedSource load one copy of a static file.
+  sharedSource?: string;
+  // A finer static file for close zooms. It is fetched once the map reaches
+  // minZoom, and only the features in view are loaded into the source
+  // detailSourceId(sourceId), which the overlay's layers draw from.
+  detail?: { url: string; minZoom: number };
   metrics?: OverlayMetric[];
   // Layers to add for this overlay, given the selected metric (if any).
   // Layer ids must be unique across overlays; prefix them with the overlay id.
@@ -96,6 +109,9 @@ export type OverlayDefinition = {
   // Layers that show hover tooltips, if any.
   tooltipLayerIds?: string[];
   tooltip?: (properties: Record<string, unknown>, metric?: OverlayMetric) => string[];
+  // Layers whose features open something on click (e.g. a live camera view).
+  clickLayerIds?: string[];
+  onClick?: (properties: Record<string, unknown>) => void;
   legend: (metric?: OverlayMetric) => LegendItem[];
   meta: OverlayMeta;
   indicators?: Indicator[];

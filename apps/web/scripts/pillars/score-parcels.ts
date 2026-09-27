@@ -46,13 +46,27 @@ if (data.config_version !== config.version)
 
 const columns = Object.fromEntries(data.indicators.map((id) => [id, Buffer.from(data.columns[id], "base64")]));
 const fmt = (v: number | null) => (v == null ? "" : v.toFixed(1));
-const lines = [["pin", "zoning", ...PILLAR_IDS, "overall", "flags"].join(",")];
+const lines = [["pin", "zoning", ...PILLAR_IDS, "pillar_blend", "zoning_status", "zoning_x", "site_use", "site_use_x", "hazard_x", "overall", "flags"].join(",")];
 for (let i = 0; i < data.count; i++) {
   const values: Record<string, number | null> = {};
   for (const id of data.indicators) values[id] = columns[id][i] === data.missing ? null : columns[id][i];
   const s = scoreParcel(values, overrides);
-  const flags = PILLAR_IDS.flatMap((p) => s.pillars[p].flags).join("; ");
-  lines.push([data.pins[i], data.zoning[i], ...PILLAR_IDS.map((p) => fmt(s.pillars[p].score)), fmt(s.overall), flags ? `"${flags}"` : ""].join(","));
+  const flags = PILLAR_IDS.flatMap((p) => s.pillars[p].flags.map((f) => f.text)).join("; ");
+  lines.push(
+    [
+      data.pins[i],
+      data.zoning[i],
+      ...PILLAR_IDS.map((p) => fmt(s.pillars[p].score)),
+      fmt(s.overallBeforeMultipliers),
+      s.legal?.id ?? "",
+      s.legal?.multiplier ?? "",
+      s.availability?.id ?? "",
+      s.availability?.multiplier ?? "",
+      s.hazard?.multiplier ?? "",
+      fmt(s.overall),
+      flags ? `"${flags}"` : "",
+    ].join(","),
+  );
 }
 await Bun.write(out, `${lines.join("\n")}\n`);
 console.log(`scored ${data.count} parcels → ${out}`);
