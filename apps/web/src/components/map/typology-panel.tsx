@@ -92,6 +92,29 @@ const SITE_FIT_TYPOLOGY: Record<string, string> = {
   elderly_general: "elderly",
 };
 
+// Short, plain-English names for the dropdown/tile face -- TYPOLOGIES'
+// own labels (legal-feasibility.ts) are the full, precise zoning-code
+// descriptions ("Multi-unit apartments (4+)"), which reads fine inside the
+// dropdown's option list but is too long to be *the* name on a narrow tile.
+const SHORT_LABEL: Record<string, string> = {
+  single_detached: "House",
+  single_attached: "Rowhouse",
+  two_unit: "Duplex",
+  three_unit: "Triplex",
+  multi_unit: "Apartments",
+  elderly_limited: "Elderly housing (limited)",
+  elderly_general: "Elderly housing (general)",
+  assisted_living_a: "Assisted living (small)",
+  assisted_living_b: "Assisted living (mid)",
+  assisted_living_c: "Assisted living (large)",
+  personal_care_small: "Personal care (small)",
+  personal_care_large: "Personal care (large)",
+  community_home: "Community home",
+  multi_suite_limited: "Multi-suite (limited)",
+  multi_suite_general: "Multi-suite (general)",
+  interim_housing: "Interim housing",
+};
+
 function scoreColor(score: number | null) {
   if (score == null) return "#525252";
   if (score >= 70) return "#22c55e";
@@ -125,19 +148,21 @@ function TypologyTile({
 
   return (
     <div className="flex min-w-[10rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2">
-      <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
-        <SelectTrigger size="sm" className="h-6 w-full border-none px-0 text-muted-foreground shadow-none">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {TYPOLOGIES.map(([id, label]) => (
-            <SelectItem key={id} value={id}>
-              {label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <span className="font-mono text-[10px] text-muted-foreground">{typologyId}</span>
+      <div className="flex items-baseline gap-1.5">
+        <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
+          <SelectTrigger size="sm" className="h-6 flex-1 border-none px-0 font-medium shadow-none">
+            <SelectValue>{SHORT_LABEL[typologyId] ?? typologyId}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {TYPOLOGIES.map(([id, label]) => (
+              <SelectItem key={id} value={id} title={label}>
+                {SHORT_LABEL[id] ?? label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{typologyId}</span>
+      </div>
       <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
         {score == null ? "—" : score}
       </span>
