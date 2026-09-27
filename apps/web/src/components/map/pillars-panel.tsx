@@ -5,14 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
-import { Disclaimer } from "@/components/disclaimer";
 import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
 import { COST_PRESETS, DEFAULT_PENCIL, PENCIL_TYPOLOGIES, pencilCheck } from "@/lib/pillars/pencil";
 import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { VERDICT_COLOR, VERDICT_NOT_CHECKED, VERDICT_PERMIT_NOTE } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
-import { PaneCollapseButton } from "./pane-collapse-button";
 import { type FitsById, legalLevelFor, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
@@ -320,11 +318,11 @@ function PillarCard({
  * the exact same (cached) System One result instead of issuing their own
  * near-duplicate requests. The chat also reads it, before data may have
  * loaded, so `data` can be null (the query just waits). */
-export function useTypologyFit(pin: string, data: ParcelData | null) {
+export function useTypologyFit(pin: string | null, data: ParcelData | null) {
   return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
-        pin,
+        pin: pin ?? "",
         zoning: data?.zoning || null,
         hazards: {
           floodway: data?.raw.site_floodway_share,
@@ -343,9 +341,42 @@ export function useTypologyFit(pin: string, data: ParcelData | null) {
 // The brief's mainstream housing types, in size order.
 const VERDICT_TYPOLOGIES = ["single_detached", "single_attached", "two_unit", "three_unit", "multi_unit"];
 
+/** One place that turns a parcel + the global weights into everything the
+ * inspector shows: shard data, the scored result, the weight-sensitivity
+ * range and the percentile rank. Shared by the inspector header and tabs so
+ * they can never disagree. */
+export function useParcelScore(pin: string | null, weights: Partial<Record<PillarId, number>>) {
+  const { data, status } = useParcelData(pin);
+  // "easiest" = the zoning factor uses the easiest of the mainstream types (the
+  // published default); otherwise it follows the one housing type picked here.
+  const [legalFor, setLegalFor] = useState("easiest");
+  const overrides = useMemo<WeightOverrides>(
+    () => ({
+      pillars: weights,
+      ...(legalFor !== "easiest" && data ? { legalLevel: legalLevelFor(data.zoning, legalFor, data.norm.site_legal_pathway) } : {}),
+    }),
+    [weights, legalFor, data],
+  );
+  const hasCustomWeights = Object.keys(weights).length > 0;
+  const isCustom = hasCustomWeights || legalFor !== "easiest";
+  const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
+  const range = useMemo(() => {
+    if (!result) return null;
+    const r = weightSensitivity(result.pillars, overrides);
+    // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
+    const m = scoreMultiplier(result);
+    return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
+  }, [result, overrides]);
+  const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
+  const overallPhrase = result ? overallPhraseFor(result, rank) : null;
+  return { pin, data, status, legalFor, setLegalFor, hasCustomWeights, isCustom, result, range, rank, overallPhrase };
+}
+
+export type ParcelScoreView = ReturnType<typeof useParcelScore>;
+
 /** Red / yellow / green "can it be built?" per housing type, from pass/fail
  * checks only (see lib/pillars/verdict.ts), kept apart from the weighted score. */
-function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
+export function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
   const query = useTypologyFit(pin, data);
   const fitsById = useMemo(() => {
     if (!query.data) return undefined;
@@ -401,7 +432,7 @@ const usdK = (n: number | null) => (n == null ? "—" : `$${Math.round(n / 1000)
 /** Value per unit vs. cost per unit for each mainstream type, with the two
  * assumptions that move it most editable in place (SME: the tool should do
  * the pro-forma work, and user-typed assumptions help if they're clear). */
-function PencilSection({ data }: { data: ParcelData }) {
+export function PencilSection({ data }: { data: ParcelData }) {
   const a = usePencilAssumptions();
   const [open, setOpen] = useState(false);
   const pencil = config.pencil;
@@ -505,184 +536,137 @@ function PencilSection({ data }: { data: ParcelData }) {
   );
 }
 
-export function PillarsPanel({
-  pin,
-  onClose,
-  onSelectPillar,
-  collapsed,
-  onToggleCollapse,
-  weights,
-}: {
-  pin: string;
-  onClose: () => void;
-  onSelectPillar?: (id: PillarId) => void;
-  collapsed?: boolean;
-  onToggleCollapse?: () => void;
-  /** Global pillar weights from the navbar's Weights popover (pillar-weights-store). */
-  weights: Partial<Record<PillarId, number>>;
-}) {
-  const { data, status } = useParcelData(pin);
-  // "easiest" = the zoning factor uses the easiest of the mainstream types (the
-  // published default); otherwise it follows the one housing type picked here.
-  const [legalFor, setLegalFor] = useState("easiest");
-  const overrides = useMemo<WeightOverrides>(
-    () => ({
-      pillars: weights,
-      ...(legalFor !== "easiest" && data ? { legalLevel: legalLevelFor(data.zoning, legalFor, data.norm.site_legal_pathway) } : {}),
-    }),
-    [weights, legalFor, data],
-  );
-  const hasCustomWeights = Object.keys(weights).length > 0;
-  const isCustom = hasCustomWeights || legalFor !== "easiest";
-  const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
-  const range = useMemo(() => {
-    if (!result) return null;
-    const r = weightSensitivity(result.pillars, overrides);
-    // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
-    const m = scoreMultiplier(result);
-    return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
-  }, [result, overrides]);
-  const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
-  const overallPhrase = result ? overallPhraseFor(result, rank) : null;
-
+/** Overall viability headline card: score, percentile, coverage, multiplier
+ * explanation and the zoning-factor type picker. */
+export function OverallScoreCard({ score }: { score: ParcelScoreView }) {
+  const { data, result, range, rank, overallPhrase, isCustom, hasCustomWeights, legalFor, setLegalFor } = score;
+  if (!data || !result) return null;
   return (
-    <aside className="flex h-full w-full flex-col bg-background text-xs">
-      <header className="flex items-start justify-between gap-2 border-b p-3">
-        <div>
-          <p className="text-muted-foreground">Parcel</p>
-          <p className="font-mono text-sm">{pin}</p>
-          {data && <p className="text-muted-foreground">Zoning {data.zoning || "unknown"}</p>}
+    <>
+      <section className="rounded-lg border border-border bg-background/60 p-3">
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="font-medium">Overall</span>
+          <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
+            {fmtScore(result.overall)}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="scores" />}
-          <button type="button" onClick={onClose} className="rounded px-2 py-1 hover:bg-foreground/10" aria-label="Close parcel panel">
-            ✕
-          </button>
-        </div>
-      </header>
-      {!collapsed && (
-      <div className="flex-1 space-y-2 overflow-y-auto p-3">
-        {status === "loading" && <p className="text-muted-foreground">Loading scores…</p>}
-        {status === "missing" && (
-          <p className="text-muted-foreground">No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.</p>
+        <ScoreBar score={result.overall} />
+        {result.overall == null && <p className="mt-1">Not enough data for an overall score.</p>}
+        {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
+          <p className="mt-1 text-warn">
+            Not enough data for {config.pillars.filter((p) => result.pillars[p.id as PillarId].score == null).map((p) => p.label).join(", ")};
+            counted as a below-typical score (the City's 25th percentile for that pillar).
+          </p>
         )}
-        {data && result && (
-          <>
-            <BuildVerdicts pin={pin} data={data} />
-            <PencilSection data={data} />
-            <section className="rounded border border-border/60 p-2">
-              <div className="flex items-baseline justify-between gap-2">
-                <span className="font-medium">Overall</span>
-                <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
-                  {fmtScore(result.overall)}
-                </span>
-              </div>
-              <ScoreBar score={result.overall} />
-              {result.overall == null && <p className="mt-1">Not enough data for an overall score.</p>}
-              {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
-                <p className="mt-1 text-amber-400/90">
-                  Not enough data for {config.pillars.filter((p) => result.pillars[p.id as PillarId].score == null).map((p) => p.label).join(", ")};
-                  counted as a below-typical score (the City's 25th percentile for that pillar).
-                </p>
-              )}
-              {(() => {
-                // Missing indicators are dropped and the rest reweighted, so say how much was actually measured.
-                const coverage = config.pillars.reduce((a, p) => a + result.pillars[p.id as PillarId].coverage, 0) / config.pillars.length;
-                return (
-                  <p className={`mt-1 ${coverage < 0.8 ? "text-amber-400/90" : "text-muted-foreground"}`}>
-                    Data coverage: {Math.round(coverage * 100)}% of indicator weight has data for this parcel
-                    {coverage < 0.8 ? "; the score leans on fewer measurements than usual." : "."}
-                  </p>
-                );
-              })()}
-              {rank != null && (
-                <p className="mt-1">
-                  Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
-                  {isCustom ? " (compared with scores at the default settings)" : ""}.
-                </p>
-              )}
-              {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
-              <p className="mt-1 text-muted-foreground">
-                Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
-                {hasCustomWeights ? "your weights" : "equal weights"}
-                {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
-                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}
-                {result.hazard ? `, × ${result.hazard.multiplier} for a deal-killer hazard` : ""}.
-                {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
-              </p>
-            </section>
-            {result.hazard && (
-              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
-                <p className="font-medium">Deal-killer site hazard</p>
-                {result.hazard.flags.map((f) => (
-                  <p key={f}>{f}</p>
-                ))}
-                <p className="text-muted-foreground">
-                  Overall score × {result.hazard.multiplier}, so a good neighborhood can't average it away.
-                </p>
-              </section>
-            )}
-            {result.availability && result.availability.multiplier < 1 && (
-              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
-                <p className="font-medium">{result.availability.label}</p>
-                <p className="text-muted-foreground">Overall score × {result.availability.multiplier}.</p>
-                {result.availability.note && <p className="text-muted-foreground">{result.availability.note}</p>}
-              </section>
-            )}
-            <section
-              className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-medium">Zoning (current code)</p>
-                <Select value={legalFor} onValueChange={(v) => v && setLegalFor(v)}>
-                  <SelectTrigger size="sm" className="h-6 w-auto gap-1 px-1.5" aria-label="Zoning factor for which housing type">
-                    <SelectValue>{legalFor === "easiest" ? "Easiest type" : (SHORT_LABEL[legalFor] ?? legalFor)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="easiest">Easiest type</SelectItem>
-                    {VERDICT_TYPOLOGIES.map((id) => (
-                      <SelectItem key={id} value={id}>
-                        {SHORT_LABEL[id] ?? id}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <p>
-                {legalFor !== "easiest" && `${SHORT_LABEL[legalFor] ?? legalFor}: `}
-                {result.legal ? result.legal.label : "Legal status unknown for this district"}
-              </p>
-              {result.legal && result.legal.multiplier < 1 && (
-                <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
-              )}
-              {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
-              <p className="text-muted-foreground">
-                {legalFor === "easiest"
-                  ? "Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing; pick a type to score for that type instead."
-                  : "Pathway for this housing type only."}{" "}
-                Simplified reading of §911.02;
-                verify with the Zoning Administrator.
-              </p>
-            </section>
-            {config.pillars.map((p) => (
-              <PillarCard
-                key={p.id}
-                id={p.id as PillarId}
-                score={result.pillars[p.id as PillarId]}
-                data={data}
-                phrase={pillarPhrase(result, p.id as PillarId, data.norm)}
-                onSelectPillar={onSelectPillar}
-              />
-            ))}
-            <p className="text-muted-foreground">
-              All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Default weights and every rule are
-              published in pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
+        {(() => {
+          // Missing indicators are dropped and the rest reweighted, so say how much was actually measured.
+          const coverage = config.pillars.reduce((a, p) => a + result.pillars[p.id as PillarId].coverage, 0) / config.pillars.length;
+          return (
+            <p className={`mt-1 ${coverage < 0.8 ? "text-warn" : "text-muted-foreground"}`}>
+              Data coverage: {Math.round(coverage * 100)}% of indicator weight has data for this parcel
+              {coverage < 0.8 ? "; the score leans on fewer measurements than usual." : "."}
             </p>
-          </>
+          );
+        })()}
+        {rank != null && (
+          <p className="mt-1">
+            Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
+            {isCustom ? " (compared with scores at the default settings)" : ""}.
+          </p>
         )}
-      </div>
+        {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
+        <p className="mt-1 text-muted-foreground">
+          Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
+          {hasCustomWeights ? "your weights" : "equal weights"}
+          {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
+          {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}
+          {result.hazard ? `, × ${result.hazard.multiplier} for a deal-killer hazard` : ""}.
+          {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
+        </p>
+      </section>
+      {result.hazard && (
+        <section className="rounded-lg border border-red-500/60 bg-red-500/10 p-3">
+          <p className="font-medium">Deal-killer site hazard</p>
+          {result.hazard.flags.map((f) => (
+            <p key={f}>{f}</p>
+          ))}
+          <p className="text-muted-foreground">
+            Overall score × {result.hazard.multiplier}, so a good neighborhood can't average it away.
+          </p>
+        </section>
       )}
-      <Disclaimer className="shrink-0 border-t border-border p-2" />
-    </aside>
+      {result.availability && result.availability.multiplier < 1 && (
+        <section className="rounded-lg border border-red-500/60 bg-red-500/10 p-3">
+          <p className="font-medium">{result.availability.label}</p>
+          <p className="text-muted-foreground">Overall score × {result.availability.multiplier}.</p>
+          {result.availability.note && <p className="text-muted-foreground">{result.availability.note}</p>}
+        </section>
+      )}
+      <section
+        className={`rounded-lg border p-3 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border"}`}
+      >
+        <div className="flex items-center justify-between gap-2">
+          <p className="font-medium">Zoning (current code)</p>
+          <Select value={legalFor} onValueChange={(v) => v && setLegalFor(v)}>
+            <SelectTrigger size="sm" className="h-6 w-auto gap-1 px-1.5" aria-label="Zoning factor for which housing type">
+              <SelectValue>{legalFor === "easiest" ? "Easiest type" : (SHORT_LABEL[legalFor] ?? legalFor)}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="easiest">Easiest type</SelectItem>
+              {VERDICT_TYPOLOGIES.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {SHORT_LABEL[id] ?? id}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <p>
+          {legalFor !== "easiest" && `${SHORT_LABEL[legalFor] ?? legalFor}: `}
+          {result.legal ? result.legal.label : "Legal status unknown for this district"}
+        </p>
+        {result.legal && result.legal.multiplier < 1 && (
+          <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
+        )}
+        {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
+        <p className="text-muted-foreground">
+          {legalFor === "easiest"
+            ? "Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing; pick a type to score for that type instead."
+            : "Pathway for this housing type only."}{" "}
+          Simplified reading of §911.02;
+          verify with the Zoning Administrator.
+        </p>
+      </section>
+    </>
+  );
+}
+
+/** The five expandable pillar cards plus the config pointer note. */
+export function PillarCards({
+  score,
+  onSelectPillar,
+}: {
+  score: ParcelScoreView;
+  onSelectPillar?: (id: PillarId) => void;
+}) {
+  const { data, result } = score;
+  if (!data || !result) return null;
+  return (
+    <>
+      {config.pillars.map((p) => (
+        <PillarCard
+          key={p.id}
+          id={p.id as PillarId}
+          score={result.pillars[p.id as PillarId]}
+          data={data}
+          phrase={pillarPhrase(result, p.id as PillarId, data.norm)}
+          onSelectPillar={onSelectPillar}
+        />
+      ))}
+      <p className="text-muted-foreground">
+        All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Default weights and every rule are
+        published in pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
+      </p>
+    </>
   );
 }

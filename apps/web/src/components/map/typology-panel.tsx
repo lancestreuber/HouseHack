@@ -12,11 +12,8 @@ import {
   SelectValue,
 } from "@HouseHack/ui/components/select";
 
-import { Disclaimer } from "@/components/disclaimer";
-
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
-import { PaneCollapseButton } from "./pane-collapse-button";
 import { type ParcelData, ScoreBar, useParcelData, useTypologyFit } from "./pillars-panel";
 import { type FitsById, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
 
@@ -64,7 +61,7 @@ function hexToHsl(hex: string): [number, number, number] {
   const d = max - min;
   const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
   let h: number;
-  if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+  if (max === r) h = (g - b) / d + (g < b ? 6) : 0;
   else if (max === g) h = (b - r) / d + 2;
   else h = (r - g) / d + 4;
   return [h * 60, s * 100, l * 100];
@@ -83,7 +80,7 @@ function scoreColor(score: number | null) {
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
-function TypologyTile({
+function TypologyCard({
   typologyId,
   onTypologyChange,
   zoning,
@@ -102,7 +99,7 @@ function TypologyTile({
   fitsById?: FitsById;
   /** Lot width in feet, for the side-setback check; undefined while loading. */
   lotWidthFt?: number | null;
-  /** Scrolls the Alerts pane to this card's typology, if it has one there. */
+  /** Switches the inspector to the Alerts tab, scrolled to this card's typology. */
   onSelectTypology?: (siteFitId: string) => void;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
@@ -119,58 +116,63 @@ function TypologyTile({
   const pencil = usePencilAssumptions();
   const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
   const blockers = verdict.reasons.filter((r) => r.level !== "green");
+  const reliefOdds = pathwayId === "not_permitted" ? Math.round(rezoningCloseness(zoning, typologyId) * rezoningLikelihood(zoning) * 100) : null;
 
   return (
     <div
-      className={`flex min-w-[10rem] flex-1 flex-col gap-1 rounded border bg-background/60 p-2 ${canJumpToAlerts ? "cursor-pointer" : ""}`}
-      style={{ borderColor: `${VERDICT_COLOR[verdict.level]}99` }}
+      className={`flex flex-col gap-1.5 rounded-lg border border-border bg-background/60 p-3 ${canJumpToAlerts ? "cursor-pointer" : ""}`}
       onClick={canJumpToAlerts ? () => onSelectTypology?.(siteFitId!) : undefined}
       title={canJumpToAlerts ? "Jump to this typology's alerts" : undefined}
     >
-      <div className="flex items-baseline gap-1.5" onClick={(e) => e.stopPropagation()}>
-        <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
-          <SelectTrigger size="sm" className="h-6 flex-1 border-none px-0 font-medium shadow-none">
-            <SelectValue>{SHORT_LABEL[typologyId] ?? typologyId}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {TYPOLOGIES.map(([id, label]) => (
-              <SelectItem key={id} value={id} title={label}>
-                {SHORT_LABEL[id] ?? label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{typologyId}</span>
-      </div>
-      <div title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
-        <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
-          <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-          {verdict.label}
-        </p>
-        {blockers.slice(0, 2).map((r) => (
-          <p key={r.text} className="text-muted-foreground">
-            <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
-          </p>
-        ))}
-        {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
-      </div>
-      <div className="flex items-baseline gap-1.5 border-t border-border/40 pt-1" title={tooltip}>
-        <span className="font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
-          {score == null ? "—" : score}
+      <div className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="size-1.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} aria-hidden />
+          <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
+            <SelectTrigger size="sm" className="h-6 min-w-0 flex-1 border-none px-0 text-[15px] font-semibold shadow-none">
+              <SelectValue>{SHORT_LABEL[typologyId] ?? typologyId}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {TYPOLOGIES.map(([id, label]) => (
+                <SelectItem key={id} value={id} title={label}>
+                  {SHORT_LABEL[id] ?? label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <span className="shrink-0 text-[13px] font-semibold tnum" style={{ color: scoreColor(score ?? null) }}>
+          {score == null ? "—" : score} / 100
         </span>
-        <span className="truncate text-muted-foreground">{pathway?.label ?? "Unresolved in the code"}</span>
+      </div>
+      <div className="flex items-center justify-between text-[13px]" title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
+        <span style={{ color: VERDICT_COLOR[verdict.level] }}>{verdict.label}</span>
+        <span className="text-faint tnum">
+          {reliefOdds != null ? `Relief odds: ${reliefOdds}%` : fit ? `Fit confidence: ${Math.round(fit.confidence * 100)}%` : ""}
+        </span>
+      </div>
+      {blockers.slice(0, 2).map((r) => (
+        <p key={r.text} className="text-[13px] text-muted-foreground">
+          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
+        </p>
+      ))}
+      {blockers.length > 2 && <p className="text-[13px] text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
+      <div className="mt-1" title={tooltip}>
+        <div className="h-1 w-full overflow-hidden rounded-full bg-popover">
+          <div className="h-full rounded-full" style={{ width: `${score ?? 0}%`, background: scoreColor(score ?? null) }} />
+        </div>
+        <p className="mt-1 truncate text-[13px] text-muted-foreground">{pathway?.label ?? "Unresolved in the code"}</p>
       </div>
       {fit && (
-        <div className="space-y-0.5 border-t border-border/40 pt-1">
+        <div className="space-y-0.5">
           <div className="flex items-center gap-1.5">
             <div className="flex-1">
               <ScoreBar score={fit.fit * 100} />
             </div>
             <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
           </div>
-          <p className="text-muted-foreground">
+          <p className="text-[13px] text-muted-foreground">
             {fit.label}
-            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+            {fit.needsReview && <span className="text-warn"> · needs review</span>}
           </p>
         </div>
       )}
@@ -178,21 +180,18 @@ function TypologyTile({
   );
 }
 
-function TypologyTiles({
+/** Inspector Typology tab: stacked feasibility cards for four housing types,
+ * each independently swappable across all 16 registered typologies. */
+export function TypologyCards({
   pin,
-  data,
-  zoning,
-  typologyIds,
-  onTypologyChange,
   onSelectTypology,
 }: {
   pin: string;
-  data: ParcelData;
-  zoning: string;
-  typologyIds: string[];
-  onTypologyChange: (index: number, id: string) => void;
   onSelectTypology?: (siteFitId: string) => void;
 }) {
+  const [typologyIds, setTypologyIds] = useState<string[]>(DEFAULT_TYPOLOGY_IDS);
+  const { data, status } = useParcelData(pin);
+  const zoning = data?.zoning ?? "";
   const query = useTypologyFit(pin, data);
   const fitsById = useMemo(() => {
     if (!query.data) return undefined;
@@ -201,80 +200,37 @@ function TypologyTiles({
     return map;
   }, [query.data]);
 
-  return (
-    <>
-      <p className="text-muted-foreground">
-        {query.data?.facts.lot ?? "Checking lot size and shape…"}
-      </p>
-      <div className="flex h-full w-full gap-2">
-        {typologyIds.map((id, i) => (
-          <TypologyTile
-            key={i}
-            typologyId={id}
-            zoning={zoning}
-            values={data}
-            onTypologyChange={(next) => onTypologyChange(i, next)}
-            fitsById={fitsById}
-            lotWidthFt={query.data?.lot.widthFt}
-            onSelectTypology={onSelectTypology}
-          />
-        ))}
-      </div>
-      <p className="text-muted-foreground">{VERDICT_NOT_CHECKED}</p>
-    </>
-  );
-}
-
-/** Bottom pane: side-by-side feasibility scores for a handful of housing
- * typologies on the selected parcel's zoning district, plus (where a close
- * enough match exists) Jev's physical site-fit judgment for that typology.
- * Each tile's typology is independently swappable via its dropdown. */
-export function TypologyPanel({
-  pin,
-  collapsed,
-  onToggleCollapse,
-  onSelectTypology,
-}: {
-  pin: string | null;
-  collapsed?: boolean;
-  onToggleCollapse?: () => void;
-  onSelectTypology?: (siteFitId: string) => void;
-}) {
-  const [typologyIds, setTypologyIds] = useState<string[]>(DEFAULT_TYPOLOGY_IDS);
-  const { data, status } = useParcelData(pin);
-  const zoning = data?.zoning ?? "";
-
   const setTypologyAt = (index: number, id: string) =>
     setTypologyIds((prev) => prev.map((cur, i) => (i === index ? id : cur)));
 
-  const body = useMemo(() => {
-    if (!pin) return <p className="text-muted-foreground">Select a parcel on the map to see typology scores.</p>;
-    if (status === "loading") return <p className="text-muted-foreground">Loading…</p>;
-    if (status === "missing" || !data)
-      return <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
-    return (
-      <TypologyTiles
-        pin={pin}
-        data={data}
-        zoning={zoning}
-        typologyIds={typologyIds}
-        onTypologyChange={setTypologyAt}
-        onSelectTypology={onSelectTypology}
-      />
-    );
-  }, [pin, status, data, typologyIds, zoning, onSelectTypology]);
-
   return (
-    <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 text-xs">
-      <div className="flex items-baseline justify-between">
-        <span className="font-medium">Typology scores</span>
-        <div className="flex items-center gap-2">
-          {zoning && <span className="text-muted-foreground">Zoning {zoning}</span>}
-          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
-        </div>
+    <div className="flex flex-col gap-3 p-4">
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-semibold tracking-wide text-foreground uppercase">Typology feasibility</span>
+        <span className="text-[11px] text-faint">By allowable density</span>
       </div>
-      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-auto">{body}</div>}
-      {!collapsed && <Disclaimer className="shrink-0" />}
+      {!data && status === "loading" && <p className="text-muted-foreground">Loading…</p>}
+      {status === "missing" && <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>}
+      {data && (
+        <>
+          <p className="text-[13px] text-muted-foreground">{query.data?.facts.lot ?? "Checking lot size and shape…"}</p>
+          <div className="flex flex-col gap-2.5">
+            {typologyIds.map((id, i) => (
+              <TypologyCard
+                key={i}
+                typologyId={id}
+                zoning={zoning}
+                values={data as ParcelData}
+                onTypologyChange={(next) => setTypologyAt(i, next)}
+                fitsById={fitsById}
+                lotWidthFt={query.data?.lot.widthFt}
+                onSelectTypology={onSelectTypology}
+              />
+            ))}
+          </div>
+          <p className="text-[13px] text-muted-foreground">{VERDICT_NOT_CHECKED}</p>
+        </>
+      )}
     </div>
   );
 }

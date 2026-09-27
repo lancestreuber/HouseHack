@@ -1,5 +1,5 @@
 import type { GeoJSONSource, StyleSpecification } from "maplibre-gl";
-import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
+import { Map as MapLibreMap, LngLat, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -18,13 +18,7 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@HouseHack/ui/components/popover";
-import {
-  type PanelImperativeHandle,
-  ResizableHandle,
-  ResizablePanel,
-  ResizablePanelGroup,
-} from "@HouseHack/ui/components/resizable";
-import { SlidersHorizontal } from "lucide-react";
+import { Minus, Navigation, Plus, Settings2 } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -32,12 +26,8 @@ import { client } from "@/utils/orpc";
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
 import { decodeWeights, encodeWeights, setPillarWeights, usePillarWeights } from "./map/pillar-weights-store";
-import { AlertsPanel } from "./map/alerts-panel";
-import { BreakdownPanel } from "./map/breakdown-panel";
 import { CameraViewer } from "./map/camera-viewer";
 import { DISCLAIMER, LIMITATIONS_URL } from "./disclaimer";
-import { ChatPane } from "./chat/chat-pane";
-import { useParcelChatContext } from "./chat/parcel-context";
 import {
   hitsClickableOverlay,
   loadingOverlayIds,
@@ -46,9 +36,9 @@ import {
   syncOverlays,
 } from "./map/overlay-controller";
 import { getOverlayView, setOverlayView, useOverlayView } from "./map/overlay-store";
-import { ParcelTab } from "./map/parcel-tab";
-import { PillarsPanel } from "./map/pillars-panel";
-import { TypologyPanel } from "./map/typology-panel";
+import { useParcelData, useTypologyFit } from "./map/pillars-panel";
+import { Inspector, type InspectorTab } from "./explorer/inspector";
+import { setShellState, useShellState } from "./shell/shell-store";
 
 type BasemapId = "carto" | "osm";
 
@@ -196,25 +186,15 @@ async function refreshParcels(map: MapLibreMap) {
   source.setData(data as Parameters<GeoJSONSource["setData"]>[0]);
 }
 
-/** Wires a ResizablePanel up to a header collapse button: tracks whether
- * it's currently collapsed (via onResize, so dragging past the threshold
- * keeps the icon in sync too, not just button clicks) and exposes a toggle. */
-function usePaneCollapse(defaultCollapsed = false) {
-  const ref = useRef<PanelImperativeHandle | null>(null);
-  const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const onResize = (size: { asPercentage: number }) => setCollapsed(size.asPercentage <= 0.5);
-  const toggle = () => {
-    const panel = ref.current;
-    if (!panel) return;
-    if (panel.isCollapsed()) panel.expand();
-    else panel.collapse();
-  };
-  useEffect(() => {
-    if (defaultCollapsed) ref.current?.collapse();
-    // Only ever applied once, right after the panel mounts.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-  return { ref, collapsed, onResize, toggle };
+/** Degrees-minutes-seconds readout for the coordinate HUD. */
+function dms(value: number, isLat: boolean) {
+  const hemi = isLat ? (value >= 0 ? "N" : "S") : (value >= 0 ? "E" : "W");
+  const abs = Math.abs(value);
+  const deg = Math.floor(abs);
+  const minFloat = (abs - deg) * 60;
+  const min = Math.floor(minFloat);
+  const sec = (minFloat - min) * 60;
+  return `${deg}°${String(min).padStart(2, "0")}'${sec.toFixed(1)}"${hemi}`;
 }
 
 export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string; initialWeights?: string }) {
@@ -252,59 +232,44 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // Not map.isStyleLoaded(): that also waits for every tile, so it stays false
   // while spin/3D keeps streaming tiles and layer toggles were silently dropped.
   const styleReadyRef = useRef(false);
-  const mapPane = usePaneCollapse();
-  const scoresPane = usePaneCollapse();
-  const alertsPane = usePaneCollapse();
-  // Alerts and Breakdowns share one slot in spirit: only one is open by
-  // default, and opening either collapses the other (see the two toggle
-  // handlers below).
-  const breakdownPane = usePaneCollapse(true);
-  const typologyPane = usePaneCollapse();
-  const chatPane = usePaneCollapse(true);
+  const { inspectorOpen } = useShellState();
+  const [tab, setTab] = useState<InspectorTab>("alerts");
+  const [center, setCenter] = useState<{ lat: number; lng: number } | null>(null);
+  const centroidRef = useRef<{ pin: string; lng: number; lat: number } | null>(null);
+  const [chip, setChip] = useState<{ x: number; y: number } | null>(null);
+  const parcel = useParcelData(selectedPin);
+  const lotFit = useTypologyFit(selectedPin, parcel.data);
 
-  const toggleAlerts = () => {
-    const alerts = alertsPane.ref.current;
-    const breakdown = breakdownPane.ref.current;
-    if (!alerts) return;
-    if (alerts.isCollapsed()) {
-      alerts.expand();
-      if (breakdown && !breakdown.isCollapsed()) breakdown.collapse();
-    } else {
-      alerts.collapse();
-    }
+  const updateChip = () => {
+    const map = mapRef.current;
+    const c = centroidRef.current;
+    if (!map || !c || c.pin !== selectedPin) return;
+    const pt = map.project(new LngLat(c.lng, c.lat));
+    setChip({ x: pt.x, y: pt.y });
   };
-  const toggleBreakdown = () => {
-    const alerts = alertsPane.ref.current;
-    const breakdown = breakdownPane.ref.current;
-    if (!breakdown) return;
-    if (breakdown.isCollapsed()) {
-      breakdown.expand();
-      if (alerts && !alerts.isCollapsed()) alerts.collapse();
-    } else {
-      breakdown.collapse();
-    }
-  };
-  // The chat explains exactly what the panes show for the selected parcel.
-  const chatContext = useParcelChatContext(selectedPin) ?? undefined;
 
   const handleAddressSelect = (result: AddressResult) => {
     mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
     if (result.pin) {
       setSelectedPin(result.pin);
-      if (scoresPane.ref.current?.isCollapsed()) scoresPane.ref.current.expand();
+      setShellState({ inspectorOpen: true });
     }
   };
 
+  // Cross-tab scroll links: a pillar card jumps into Breakdowns, a typology
+  // card into Alerts, then scrolls to its anchored section.
   const handleSelectPillar = (id: PillarId) => {
-    if (breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current.expand();
-    if (!alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current?.collapse();
-    document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTab("breakdowns");
+    requestAnimationFrame(() =>
+      document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
   };
 
   const handleSelectTypology = (siteFitId: string) => {
-    if (alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current.expand();
-    if (!breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current?.collapse();
-    document.getElementById(`alert-${siteFitId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTab("alerts");
+    requestAnimationFrame(() =>
+      document.getElementById(`alert-${siteFitId}`)?.scrollIntoView({ behavior: "smooth", block: "start" }),
+    );
   };
 
   // The address search itself lives in the navbar (mounted on every route);
@@ -333,6 +298,29 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     });
   }, [selectedPin, pillarWeights, navigate]);
 
+  // Keep the selected-parcel chip glued to the parcel's centroid on screen.
+  useEffect(() => {
+    if (!selectedPin) {
+      centroidRef.current = null;
+      setChip(null);
+      return;
+    }
+    if (centroidRef.current?.pin === selectedPin) {
+      updateChip();
+      return;
+    }
+    let cancelled = false;
+    void client.parcels.getCentroid({ pin: selectedPin }).then((point) => {
+      if (cancelled || !point) return;
+      centroidRef.current = { pin: selectedPin, lng: point.lng, lat: point.lat };
+      updateChip();
+    });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPin]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -343,12 +331,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       attributionControl: { compact: true, customAttribution: `${DISCLAIMER} <a href="${LIMITATIONS_URL}">Limitations</a>` },
     });
     mapRef.current = map;
-    map.addControl(new NavigationControl({}), "top-right");
 
     map.on("load", () => {
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       collapseAttribution(map);
+      setCenter(map.getCenter());
 
       // Restored from the URL (a refresh or a shared link): fly to it, since
       // we only have its PIN, not a screen position, at load time.
@@ -356,7 +344,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
         void client.parcels.getCentroid({ pin: initialPinRef.current }).then((point) => {
           if (point) map.flyTo({ center: [point.lng, point.lat], zoom: 17 });
         });
-        if (scoresPane.ref.current?.isCollapsed()) scoresPane.ref.current.expand();
+        setShellState({ inspectorOpen: true });
       }
     });
     map.on("styledata", () => {
@@ -368,6 +356,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       void refreshParcels(map);
       void refreshViewportOverlays(map, getOverlayView().state);
       setOverlayView({ zoom: map.getZoom() });
+      setCenter(map.getCenter());
+      updateChip();
 
       // Tilt into a 3D view when zoomed in close enough to see buildings, and
       // back out when zooming back out -- but not while spin mode is driving
@@ -519,163 +509,127 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
   }, [selectedPin, basemap]);
 
+  const lotArea = lotFit.data?.lot.areaSf;
+  const steepShare = parcel.data?.raw.site_steep_slope_share;
+
   return (
-    <div className="h-full w-full overflow-hidden">
-      <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
-        <ResizablePanel defaultSize="75%" minSize="40%">
-          <ResizablePanelGroup orientation="vertical" className="h-full w-full">
-            <ResizablePanel
-              defaultSize="85%"
-              minSize={0}
-              collapsible
-              collapsedSize="34px"
-              panelRef={mapPane.ref}
-              onResize={mapPane.onResize}
+    <div className="flex h-full w-full overflow-hidden">
+      <div className="relative min-w-0 flex-1">
+        <div ref={containerRef} className="h-full w-full" />
+        {chip && parcel.data && (
+          <div
+            className="pointer-events-none absolute z-10 flex -translate-x-1/2 -translate-y-full items-center gap-1.5 rounded-lg border border-border bg-card/95 px-2.5 py-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md"
+            style={{ left: chip.x, top: chip.y - 10 }}
+          >
+            <span className="size-1.5 rounded-full bg-brass" aria-hidden />
+            <span className="flex flex-col">
+              <span className="text-[13px] font-semibold leading-tight tracking-tight text-foreground">
+                {parcel.data.zoning || "unknown"} • Pittsburgh
+              </span>
+              <span className="text-[13px] leading-tight text-muted-foreground tnum">
+                {lotArea == null ? "lot size unknown" : `${Math.round(lotArea).toLocaleString("en-US")} sq ft`}
+                {steepShare == null ? "" : ` • ${Math.round(steepShare * 100)}% steep`}
+              </span>
+            </span>
+          </div>
+        )}
+        <CameraViewer />
+        <div className="absolute bottom-4 left-4 z-20 flex flex-col gap-1.5">
+          <Popover>
+            <PopoverTrigger
+              title="Map options"
+              className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-popover hover:text-foreground"
             >
-              <div className="flex h-full min-w-0 flex-col">
-                <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
-                <div className="relative min-h-0 flex-1">
-                  <div ref={containerRef} className="h-full w-full" />
-                  <CameraViewer />
-                  <div className="absolute bottom-2 left-2 z-10">
-                    <Popover>
-                      <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
-                        <SlidersHorizontal className="size-3.5" />
-                        Map options
-                      </PopoverTrigger>
-                      <PopoverContent side="top" align="start" className="w-56">
-                        <PopoverHeader>
-                          <PopoverTitle>Basemap</PopoverTitle>
-                        </PopoverHeader>
-                        <div className="flex overflow-hidden rounded-md border">
-                          <button
-                            type="button"
-                            onClick={() => setBasemap("carto")}
-                            className={`flex-1 px-2 py-1 ${basemap === "carto" ? "bg-foreground text-background" : ""}`}
-                          >
-                            CARTO
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setBasemap("osm")}
-                            className={`flex-1 border-l px-2 py-1 ${basemap === "osm" ? "bg-foreground text-background" : ""}`}
-                          >
-                            OSM
-                          </button>
-                        </div>
-                        <PopoverHeader>
-                          <PopoverTitle>View</PopoverTitle>
-                        </PopoverHeader>
-                        <div className="flex overflow-hidden rounded-md border">
-                          <button
-                            type="button"
-                            onClick={() => setSpinning((v) => !v)}
-                            className={`flex-1 px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
-                          >
-                            Spin
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setThreeDEnabled((v) => !v)}
-                            disabled={!can3d}
-                            title={can3d ? undefined : "3D buildings need the CARTO basemap"}
-                            className={`flex-1 border-l px-2 py-1 disabled:opacity-40 ${threeDEnabled && can3d ? "bg-foreground text-background" : ""}`}
-                          >
-                            3D
-                          </button>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
+              <Settings2 className="size-4" />
+            </PopoverTrigger>
+            <PopoverContent side="top" align="start" className="w-56">
+              <PopoverHeader>
+                <PopoverTitle>Basemap</PopoverTitle>
+              </PopoverHeader>
+              <div className="flex overflow-hidden rounded-md border">
+                <button
+                  type="button"
+                  onClick={() => setBasemap("carto")}
+                  className={`flex-1 px-2 py-1 ${basemap === "carto" ? "bg-foreground text-background" : ""}`}
+                >
+                  CARTO
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBasemap("osm")}
+                  className={`flex-1 border-l px-2 py-1 ${basemap === "osm" ? "bg-foreground text-background" : ""}`}
+                >
+                  OSM
+                </button>
               </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel
-              defaultSize="15%"
-              minSize="8%"
-              maxSize="30%"
-              collapsible
-              collapsedSize="34px"
-              panelRef={typologyPane.ref}
-              onResize={typologyPane.onResize}
-            >
-              <TypologyPanel
-                pin={selectedPin}
-                collapsed={typologyPane.collapsed}
-                onToggleCollapse={typologyPane.toggle}
-                onSelectTypology={handleSelectTypology}
-              />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
-          <ResizablePanelGroup orientation="vertical" className="h-full w-full">
-            <ResizablePanel
-              defaultSize="35%"
-              minSize={0}
-              collapsible
-              collapsedSize="80px"
-              panelRef={scoresPane.ref}
-              onResize={scoresPane.onResize}
-            >
-              {selectedPin ? (
-                <PillarsPanel
-                  pin={selectedPin}
-                  onClose={() => setSelectedPin(null)}
-                  onSelectPillar={handleSelectPillar}
-                  collapsed={scoresPane.collapsed}
-                  onToggleCollapse={scoresPane.toggle}
-                  weights={pillarWeights}
-                />
-              ) : (
-                <p className="p-2 text-xs text-muted-foreground">
-                  Click a parcel on the map to see its scores &amp; considerations.
-                </p>
-              )}
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel
-              defaultSize="20%"
-              minSize={0}
-              collapsible
-              collapsedSize="34px"
-              panelRef={alertsPane.ref}
-              onResize={alertsPane.onResize}
-            >
-              <AlertsPanel pin={selectedPin} collapsed={alertsPane.collapsed} onToggleCollapse={toggleAlerts} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel
-              defaultSize="20%"
-              minSize={0}
-              collapsible
-              collapsedSize="34px"
-              panelRef={breakdownPane.ref}
-              onResize={breakdownPane.onResize}
-            >
-              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={toggleBreakdown} />
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel
-              defaultSize="25%"
-              minSize={0}
-              collapsible
-              collapsedSize="48px"
-              panelRef={chatPane.ref}
-              onResize={chatPane.onResize}
-            >
-              <ChatPane
-                context={chatContext}
-                className="border-t"
-                collapsed={chatPane.collapsed}
-                onToggleCollapse={chatPane.toggle}
-              />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+              <PopoverHeader>
+                <PopoverTitle>View</PopoverTitle>
+              </PopoverHeader>
+              <div className="flex overflow-hidden rounded-md border">
+                <button
+                  type="button"
+                  onClick={() => setSpinning((v) => !v)}
+                  className={`flex-1 px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
+                >
+                  Spin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setThreeDEnabled((v) => !v)}
+                  disabled={!can3d}
+                  title={can3d ? undefined : "3D buildings need the CARTO basemap"}
+                  className={`flex-1 border-l px-2 py-1 disabled:opacity-40 ${threeDEnabled && can3d ? "bg-foreground text-background" : ""}`}
+                >
+                  2.5D
+                </button>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.easeTo({ bearing: 0, pitch: 0, duration: 500 })}
+            title="Reset north"
+            className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-popover hover:text-foreground"
+          >
+            <Navigation className="size-4 text-brass" />
+          </button>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomIn()}
+            title="Zoom in"
+            className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-[15px] font-semibold text-muted-foreground transition-colors hover:bg-popover hover:text-foreground"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => mapRef.current?.zoomOut()}
+            title="Zoom out"
+            className="flex size-8 items-center justify-center rounded-lg border border-border bg-card text-[15px] font-semibold text-muted-foreground transition-colors hover:bg-popover hover:text-foreground"
+          >
+            −
+          </button>
+        </div>
+        <div className="pointer-events-none absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 items-center gap-4 rounded-lg border border-border bg-card/90 px-3 py-1.5 text-[13px] text-faint tnum backdrop-blur-md">
+          <span>LAT {center ? dms(center.lat, true) : "—"}</span>
+          <span className="text-border">•</span>
+          <span>LON {center ? dms(center.lng, false) : "—"}</span>
+          <span className="text-border">•</span>
+          <span>ELEV unknown</span>
+          <span className="text-border">•</span>
+          <span className="text-muted-foreground">EPSG:2272 (PA-S)</span>
+        </div>
+      </div>
+      {inspectorOpen && (
+        <Inspector
+          pin={selectedPin}
+          weights={pillarWeights}
+          tab={tab}
+          onTab={setTab}
+          onSelectPillar={handleSelectPillar}
+          onSelectTypology={handleSelectTypology}
+        />
+      )}
     </div>
   );
 }

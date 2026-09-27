@@ -2,26 +2,12 @@ import { GENERAL_QUESTIONS } from "@HouseHack/api/chat/suggestions";
 import type { ChatContext, ChatFact, ChatResult, ReplyBlock } from "@HouseHack/api/chat/types";
 import { Button } from "@HouseHack/ui/components/button";
 import { cn } from "@HouseHack/ui/lib/utils";
-import {
-  ArrowUp,
-  GripHorizontal,
-  Mic,
-  PanelRightClose,
-  PictureInPicture2,
-  RotateCcw,
-  Square,
-  Volume2,
-  VolumeX,
-  X,
-} from "lucide-react";
+import { ArrowUp, Mic, RotateCcw, Square, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 
 import { FactChip } from "./fact-chip";
-import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
-import { PaneCollapseButton } from "../map/pane-collapse-button";
 import { Disclaimer } from "../disclaimer";
 
 export interface ChatPaneProps {
@@ -32,64 +18,21 @@ export interface ChatPaneProps {
    */
   context?: ChatContext;
   className?: string;
-  /** Show only as a floating window (no docked state) with a close button. */
-  onClose?: () => void;
-  /** Keep the pane mounted (so the conversation survives) but not shown. */
-  hidden?: boolean;
-  /** Docked only: collapses the pane to just its header. */
-  collapsed?: boolean;
-  onToggleCollapse?: () => void;
 }
 
-const EDGES: { edge: Edge; className: string }[] = [
-  { edge: "n", className: "inset-x-3 -top-1 h-2 cursor-ns-resize" },
-  { edge: "s", className: "inset-x-3 -bottom-1 h-2 cursor-ns-resize" },
-  { edge: "e", className: "inset-y-3 -right-1 w-2 cursor-ew-resize" },
-  { edge: "w", className: "inset-y-3 -left-1 w-2 cursor-ew-resize" },
-  { edge: "nw", className: "-top-1 -left-1 size-4 cursor-nwse-resize" },
-  { edge: "se", className: "-right-1 -bottom-1 size-4 cursor-nwse-resize" },
-  { edge: "ne", className: "-top-1 -right-1 size-4 cursor-nesw-resize" },
-  { edge: "sw", className: "-bottom-1 -left-1 size-4 cursor-nesw-resize" },
-];
-
 /**
- * Explain-only assistant. Docked, it fills its container (Lane C's resizable
- * pane sets the size). Popped out, it's a floating window you can drag by its
- * header and resize from any edge or corner; size and position are remembered.
+ * Explain-only assistant, docked in the inspector's Chat tab. The conversation
+ * stream, fact chips, suggestions, mic input and read-aloud all live here.
  */
-export function ChatPane({ context, className, onClose, hidden, collapsed, onToggleCollapse }: ChatPaneProps) {
+export function ChatPane({ context, className }: ChatPaneProps) {
   const chat = useChat(context);
-  const [poppedOut, setFloating] = useState(false);
-  const floating = poppedOut || Boolean(onClose);
-  const win = useFloatingWindow(floating);
   const hasSubject = Boolean(context?.facts.length);
   // Parcel contexts always carry a "parcel" fact; others (e.g. how the tool works) don't.
   const aboutParcel = Boolean(context?.facts.some((f) => f.id === "parcel"));
 
-  const pane = (
-    <section
-      aria-label="Ask about this parcel"
-      className={cn(
-        "flex min-h-0 flex-col bg-background text-foreground",
-        floating
-          ? "fixed z-50 overflow-hidden rounded-xl border border-border shadow-2xl shadow-black/40"
-          : "h-full w-full",
-        !floating && className,
-      )}
-      style={{
-        ...(floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : {}),
-        ...(hidden ? { display: "none" } : {}),
-      }}
-      {...(floating ? win.handlers : {})}
-    >
-      <header
-        className={cn(
-          "flex h-12 shrink-0 items-center gap-1 border-b border-border px-4",
-          floating && "cursor-grab touch-none select-none active:cursor-grabbing",
-        )}
-        onPointerDown={floating ? win.begin("move") : undefined}
-      >
-        {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
+  return (
+    <section aria-label="Ask about this parcel" className={cn("flex min-h-0 flex-1 flex-col bg-background text-foreground", className)}>
+      <header className="flex h-10 shrink-0 items-center gap-1 border-b border-border px-4">
         <h2 className="mr-auto text-xs font-medium">{aboutParcel ? "Ask about this parcel" : "Ask Yinzone"}</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
@@ -103,65 +46,17 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
             <RotateCcw />
           </IconButton>
         )}
-        {!floating && onToggleCollapse && (
-          <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="chat" />
-        )}
-        {onClose ? (
-          <IconButton label="Close chat" onClick={onClose}>
-            <X />
-          </IconButton>
-        ) : (
-          <IconButton
-            label={floating ? "Dock chat back into the panel" : "Pop out into a window you can move and resize"}
-            onClick={() => setFloating((f) => !f)}
-          >
-            {floating ? <PanelRightClose /> : <PictureInPicture2 />}
-          </IconButton>
-        )}
       </header>
-      {!(collapsed && !floating) && (
-        <>
-          {hasSubject && context?.subject && (
-            <p className="shrink-0 truncate border-b border-border px-4 py-2 text-xs text-muted-foreground" title={context.subject}>
-              {context.subject}
-            </p>
-          )}
-
-          <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
-
-          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={aboutParcel} />
-        </>
+      {hasSubject && context?.subject && (
+        <p className="shrink-0 truncate border-b border-border px-4 py-2 text-xs text-muted-foreground" title={context.subject}>
+          {context.subject}
+        </p>
       )}
 
-      {floating &&
-        EDGES.map(({ edge, className: edgeClass }) => (
-          <div
-            key={edge}
-            aria-hidden
-            className={cn("absolute z-10 touch-none", edgeClass)}
-            onPointerDown={win.begin(edge)}
-          />
-        ))}
-    </section>
-  );
+      <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
 
-  // Portaled to <body>: this can be mounted arbitrarily deep (e.g. inside a
-  // resizable pane), and `position: fixed` only escapes an ancestor's bounds
-  // reliably when there's no risk of that ancestor creating its own
-  // containing block (transform/filter/contain). A portal sidesteps that
-  // regardless of where the component happens to live.
-  if (!floating) return pane;
-  if (onClose) return win.rect ? createPortal(pane, document.body) : null;
-  return (
-    <>
-      <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
-        <p className="text-xs text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
-        <Button variant="outline" onClick={() => setFloating(false)}>
-          <PanelRightClose /> Dock it back here
-        </Button>
-      </div>
-      {win.rect && createPortal(pane, document.body)}
-    </>
+      <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={aboutParcel} />
+    </section>
   );
 }
 
@@ -327,7 +222,7 @@ function AssistantTurn({
               <p key={`${i}-${j}`}>
                 <BlockText text={item.text} ids={item.done ? item.block.fact_ids : []} facts={facts} />
               </p>
-            ))
+            )),
           ),
         )}
       </div>
@@ -423,7 +318,7 @@ function Composer({
   // server HTML differ from the browser's (a hydration error).
   const [micSupported, setMicSupported] = useState(false);
   useEffect(() => setMicSupported(canListen()), []);
-  const stopListening = useRef<(() => void) | null>(null);
+  const stopListening = useRef<(() => void> | null>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
