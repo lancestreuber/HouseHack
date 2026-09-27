@@ -417,7 +417,7 @@ function TypologyTile({
     return (
       <div
         {...shared}
-        className={`${cardBase} w-48 gap-1 px-2 py-1.5`}
+        className={`${cardBase} w-[15.6rem] gap-1 px-2 py-1.5`}
         style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
       >
         <div className="flex items-center gap-1.5">
@@ -443,7 +443,7 @@ function TypologyTile({
   return (
     <div
       {...shared}
-      className={`${cardBase} h-full w-[14rem] justify-between gap-1 p-2`}
+      className={`${cardBase} h-full w-[18.2rem] justify-between gap-1 p-2`}
       style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
     >
       <div className="flex flex-col gap-0.5" data-top>
