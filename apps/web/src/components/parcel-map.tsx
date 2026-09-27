@@ -399,6 +399,25 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     map.on("mousedown", stopSpin);
     map.on("touchstart", stopSpin);
 
+    // Trackpad rotate/tilt: hold Shift and two-finger-drag to rotate (deltaX)
+    // and pitch (deltaY). Browsers don't expose a real two-finger rotate
+    // gesture outside Safari, so this is the same Shift+wheel convention most
+    // web map trackpad add-ons use; it's free to bind since Shift+wheel isn't
+    // used for anything else here (Shift+drag is MapLibre's box-zoom, a
+    // separate mouse gesture that this doesn't touch). Pitch is skipped on
+    // OSM, which has no 3D buildings and just warps into a distorted
+    // trapezoid when tilted (see the zoom-based tilt effect below).
+    const onWheelGesture = (e: WheelEvent) => {
+      if (!e.shiftKey) return;
+      e.preventDefault();
+      stopSpin();
+      map.setBearing(map.getBearing() - e.deltaX * 0.5);
+      if (basemapRef.current === "carto") {
+        map.setPitch(Math.max(0, Math.min(TILTED_PITCH, map.getPitch() + e.deltaY * 0.5)));
+      }
+    };
+    map.getCanvas().addEventListener("wheel", onWheelGesture, { passive: false });
+
     // Overlays (air quality, weather, lead, sewers, ...) come from the registry
     // in ./map/overlays. Re-applied after every style load, since a basemap
     // swap drops all sources and layers.
