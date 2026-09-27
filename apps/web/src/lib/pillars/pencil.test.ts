@@ -21,7 +21,11 @@ describe("pencilCheck", () => {
   test("bands: tight at production-builder cost, subsidy above the floor, else no", () => {
     const lowNeed = (1400 * P.cost_per_sf.low * (1 + P.soft_cost_pct) + DEFAULT_PENCIL.siteCostPerBuilding) * (1 + P.margin_pct);
     expect(pencilCheck("single_detached", flat, { demand_median_sale_price: Math.ceil(lowNeed) })?.status).toBe("tight");
-    expect(pencilCheck("single_detached", flat, { demand_median_sale_price: Math.round(need * (P.subsidy_floor + 0.05)) })?.status).toBe("subsidy");
+    // Subsidy: value covers at least the subsidy floor.
+    const high = { costPerSf: P.cost_per_sf.high, siteCostPerBuilding: DEFAULT_PENCIL.siteCostPerBuilding };
+    const highNeed = (1400 * high.costPerSf * (1 + P.soft_cost_pct) + high.siteCostPerBuilding) * (1 + P.margin_pct);
+    expect(pencilCheck("single_detached", flat, { demand_median_sale_price: Math.ceil(highNeed * P.subsidy_floor) }, high)?.status).toBe("subsidy");
+    expect(pencilCheck("single_detached", flat, { demand_median_sale_price: Math.floor(highNeed * P.subsidy_floor) - 1 }, high)?.status).toBe("no");
     const weak = pencilCheck("single_detached", flat, { demand_median_sale_price: 60000 });
     expect(weak?.status).toBe("no");
     expect(weak?.gapPerUnit).toBeCloseTo(need - 60000, 5);

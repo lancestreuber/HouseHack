@@ -493,6 +493,7 @@ export function VerdictSection() {
           ["Margin", `${Math.round(p.margin_pct * 100)}%`, p.margin_source],
           ["Rent → value", `× ${p.rent_multiplier}`, p.rent_multiplier_source],
           ["Subsidy floor", `${Math.round(p.subsidy_floor * 100)}%`, p.subsidy_floor_note],
+          ["URA gap caps", `$${p.subsidy_cap_per_unit.sale.toLocaleString()} sale / $${p.subsidy_cap_per_unit.rent.toLocaleString()} rent`, p.subsidy_cap_note],
           ["Unit sizes", Object.entries(p.typologies).map(([id, t]) => `${id} ${t.units}×${t.sf_per_unit} sf`).join(", "), p.typologies_note],
         ].map(([a, b, c]) => [a, <span className="font-mono tabular-nums">{b}</span>, <span className="text-muted-foreground">{c}</span>])}
       />

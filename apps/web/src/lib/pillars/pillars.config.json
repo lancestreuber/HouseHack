@@ -1701,7 +1701,7 @@
       "mid": 225,
       "high": 350,
       "sources": {
-        "low": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: high-volume production builders would imply about $150/sf if they entered the City market.",
+        "low": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: high-volume production builders would imply about $150/sf if they entered the City market. Matches NAHB's 2024 national cost survey without its site-work stage ($149/sf; Pittsburgh's RSMeans residential location factor is 1.01).",
         "mid": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: $200–250/sf for single-family infill in the City, varying with builder scale.",
         "high": "Hackathon SME (practitioner), 2026-09-27: $325–375/sf vertical construction, excluding site work; no reliable local public source."
       },
@@ -1720,7 +1720,9 @@
     "rent_multiplier_source": "Assumption: value per unit = monthly rent × 12 × (1 − 40% operating costs) ÷ 7% cap rate ≈ 103 × monthly rent.",
     "rent_per_ami_ratio": 1242.5,
     "subsidy_floor": 0.35,
-    "subsidy_floor_note": "Value judgment: if value covers at least 35% of the cost (with margin) at the user's assumption, call it a subsidy candidate (yellow); below that, it does not pencil (red). How much gap financing a project can get 'can vary wildly' (SME). At the defaults, red covers about 16% of vacant or occupied parcels for a house, 36% for a duplex and 11% for apartments.",
+    "subsidy_floor_note": "Value judgment: if value covers at least 35% of the cost (with margin) at the user's assumption, call it a subsidy candidate (yellow); otherwise it does not pencil (red). URA's per-unit caps are shown beside the gap for scale; any gap within a cap already clears this floor at realistic costs. At the defaults, red covers about 16% of vacant or occupied parcels for a house, 36% for a duplex and 11% for apartments. A stricter rule (red whenever the gap exceeds URA's cap) would make about 63% of houses and 88% of duplexes red; we did not use it because the value inputs understate new-build value and URA's Rental Gap Program needs 4+ units.",
+    "subsidy_cap_per_unit": { "sale": 130000, "rent": 75000 },
+    "subsidy_cap_note": "Shown next to every gap for scale. For-sale: URA For-Sale Development Program, max $130,000 per newly constructed unit, buyers at or below 80% AMI. Rental: URA Rental Gap Program (guidelines amended Aug 2024), max $75,000 per unit at 30% AMI ($50k at 50%, $35k at 60%); URA often waives its caps, and other sources (LIHTC, PHFA) can stack. Read 2026-09-27: research/sources/ura-2026-09-27-rgp-fsdp-guidelines-and-hof-2026-plan.md. How much gap financing a project can get 'can vary wildly' (SME).",
     "value_bias": "Values come from existing homes (tract resale prices) and existing rents (ACS), which understate what new construction sells or rents for: 36 new City homes permitted 2019–26 resold at a median $285/sf. So the check leans toward 'doesn't pencil'; read it as the appraisal-gap risk, not a verdict on the project.",
     "typologies": {
       "single_detached": { "units": 1, "sf_per_unit": 1400, "basis": "sale" },

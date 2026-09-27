@@ -490,7 +490,8 @@ function PencilSection({ data }: { data: ParcelData }) {
             Cost per unit = unit size × construction $/sf × (1 + {Math.round(pencil.soft_cost_pct * 100)}% soft costs) + site work per building ÷ units
             {data.norm.site_steep_slope_share != null && data.norm.site_steep_slope_share < 51 ? `, + $${pencil.steep_site_adder.toLocaleString()} for a mostly steep lot` : ""}.
             Value must beat cost by {Math.round(pencil.margin_pct * 100)}%. Houses use nearby sale prices (close to an appraiser's comps); 2+ units use nearby rent × {pencil.rent_multiplier}.
-            Below {Math.round(pencil.subsidy_floor * 100)}% coverage it doesn't pencil; above that, it needs subsidy.
+            Value covering at least {Math.round(pencil.subsidy_floor * 100)}% of cost reads as "needs subsidy"; less doesn't pencil. For scale, URA's gap caps are $
+            {pencil.subsidy_cap_per_unit.sale.toLocaleString()} per for-sale unit and ${pencil.subsidy_cap_per_unit.rent.toLocaleString()} per rental unit. {pencil.subsidy_cap_note}
           </p>
           <p>{pencil.value_bias}</p>
           <p>{pencil.not_priced}</p>

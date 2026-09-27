@@ -57,7 +57,13 @@ export function pencilCheck(typology: string, norm: IndicatorValues, raw: Indica
   const coverage = value / need;
   const gapPerUnit = Math.max(0, need - value);
   const status: PencilStatus =
-    value >= need ? "pencils" : value >= lowCost * (1 + P.margin_pct) ? "tight" : coverage >= P.subsidy_floor ? "subsidy" : "no";
+    value >= need
+      ? "pencils"
+      : value >= lowCost * (1 + P.margin_pct)
+        ? "tight"
+        : coverage >= P.subsidy_floor
+          ? "subsidy"
+          : "no";
   return { ...base, status, coverage, gapPerUnit };
 }
 
@@ -76,9 +82,9 @@ export function pencilReasonText(r: PencilResult): string {
     case "tight":
       return `Pencils only at production-builder costs: ${value}`;
     case "subsidy":
-      return `Needs subsidy, about ${usd(r.gapPerUnit ?? 0)}/unit gap: ${value}`;
+      return `Needs subsidy, about ${usd(r.gapPerUnit ?? 0)}/unit gap (URA's cap: ${usd(P.subsidy_cap_per_unit[r.basis])}): ${value}`;
     case "no":
-      return `Doesn't pencil: ${value}; value covers ${Math.round((r.coverage ?? 0) * 100)}% of cost`;
+      return `Doesn't pencil: ${usd(r.gapPerUnit ?? 0)}/unit gap (URA's cap: ${usd(P.subsidy_cap_per_unit[r.basis])}); value covers ${Math.round((r.coverage ?? 0) * 100)}% of cost; ${value}`;
     default:
       return r.basis === "sale" ? "Too few nearby sales to check whether it pencils" : "No rent data to check whether it pencils";
   }
