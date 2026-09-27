@@ -6,6 +6,7 @@ const CATEGORIES = [
   { id: "skyline", color: "#f472b6", label: "Skyline, stadium and webcams" },
   { id: "river", color: "#2dd4bf", label: "USGS river cams" },
   { id: "air", color: "#fb923c", label: "Breathe Cam industrial smoke cams" },
+  { id: "weather", color: "#a3e635", label: "Weather station cams" },
   { id: "wildlife", color: "#facc15", label: "Eagle, hawk and zoo cams" },
 ];
 const OTHER = "#e5e5e5";

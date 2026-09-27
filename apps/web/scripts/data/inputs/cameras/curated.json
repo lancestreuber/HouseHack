@@ -341,5 +341,20 @@
   "refresh_s": 10,
   "attribution": "PPG Place (StarDot cam)",
   "verified_at": "2026-09-26"
+ },
+ {
+  "id": "w3sll-wx-squirrel-hill",
+  "name": "W3SLL Weather Cam (Squirrel Hill)",
+  "operator": "W3SLL personal weather station",
+  "category": "weather",
+  "lat": 40.4278,
+  "lon": -79.9195,
+  "coord_quality": "exact",
+  "feed_type": "jpeg",
+  "feed_url": "http://wx.w3sll.net/weewx/image.jpg",
+  "page_url": "http://wx.w3sll.net/weewx/",
+  "refresh_s": 60,
+  "attribution": "W3SLL WeeWX cam",
+  "verified_at": "2026-09-27"
  }
 ]
