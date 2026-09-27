@@ -1,3 +1,14 @@
+import { GlassSurface, SectionCard } from "@HouseHack/ui/components/glass";
+import { Checkbox } from "@HouseHack/ui/components/checkbox";
+import { RadioGroup, RadioGroupItem } from "@HouseHack/ui/components/radio-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@HouseHack/ui/components/select";
+
 import type { OverlayState } from "./overlay-controller";
 import { selectedMetric } from "./overlay-controller";
 import { HEAT_OVERLAYS, overlaysInGroup, STACKABLE_GROUPS } from "./overlays";
@@ -9,6 +20,8 @@ const EVIDENCE_LABEL = {
   policy: "Policy choice",
   value: "Value judgment",
 } as const;
+
+const TITLE_CLS = "text-[11px] font-semibold uppercase tracking-wide text-muted-foreground";
 
 function Swatch({ item }: { item: LegendItem }) {
   const shape = item.shape ?? "fill";
@@ -29,7 +42,7 @@ function Swatch({ item }: { item: LegendItem }) {
 function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState }) {
   const metric = selectedMetric(def, state);
   return (
-    <div className="mt-1 space-y-1 rounded border border-border/60 bg-background/60 p-2">
+    <SectionCard className="mt-1 space-y-1 p-2">
       <ul className="space-y-0.5">
         {def.legend(metric).map((item) => (
           <li key={item.label} className="flex items-center gap-1.5">
@@ -46,14 +59,16 @@ function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState })
         · {def.meta.asOf}
       </p>
       <p>
-        <span className="rounded bg-foreground/10 px-1">{EVIDENCE_LABEL[def.meta.evidence]}</span>
+        <span className="rounded-full border border-glass-border bg-glass-card px-1.5 text-[10px]">
+          {EVIDENCE_LABEL[def.meta.evidence]}
+        </span>
       </p>
       {def.meta.caveats.map((c) => (
         <p key={c} className="text-muted-foreground">
           ⚠ {c}
         </p>
       ))}
-    </div>
+    </SectionCard>
   );
 }
 
@@ -89,14 +104,14 @@ function StackableSection({
   if (!overlays.length) return null;
   return (
     <>
-      <p className="mt-2 mb-1 font-medium">{title}</p>
+      <p className={TITLE_CLS}>{title}</p>
       {overlays.map((def) => {
         const checked = state.infraIds.includes(def.id);
         const minZoom = minZoomOf(def);
         return (
           <div key={def.id}>
             <label className="flex items-center gap-1.5" title={def.description}>
-              <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
+              <Checkbox checked={checked} onCheckedChange={() => toggle(def.id)} />
               {def.label}
               {checked && zoom < minZoom && <span className="text-muted-foreground">(zoom in to {minZoom}+)</span>}
               {checked && zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
@@ -127,51 +142,59 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
     });
 
   return (
-    <div className="max-h-full w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
-      <p className="mb-1 font-medium">Heat overlay</p>
-      <label className="flex items-center gap-1.5">
-        <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />
-        None
-      </label>
-      {HEAT_OVERLAYS.map((def) => (
-        <div key={def.id}>
-          <label className="flex items-center gap-1.5" title={def.description}>
-            <input type="radio" name="heat-overlay" checked={state.heatId === def.id} onChange={() => setHeat(def.id)} />
-            {def.label}
-            {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
+    <GlassSurface edge="none" className="pointer-events-auto w-64 max-h-full text-[11px]">
+      <div className="max-h-full space-y-1 overflow-y-auto p-2">
+        <p className={TITLE_CLS}>Heat overlay</p>
+        <RadioGroup value={state.heatId ?? "none"} onValueChange={(v) => setHeat(v === "none" ? null : v)}>
+          <label className="flex items-center gap-1.5">
+            <RadioGroupItem value="none" />
+            None
           </label>
-          {state.heatId === def.id && (
-            <>
-              {def.metrics && (
-                <select
-                  className="mt-1 w-full rounded border bg-background px-1 py-0.5"
-                  value={selectedMetric(def, state)?.id}
-                  onChange={(e) => setMetric(def.id, e.target.value)}
-                >
-                  {def.metrics.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
+          {HEAT_OVERLAYS.map((def) => (
+            <div key={def.id}>
+              <label className="flex items-center gap-1.5" title={def.description}>
+                <RadioGroupItem value={def.id} />
+                {def.label}
+                {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
+              </label>
+              {state.heatId === def.id && (
+                <>
+                  {def.metrics && (
+                    <Select
+                      value={selectedMetric(def, state)?.id}
+                      onValueChange={(value) => value && setMetric(def.id, value)}
+                    >
+                      <SelectTrigger size="sm" className="mt-1 w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {def.metrics.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                  <Legend def={def} state={state} />
+                </>
               )}
-              <Legend def={def} state={state} />
-            </>
-          )}
-        </div>
-      ))}
+            </div>
+          ))}
+        </RadioGroup>
 
-      {STACKABLE_GROUPS.map(({ group, title }) => (
-        <StackableSection
-          key={group}
-          title={title}
-          overlays={overlaysInGroup(group)}
-          state={state}
-          toggle={toggleStackable}
-          zoom={zoom}
-          loadingIds={loadingIds}
-        />
-      ))}
-    </div>
+        {STACKABLE_GROUPS.map(({ group, title }) => (
+          <StackableSection
+            key={group}
+            title={title}
+            overlays={overlaysInGroup(group)}
+            state={state}
+            toggle={toggleStackable}
+            zoom={zoom}
+            loadingIds={loadingIds}
+          />
+        ))}
+      </div>
+    </GlassSurface>
   );
 }

@@ -1,3 +1,4 @@
+import { Button } from "@HouseHack/ui/components/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 /** Small icon button for a pane header that collapses/expands its
@@ -13,14 +14,16 @@ export function PaneCollapseButton({
   label: string;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon-xs"
       onClick={onClick}
       aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
       title={collapsed ? `Expand ${label}` : `Collapse ${label}`}
-      className="rounded p-1 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+      className="text-muted-foreground hover:text-foreground"
     >
-      {collapsed ? <ChevronDown className="size-3.5" /> : <ChevronUp className="size-3.5" />}
-    </button>
+      {collapsed ? <ChevronDown /> : <ChevronUp />}
+    </Button>
   );
 }
