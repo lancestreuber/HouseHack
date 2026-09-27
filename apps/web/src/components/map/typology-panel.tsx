@@ -83,7 +83,7 @@ const DEFAULT_TYPOLOGY_IDS = ["single_detached", "two_unit", "three_unit", "mult
 // Jev's 5 site-fit categories; only map where there's a genuinely close
 // correspondence, so we're never implying false precision for the rest
 // (three_unit, community_home, interim_housing, etc. just show no fit line).
-const SITE_FIT_TYPOLOGY: Record<string, string> = {
+export const SITE_FIT_TYPOLOGY: Record<string, string> = {
   single_detached: "detached",
   single_attached: "attached",
   two_unit: "duplex",
@@ -96,7 +96,7 @@ const SITE_FIT_TYPOLOGY: Record<string, string> = {
 // own labels (legal-feasibility.ts) are the full, precise zoning-code
 // descriptions ("Multi-unit apartments (4+)"), which reads fine inside the
 // dropdown's option list but is too long to be *the* name on a narrow tile.
-const SHORT_LABEL: Record<string, string> = {
+export const SHORT_LABEL: Record<string, string> = {
   single_detached: "House",
   single_attached: "Rowhouse",
   two_unit: "Duplex",

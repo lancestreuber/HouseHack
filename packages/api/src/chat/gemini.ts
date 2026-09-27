@@ -39,7 +39,7 @@ export class GeminiError extends Error {
   }
 }
 
-async function callModel(apiKey: string, model: string, req: GenerateRequest): Promise<GeminiPart[]> {
+async function callModel(apiKey: string, model: string, req: GenerateRequest, cancel?: AbortSignal): Promise<GeminiPart[]> {
   const res = await fetch(`${ENDPOINT}/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
@@ -47,7 +47,7 @@ async function callModel(apiKey: string, model: string, req: GenerateRequest): P
     // retry across up to 3 models (see MODELS below), and a per-call timeout
     // anywhere near that limit risks the platform killing the whole request
     // before a later model gets a chance to answer.
-    signal: AbortSignal.timeout(12_000),
+    signal: cancel ? AbortSignal.any([AbortSignal.timeout(12_000), cancel]) : AbortSignal.timeout(12_000),
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: req.system }] },
       contents: req.contents,
@@ -67,21 +67,61 @@ async function callModel(apiKey: string, model: string, req: GenerateRequest): P
 
 const RETRYABLE = new Set([404, 429, 500, 502, 503, 504]);
 
-/** A GenerateFn that walks MODELS until one answers. */
-export function geminiGenerate(apiKey: string): GenerateFn {
-  return async (req) => {
-    let last: unknown;
-    for (const model of MODELS) {
-      try {
-        return await callModel(apiKey, model, req);
-      } catch (err) {
-        last = err;
-        const retryable = err instanceof GeminiError ? RETRYABLE.has(err.status) : true;
-        if (!retryable) break;
-      }
-    }
-    throw last;
-  };
+// The first model usually answers in about a second but occasionally stalls
+// until the 12 s timeout. After this long without an answer, the next model
+// starts too and whichever answers first wins (a "hedged" request).
+const HEDGE_AFTER_MS = 4_000;
+
+/**
+ * A GenerateFn that walks MODELS until one answers: the next model starts when
+ * one fails with a retryable error, or when it is still waiting after
+ * `hedgeAfterMs`. The first answer wins and the other requests are cancelled.
+ */
+export function geminiGenerate(apiKey: string, hedgeAfterMs = HEDGE_AFTER_MS): GenerateFn {
+  return (req) =>
+    new Promise((resolve, reject) => {
+      const cancel = new AbortController();
+      let next = 0;
+      let running = 0;
+      let settled = false;
+      let last: unknown;
+      let hedge: ReturnType<typeof setTimeout> | undefined;
+
+      const finish = (fn: () => void) => {
+        settled = true;
+        clearTimeout(hedge);
+        cancel.abort();
+        fn();
+      };
+
+      const launch = () => {
+        if (settled || next >= MODELS.length) return;
+        const model = MODELS[next++]!;
+        running++;
+        clearTimeout(hedge);
+        hedge = setTimeout(launch, hedgeAfterMs);
+        callModel(apiKey, model, req, cancel.signal).then(
+          (parts) => {
+            if (!settled) finish(() => resolve(parts));
+          },
+          (err: unknown) => {
+            running--;
+            if (settled) return;
+            last = err;
+            const retryable = err instanceof GeminiError ? RETRYABLE.has(err.status) : true;
+            if (retryable && next < MODELS.length) return launch();
+            // A non-retryable error means the request itself is wrong; don't try more models.
+            if (!retryable) {
+              clearTimeout(hedge);
+              next = MODELS.length;
+            }
+            if (running === 0) finish(() => reject(last));
+          },
+        );
+      };
+
+      launch();
+    });
 }
 
 /** Speech models, best-sounding first; the lite model (larger free quota) is the backup. */
