@@ -118,11 +118,6 @@ const BUILDING_ZOOM_THRESHOLD = 15;
 const TILTED_PITCH = 55;
 const SPIN_DEGREES_PER_SECOND = 6;
 
-// A real Pittsburgh parcel (R1D-H, single-unit detached residential) with
-// full indicator coverage, used so the panels show real demo data on first
-// load instead of empty "select a parcel" placeholders everywhere.
-const DEMO_PIN = "0001N00154000000";
-
 // MapLibre's compact attribution control briefly shows its full text next to
 // the (i) icon the first time it enters compact mode (and again on some
 // resizes), instead of staying fully collapsed until clicked. Strip the class
@@ -249,10 +244,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   overlayStateRef.current = overlayState;
   const [zoom, setZoom] = useState(0);
   const [loadingIds, setLoadingIds] = useState<string[]>([]);
-  // Pre-selected with a real, well-covered demo parcel so the scores,
-  // breakdown and typology panes are never empty on first load -- an actual
-  // click or address search just swaps this out.
-  const [selectedPin, setSelectedPin] = useState<string | null>(initialPin ?? DEMO_PIN);
+  // Nothing is selected until the URL names a parcel or the user picks one.
+  const [selectedPin, setSelectedPin] = useState<string | null>(initialPin ?? null);
   const [spinning, setSpinning] = useState(false);
   const spinningRef = useRef(spinning);
   spinningRef.current = spinning;
@@ -355,8 +348,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   }, []);
 
   // Keep the selected parcel and pillar weights in the URL so a refresh (or
-  // a shared link) restores the same view, instead of always falling back to
-  // the demo parcel and default weights.
+  // a shared link) restores the same view.
   useEffect(() => {
     void navigate({
       search: (prev) => ({ ...prev, pin: selectedPin ?? undefined, w: encodeWeights(pillarWeights) }),
