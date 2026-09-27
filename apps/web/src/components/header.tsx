@@ -12,6 +12,7 @@ export default function Header() {
     { to: "/", label: "Home" },
     { to: "/dashboard", label: "Dashboard" },
     { to: "/todos", label: "Todos" },
+    { to: "/resources", label: "Resources" },
   ] as const;
   const weights = usePillarWeights();
 
