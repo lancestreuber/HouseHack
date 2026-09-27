@@ -34,6 +34,8 @@ function extractCitations(line: string, known: Set<string>): { text: string; ids
 function tidy(text: string): string {
   return text
     .replace(/\s+([.,;:!?])/g, "$1")
+    // A comma left in front of the full stop once a citation is removed ("district, [x]." -> "district.").
+    .replace(/[,;:]+([.!?])/g, "$1")
     .replace(/\s{2,}/g, " ")
     .trim();
 }
