@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { CircleCheck, TriangleAlert, Users } from "lucide-react";
 import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
@@ -7,9 +7,11 @@ import { type PillarId, scoreParcel, type WeightOverrides } from "@/lib/pillars/
 import { VERDICT_COLOR, VERDICT_LABEL, type VerdictLevel } from "@/lib/pillars/verdict";
 
 import { TYPOLOGIES } from "./overlays/legal-feasibility";
+import { useLegalFor } from "./legal-for-store";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
 import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
+import { type ImpactItem, typologyImpact } from "./typology-impact";
 import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
@@ -27,12 +29,29 @@ function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
   );
 }
 
-/** Every non-green typology's full verdict reasons, one anchored section
- * each (`alert-${typologyId}`) so a bottom-panel tile can scroll straight to
- * its own detail. The tile itself only shows a one-line summary. */
+function ImpactRow({ item }: { item: ImpactItem }) {
+  const helps = item.effect === "helps";
+  const Icon = helps ? CircleCheck : TriangleAlert;
+  const cls = helps ? "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400" : "border-yellow-400/30 bg-yellow-400/10 text-yellow-600 dark:text-yellow-400";
+  return (
+    <div className={`flex items-start gap-1.5 rounded border px-2 py-1 ${cls}`}>
+      <Icon className="mt-0.5 size-3 shrink-0" />
+      <span>{item.text}</span>
+    </div>
+  );
+}
+
+const MAINSTREAM = new Set(config.legal.typologies as string[]);
+
+/** Every typology's verdict reasons (when not green) and who building it here
+ * helps (green) or may harm (yellow), one anchored section each
+ * (`alert-${typologyId}`) so a bottom-panel tile can scroll straight to its
+ * own detail. The five mainstream types and the type picked in the Parcel
+ * Score panel start open. */
 function TypologyAlerts({ pin, data }: { pin: string; data: ParcelData }) {
   const query = useTypologyFit(pin, data);
   const pencil = usePencilAssumptions();
+  const legalFor = useLegalFor();
   const fitsById = useMemo(() => {
     if (!query.data) return undefined;
     const map: FitsById = {};
@@ -41,30 +60,36 @@ function TypologyAlerts({ pin, data }: { pin: string; data: ParcelData }) {
   }, [query.data]);
   const lotWidthFt = query.data?.lot.widthFt;
 
-  const flagged = TYPOLOGIES.map(([id, label]) => ({
+  const rows = TYPOLOGIES.map(([id, label]) => ({
     id,
     label: SHORT_LABEL[id] ?? label,
     verdict: verdictFor(data.zoning, id, data, { fitsById, lotWidthFt, pencil }),
-  })).filter((t) => t.verdict.level !== "green");
+    impact: typologyImpact(id, data),
+  })).filter((t) => t.verdict.level !== "green" || t.impact.length);
 
-  if (!flagged.length) {
+  if (!rows.length) {
     return <p className="text-muted-foreground">No housing-type alerts for this parcel right now.</p>;
   }
 
   return (
     <div className="space-y-2">
-      {flagged.map((t) => (
-        <section key={t.id} id={`alert-${t.id}`} className="scroll-mt-2 space-y-1">
-          <div className="flex items-center gap-1.5">
+      <p className="flex items-center gap-1.5 text-muted-foreground">
+        <Users className="size-3 shrink-0" /> Per housing type: what stands in the way, who it helps (green) and who it may harm (yellow).
+      </p>
+      {rows.map((t) => (
+        <details key={t.id} id={`alert-${t.id}`} open={MAINSTREAM.has(t.id) || t.id === legalFor} className="scroll-mt-2 space-y-1">
+          <summary className="flex cursor-pointer items-center gap-1.5">
             <span className="size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[t.verdict.level] }} />
-            <p className="font-medium">
+            <span className="font-medium">
               {t.label} <span className="text-muted-foreground">· {VERDICT_LABEL[t.verdict.level]}</span>
-            </p>
+            </span>
+          </summary>
+          <div className="mt-1 space-y-1">
+            {t.verdict.level !== "green" && t.verdict.reasons.map((r) => <AlertRow key={r.text} text={r.text} level={r.level} />)}
+            {t.impact.filter((i) => i.effect === "helps").map((i) => <ImpactRow key={i.key} item={i} />)}
+            {t.impact.filter((i) => i.effect === "harms").map((i) => <ImpactRow key={i.key} item={i} />)}
           </div>
-          {t.verdict.reasons.map((r) => (
-            <AlertRow key={r.text} text={r.text} level={r.level} />
-          ))}
-        </section>
+        </details>
       ))}
     </div>
   );

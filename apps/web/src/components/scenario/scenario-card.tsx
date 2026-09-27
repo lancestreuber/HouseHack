@@ -1,6 +1,7 @@
 // A typology's scenario for the selected parcel: a card beside a pin on the
-// map with the tile's score breakdown, its alerts, and up to five pros and five
-// cons checked against the parcel's data. Clicking a point shows the map layers
+// map with the tile's score breakdown, its alerts, up to five pros and five
+// cons checked against the parcel's data, and who building it helps and who it
+// may harm. Clicking a point shows the map layers
 // behind it; the map goes back to how it was when the card closes.
 import type { ChatFact, ReplyBlock } from "@HouseHack/api/chat/types";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ import { PATHWAY_META, TYPOLOGIES } from "../map/overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { usePillarWeights } from "../map/pillar-weights-store";
 import { fmtScore, ScoreBar, scoreColor, useParcelData, useTypologyFit } from "../map/pillars-panel";
+import { typologyImpact } from "../map/typology-impact";
 import { type FitsById, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
 import { type LayerPick, layersForPoint, scenarioOverlayState } from "./layers";
 import { closeScenario } from "./scenario-store";
@@ -35,6 +37,7 @@ const MARGIN = 8;
 const SHEET_BELOW = 560;
 
 type Point = ReplyBlock & { side: "pro" | "con"; key: string };
+type ListTone = "pro" | "con" | "helps" | "harms";
 
 export function ScenarioCard({
   map,
@@ -104,6 +107,17 @@ export function ScenarioCard({
           ...result.data.cons.map((p, i) => ({ ...p, side: "con" as const, key: `con-${i}` })),
         ]
       : [];
+  // Who it helps and may harm: the checked report's lists, or the Alerts pane's
+  // rule-based rows while it loads or if the assistant is unavailable.
+  const impact = useMemo(() => (data ? typologyImpact(typologyId, data) : []), [data, typologyId]);
+  const report = result.data?.status === "ok" ? result.data : null;
+  const reported = Boolean(report);
+  const helps: Point[] = report
+    ? report.helps.map((p, i) => ({ ...p, side: "pro" as const, key: `help-${i}` }))
+    : impact.filter((i) => i.effect === "helps").map((i) => ({ type: "bullet", text: i.text, fact_ids: [], side: "pro" as const, key: `help-${i.key}` }));
+  const harms: Point[] = report
+    ? report.harms.map((p, i) => ({ ...p, side: "con" as const, key: `harm-${i}` }))
+    : impact.filter((i) => i.effect === "harms").map((i) => ({ type: "bullet", text: i.text, fact_ids: [], side: "con" as const, key: `harm-${i.key}` }));
   const facts = result.data?.status === "ok" ? result.data.facts : [];
   const factText = (id: string) => context?.facts.find((f) => f.id === id)?.text ?? "";
 
@@ -124,7 +138,7 @@ export function ScenarioCard({
     // Points are rebuilt each render; their source is `result.data`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.data, typologyId]);
-  const activePoint = points.find((p) => p.key === active);
+  const activePoint = [...points, ...helps, ...harms].find((p) => p.key === active);
   const layers = activePoint ? layersForPoint(activePoint.fact_ids, typologyId, factText) : defaultLayers;
   const layerKey = JSON.stringify(layers);
   useEffect(() => {
@@ -173,7 +187,7 @@ export function ScenarioCard({
     return { left, top, width: CARD_W, maxHeight: place.h - 2 * MARGIN };
   })();
 
-  const question = `What should I know about the ${name} scenario for this parcel?`;
+  const question = `What should I know about the ${name} scenario for this parcel, including who it helps and who it may harm?`;
 
   return (
     <div
@@ -266,13 +280,19 @@ export function ScenarioCard({
           </section>
         ) : (
           <>
-            <PointList title="Pros" empty="No clear pros in this parcel's data." points={points.filter((p) => p.side === "pro")} facts={facts} active={active} onPick={setActive} />
-            <PointList title="Cons" empty="No clear cons in this parcel's data." points={points.filter((p) => p.side === "con")} facts={facts} active={active} onPick={setActive} />
+            <PointList title="Pros" tone="pro" empty="No clear pros in this parcel's data." points={points.filter((p) => p.side === "pro")} facts={facts} active={active} onPick={setActive} />
+            <PointList title="Cons" tone="con" empty="No clear cons in this parcel's data." points={points.filter((p) => p.side === "con")} facts={facts} active={active} onPick={setActive} />
             <p className="text-muted-foreground">
               {active ? "Showing this point's map layers. Click it again for the full view." : `The map shows where ${name} is allowed. Click a point to see its layers.`}
             </p>
           </>
         )}
+
+        <section className="space-y-2 border-t pt-2" aria-label="Who it helps and who it may harm">
+          <PointList title="Who it helps" tone="helps" empty="No group clearly helped in this parcel's data." points={helps} facts={facts} active={active} onPick={setActive} />
+          <PointList title="Who it may harm" tone="harms" empty="No group clearly at risk in this parcel's data." points={harms} facts={facts} active={active} onPick={setActive} />
+          {!reported && (helps.length > 0 || harms.length > 0) && <p className="text-muted-foreground">From the Alerts pane's rules; the checked report replaces these when it's ready.</p>}
+        </section>
 
         <div className="flex items-center justify-between gap-2 border-t pt-2">
           <button type="button" onClick={() => askChat(question)} className="flex items-center gap-1 rounded border px-2 py-1 hover:bg-foreground/10">
@@ -290,25 +310,33 @@ function weightsLabel(weights: Partial<Record<string, number>>) {
   return config.pillars.every((p) => (weights[p.id] ?? p.weight) === p.weight) ? "equal" : "your priorities";
 }
 
+const TONE_CLASS: Record<ListTone, string> = {
+  pro: "text-green-600 dark:text-green-400",
+  con: "text-red-600 dark:text-red-400",
+  helps: "text-green-600 dark:text-green-400",
+  harms: "text-yellow-600 dark:text-yellow-400",
+};
+
 function PointList({
   title,
+  tone,
   empty,
   points,
   facts,
   active,
   onPick,
 }: {
-  title: "Pros" | "Cons";
+  title: string;
+  tone: ListTone;
   empty: string;
   points: Point[];
   facts: ChatFact[];
   active: string | null;
   onPick: (key: string | null) => void;
 }) {
-  const tone = title === "Pros" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400";
   return (
     <section className="space-y-1">
-      <h4 className={`font-semibold ${tone}`}>{title}</h4>
+      <h4 className={`font-semibold ${TONE_CLASS[tone]}`}>{title}</h4>
       {points.length === 0 && <p className="text-muted-foreground">{empty}</p>}
       <ul className="space-y-1">
         {points.map((p) => (

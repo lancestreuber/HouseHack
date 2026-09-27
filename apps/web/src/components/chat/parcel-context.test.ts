@@ -321,7 +321,9 @@ describe("scenario facts for one housing type", () => {
   test("types outside the overall score keep the parcel's facts", () => {
     const other = TILE_TYPES.map(([id]) => id).find((id) => !config.legal.typologies.includes(id))!;
     expect(typologyScore(demo, {}, other)).toBeNull();
-    expect(scenarioChatContext(base, demo, {}, other)).toBe(base);
+    const scenario = scenarioChatContext(base, demo, {}, other);
+    expect(scenario.facts.slice(0, base.facts.length)).toEqual(base.facts);
+    expect(scenario.facts.slice(base.facts.length).every((f) => f.id.startsWith(`helps.${other}.`) || f.id.startsWith(`harms.${other}.`))).toBe(true);
   });
 });
 

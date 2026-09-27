@@ -329,7 +329,9 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   const handleSelectTypology = (typologyId: string) => {
     if (alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current.expand();
     if (!breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current?.collapse();
-    document.getElementById(`alert-${typologyId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    const section = document.getElementById(`alert-${typologyId}`);
+    if (section instanceof HTMLDetailsElement) section.open = true;
+    section?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handleSelectPillarAlert = (id: PillarId) => {
