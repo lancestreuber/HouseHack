@@ -2,7 +2,7 @@ import type { GeoJSONSource, Map as MapLibreMap, MapLayerMouseEvent, PointLike }
 import { Popup } from "maplibre-gl";
 
 import { OVERLAYS } from "./overlays";
-import type { OverlayDefinition, OverlayMetric } from "./overlays/types";
+import { detailSourceId, type GeoJSONData, type OverlayDefinition, type OverlayMetric } from "./overlays/types";
 
 export type OverlayState = {
   // The single active "heat" or "pillar" overlay, or null.
@@ -15,7 +15,7 @@ export type OverlayState = {
 
 export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: null, infraIds: [], metricByOverlay: {} };
 
-const sourceIdFor = (def: OverlayDefinition) => `overlay-${def.id}`;
+const sourceIdFor = (def: OverlayDefinition) => `overlay-${def.sharedSource ?? def.id}`;
 
 export function isVisible(def: OverlayDefinition, state: OverlayState) {
   return def.group === "heat" || def.group === "pillar" ? state.heatId === def.id : state.infraIds.includes(def.id);
@@ -77,6 +77,9 @@ export function syncOverlays(map: MapLibreMap, state: OverlayState, underLayerId
         });
       }
     }
+    if (def.detail && !map.getSource(detailSourceId(sourceId))) {
+      map.addSource(detailSourceId(sourceId), { type: "geojson", data: { type: "FeatureCollection", features: [] } });
+    }
 
     for (const spec of specs) {
       if (!map.getLayer(spec.id)) {
@@ -100,8 +103,46 @@ function abortViewportFetch(overlayId: string) {
   inFlight.delete(overlayId);
 }
 
-// Reload viewport-bound overlays (e.g. sewers) for the current map area.
+type DetailFeature = { geometry: { coordinates: number[][][] } };
+type DetailIndex = { features: DetailFeature[]; centers: [number, number][] };
+const detailFiles = new Map<string, Promise<DetailIndex>>();
+
+// Fetches a detail file once and indexes each feature by its first vertex,
+// which is close enough to filter small cells to the view.
+function loadDetail(url: string) {
+  let file = detailFiles.get(url);
+  if (!file) {
+    file = fetch(url)
+      .then((r) => r.json() as Promise<{ features: DetailFeature[] }>)
+      .then(({ features }) => ({ features, centers: features.map((f) => f.geometry.coordinates[0][0] as [number, number]) }));
+    detailFiles.set(url, file);
+  }
+  return file;
+}
+
+async function refreshDetail(map: MapLibreMap, def: OverlayDefinition) {
+  if (!def.detail || map.getZoom() < def.detail.minZoom) return;
+  const source = map.getSource(detailSourceId(sourceIdFor(def))) as GeoJSONSource | undefined;
+  if (!source) return;
+  const { features, centers } = await loadDetail(def.detail.url);
+  const b = map.getBounds();
+  const padX = (b.getEast() - b.getWest()) * 0.25;
+  const padY = (b.getNorth() - b.getSouth()) * 0.25;
+  const inView = features.filter((_, i) => {
+    const [x, y] = centers[i];
+    return x >= b.getWest() - padX && x <= b.getEast() + padX && y >= b.getSouth() - padY && y <= b.getNorth() + padY;
+  });
+  source.setData({ type: "FeatureCollection", features: inView } as GeoJSONData as Parameters<GeoJSONSource["setData"]>[0]);
+}
+
+// Reload viewport-bound overlays (e.g. sewers) and detail files for the current map area.
 export async function refreshViewportOverlays(map: MapLibreMap, state: OverlayState) {
+  const details = new Set<string>();
+  for (const def of OVERLAYS) {
+    if (!def.detail || !isVisible(def, state) || details.has(sourceIdFor(def))) continue;
+    details.add(sourceIdFor(def));
+    await refreshDetail(map, def).catch((error) => console.warn(`[overlays] ${def.id} detail failed to load`, error));
+  }
   for (const def of OVERLAYS) {
     if (def.source.kind !== "viewport" || !isVisible(def, state)) continue;
     const source = map.getSource(sourceIdFor(def)) as GeoJSONSource | undefined;
