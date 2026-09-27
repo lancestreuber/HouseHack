@@ -22,7 +22,6 @@ import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
 import { PaneCollapseButton } from "../map/pane-collapse-button";
-import { Disclaimer } from "../disclaimer";
 
 export interface ChatPaneProps {
   /**
@@ -498,7 +497,6 @@ function Composer({
           <ArrowUp />
         </Button>
       </div>
-      <Disclaimer className="mx-auto mt-1.5 max-w-3xl text-center" />
     </form>
   );
 }
