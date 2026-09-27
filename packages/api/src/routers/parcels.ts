@@ -25,6 +25,18 @@ const addressSearchInput = z.object({ query: z.string().min(3).max(200) });
 type NominatimResult = { display_name: string; lat: string; lon: string };
 
 export const parcelsRouter = {
+  // Used to fly the map to a parcel restored from the URL on page load --
+  // we only have its PIN at that point, not a screen position.
+  getCentroid: publicProcedure.input(z.object({ pin: z.string() })).handler(async ({ input, context }) => {
+    const result = await context.db.execute<{ lng: number; lat: number }>(sql`
+      SELECT ST_X(ST_Centroid(geom)) AS lng, ST_Y(ST_Centroid(geom)) AS lat
+      FROM parcel
+      WHERE pin = ${input.pin}
+      LIMIT 1
+    `);
+    const row = result.rows[0];
+    return row ? { lng: row.lng, lat: row.lat } : null;
+  }),
   searchAddress: publicProcedure.input(addressSearchInput).handler(async ({ input, context }) => {
     // Free, no-API-key geocoder. Usage policy requires a real identifying
     // User-Agent and caps at ~1 req/sec, which the command palette's input

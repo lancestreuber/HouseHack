@@ -1,6 +1,7 @@
 import type { GeoJSONSource, StyleSpecification } from "maplibre-gl";
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useNavigate } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
@@ -257,7 +258,9 @@ function usePaneCollapse() {
   return { ref, collapsed, onResize, toggle };
 }
 
-export function ParcelMap() {
+export function ParcelMap({ initialPin }: { initialPin?: string }) {
+  const navigate = useNavigate({ from: "/" });
+  const initialPinRef = useRef(initialPin);
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
@@ -281,7 +284,7 @@ export function ParcelMap() {
   // Pre-selected with a real, well-covered demo parcel so the scores,
   // breakdown and typology panes are never empty on first load -- an actual
   // click or address search just swaps this out.
-  const [selectedPin, setSelectedPin] = useState<string | null>(DEMO_PIN);
+  const [selectedPin, setSelectedPin] = useState<string | null>(initialPin ?? DEMO_PIN);
   const [spinning, setSpinning] = useState(false);
   const spinningRef = useRef(spinning);
   spinningRef.current = spinning;
@@ -317,6 +320,16 @@ export function ParcelMap() {
     return () => setAddressSelectHandler(null);
   });
 
+  // Keep the selected parcel in the URL so a refresh (or a shared link)
+  // restores the same one, instead of always falling back to the demo parcel.
+  useEffect(() => {
+    void navigate({
+      search: (prev) => ({ ...prev, pin: selectedPin ?? undefined }),
+      replace: true,
+      resetScroll: false,
+    });
+  }, [selectedPin, navigate]);
+
   useEffect(() => {
     if (!containerRef.current) return;
 
@@ -334,6 +347,15 @@ export function ParcelMap() {
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       collapseAttribution(map);
+
+      // Restored from the URL (a refresh or a shared link): fly to it, since
+      // we only have its PIN, not a screen position, at load time.
+      if (initialPinRef.current) {
+        void client.parcels.getCentroid({ pin: initialPinRef.current }).then((point) => {
+          if (point) map.flyTo({ center: [point.lng, point.lat], zoom: 17 });
+        });
+        if (scoresPane.ref.current?.isCollapsed()) scoresPane.ref.current.expand();
+      }
     });
     map.on("styledata", () => {
       addZoningLayer(map);
