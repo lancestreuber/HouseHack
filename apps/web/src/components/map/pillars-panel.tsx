@@ -1,12 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
+import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
+import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
-type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
+type ShardIndex = {
+  config_version: string;
+  built: string;
+  indicators: string[];
+  shards: string[];
+  // 101 quantiles (0–100th percentile) of default-weight scores across City parcels.
+  quantiles?: Record<string, number[]>;
+};
 type ParcelRow = [zoning: string, norm: (number | null)[], raw: (number | null)[]];
 
 const EVIDENCE_LABEL: Record<string, string> = {
@@ -14,6 +22,7 @@ const EVIDENCE_LABEL: Record<string, string> = {
   assumption: "Assumption",
   policy: "Policy",
   value: "Value judgment",
+  modeled: "Modeled estimate",
 };
 
 export const INDICATORS = config.indicators as Indicator[];
@@ -35,7 +44,20 @@ function loadShard(key: string) {
   return shard;
 }
 
-export type ParcelData = { zoning: string; norm: Record<string, number | null>; raw: Record<string, number | null> };
+export type ParcelData = {
+  zoning: string;
+  norm: Record<string, number | null>;
+  raw: Record<string, number | null>;
+  quantiles?: Record<string, number[]>;
+};
+
+// Share of City parcels (at default weights) scoring below this value.
+function percentileRank(q: number[] | undefined, v: number | null) {
+  if (!q || v == null) return null;
+  let i = 0;
+  while (i < q.length && q[i] < v) i++;
+  return Math.max(0, Math.min(100, i - 1));
+}
 
 export function useParcelData(pin: string | null) {
   const [state, setState] = useState<{ pin: string | null; data: ParcelData | null; status: "idle" | "loading" | "ready" | "missing" }>({
@@ -59,7 +81,7 @@ export function useParcelData(pin: string | null) {
         norm[id] = row[1][i];
         raw[id] = row[2][i];
       });
-      setState({ pin, data: { zoning: row[0], norm, raw }, status: "ready" });
+      setState({ pin, data: { zoning: row[0], norm, raw, quantiles: index.quantiles }, status: "ready" });
     })();
     return () => {
       cancelled = true;
@@ -93,6 +115,12 @@ export function formatRaw(value: number | null, unit: string | undefined) {
       return `${value.toLocaleString()} t/yr`;
     case "per100":
       return `${value} per 100`;
+    case "use":
+      return config.availability.levels.find((l) => l.code === value)?.label ?? "unknown";
+    case "sqft_score":
+      return `${Math.round(value).toLocaleString()} sq ft`;
+    case "pathway":
+      return config.legal.levels.find((l) => l.code === value)?.label ?? "unknown";
     case "ratio":
       return `${value.toFixed(2)}×`;
     default:
@@ -123,7 +151,7 @@ function ScoreBar({ score }: { score: number | null }) {
 
 export const fmtScore = (s: number | null) => (s == null ? "—" : Math.round(s).toString());
 
-function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: ParcelData; contribution?: number }) {
+function IndicatorRow({ ind, data, contribution, scored }: { ind: Indicator; data: ParcelData; contribution?: number; scored: boolean }) {
   const [open, setOpen] = useState(false);
   const norm = data.norm[ind.id];
   const unitNote = ind.unit ? (config.units as Record<string, string>)[ind.unit] : undefined;
@@ -131,10 +159,10 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
     <li className="border-t border-border/40 py-1">
       <button type="button" onClick={() => setOpen((v) => !v)} className="grid w-full grid-cols-[1fr_auto] gap-x-2 text-left">
         <span className={ind.weight === 0 ? "text-muted-foreground" : ""}>{ind.label}</span>
-        <span className="tabular-nums">{norm == null ? "—" : norm}</span>
+        <span className="tabular-nums">{norm == null || ind.unit === "pathway" || ind.unit === "use" ? "—" : norm}</span>
         <span className="text-muted-foreground">{formatRaw(data.raw[ind.id], ind.unit)}</span>
         <span className="text-muted-foreground tabular-nums">
-          {ind.weight === 0 ? "context" : contribution != null ? `+${contribution.toFixed(1)} pts` : "excluded"}
+          {ind.weight === 0 ? "context" : !scored ? "not scored" : contribution != null ? `+${contribution.toFixed(1)} pts` : "no data"}
         </span>
       </button>
       {open && (
@@ -177,11 +205,13 @@ function PillarCard({
   id,
   score,
   data,
+  phrase,
   onSelectPillar,
 }: {
   id: PillarId;
   score: PillarScore;
   data: ParcelData;
+  phrase: string | null;
   onSelectPillar?: (id: PillarId) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -209,6 +239,10 @@ function PillarCard({
           </span>
         </div>
         <ScoreBar score={score.score} />
+        {phrase && <p className="text-foreground/90">{phrase}</p>}
+        {percentileRank(data.quantiles?.[id], score.score) != null && (
+          <p className="text-muted-foreground">Better than {percentileRank(data.quantiles?.[id], score.score)}% of City parcels</p>
+        )}
         {score.subscores.length > 0 && (
           <div className="flex gap-3 text-muted-foreground">
             {score.subscores.map((s) => (
@@ -219,14 +253,16 @@ function PillarCard({
           </div>
         )}
         {score.flags.map((f) => (
-          <p key={f} className="text-red-400">
-            ⚠ {f} (pillar capped)
+          <p key={f.text} className={f.capped ? "text-red-400" : "text-amber-400/90"}>
+            ⚠ {f.text}
+            {f.capped ? " (pillar capped)" : ""}
           </p>
         ))}
       </button>
       {open && (
         <div className="space-y-2 px-2 pb-2">
           <p className="text-muted-foreground">{pillar.description}</p>
+          {"direction_note" in pillar && <p className="text-amber-400/90">⚖ {String(pillar.direction_note)}</p>}
           <p className="text-muted-foreground">
             {Math.round(score.coverage * 100)}% of indicator weight has data. Score = weighted mean of the normalized values
             {pillar.subscores ? " within each sub-score, then the mean of the sub-scores" : ""}; "pts" is each indicator's share of the score.
@@ -237,10 +273,13 @@ function PillarCard({
             return (
               <div key={g.id || "all"}>
                 {g.id && (
-                  <p className="font-medium">
-                    {g.label} <span className="tabular-nums">{fmtScore(sub?.score ?? null)}</span>
-                    {sub?.score == null && <span className="text-muted-foreground"> (not enough data)</span>}
-                  </p>
+                  <>
+                    <p className="font-medium">
+                      {g.label} <span className="tabular-nums">{fmtScore(sub?.score ?? null)}</span>
+                      {sub?.score == null && <span className="text-muted-foreground"> (not enough data)</span>}
+                    </p>
+                    {phraseFor(g.id, sub?.score ?? null, data.norm) && <p className="text-foreground/90">{phraseFor(g.id, sub?.score ?? null, data.norm)}</p>}
+                  </>
                 )}
                 <div className="grid grid-cols-[1fr_auto] gap-x-2 text-muted-foreground">
                   <span>Indicator · raw value</span>
@@ -248,12 +287,83 @@ function PillarCard({
                 </div>
                 <ul>
                   {inds.map((ind) => (
-                    <IndicatorRow key={ind.id} ind={ind} data={data} contribution={contributions.get(ind.id)} />
+                    <IndicatorRow
+                      key={ind.id}
+                      ind={ind}
+                      data={data}
+                      contribution={contributions.get(ind.id)}
+                      scored={!g.id || (sub?.weight ?? 1) > 0}
+                    />
                   ))}
                 </ul>
               </div>
             );
           })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+const WEIGHTS_KEY = "pillars-weights-v1";
+const DEFAULT_WEIGHTS = Object.fromEntries(config.pillars.map((p) => [p.id, p.weight])) as Record<PillarId, number>;
+
+function loadWeights(): Record<PillarId, number> {
+  try {
+    const saved = JSON.parse(localStorage.getItem(WEIGHTS_KEY) ?? "null");
+    if (saved && typeof saved === "object") return { ...DEFAULT_WEIGHTS, ...saved };
+  } catch {}
+  return DEFAULT_WEIGHTS;
+}
+
+// Pillar weights as 0–5 ratings (the OECD Better Life Index pattern). Shown as
+// percentages of the total. Weights are value judgments, so the panel says so.
+function WeightsControl({ weights, onChange }: { weights: Record<PillarId, number>; onChange: (w: Record<PillarId, number>) => void }) {
+  const [open, setOpen] = useState(false);
+  const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
+  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full justify-between text-left">
+        <span className="font-medium">
+          {open ? "▾" : "▸"} Your priorities {isDefault ? "(equal weights)" : "(custom)"}
+        </span>
+        <span className="text-muted-foreground">value judgments</span>
+      </button>
+      {open && (
+        <div className="mt-2 space-y-1.5">
+          {config.pillars.map((p) => {
+            const id = p.id as PillarId;
+            return (
+              <label key={id} className="grid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-2">
+                <span className="truncate">{p.label}</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={5}
+                  step={0.5}
+                  value={weights[id]}
+                  onChange={(e) => onChange({ ...weights, [id]: Number(e.target.value) })}
+                  aria-label={`${p.label} weight`}
+                />
+                <span className="text-right tabular-nums text-muted-foreground">{Math.round((weights[id] / total) * 100)}%</span>
+              </label>
+            );
+          })}
+          <p className="text-muted-foreground">Presets are starting points; each is a different view of what matters.</p>
+          <div className="flex flex-wrap gap-1 pt-1">
+            {Object.entries(config.presets).map(([name, w]) => (
+              <button
+                key={name}
+                type="button"
+                onClick={() => onChange({ ...DEFAULT_WEIGHTS, ...(w as Partial<Record<PillarId, number>>) })}
+                title={(config.preset_notes as Record<string, string>)[name]}
+                className="rounded border px-1.5 py-0.5 hover:bg-foreground/10"
+              >
+                {name.replace(/_/g, " ")}
+              </button>
+            ))}
+          </div>
         </div>
       )}
     </section>
@@ -274,8 +384,26 @@ export function PillarsPanel({
   onToggleCollapse?: () => void;
 }) {
   const { data, status } = useParcelData(pin);
-  const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
-  const range = useMemo(() => (result ? weightSensitivity(result.pillars) : null), [result]);
+  const [weights, setWeightsState] = useState<Record<PillarId, number>>(DEFAULT_WEIGHTS);
+  useEffect(() => setWeightsState(loadWeights()), []);
+  const setWeights = (w: Record<PillarId, number>) => {
+    setWeightsState(w);
+    try {
+      localStorage.setItem(WEIGHTS_KEY, JSON.stringify(w));
+    } catch {}
+  };
+  const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
+  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
+  const range = useMemo(() => {
+    if (!result) return null;
+    const r = weightSensitivity(result.pillars, overrides);
+    // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
+    const m = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
+    return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
+  }, [result, overrides]);
+  const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
+  const overallPhrase = result ? overallPhraseFor(result, rank) : null;
 
   return (
     <aside className="flex h-full w-full flex-col bg-background text-xs">
@@ -300,6 +428,7 @@ export function PillarsPanel({
         )}
         {data && result && (
           <>
+            <WeightsControl weights={weights} onChange={setWeights} />
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between">
                 <span className="font-medium">Overall</span>
@@ -308,9 +437,47 @@ export function PillarsPanel({
                 </span>
               </div>
               <ScoreBar score={result.overall} />
+              {result.overall == null && <p className="mt-1">Not enough data for an overall score.</p>}
+              {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
+                <p className="mt-1 text-amber-400/90">
+                  Not enough data for {config.pillars.filter((p) => result.pillars[p.id as PillarId].score == null).map((p) => p.label).join(", ")};
+                  counted as a below-typical score (the City's 25th percentile for that pillar).
+                </p>
+              )}
+              {rank != null && (
+                <p className="mt-1">
+                  Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
+                  {isDefault ? "" : " (compared with scores at equal weights)"}.
+                </p>
+              )}
+              {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
               <p className="mt-1 text-muted-foreground">
-                Weighted {config.overall.method} mean of the five pillars, equal weights.
-                {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
+                Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
+                {isDefault ? "equal weights" : "your weights"}
+                {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
+                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
+                {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
+              </p>
+            </section>
+            {result.availability && result.availability.multiplier < 1 && (
+              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
+                <p className="font-medium">{result.availability.label}</p>
+                <p className="text-muted-foreground">Overall score × {result.availability.multiplier}.</p>
+                {result.availability.note && <p className="text-muted-foreground">{result.availability.note}</p>}
+              </section>
+            )}
+            <section
+              className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
+            >
+              <p className="font-medium">Zoning (current code)</p>
+              <p>{result.legal ? result.legal.label : "Legal status unknown for this district"}</p>
+              {result.legal && result.legal.multiplier < 1 && (
+                <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
+              )}
+              {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
+              <p className="text-muted-foreground">
+                Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing. Simplified reading of §911.02;
+                verify with the Zoning Administrator.
               </p>
             </section>
             {config.pillars.map((p) => (
@@ -319,12 +486,13 @@ export function PillarsPanel({
                 id={p.id as PillarId}
                 score={result.pillars[p.id as PillarId]}
                 data={data}
+                phrase={pillarPhrase(result, p.id as PillarId, data.norm)}
                 onSelectPillar={onSelectPillar}
               />
             ))}
             <p className="text-muted-foreground">
-              All scores 0–100, higher = better for a future resident. Weights are value judgments, published in
-              pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
+              All scores 0–100: 100 = a good place to build new housing, 0 = a poor one. Default weights and every rule are
+              published in pillars.config.json (v{config.version}). Click a pillar for its calculations, and an indicator for its source.
             </p>
           </>
         )}

@@ -26,6 +26,7 @@ import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./lan
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { commerceDensityOverlay } from "./commerce-density";
 import { parksOverlay, trailsOverlay } from "./parks";
+import { PILLAR_OVERLAYS } from "./pillars";
 import { AMENITY_OVERLAYS, PLACE_OVERLAYS, SERVICE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { schoolQualityOverlay } from "./school-quality";
@@ -39,6 +40,7 @@ import { weatherRiskOverlay } from "./weather-risk";
 import { cityZoningOverlaysOverlay, rcoOverlay, suburbanZoningOverlay } from "./zoning-policy";
 
 export const OVERLAYS: OverlayDefinition[] = [
+  ...PILLAR_OVERLAYS,
   airQualityOverlay,
   weatherRiskOverlay,
   housingCostsOverlay,
@@ -110,6 +112,7 @@ export const OVERLAYS: OverlayDefinition[] = [
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
+export { PILLAR_OVERLAYS };
 
 // Stackable (checkbox) sections of the layers panel, in display order.
 export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: string }[] = [

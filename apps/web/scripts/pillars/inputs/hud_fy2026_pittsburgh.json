@@ -68,5 +68,12 @@
   "safmr": "https://www.huduser.gov/portal/datasets/fmr/fmr2026/fy2026_safmrs_revised.xlsx",
   "mtsp": "https://www.huduser.gov/portal/datasets/mtsp/mtsp26/MTSP-Data-FY26.xlsx (row fips 4200399999)"
  },
- "mtsp_hera_type": "Regular"
+ "mtsp_hera_type": "Regular",
+ "safmr_mandatory": {
+  "value": true,
+  "designated": 2016,
+  "implemented": "2018-04-01",
+  "note": "Pittsburgh HMFA is a HUD-designated mandatory Small Area FMR area: PHAs set Housing Choice Voucher payment standards from ZIP-level SAFMRs (basic range 90-110% of SAFMR).",
+  "source": "https://www.huduser.gov/portal/datasets/fmr/fmr2025/designated-safmr-areas.pdf"
+ }
 }

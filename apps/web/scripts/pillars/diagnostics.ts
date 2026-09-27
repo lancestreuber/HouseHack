@@ -42,14 +42,20 @@ const sample = Array.from({ length: Math.floor(data.count / step) }, (_, k) => k
 const scored = (o: WeightOverrides) => sample.map((i) => scoreParcel(valuesAt(i), o));
 const base = scored({});
 
-console.log("\nIndicator vs its pillar (flag: r > 0.95 redundant, |r| < 0.3 weak, r < -0.3 conflicting)");
+console.log("\nIndicator vs its pillar or sub-score (flag: r > 0.95 redundant, |r| < 0.3 weak, r < -0.3 conflicting)");
 const rows = [];
 for (const ind of config.indicators) {
   if (ind.weight <= 0) continue;
   const iv = sample.map((i) => (cols[ind.id][i] === data.missing ? null : cols[ind.id][i]));
-  const pv = base.map((s) => s.pillars[ind.pillar as PillarId].score);
+  // Compare with the indicator's own sub-score when it has one: pillars with
+  // sub-scores (Climate: carbon vs local environment) mix deliberately opposed parts.
+  const sub = (ind as { sub?: string }).sub;
+  const pv = base.map((s) =>
+    sub ? (s.pillars[ind.pillar as PillarId].subscores.find((x) => x.id === sub)?.score ?? null) : s.pillars[ind.pillar as PillarId].score,
+  );
   const r = pearson(iv, pv);
-  rows.push({ indicator: ind.id, pillar: ind.pillar, r: r.toFixed(2), flag: r > 0.95 ? "redundant" : r < -0.3 ? "CONFLICT" : Math.abs(r) < 0.3 ? "weak" : "" });
+  const alone = config.indicators.filter((o) => o.pillar === ind.pillar && (o as { sub?: string }).sub === sub && o.weight > 0).length === 1;
+  rows.push({ indicator: ind.id, pillar: sub ? `${ind.pillar}/${sub}` : ind.pillar, r: r.toFixed(2), flag: alone ? "only indicator" : r > 0.95 ? "redundant" : r < -0.3 ? "CONFLICT" : Math.abs(r) < 0.3 ? "weak" : "" });
 }
 console.table(rows);
 

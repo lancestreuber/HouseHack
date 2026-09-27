@@ -6,7 +6,7 @@ for r in csv.DictReader(f):
     if not t.startswith('42003'): continue
     cats[r['AMI150']]+=1
     u=float(r['UNITS'] or 0); inc=float(r['HINCP*UNITS'] or 0); en=sum(float(r[k] or 0) for k in ('ELEP*UNITS','GASP*UNITS','FULP*UNITS'))
-    groups=['all', 'tenure_'+r['TEN'].lower()]
+    groups=['all', 'tenure_'+{'REN':'rent','OWN':'own'}.get(r['TEN'],r['TEN'].lower())]
     if r['AMI150'] in ('0-30%','30-60%','60-80%'): groups.append('lowinc')
     if r['AMI150']=='0-30%': groups.append('eli')
     for g in groups:
