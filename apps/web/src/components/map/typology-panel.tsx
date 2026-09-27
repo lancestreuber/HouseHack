@@ -175,9 +175,14 @@ function TypologyTile({
       </span>
       {fit && (
         <div className="space-y-0.5 border-t border-border/40 pt-1">
-          <ScoreBar score={fit.fit * 100} />
+          <div className="flex items-center gap-1.5">
+            <div className="flex-1">
+              <ScoreBar score={fit.fit * 100} />
+            </div>
+            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
+          </div>
           <p className="text-muted-foreground">
-            {fit.label} · confidence {Math.round(fit.confidence * 100)}%
+            {fit.label}
             {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
           </p>
         </div>

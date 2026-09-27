@@ -24,7 +24,7 @@ export const TYPOLOGIES: [string, string][] = [
 // Ranked pathways run cyan (easiest) to red (hardest). The non-ranked states sit
 // off that ramp: planned-unit districts purple, Mount Oliver light grey.
 export const PATHWAY_META: Record<string, { color: string; label: string }> = {
-  by_right: { color: "#22d3ee", label: "By right (staff review)" },
+  by_right: { color: "#22d3ee", label: "By right" },
   za: { color: "#60a5fa", label: "Administrator exception" },
   zbe_special_exception: { color: "#fbbf24", label: "Special exception (Zoning Board hearing)" },
   conditional_use: { color: "#fb923c", label: "Conditional use (Planning Commission + Council)" },
