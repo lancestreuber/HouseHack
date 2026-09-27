@@ -17,13 +17,13 @@ This file lists what the tool doesn't do, what it assumes, and where its data is
   - $350/sf (another practitioner's $325–375/sf)
   - plus $37.5k of site work per building (their $25k–50k range), and $30k more on a mostly steep lot.
 - **Our own assumptions:** 15% soft costs, a 10% margin, and ×103 to turn monthly rent into value.
-- **Value** is the census tract's median resale price for houses, and capitalized block-group rent for 2+ units. Both describe *existing* homes, which sell and rent for less than new ones: 36 new City homes permitted 2019–26 resold at a median $285/sf. So the check leans toward "doesn't pencil". Read that as the appraisal-gap risk, not a verdict on a project.
+- **Value** is the census tract's median resale price for houses, and capitalized block-group rent for 2+ units. Both describe *existing* homes, which sell and rent for less than new ones. City new-build sales run about $370–390/sf, against about $180/sf for all valid sales, roughly 2×. Only 15 of 90 neighborhoods have 5+ new-build comps in 5 years, so no new-build premium is applied. Block-group ACS rents are also noisy: 48 of 265 City block groups have a coefficient of variation above 30%. So the check leans toward "doesn't pencil". Read that as the appraisal-gap risk, not a verdict on a project.
 - **Not modeled:** land cost, financing terms, subsidy programs and their per-unit limits, and construction-time carrying costs.
-- **Permit data can't stand in for cost.** Permit valuations for new City homes average about $101/sf, but those homes resold at a median 2.7× their permit value.
+- **Permit data can't stand in for cost.** Permit valuations for new City 1–2 family homes have a median of $104/sf (n=220), and the declared value is a median 0.31× the same homes' later sale price (`research/sweeps/r9-permit-cost-per-sf.md`).
 
 **Things that need paid due diligence.** None of these are in any score:
-- Environmental contamination and brownfields. We have no PA DEP Act 2 or activity-and-use-limitation layer. The experts named contamination as an up-front deal-killer.
-- Soils, foundations, and demolition debris buried in old basements on vacant lots.
+- Environmental contamination and brownfields. PA DEP Act 2 and activity-and-use-limitation records exist, but only as coarse points with no parcel ID and no cleanup status. They could support at most a "cleanup record within 100 m, verify" flag, which would hit about 1–1.5% of vacant parcels. That flag is not built, and absence of a record doesn't mean a site is clean. The experts named contamination as an up-front deal-killer.
+- Soils, foundations, and demolition debris buried in old basements on vacant lots. City demolition rules since 2021 require only a broken slab and clean fill, and 170 demolition permits from 2024–26 say the foundation walls remain. About 94% of vacant City lots have no demolition record at all, so the tool can't flag this.
 - The location, depth, condition and capacity of water and sewer lines. Capacity is not public, so the tool treats it as **unknown, not bad**.
 
 **Other things not covered:** school quality, tornado risk, and a project's odds of approval. Crime and race never enter any score, on purpose.
@@ -43,6 +43,8 @@ This file lists what the tool doesn't do, what it assumes, and where its data is
   - It counts only decisions posted on the City's site. Withdrawn and abandoned applications are missing.
   - Only projects whose sponsors thought they would pencil reach the Board, so the cases are already filtered.
   - It pools all kinds of relief, not rezonings specifically.
+
+  Approval also isn't guaranteed. In November 2023 the Board denied the height variances for the Bloomfield ShurSave redevelopment (4401 Liberty Ave), calling height a policy question for Council. For 21 Lanark St, the variances were granted, then reversed in court, adding about $120k and at least a year.
 
   A high rate also doesn't mean the process is cheap. The experts stressed that variances are usually granted but slow and costly. The verdict shows each pathway's approval clock and the 120–200 day permit median, but it doesn't turn that time into dollars.
 
