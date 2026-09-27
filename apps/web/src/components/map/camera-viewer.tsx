@@ -141,6 +141,12 @@ function Feed({ camera }: { camera: CameraFeed }) {
           className="block aspect-video w-full bg-black"
           allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
+          // Some embeds (e.g. EarthCam's Warhol cam) are full web pages with a
+          // frame-buster that does `top.location = ...` to hijack the whole tab.
+          // Sandbox without allow-top-navigation lets the player run but blocks
+          // it from navigating our page. (YouTube's embed doesn't need this but
+          // works fine under it.)
+          sandbox="allow-scripts allow-same-origin allow-popups allow-presentation allow-forms"
         />
       );
     default:
