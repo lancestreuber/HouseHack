@@ -242,6 +242,46 @@ describe("across real parcels", () => {
     },
     120_000,
   );
+
+  test(
+    "with one housing type picked in the Parcel Score panel, the chat scores it the way the panel does",
+    async () => {
+      let parcels = 0;
+      let differs = 0;
+      for (const key of keys) {
+        for (const [pin, row] of Object.entries(await shard(key))) {
+          const data = toData(row);
+          for (const type of config.legal.typologies) {
+            // The panel's own overrides (pillars-panel.tsx), built independently here.
+            const panel = { pillars: {}, legalLevel: legalLevelFor(data.zoning, type, data.norm.site_legal_pathway) };
+            const expected = scoreParcel(data.norm, panel);
+            const ctx = parcelChatContext(pin, data, {}, { status: "loading" }, undefined, type);
+            const parsed = chatContext.safeParse(ctx);
+            if (!parsed.success) throw new Error(`${pin} ${type}: ${parsed.error.message}`);
+            const clipped = ctx.facts.find((f) => f.text.endsWith("…"));
+            if (clipped) throw new Error(`${pin} ${type}: ${clipped.id} was cut off at 600 characters`);
+            const overallFact = ctx.facts.find((f) => f.id === "overall")!.text;
+            if (expected.overall != null) {
+              expect(overallFact).toContain(`for a ${SHORT_LABEL[type]}`);
+              expect(overallFact).toContain(`${Math.round(expected.overall)} of 100`);
+            }
+            if (expected.legal) expect(ctx.facts.find((f) => f.id === "legal")!.text).toContain(expected.legal.label);
+            for (const change of whatIfs) {
+              const want = scoreParcel(data.norm, { ...panel, pillars: change }).overall;
+              const got = overallScore(ctx.scoring!, change);
+              if (want == null) expect(got).toBeNull();
+              else expect(got).toBeCloseTo(want, 9);
+            }
+            if (expected.overall !== scoreParcel(data.norm).overall) differs++;
+          }
+          parcels++;
+        }
+      }
+      expect(differs).toBeGreaterThan(0);
+      console.log(`checked ${parcels} parcels x ${config.legal.typologies.length} types (${differs} where the type changes the score)`);
+    },
+    300_000,
+  );
 });
 
 describe("scenario facts for one housing type", () => {
@@ -278,4 +318,14 @@ describe("scenario facts for one housing type", () => {
     expect(typologyScore(demo, {}, other)).toBeNull();
     expect(scenarioChatContext(base, demo, {}, other)).toBe(base);
   });
+});
+
+test("demo parcel with Duplex picked: overall 10, and the rezoning suggestion allows a duplex", () => {
+  const ctx = parcelChatContext(PIN, demo, {}, { status: "loading" }, undefined, "two_unit");
+  expect(ctx.facts.find((f) => f.id === "overall")!.text).toContain("for a Duplex");
+  expect(ctx.suggestions![0]).toBe("Why is the overall score 10?");
+  expect(ctx.suggestions![2]).toBe("What if this were rezoned to R2-H?");
+  expect(ctx.facts.find((f) => f.id === "whatif.rezone.r2-h")!.text).toContain("would be 50 instead of 10");
+  // The default is unchanged.
+  expect(parcelChatContext(PIN, demo, {}, { status: "loading" }).suggestions![0]).toBe("Why is the overall score 50?");
 });

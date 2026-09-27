@@ -14,7 +14,8 @@ import { orpc } from "@/utils/orpc";
 
 import { askChat } from "../chat/chat-context-store";
 import { FactChip } from "../chat/fact-chip";
-import { scenarioChatContext, tileScore, typologyScore, useParcelChatContext } from "../chat/parcel-context";
+import { parcelOverrides, scenarioChatContext, tileScore, typologyScore, useParcelChatContext } from "../chat/parcel-context";
+import { EASIEST, useLegalFor } from "../map/legal-for-store";
 import { Disclaimer } from "../disclaimer";
 import { typologyAlerts } from "../map/alerts-panel";
 import type { OverlayState } from "../map/overlay-controller";
@@ -67,7 +68,12 @@ export function ScenarioCard({
   const siteFit = siteFitId ? fit.data?.typologies.find((t) => t.id === siteFitId)?.fit : undefined;
   const alerts = fit.data && siteFitId ? (typologyAlerts(fit.data).find((a) => a.id === siteFitId)?.notes ?? []) : [];
   const ownScore = useMemo(() => (data ? typologyScore(data, weights, typologyId) : null), [data, weights, typologyId]);
-  const score = useMemo(() => ownScore ?? (data ? scoreParcel(data.norm, { pillars: weights }) : null), [ownScore, data, weights]);
+  // Types outside the overall score show the parcel's score, as the Parcel Score panel has it.
+  const legalFor = useLegalFor();
+  const score = useMemo(
+    () => ownScore ?? (data ? scoreParcel(data.norm, parcelOverrides(weights, legalFor, data.zoning, data.norm.site_legal_pathway)) : null),
+    [ownScore, data, weights, legalFor],
+  );
 
   // Pros and cons, once the site-fit facts (Jev, alerts) are in the context.
   const focus = context
@@ -207,7 +213,9 @@ export function ScenarioCard({
 
           <span className="text-muted-foreground">Overall</span>
           <span>
-            <span className="font-medium tabular-nums">{fmtScore(score?.overall ?? null)}</span> of 100 {ownScore ? `for a ${name} here` : "for this parcel (zoning factor: easiest mainstream type)"}
+            <span className="font-medium tabular-nums">{fmtScore(score?.overall ?? null)}</span> of 100 {ownScore
+              ? `for a ${name} here`
+              : `for this parcel (zoning factor: ${legalFor === EASIEST ? "easiest mainstream type" : (SHORT_LABEL[legalFor] ?? legalFor)})`}
             {score && (score.legal || score.availability || score.hazard) && (
               <span className="text-muted-foreground">
                 {" "}

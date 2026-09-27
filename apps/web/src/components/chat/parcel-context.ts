@@ -9,7 +9,7 @@ import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase, pillarPhrase } from "@/lib/pillars/phrases";
-import { type ParcelScore, type PillarId, scoreMultiplier, scoreParcel } from "@/lib/pillars/score";
+import { type ParcelScore, type PillarId, scoreMultiplier, scoreParcel, type WeightOverrides } from "@/lib/pillars/score";
 import { DEFAULT_PENCIL, type PencilAssumptions } from "@/lib/pillars/pencil";
 import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 
@@ -17,6 +17,7 @@ import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibi
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { typologyAlerts } from "../map/alerts-panel";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData, useTypologyFit } from "../map/pillars-panel";
+import { EASIEST, useLegalFor } from "../map/legal-for-store";
 import { type PillarWeights, usePillarWeights } from "../map/pillar-weights-store";
 import { notPermittedScore, PATHWAY_SCORE } from "../map/typology-panel";
 import { type FitsById, legalLevelFor, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
@@ -288,17 +289,32 @@ export function rezoningTargets(zoning: string): string[] {
   });
 }
 
-function scenarioFacts(data: ParcelData, weights: PillarWeights, result: ParcelScore): ContextFact[] {
+/**
+ * How the Parcel Score panel scores a parcel: the user's weights, and the zoning
+ * factor for the easiest mainstream type or the one type picked there. `zoning`
+ * and `legalCode` can be another district's, for a what-if rezoning.
+ */
+export function parcelOverrides(weights: PillarWeights, legalFor: string, zoning: string, legalCode?: number | null): WeightOverrides {
+  return { pillars: weights, ...(MAIN_TYPOLOGIES.has(legalFor) ? { legalLevel: legalLevelFor(zoning, legalFor, legalCode) } : {}) };
+}
+
+/** The one type the zoning factor follows ("for a Duplex"), or null for the easiest type. */
+function pickedType(legalFor: string): string | null {
+  return MAIN_TYPOLOGIES.has(legalFor) ? (SHORT_LABEL[legalFor] ?? legalFor) : null;
+}
+
+function scenarioFacts(data: ParcelData, weights: PillarWeights, result: ParcelScore, legalFor = EASIEST): ContextFact[] {
   const facts: ContextFact[] = [];
+  const picked = pickedType(legalFor);
   const now = round(result.overall);
   const current = DISTRICT_PATHWAYS[data.zoning];
   for (const district of rezoningTargets(data.zoning)) {
     const code = legalCodeFor(district);
     const row = DISTRICT_PATHWAYS[district];
-    if (code == null || !row) continue;
+    if ((code == null && !picked) || !row) continue;
     const types = config.legal.typologies;
     if (current && types.every((t) => row[t] === current[t])) continue;
-    const alt = scoreParcel({ ...data.norm, site_legal_pathway: code }, { pillars: weights });
+    const alt = scoreParcel({ ...data.norm, site_legal_pathway: code }, parcelOverrides(weights, legalFor, district, code));
     const tiles = types
       .map((t) => {
         const score = tileScore(district, t);
@@ -311,8 +327,10 @@ function scenarioFacts(data: ParcelData, weights: PillarWeights, result: ParcelS
         `whatif.rezone.${district.toLowerCase()}`,
         `What if the parcel were rezoned to ${district}${name}, hypothetically: ${tiles}. ${
           (alt.legal?.multiplier ?? 1) === (result.legal?.multiplier ?? 1)
-            ? `The zoning factor would stay ${alt.legal?.multiplier ?? 1}, so the overall score would stay ${now}, because housing is already allowed here.`
-            : `The zoning factor would be ${alt.legal?.multiplier ?? 1} instead of ${result.legal?.multiplier ?? 1}, so the overall score would be ${round(alt.overall)} instead of ${now} at the current weights.`
+            ? picked
+              ? `The zoning factor for a ${picked} would stay ${alt.legal?.multiplier ?? 1}, so the overall score would stay ${now}.`
+              : `The zoning factor would stay ${alt.legal?.multiplier ?? 1}, so the overall score would stay ${now}, because housing is already allowed here.`
+            : `The zoning factor${picked ? ` for a ${picked}` : ""} would be ${alt.legal?.multiplier ?? 1} instead of ${result.legal?.multiplier ?? 1}, so the overall score would be ${round(alt.overall)} instead of ${now} at the current weights.`
         } A hypothetical, not a prediction that a rezoning would be approved.`,
         "value",
       ),
@@ -322,7 +340,7 @@ function scenarioFacts(data: ParcelData, weights: PillarWeights, result: ParcelS
   if (site && site.multiplier < 1) {
     const vacant = config.availability.levels.find((l) => l.id === "site");
     if (vacant) {
-      const alt = scoreParcel({ ...data.norm, site_parcel_use: vacant.code }, { pillars: weights });
+      const alt = scoreParcel({ ...data.norm, site_parcel_use: vacant.code }, parcelOverrides(weights, legalFor, data.zoning, data.norm.site_legal_pathway));
       facts.push(
         fact(
           "whatif.vacant",
@@ -365,13 +383,13 @@ function weightsText(weights: PillarWeights): string {
 }
 
 // The zoning, site and hazard factors that multiply the overall score, when they apply.
-function statusFacts(result: ParcelScore): ContextFact[] {
+function statusFacts(result: ParcelScore, picked: string | null = null): ContextFact[] {
   const facts: ContextFact[] = [];
   const { legal, availability, hazard } = result;
   if (legal) {
     const factor = legal.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${legal.multiplier}`;
     const tone: Tone = legal.multiplier >= 0.98 ? "good" : legal.multiplier < 0.9 ? "bad" : undefined;
-    facts.push(withTone(fact("legal", `Zoning: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF), tone));
+    facts.push(withTone(fact("legal", `Zoning${picked ? ` for a ${picked} (the type picked in the Parcel Score panel)` : ""}: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF), tone));
   }
   if (availability) {
     const factor = availability.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${availability.multiplier}`;
@@ -390,6 +408,7 @@ export function parcelChatContext(
   weights: PillarWeights = {},
   fit: FitState = { status: "loading" },
   pencil: PencilAssumptions = DEFAULT_PENCIL,
+  legalFor: string = EASIEST,
 ): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
@@ -397,7 +416,8 @@ export function parcelChatContext(
     return { subject, facts: [fact("parcel", `Parcel ${pin}: ${text}`, "observed")], notes: [text] };
   }
 
-  const result = scoreParcel(data.norm, { pillars: weights });
+  const result = scoreParcel(data.norm, parcelOverrides(weights, legalFor, data.zoning, data.norm.site_legal_pathway));
+  const picked = pickedType(legalFor);
   const multiplier = scoreMultiplier(result);
   const districtName = DISTRICT_PATHWAYS[data.zoning]?.full_zoning_type;
   const overall = round(result.overall);
@@ -406,13 +426,15 @@ export function parcelChatContext(
   const pillars = config.pillars.map((p) => ({ id: p.id, label: p.label, score: result.pillars[p.id as PillarId].score }));
   const weakest = pillars.filter((p) => p.score != null).sort((a, b) => (a.score as number) - (b.score as number))[0];
   const duplex = PATHWAY_META[DISTRICT_PATHWAYS[data.zoning]?.two_unit ?? ""];
-  const rezoneTo = (result.legal?.multiplier ?? 1) < 0.9 ? rezoningTargets(data.zoning).find((d) => legalCodeFor(d) != null) : undefined;
+  // The nearest district that allows housing, or the picked type.
+  const allows = (d: string) => (picked ? (DISTRICT_PATHWAYS[d]?.[legalFor] ?? "not_permitted") !== "not_permitted" : legalCodeFor(d) != null);
+  const rezoneTo = (result.legal?.multiplier ?? 1) < 0.9 ? rezoningTargets(data.zoning).find(allows) : undefined;
 
   const overallText =
     overall == null
       ? "Overall score: not enough data to score."
       : [
-          `Overall score: ${overall} of 100, blending the five pillars at ${weightsText(weights)}: ${pillars
+          `Overall score${picked ? ` for a ${picked} (zoning factor for the type picked in the Parcel Score panel)` : ""}: ${overall} of 100, blending the five pillars at ${weightsText(weights)}: ${pillars
             .map((p) => `${p.label} ${round(p.score) ?? "no data"}`)
             .join(", ")}.`,
           multiplier < 1 && result.overallBeforeMultipliers != null &&
@@ -433,11 +455,11 @@ export function parcelChatContext(
       LEGAL_MATRIX_AS_OF,
     ),
     withTone(fact("overall", overallText, "value"), toneOf(result.overall)),
-    ...statusFacts(result),
+    ...statusFacts(result, picked),
     ...pillarFacts(data, result),
     ...typologyFacts(data.zoning, fit.status === "ready" ? fit.data : null),
     ...siteFitFacts(fit),
-    ...scenarioFacts(data, weights, result),
+    ...scenarioFacts(data, weights, result, legalFor),
     ...indicatorFacts(data, result),
     ...verdictFacts(data, pencil, fit),
     ...definitions(),
@@ -549,16 +571,17 @@ export function useParcelChatContext(pin: string | null): ChatContext | null {
   const { pin: loadedPin, data, status } = useParcelData(pin);
   const weights = usePillarWeights();
   const pencil = usePencilAssumptions();
+  const legalFor = useLegalFor();
   const ready = pin != null && loadedPin === pin && status === "ready" ? data : null;
   // The same cached request the typology and Alerts panes use.
   const query = useTypologyFit(pin ?? "", ready);
   const fit: FitState = query.data ? { status: "ready", data: query.data } : query.isError ? { status: "error" } : { status: "loading" };
   return useMemo(() => {
     if (!pin || loadedPin !== pin) return null;
-    if (status === "ready" && data) return parcelChatContext(pin, data, weights, fit, pencil);
+    if (status === "ready" && data) return parcelChatContext(pin, data, weights, fit, pencil, legalFor);
     if (status === "missing") return parcelChatContext(pin, null);
     return null;
     // `fit` is rebuilt each render; its inputs are listed instead.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin, loadedPin, data, status, weights, query.data, query.isError, pencil]);
+  }, [pin, loadedPin, data, status, weights, query.data, query.isError, pencil, legalFor]);
 }
