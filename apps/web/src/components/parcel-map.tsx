@@ -587,11 +587,6 @@ export function ParcelMap() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="absolute right-2 top-2 z-10 flex flex-col items-end gap-1">
-                    <p className="rounded bg-background/80 px-2 py-1 text-[10px] text-muted-foreground backdrop-blur">
-                      Zoom in to see parcel boundaries
-                    </p>
-                  </div>
                 </div>
               </div>
             </ResizablePanel>
