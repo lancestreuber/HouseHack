@@ -54,7 +54,6 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
-  const hasSubject = Boolean(context?.facts.length);
   // Parcel contexts always carry a "parcel" fact; others (e.g. how the tool works) don't.
   const aboutParcel = Boolean(context?.facts.some((f) => f.id === "parcel"));
 
@@ -113,7 +112,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
       </header>
       {!(collapsed && !floating) && (
         <>
-          {hasSubject && context?.subject && (
+          {aboutParcel && context?.subject && (
             <p className="shrink-0 truncate border-b border-border px-4 py-2 text-xs text-muted-foreground" title={context.subject}>
               {context.subject}
             </p>

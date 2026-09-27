@@ -46,7 +46,7 @@ export default function UserMenu() {
             size="icon"
             aria-label="Account"
             title={session.user.name}
-            className="size-10 rounded-lg text-muted-foreground hover:bg-accent/40 hover:text-foreground [&_svg]:size-5"
+            className="h-10 w-full rounded-lg text-muted-foreground hover:bg-accent/40 hover:text-foreground [&_svg]:size-5"
           />
         }
       >

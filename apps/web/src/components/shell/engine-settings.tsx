@@ -1,6 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@HouseHack/ui/components/popover";
 import { Slider } from "@HouseHack/ui/components/slider";
-import { Settings } from "lucide-react";
+import { Scale } from "lucide-react";
 import type { ReactNode } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
@@ -11,7 +11,7 @@ import { setPillarWeights, usePillarWeights, type PillarWeights } from "../map/p
 
 function RailGearTrigger({ children }: { children: ReactNode }) {
   return (
-    <PopoverTrigger render={<button type="button" aria-label="Engine settings" title="Engine settings" className="relative flex h-10 w-full items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground" />}>
+    <PopoverTrigger render={<button type="button" aria-label="Scoring weights" title="Scoring weights" className="relative flex h-10 w-full items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground" />}>
       {children}
     </PopoverTrigger>
   );
@@ -25,10 +25,10 @@ export function EngineSettings() {
   return (
     <Popover>
       <RailGearTrigger>
-        <Settings className="size-5" />
+        <Scale className="size-5" />
       </RailGearTrigger>
       <PopoverContent side="right" align="end" className="w-72 text-xs">
-        <p className="font-semibold text-[13px] tracking-wide uppercase">Engine settings</p>
+        <p className="font-semibold text-[13px] tracking-wide uppercase">Scoring weights</p>
         <p className="mt-1 text-muted-foreground">Pillar weights</p>
         <div className="mt-2 space-y-3">
           {config.pillars.map((p) => {

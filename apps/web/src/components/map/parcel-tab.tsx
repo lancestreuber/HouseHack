@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@HouseHack/ui/lib/utils";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
+import { useParcelData } from "./pillars-panel";
 
 function starKey(pin: string) {
   return `parcel-star:${pin}`;
@@ -26,6 +27,7 @@ export function ParcelTab({
   onClear: () => void;
 }) {
   const [starred, setStarred] = useState(false);
+  const { data } = useParcelData(pin);
 
   useEffect(() => {
     setStarred(pin ? localStorage.getItem(starKey(pin)) === "1" : false);
@@ -40,7 +42,10 @@ export function ParcelTab({
 
   return (
     <div className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
-      <span className="font-medium">{pin ? `Parcel ${pin}` : "Select a parcel"}</span>
+      <span className="flex items-baseline gap-2">
+        <span className="font-medium">{pin ? `Parcel ${pin}` : "Select a parcel"}</span>
+        {pin && data && <span className="text-muted-foreground">Zoning {data.zoning || "unknown"}</span>}
+      </span>
       <div className="flex items-center gap-1">
         <button
           type="button"

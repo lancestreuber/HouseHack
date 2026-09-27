@@ -46,7 +46,7 @@ export function NavRail() {
         <FileText className="size-5" />
       </RailLink>
       <div className="flex-1" />
-      <ThemeToggle className="size-10 rounded-lg text-muted-foreground hover:bg-accent/40 hover:text-foreground [&_svg]:size-5" />
+      <ThemeToggle />
       <EngineSettings />
       <UserMenu />
     </nav>
