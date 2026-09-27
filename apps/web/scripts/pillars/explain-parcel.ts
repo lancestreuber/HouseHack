@@ -45,8 +45,8 @@ for (const pin of process.argv.slice(2)) {
   const s = scoreParcel(norm);
   const m = meta.get(pin) ?? {};
   console.log(`\n=== ${pin} · ${m.hood ?? "?"} · zoning ${row[0]} · ${m.classdesc ?? ""} / ${m.usedesc ?? ""} · vacant=${m.Vacant ?? "?"} · owner=${m.OwnerCateg ?? "?"} · lot ${Math.round(Number(m.Shape__Area) || 0)} sq ft`);
-  console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1}) · Availability: ${s.availability?.label ?? "?"} (×${s.availability?.multiplier ?? 1})`);
-  console.log(`Overall ${f1(s.overall)} (pillar blend ${f1(s.overallBeforeMultipliers)} before zoning/availability multipliers), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${overallPhrase(s, rank("overall", s.overall)) ?? ""}`);
+  console.log(`Legal: ${s.legal?.label ?? "unknown"} (×${s.legal?.multiplier ?? 1}) · Availability: ${s.availability?.label ?? "?"} (×${s.availability?.multiplier ?? 1}) · Hazard: ${s.hazard ? `${s.hazard.flags.join("; ")} (×${s.hazard.multiplier})` : "none"}`);
+  console.log(`Overall ${f1(s.overall)} (pillar blend ${f1(s.overallBeforeMultipliers)} before zoning/availability/hazard multipliers), better than ${rank("overall", s.overall) ?? "?"}% of City parcels: ${overallPhrase(s, rank("overall", s.overall)) ?? ""}`);
   for (const p of PILLAR_IDS) {
     const ps = s.pillars[p];
     const def = config.pillars.find((x) => x.id === p)!;

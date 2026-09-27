@@ -1,0 +1,4658 @@
+{
+ "type": "FeatureCollection",
+ "name": "senior-and-group-housing",
+ "features": [
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.920145,
+     40.414357
+    ]
+   },
+   "properties": {
+    "id": "dhs-1",
+    "name": "AHAVA MEMORY CARE RESIDENCE",
+    "address": "200 JHF DRIVE, PITTSBURGH, PA 15217",
+    "type": "assisted_living",
+    "capacity": 30.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "US Census geocoder: 200 JHF DR, PITTSBURGH, PA, 15217",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: PA ALR/nursing mapped to the City Assisted Living definition by bed count; not verified per site",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "license_id": "448580",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "8/18/2026 - 8/18/2027",
+    "dementia_special_care_capacity": 30.0,
+    "operation": "NON-PROFIT",
+    "dhs_service": "ASSISTED LIVING - SPECIAL CARE",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.95796,
+     40.46631
+    ]
+   },
+   "properties": {
+    "id": "dhs-8",
+    "name": "CANTERBURY PLACE",
+    "address": "310 FISK STREET, PITTSBURGH, PA 15201",
+    "type": "personal_care",
+    "capacity": 78.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "429490",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "6/17/2026 - 6/17/2027",
+    "dementia_special_care_capacity": null,
+    "operation": "NON-PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": "doh-143"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.00993,
+     40.46699
+    ]
+   },
+   "properties": {
+    "id": "dhs-10",
+    "name": "REFORMED PRESBYTERIAN HOME",
+    "address": "2344 PERRYSVILLE AVENUE, PITTSBURGH, PA 15214",
+    "type": "personal_care",
+    "capacity": 56.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "license_id": "429660",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "7/8/2026 - 7/8/2027",
+    "dementia_special_care_capacity": null,
+    "operation": "NON-PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": "doh-123,hud_mf-179,hud_mf-200,lihtc-239"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.92293,
+     40.43607
+    ]
+   },
+   "properties": {
+    "id": "dhs-12",
+    "name": "HARRY & JEANNETTE WEINBERG TERRACE",
+    "address": "5757 BARTLETT STREET, PITTSBURGH, PA 15217",
+    "type": "personal_care",
+    "capacity": 115.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "license_id": "429810",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "11/26/2025 - 11/26/2026",
+    "dementia_special_care_capacity": null,
+    "operation": "NON-PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.95435,
+     40.45373
+    ]
+   },
+   "properties": {
+    "id": "dhs-31",
+    "name": "SCHENLEY GARDENS",
+    "address": "3890 BIGELOW BOULEVARD, PITTSBURGH, PA 15213",
+    "type": "personal_care",
+    "capacity": 164.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "RM-VH",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "license_id": "449860",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "11/20/2025 - 11/20/2026",
+    "dementia_special_care_capacity": 32.0,
+    "operation": "NON-PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.92155,
+     40.41394
+    ]
+   },
+   "properties": {
+    "id": "dhs-41",
+    "name": "WATERSIDE LANDING PERSONAL CARE RESIDENCE",
+    "address": "100 JHF DRIVE, PITTSBURGH, PA 15217",
+    "type": "personal_care",
+    "capacity": 58.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R2-L",
+    "zoning_full": "TWO-UNIT RESIDENTIAL LOW DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "457320",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "12/11/2025 - 11/13/2026",
+    "dementia_special_care_capacity": null,
+    "operation": "NON-PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": "hud_mf-161"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.03717,
+     40.47434
+    ]
+   },
+   "properties": {
+    "id": "dhs-43",
+    "name": "DONAHUE'S PERSONAL CARE I",
+    "address": "1610 HYBLA STREET, PITTSBURGH, PA 15212",
+    "type": "personal_care",
+    "capacity": 17.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "personal_care_large",
+    "zoning_use_label": "Personal Care Residence (Large)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "430340",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "9/27/2025 - 9/27/2026",
+    "dementia_special_care_capacity": null,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.99432,
+     40.38291
+    ]
+   },
+   "properties": {
+    "id": "dhs-44",
+    "name": "NORBERT RESIDENTIAL CARE FACILITY",
+    "address": "2413 ST NORBERT DRIVE, PITTSBURGH, PA 15234",
+    "type": "personal_care",
+    "capacity": 102.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R1D-H",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "430510",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "12/16/2025 - 12/16/2026",
+    "dementia_special_care_capacity": 26.0,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.99888,
+     40.45211
+    ]
+   },
+   "properties": {
+    "id": "dhs-46",
+    "name": "HENDERSON HOUSE",
+    "address": "528-30 PRESSLEY STPO BOX 6363, PITTSBURGH, PA 15212",
+    "type": "personal_care",
+    "capacity": 25.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R1A-VH",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "430950",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "3/10/2026 - 3/10/2027",
+    "dementia_special_care_capacity": null,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": "hacp-116"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.06346,
+     40.45577
+    ]
+   },
+   "properties": {
+    "id": "dhs-53",
+    "name": "PERRY SOUTH PERSONAL CARE HOME",
+    "address": "1129 TWEED STREET, PITTSBURGH, PA 15204",
+    "type": "personal_care",
+    "capacity": 8.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "R1D-H",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "personal_care_small",
+    "zoning_use_label": "Personal Care Residence (Small)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "license_id": "433730",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "5/4/2026 - 5/4/2027",
+    "dementia_special_care_capacity": null,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.90909,
+     40.45898
+    ]
+   },
+   "properties": {
+    "id": "dhs-61",
+    "name": "FORBES ROAD RESIDENCE",
+    "address": "6655 FRANKSTOWN AVENUE, PITTSBURGH, PA 15206",
+    "type": "personal_care",
+    "capacity": 44.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2025,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "UI",
+    "zoning_full": "URBAN INDUSTRIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "S",
+    "multi_unit_pathway": "zbe_special_exception",
+    "license_id": "443200",
+    "license_type": "FULL",
+    "license_status": "LICENSED",
+    "license_period": "12/19/2025 - 12/19/2026",
+    "dementia_special_care_capacity": null,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.02222,
+     40.40177
+    ]
+   },
+   "properties": {
+    "id": "dhs-86",
+    "name": "FAIR OAKS SENIOR LIVING",
+    "address": "2200 WEST LIBERTY AVENUE, PITTSBURGH, PA 15226",
+    "type": "personal_care",
+    "capacity": 100.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2026,
+    "year_basis": "current DHS license period start (NOT original licensure)",
+    "source": "PA DHS Human Services Provider Directory (OLTL, Allegheny)",
+    "geocode": "data.pa.gov pqf4-d4xn lat/lon (accuracy code 5)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "low: licensed capacity exceeds the 17-client ceiling of Personal Care Residence (Large); classification by the City not verified",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "license_id": "452862",
+    "license_type": "PROVISIONAL",
+    "license_status": "LICENSED",
+    "license_period": "5/15/2026 - 11/15/2026",
+    "dementia_special_care_capacity": null,
+    "operation": "PROFIT",
+    "dhs_service": "PERSONAL CARE HOMES",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.99367,
+     40.421958
+    ]
+   },
+   "properties": {
+    "id": "hacp-107",
+    "name": "Caliguiri Plaza",
+    "address": "803 E. Warrington Avenue, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 104.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000041",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.986429,
+     40.39258
+    ]
+   },
+   "properties": {
+    "id": "hacp-108",
+    "name": "Carrick Regency",
+    "address": "2129 Brownsville Road, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 66.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RM-H",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000046",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.960025,
+     40.434163
+    ]
+   },
+   "properties": {
+    "id": "hacp-109",
+    "name": "Finello Pavilion",
+    "address": "3206 Niagara Street, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 60.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "R1A-VH",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000044",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.02884,
+     40.40424
+    ]
+   },
+   "properties": {
+    "id": "hacp-110",
+    "name": "Gualtieri Manor",
+    "address": "2125 Los Angeles Street, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 31.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000047",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.017998,
+     40.392537
+    ]
+   },
+   "properties": {
+    "id": "hacp-111",
+    "name": "Mazza Pavilion",
+    "address": "920 Brookline Boulevard, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 30.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000040",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.970964,
+     40.427017
+    ]
+   },
+   "properties": {
+    "id": "hacp-112",
+    "name": "Morse Gardens",
+    "address": "2416 Sarah Street, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 70.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "R2-VH",
+    "zoning_full": "TWO-UNIT RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000045",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.925857,
+     40.427711
+    ]
+   },
+   "properties": {
+    "id": "hacp-113",
+    "name": "Murray Towers",
+    "address": "2825 Murray Avenue, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": null,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "US Census geocoder: 2825 MURRAY AVE, PITTSBURGH, PA, 15217",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general|elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (size unknown)",
+    "zoning_use_confidence": "low: unit count missing",
+    "permission_code": "S|A",
+    "permission_pathway": "zbe_special_exception|za",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": null,
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.000036,
+     40.477672
+    ]
+   },
+   "properties": {
+    "id": "hacp-114",
+    "name": "Northview Heights High Rise",
+    "address": "533 Mt. Pleasant Rd, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": null,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "US Census geocoder: 533 MOUNT PLEASANT RD, PITTSBURGH, PA, 15214",
+    "zon_new": "R1D-L",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL LOW DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general|elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (size unknown)",
+    "zoning_use_confidence": "low: unit count missing",
+    "permission_code": "-|S",
+    "permission_pathway": "not_permitted|zbe_special_exception",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": null,
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.020296,
+     40.45414
+    ]
+   },
+   "properties": {
+    "id": "hacp-115",
+    "name": "Pennsylvania Bidwell",
+    "address": "1014 Sheffield Street, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 120.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000015",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.9987,
+     40.451897
+    ]
+   },
+   "properties": {
+    "id": "hacp-116",
+    "name": "Pressley Street",
+    "address": "601 Pressley Street, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 211.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "HACP-managed",
+    "hud_development_code": "PA001000017",
+    "possible_same_site_as": "dhs-46"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.081451,
+     40.449214
+    ]
+   },
+   "properties": {
+    "id": "hacp-117",
+    "name": "Cedarwood Homes",
+    "address": "1862 Broadhead Fording Road, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": null,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "US Census geocoder: 1862 BROADHEAD FORDING RD, PITTSBURGH, PA, 15205",
+    "zon_new": "UI",
+    "zoning_full": "URBAN INDUSTRIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general|elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (size unknown)",
+    "zoning_use_confidence": "low: unit count missing",
+    "permission_code": "S|A",
+    "permission_pathway": "zbe_special_exception|za",
+    "multi_unit_code": "S",
+    "multi_unit_pathway": "zbe_special_exception",
+    "hacp_management": "privately managed",
+    "hud_development_code": null,
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.968414,
+     40.452614
+    ]
+   },
+   "properties": {
+    "id": "hacp-118",
+    "name": "Christopher A. Smith Terrace",
+    "address": "2829 Bedford Avenue, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 36.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "privately managed",
+    "hud_development_code": "PA001000073",
+    "possible_same_site_as": "hud_mf-152,lihtc-255,lihtc-270"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.93362,
+     40.464705
+    ]
+   },
+   "properties": {
+    "id": "hacp-119",
+    "name": "Fairmont Apartments",
+    "address": "5461 Penn Ave, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 60.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "privately managed",
+    "hud_development_code": "PA001000086",
+    "possible_same_site_as": "lihtc-236"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.932726,
+     40.406785
+    ]
+   },
+   "properties": {
+    "id": "hacp-120",
+    "name": "Glen Hazel High Rise",
+    "address": "945 Roselle Court, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": null,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "US Census geocoder: 945 ROSELLE CT, PITTSBURGH, PA, 15207",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general|elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (size unknown)",
+    "zoning_use_confidence": "low: unit count missing",
+    "permission_code": "S|S",
+    "permission_pathway": "zbe_special_exception|zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "privately managed",
+    "hud_development_code": null,
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.902213,
+     40.458349
+    ]
+   },
+   "properties": {
+    "id": "hacp-121",
+    "name": "Silver Lake Commons",
+    "address": "6935 Frankstown Avenue, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 75.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "privately managed",
+    "hud_development_code": "PA001000080",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.933219,
+     40.471762
+    ]
+   },
+   "properties": {
+    "id": "hacp-122",
+    "name": "The Commons at North Aiken",
+    "address": "5330 North Aiken Court, Pittsburgh, PA",
+    "type": "public_housing_senior",
+    "capacity": 63.0,
+    "capacity_unit": "dwelling units",
+    "year": null,
+    "year_basis": null,
+    "source": "HACP housing communities page (hacp.org) + HUD Public Housing Developments",
+    "geocode": "HUD Public_Housing_Developments point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hacp_management": "privately managed",
+    "hud_development_code": "PA001000085",
+    "possible_same_site_as": "lihtc-237"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.009639,
+     40.467176
+    ]
+   },
+   "properties": {
+    "id": "doh-123",
+    "name": "Reformed Presbyterian Home",
+    "address": "2344 Perrysville Ave, Pittsburgh, PA 15214",
+    "type": "nursing",
+    "capacity": 58.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1983,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "183002",
+    "cms_ccn": "395561",
+    "possible_same_site_as": "dhs-10,hud_mf-179,hud_mf-200,lihtc-239"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.926784,
+     40.433352
+    ]
+   },
+   "properties": {
+    "id": "doh-125",
+    "name": "Squirrel Hill Wellness and Rehabilitation Center",
+    "address": "2025 Wightman Street, Pittsburgh, PA 15217",
+    "type": "nursing",
+    "capacity": 178.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1977,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-H",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "231602",
+    "cms_ccn": "395028",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.897446,
+     40.478166
+    ]
+   },
+   "properties": {
+    "id": "doh-126",
+    "name": "Southwestern Veterans Center",
+    "address": "7060 Highland Dr, Pittsburgh, PA 15206",
+    "type": "nursing",
+    "capacity": 236.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2009,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "doh_facility_id": "68802",
+    "cms_ccn": "39A438",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.96103,
+     40.437159
+    ]
+   },
+   "properties": {
+    "id": "doh-127",
+    "name": "Upmc Magee-womens Hospital Transitional Care Unit",
+    "address": "300 Halket Street, Pittsburgh, PA 15213",
+    "type": "nursing",
+    "capacity": 20.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2005,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "doh_facility_id": "65030201",
+    "cms_ccn": "396098",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.921506,
+     40.469418
+    ]
+   },
+   "properties": {
+    "id": "doh-130",
+    "name": "East End Health & Rehab Center",
+    "address": "745 North Highland Avenue, Pittsburgh, PA 15206",
+    "type": "nursing",
+    "capacity": 144.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1988,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "84902",
+    "cms_ccn": "395773",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.930132,
+     40.407619
+    ]
+   },
+   "properties": {
+    "id": "doh-131",
+    "name": "John J Kane Regional Center - Glen Hazel",
+    "address": "955 Rivermont Drive, Pittsburgh, PA 15207",
+    "type": "nursing",
+    "capacity": 255.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1984,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "364802",
+    "cms_ccn": "395643",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.908591,
+     40.459802
+    ]
+   },
+   "properties": {
+    "id": "doh-132",
+    "name": "Corner View Nursing and Rehabilitation Center",
+    "address": "6655 Frankstown Avenue, Pittsburgh, PA 15206",
+    "type": "nursing",
+    "capacity": 187.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1978,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "UI",
+    "zoning_full": "URBAN INDUSTRIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "S",
+    "multi_unit_pathway": "zbe_special_exception",
+    "doh_facility_id": "60402",
+    "cms_ccn": "395423",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.993681,
+     40.46831
+    ]
+   },
+   "properties": {
+    "id": "doh-138",
+    "name": "Spring Hill Rehabilitation and Nursing Center",
+    "address": "2170 Rhine Street, Pittsburgh, PA 15212",
+    "type": "nursing",
+    "capacity": 100.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1984,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "192902",
+    "cms_ccn": "395666",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.034204,
+     40.487529
+    ]
+   },
+   "properties": {
+    "id": "doh-140",
+    "name": "Little Sisters of the Poor",
+    "address": "1028 Benton Avenue, Pittsburgh, PA 15212",
+    "type": "nursing",
+    "capacity": 48.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 2008,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "R1D-H",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "doh_facility_id": "340302",
+    "cms_ccn": "396116",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.930818,
+     40.449875
+    ]
+   },
+   "properties": {
+    "id": "doh-141",
+    "name": "Shadyside Skilled Nursing and Rehabilitation Center",
+    "address": "5609 5th Avenue, Pittsburgh, PA 15232",
+    "type": "nursing",
+    "capacity": 150.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1968,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "90302",
+    "cms_ccn": "395251",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.958135,
+     40.46596
+    ]
+   },
+   "properties": {
+    "id": "doh-143",
+    "name": "Canterbury Place",
+    "address": "310 Fisk Street, Pittsburgh, PA 15201",
+    "type": "nursing",
+    "capacity": 115.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1967,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "doh_facility_id": "50702",
+    "cms_ccn": "395146",
+    "possible_same_site_as": "dhs-8"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.924939,
+     40.431863
+    ]
+   },
+   "properties": {
+    "id": "doh-144",
+    "name": "Heritage Care Center",
+    "address": "5701 Phillips Avenue, Pittsburgh, PA 15217",
+    "type": "nursing",
+    "capacity": 143.0,
+    "capacity_unit": "beds (licensed/certified capacity)",
+    "year": 1987,
+    "year_basis": "CMS date first approved for Medicare/Medicaid",
+    "source": "PA DOH Nursing Homes (data.pa.gov xgn8-z9eg) + CMS Provider Information (4pq5-n9py)",
+    "geocode": "data.pa.gov xgn8-z9eg lat/lon",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "assisted_living_c",
+    "zoning_use_label": "Assisted Living Class C",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "doh_facility_id": "86102",
+    "cms_ccn": "395732",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.015391,
+     40.391663
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-149",
+    "name": "CREEDMOOR COURT",
+    "address": "1050 CREEDMOOR AVENUE, Pittsburgh, PA 15226",
+    "type": "hud_202_elderly",
+    "capacity": 26.0,
+    "capacity_unit": "dwelling units",
+    "year": 2004,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1D-M",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800214963",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 25,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.980256,
+     40.442702
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-150",
+    "name": "EBENEZER TOWERS",
+    "address": "420 DINWIDDIE ST, Pittsburgh, PA 15219",
+    "type": "hud_202_elderly",
+    "capacity": 101.0,
+    "capacity_unit": "dwelling units",
+    "year": 1982,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018386",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 100,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.010234,
+     40.471748
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-151",
+    "name": "STEELWORKERS TOWER",
+    "address": "2639 PERRYSVILLE AVE, Pittsburgh, PA 15214",
+    "type": "hud_202_elderly",
+    "capacity": 80.0,
+    "capacity_unit": "dwelling units",
+    "year": 1990,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018908",
+    "hud_client_group": "Elderly",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 79,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.968264,
+     40.452678
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-152",
+    "name": "WESTERN MANOR",
+    "address": "2851 BEDFORD AVE, Pittsburgh, PA 15219",
+    "type": "hud_202_elderly",
+    "capacity": 32.0,
+    "capacity_unit": "dwelling units",
+    "year": 1993,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800019018",
+    "hud_client_group": "Elderly",
+    "hud_category": "202/811",
+    "hud_assisted_units": 31,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": "hacp-118,lihtc-255,lihtc-270"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.0422,
+     40.443399
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-155",
+    "name": "WESTLAKE APTS.",
+    "address": "1015 Crucible St, Pittsburgh, PA 15220",
+    "type": "hud_202_elderly",
+    "capacity": 27.0,
+    "capacity_unit": "dwelling units",
+    "year": 2003,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800211589",
+    "hud_client_group": "Elderly",
+    "hud_category": "202/811",
+    "hud_assisted_units": 27,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.923587,
+     40.429146
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-156",
+    "name": "Squirrel Hill aka Krause Commons",
+    "address": "2615 Murray Ave, Pittsburgh, PA 15217",
+    "type": "hud_mf_disabled",
+    "capacity": 18.0,
+    "capacity_unit": "dwelling units",
+    "year": 2019,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800249811",
+    "hud_client_group": "Chronically Mentally Ill",
+    "hud_category": "Subsidized, No HUD Financing",
+    "hud_assisted_units": 17,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.03842,
+     40.479695
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-157",
+    "name": "RIVERVIEW MANOR/BRIGHTON HEIGHTS",
+    "address": "1500 LETORT ST, Pittsburgh, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 99.0,
+    "capacity_unit": "dwelling units",
+    "year": 1982,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1D-M",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018826",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 98,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.92486,
+     40.434024
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-159",
+    "name": "MUNHALL ROAD APTS.",
+    "address": "5680 MUNHALL RD, Pittsburgh, PA 15217",
+    "type": "hud_811",
+    "capacity": 12.0,
+    "capacity_unit": "dwelling units",
+    "year": 2000,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800058653",
+    "hud_client_group": "Wholly developmentally disabled",
+    "hud_category": "202/811",
+    "hud_assisted_units": 12,
+    "hud_program_flags": "IS_811_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.921833,
+     40.413892
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-161",
+    "name": "RIVERVIEW PHASE II",
+    "address": "52 GARETTA ST, Pittsburgh, PA 15217",
+    "type": "hud_mf_elderly",
+    "capacity": 191.0,
+    "capacity_unit": "dwelling units",
+    "year": 1983,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R2-L",
+    "zoning_full": "TWO-UNIT RESIDENTIAL LOW DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018824",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 99,
+    "hud_program_flags": "",
+    "possible_same_site_as": "dhs-41"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.943051,
+     40.426394
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-162",
+    "name": "GREENFIELD TERRACE",
+    "address": "3908 LYDIA ST, Pittsburgh, PA 15207",
+    "type": "hud_202_elderly",
+    "capacity": 40.0,
+    "capacity_unit": "dwelling units",
+    "year": 1996,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018470",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 40,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.008871,
+     40.416179
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-164",
+    "name": "SYLVANIA PLACE",
+    "address": "29 SYLVANIA ST, None, PA 15210",
+    "type": "hud_202_elderly",
+    "capacity": 23.0,
+    "capacity_unit": "dwelling units",
+    "year": 1999,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R2-H",
+    "zoning_full": "TWO-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800058430",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 23,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.059203,
+     40.426971
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-165",
+    "name": "NOBLE TOWERS",
+    "address": "2440 BALDWICK RD, Pittsburgh, PA 15205",
+    "type": "hud_mf_elderly",
+    "capacity": 133.0,
+    "capacity_unit": "dwelling units",
+    "year": 1979,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018708",
+    "hud_client_group": "Elderly",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 133,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.035313,
+     40.483402
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-169",
+    "name": "LYNN WILLIAMS APTS.",
+    "address": "3710 BRIGHTON RD, Pittsburgh, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 43.0,
+    "capacity_unit": "dwelling units",
+    "year": 1997,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1D-M",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018630",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 42,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.026362,
+     40.450988
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-170",
+    "name": "PAGE PLACE APTS.",
+    "address": "1429 PAGE ST, None, PA 15233",
+    "type": "hud_811",
+    "capacity": 21.0,
+    "capacity_unit": "dwelling units",
+    "year": 1997,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R2-H",
+    "zoning_full": "TWO-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018742",
+    "hud_client_group": "Wholly physically handicapped",
+    "hud_category": "202/811",
+    "hud_assisted_units": 20,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.928802,
+     40.464235
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-171",
+    "name": "PENNLEY COMMONS",
+    "address": "5653 Broad Street, Pittsburgh, PA 15206",
+    "type": "hud_202_elderly",
+    "capacity": 38.0,
+    "capacity_unit": "dwelling units",
+    "year": 2002,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800112244",
+    "hud_client_group": "Elderly",
+    "hud_category": "202/811",
+    "hud_assisted_units": 38,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.986977,
+     40.444423
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-172",
+    "name": "K. LEROY IRVIS TOWERS",
+    "address": "715 MERCER ST, Pittsburgh, PA 15219",
+    "type": "hud_mf_elderly",
+    "capacity": 190.0,
+    "capacity_unit": "dwelling units",
+    "year": 1980,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018560",
+    "hud_client_group": "Partially elderly handicapped",
+    "hud_category": "Subsidized, No HUD Financing",
+    "hud_assisted_units": 190,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.945,
+     40.408172
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-177",
+    "name": "HAZELWOOD TOWERS",
+    "address": "111 TECUMSEH ST, None, PA 15207",
+    "type": "hud_mf_elderly",
+    "capacity": 97.0,
+    "capacity_unit": "dwelling units",
+    "year": 1983,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "GI",
+    "zoning_full": "GENERAL INDUSTRIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018502",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 95,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.010582,
+     40.392122
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-178",
+    "name": "PARKSIDE MANOR",
+    "address": "1306 BROOKLINE BLVD, Pittsburgh, PA 15226",
+    "type": "hud_202_elderly",
+    "capacity": 77.0,
+    "capacity_unit": "dwelling units",
+    "year": 1983,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "AP",
+    "zoning_full": "RESIDENTIAL/COMMERCIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "per_plan",
+    "permission_pathway": "per_plan",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800018758",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 76,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.010129,
+     40.466803
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-179",
+    "name": "UPPER ROOMS",
+    "address": "2334 Perrysville Ave, Pittsburgh, PA 15214",
+    "type": "hud_202_elderly",
+    "capacity": 26.0,
+    "capacity_unit": "dwelling units",
+    "year": 2007,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800219535",
+    "hud_client_group": "Elderly",
+    "hud_category": "202/811",
+    "hud_assisted_units": 26,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": "dhs-10,doh-123"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.964859,
+     40.457146
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-181",
+    "name": "JOHN PAUL PLAZA",
+    "address": "1005 HERRON AVE, Pittsburgh, PA 15219",
+    "type": "hud_202_elderly",
+    "capacity": 70.0,
+    "capacity_unit": "dwelling units",
+    "year": 1983,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018554",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 69,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.992071,
+     40.414486
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-182",
+    "name": "BAUSMAN STREET IND. LIVING",
+    "address": "229 Bausman Street, Pittsburgh, PA 15210",
+    "type": "hud_811",
+    "capacity": 12.0,
+    "capacity_unit": "dwelling units",
+    "year": 2006,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "per_plan",
+    "permission_pathway": "per_plan",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800217778",
+    "hud_client_group": "Wholly developmentally disabled",
+    "hud_category": "202/811",
+    "hud_assisted_units": 12,
+    "hud_program_flags": "IS_811_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.952831,
+     40.430743
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-183",
+    "name": "PARKVIEW MANOR",
+    "address": "3250 PARKVIEW AVE, Pittsburgh, PA 15213",
+    "type": "hud_202_elderly",
+    "capacity": 15.0,
+    "capacity_unit": "dwelling units",
+    "year": 1984,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018899",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously 202/811",
+    "hud_assisted_units": 15,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.874374,
+     40.457882
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-184",
+    "name": "BRY MARD APTS.",
+    "address": "8630 BRICELYN ST, Pittsburgh, PA 15221",
+    "type": "hud_mf_elderly",
+    "capacity": 37.0,
+    "capacity_unit": "dwelling units",
+    "year": 1974,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R2-L",
+    "zoning_full": "TWO-UNIT RESIDENTIAL LOW DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018268",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "HUD Held",
+    "hud_assisted_units": 36,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.991585,
+     40.463689
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-185",
+    "name": "ST. AMBROSE MANOR",
+    "address": "1235 YETTA AVE, Pittsburgh, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 101.0,
+    "capacity_unit": "dwelling units",
+    "year": 1980,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018888",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 100,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.957172,
+     40.46551
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-186",
+    "name": "YORK COMMONS",
+    "address": "4003 PENN AVE, Pittsburgh, PA 15224",
+    "type": "hud_mf_elderly",
+    "capacity": 102.0,
+    "capacity_unit": "dwelling units",
+    "year": 1973,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018578",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 102,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-262"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.937923,
+     40.464783
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-187",
+    "name": "LAURENTIAN HALL",
+    "address": "5321 PENN AVE, None, PA 15224",
+    "type": "hud_mf_elderly",
+    "capacity": 36.0,
+    "capacity_unit": "dwelling units",
+    "year": 1989,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018592",
+    "hud_client_group": "Wholly elderly - hskpg & congregat",
+    "hud_category": "HUD Held",
+    "hud_assisted_units": 36,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.016524,
+     40.4566
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-188",
+    "name": "NORTHSIDE COALITION",
+    "address": "1500 Brighton Place, None, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 25.0,
+    "capacity_unit": "dwelling units",
+    "year": 2008,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "UI",
+    "zoning_full": "URBAN INDUSTRIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "S",
+    "multi_unit_pathway": "zbe_special_exception",
+    "hud_property_id": "800221290",
+    "hud_client_group": "Elderly",
+    "hud_category": "202/811",
+    "hud_assisted_units": 25,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.983949,
+     40.439003
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-189",
+    "name": "TOWNE PLACE APTS.",
+    "address": "1600 COLWELL ST, Pittsburgh, PA 15219",
+    "type": "hud_811",
+    "capacity": 15.0,
+    "capacity_unit": "dwelling units",
+    "year": 1997,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "UPR-A",
+    "zoning_full": "UPTOWN PUBLIC REALM DISTRICT A",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018950",
+    "hud_client_group": "Chronically Mentally Ill",
+    "hud_category": "202/811",
+    "hud_assisted_units": 14,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.959841,
+     40.475611
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-192",
+    "name": "I W ABEL PLACE",
+    "address": "4716 HATFIELD ST, Pittsburgh, PA 15201",
+    "type": "hud_202_elderly",
+    "capacity": 51.0,
+    "capacity_unit": "dwelling units",
+    "year": 1994,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-VH",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018540",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 50,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.892274,
+     40.47112
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-194",
+    "name": "EVA P. MITCHELL",
+    "address": "1621 LINCOLN AVE, Pittsburgh, PA 15206",
+    "type": "hud_202_elderly",
+    "capacity": 81.0,
+    "capacity_unit": "dwelling units",
+    "year": 1986,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "hud_property_id": "800018409",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 80,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": "lihtc-238"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.95399,
+     40.451125
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-195",
+    "name": "BELLEFIELD DWELLINGS",
+    "address": "4400 CENTRE AVE, Pittsburgh, PA 15213",
+    "type": "hud_mf_elderly",
+    "capacity": 158.0,
+    "capacity_unit": "dwelling units",
+    "year": 1976,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "UC-MU",
+    "zoning_full": "URBAN CENTER MIXED USE",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018223",
+    "hud_client_group": "Partially elderly handicapped",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 158,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-252,lihtc-271"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.919208,
+     40.465618
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-196",
+    "name": "HARRIET TUBMAN TERRACE",
+    "address": "550 NEGLEY RUN BLVD, None, PA 15206",
+    "type": "hud_mf_elderly",
+    "capacity": 56.0,
+    "capacity_unit": "dwelling units",
+    "year": 1982,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-H",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018491",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 56,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.967354,
+     40.446975
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-197",
+    "name": "ALLEGHENY UNION BAPTIST",
+    "address": "2700 CENTRE AVE, Pittsburgh, PA 15219",
+    "type": "hud_mf_elderly",
+    "capacity": 44.0,
+    "capacity_unit": "dwelling units",
+    "year": 1966,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "hud_property_id": "800018178",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously 202/811",
+    "hud_assisted_units": 8,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.053152,
+     40.453764
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-199",
+    "name": "Hillsboro Plaza",
+    "address": "612 HILLSBORO ST, Pittsburgh, PA 15204",
+    "type": "hud_202_elderly",
+    "capacity": 73.0,
+    "capacity_unit": "dwelling units",
+    "year": 1984,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018460",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 72,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.010094,
+     40.467662
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-200",
+    "name": "PERRYSVILLE PLAZA",
+    "address": "2403 PERRYSVILLE AVE, Pittsburgh, PA 15214",
+    "type": "hud_mf_elderly",
+    "capacity": 101.0,
+    "capacity_unit": "dwelling units",
+    "year": 1981,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018773",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 100,
+    "hud_program_flags": "",
+    "possible_same_site_as": "dhs-10,doh-123,lihtc-239"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.921897,
+     40.429532
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-202",
+    "name": "FORWARD-SHADY APTS.",
+    "address": "5841 FORWARD AVE, Pittsburgh, PA 15217",
+    "type": "hud_mf_elderly",
+    "capacity": 117.0,
+    "capacity_unit": "dwelling units",
+    "year": 1979,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018430",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 117,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.021451,
+     40.438254
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-204",
+    "name": "SWEETBRIAR PLACE",
+    "address": "211 SWEETBRIAR ST, Pittsburgh, PA 15211",
+    "type": "hud_202_elderly",
+    "capacity": 56.0,
+    "capacity_unit": "dwelling units",
+    "year": 1986,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "GPRC",
+    "zoning_full": "GRANDVIEW PUBLIC REALM DISTRICT C",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "?",
+    "permission_pathway": "unknown",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018925",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 55,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.964423,
+     40.464815
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-205",
+    "name": "ST. AUGUSTINE PLAZA",
+    "address": "230 36TH ST, Pittsburgh, PA 15201",
+    "type": "hud_mf_elderly",
+    "capacity": 88.0,
+    "capacity_unit": "dwelling units",
+    "year": 1977,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018889",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 87,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.953299,
+     40.453543
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-207",
+    "name": "WILLIAM MOORHEAD TOWER",
+    "address": "375 N Craig St, None, PA 15213",
+    "type": "hud_mf_elderly",
+    "capacity": 141.0,
+    "capacity_unit": "dwelling units",
+    "year": 1981,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "UC-MU",
+    "zoning_full": "URBAN CENTER MIXED USE",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800019029",
+    "hud_client_group": "Partially elderly handicapped",
+    "hud_category": "Subsidized, No HUD Financing",
+    "hud_assisted_units": 141,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-264"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.928254,
+     40.467151
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-208",
+    "name": "NEGLEY COMMONS",
+    "address": "430 NORTH NEGLEY AVE, Pittsburgh, PA 15206",
+    "type": "hud_811",
+    "capacity": 24.0,
+    "capacity_unit": "dwelling units",
+    "year": 1996,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018376",
+    "hud_client_group": "Wholly physically disabled",
+    "hud_category": "202/811",
+    "hud_assisted_units": 24,
+    "hud_program_flags": "IS_811_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.897953,
+     40.457615
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-209",
+    "name": "HOMEWOOD HOUSE",
+    "address": "7130 FRANKSTOWN AVE, None, PA 15208",
+    "type": "hud_mf_elderly",
+    "capacity": 101.0,
+    "capacity_unit": "dwelling units",
+    "year": 1981,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018531",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 100,
+    "hud_program_flags": "",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.046065,
+     40.441837
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-213",
+    "name": "ELLIOTT HEIGHTS",
+    "address": "1110 STEUBEN ST, Pittsburgh, PA 15220",
+    "type": "hud_202_elderly",
+    "capacity": 44.0,
+    "capacity_unit": "dwelling units",
+    "year": 1998,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800058411",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 43,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.028223,
+     40.406233
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-215",
+    "name": "BEECHVIEW MANOR",
+    "address": "1926 PAULINE AVE, Pittsburgh, PA 15216",
+    "type": "hud_202_elderly",
+    "capacity": 52.0,
+    "capacity_unit": "dwelling units",
+    "year": 1987,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1D-H",
+    "zoning_full": "SINGLE-UNIT DETACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800018220",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 51,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.922053,
+     40.43719
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-216",
+    "name": "DARLINGTON ROAD APTS.",
+    "address": "5841 Darlington Road, Pittsburgh, PA 15217",
+    "type": "hud_811",
+    "capacity": 10.0,
+    "capacity_unit": "dwelling units",
+    "year": 2011,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800224970",
+    "hud_client_group": "Wholly developmentally disabled",
+    "hud_category": "202/811",
+    "hud_assisted_units": 10,
+    "hud_program_flags": "IS_811_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.894822,
+     40.455889
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-217",
+    "name": "BENNETT  PLACE",
+    "address": "7245 Bennett St, None, PA 15208",
+    "type": "hud_202_elderly",
+    "capacity": 52.0,
+    "capacity_unit": "dwelling units",
+    "year": 1990,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018228",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously 202/811",
+    "hud_assisted_units": 51,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.925088,
+     40.464582
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-218",
+    "name": "EMORY SENIOR HOUSING",
+    "address": "324 N. Beatty Street, Pittsburgh, PA 15206",
+    "type": "hud_mf_elderly",
+    "capacity": 24.0,
+    "capacity_unit": "dwelling units",
+    "year": 2013,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "UNC",
+    "zoning_full": "URBAN NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800237654",
+    "hud_client_group": "Elderly",
+    "hud_category": "Subsidized, No HUD Financing",
+    "hud_assisted_units": 14,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-245"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.014214,
+     40.454215
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-219",
+    "name": "WEST PARK COURT",
+    "address": "710 W.  NORTH AVE, None, PA 15212",
+    "type": "hud_mf_elderly",
+    "capacity": 112.0,
+    "capacity_unit": "dwelling units",
+    "year": 1978,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800019013",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 110,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-233"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.008992,
+     40.456944
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-221",
+    "name": "ARCH COURT",
+    "address": "1310 ARCH COURT, None, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 31.0,
+    "capacity_unit": "dwelling units",
+    "year": 1999,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "R1A-VH",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL VERY HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "hud_property_id": "800058437",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "202/811",
+    "hud_assisted_units": 30,
+    "hud_program_flags": "IS_202_CAPITAL_ADVANCE_IND,IS_PRAC_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.041495,
+     40.478143
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-223",
+    "name": "SHEPTYTSKY ARMS",
+    "address": "3505 MEXICO ST, Pittsburgh, PA 15212",
+    "type": "hud_202_elderly",
+    "capacity": 50.0,
+    "capacity_unit": "dwelling units",
+    "year": 1987,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018862",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized - Previously Insured",
+    "hud_assisted_units": 49,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": "lihtc-272"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.975509,
+     40.428615
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-226",
+    "name": "CARSON TOWERS",
+    "address": "2117 E CARSON ST, None, PA 15203",
+    "type": "hud_mf_elderly",
+    "capacity": 133.0,
+    "capacity_unit": "dwelling units",
+    "year": 1979,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018281",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Subsidized, No HUD Financing",
+    "hud_assisted_units": 133,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-235"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.006533,
+     40.426597
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-227",
+    "name": "ST. JUSTIN PLAZA",
+    "address": "120 Boggs AVE, Pittsburgh, PA 15211",
+    "type": "hud_202_elderly",
+    "capacity": 98.0,
+    "capacity_unit": "dwelling units",
+    "year": 1980,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800018896",
+    "hud_client_group": "Wholly Elderly Housekeeping",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 97,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.874174,
+     40.458738
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-228",
+    "name": "MARIAN PLAZA",
+    "address": "8601 BRICELYN ST, Pittsburgh, PA 15221",
+    "type": "hud_202_disabled",
+    "capacity": 51.0,
+    "capacity_unit": "dwelling units",
+    "year": 1988,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "per_plan",
+    "permission_pathway": "per_plan",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800018645",
+    "hud_client_group": "Partially physically handicapped",
+    "hud_category": "Insured-Subsidized",
+    "hud_assisted_units": 50,
+    "hud_program_flags": "IS_SEC8_202_IND",
+    "possible_same_site_as": "lihtc-234"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.96933,
+     40.446112
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-229",
+    "name": "WARREN PLAZA APTS.",
+    "address": "2541 Centre Avenue, None, PA 15219",
+    "type": "hud_811",
+    "capacity": 15.0,
+    "capacity_unit": "dwelling units",
+    "year": 2002,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "hud_property_id": "800112436",
+    "hud_client_group": "Wholly physically disabled",
+    "hud_category": "202/811",
+    "hud_assisted_units": 15,
+    "hud_program_flags": "IS_811_CAPITAL_ADVANCE_IND,IS_PRAC_811_IND",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.004789,
+     40.423447
+    ]
+   },
+   "properties": {
+    "id": "hud_mf-231",
+    "name": "SOUTH HILLS RETIREMENT APTS.",
+    "address": "125 Ruth Street, Pittsburgh, PA 15211",
+    "type": "hud_mf_elderly",
+    "capacity": 106.0,
+    "capacity_unit": "dwelling units",
+    "year": 2010,
+    "year_basis": "HUD OCCUPANCY_DATE",
+    "source": "HUD Multifamily Properties - Assisted (hudgis)",
+    "geocode": "HUD MULTIFAMILY_PROPERTIES_ASSISTED point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "hud_property_id": "800226937",
+    "hud_client_group": "Elderly",
+    "hud_category": "Insured-Unsubsidized",
+    "hud_assisted_units": 0,
+    "hud_program_flags": "",
+    "possible_same_site_as": "lihtc-266"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.926164,
+     40.485961
+    ]
+   },
+   "properties": {
+    "id": "lihtc-232",
+    "name": "MORNINGSIDE CROSSING",
+    "address": "1802 JANCEY ST, PITTSBURGH, PA 15206",
+    "type": "lihtc_elderly",
+    "capacity": 46.0,
+    "capacity_unit": "dwelling units",
+    "year": "2018",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20182011",
+    "lihtc_li_units": 39,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2021",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.014213,
+     40.454214
+    ]
+   },
+   "properties": {
+    "id": "lihtc-233",
+    "name": "WEST PARK COURT",
+    "address": "710 W N AVE, PITTSBURGH, PA 15212",
+    "type": "lihtc_elderly",
+    "capacity": 112.0,
+    "capacity_unit": "dwelling units",
+    "year": "2007",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20070185",
+    "lihtc_li_units": 110,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2006",
+    "possible_same_site_as": "hud_mf-219"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.874184,
+     40.45873
+    ]
+   },
+   "properties": {
+    "id": "lihtc-234",
+    "name": "MARIAN PLAZA",
+    "address": "8601 BRICELYN ST, PITTSBURGH, PA 15221",
+    "type": "lihtc_elderly",
+    "capacity": 50.0,
+    "capacity_unit": "dwelling units",
+    "year": "2008",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "lihtc_hud_id": "PAA20080110",
+    "lihtc_li_units": 50,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2007",
+    "possible_same_site_as": "hud_mf-228"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.975512,
+     40.428614
+    ]
+   },
+   "properties": {
+    "id": "lihtc-235",
+    "name": "CARSON TOWERS APTS",
+    "address": "2117 E CARSON ST, PITTSBURGH, PA 15203",
+    "type": "lihtc_elderly",
+    "capacity": 133.0,
+    "capacity_unit": "dwelling units",
+    "year": "2019",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20191002",
+    "lihtc_li_units": 133,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2019",
+    "possible_same_site_as": "hud_mf-226"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.93362,
+     40.464705
+    ]
+   },
+   "properties": {
+    "id": "lihtc-236",
+    "name": "FAIRMONT APTS",
+    "address": "5461 PENN AVE, PITTSBURGH, PA 15206",
+    "type": "lihtc_elderly",
+    "capacity": 60.0,
+    "capacity_unit": "dwelling units",
+    "year": "2006",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20060040",
+    "lihtc_li_units": 60,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2004",
+    "possible_same_site_as": "hacp-119"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.933218,
+     40.471766
+    ]
+   },
+   "properties": {
+    "id": "lihtc-237",
+    "name": "NORTH AIKEN APTS",
+    "address": "5330 N AIKEN CT, PITTSBURGH, PA 15224",
+    "type": "lihtc_elderly",
+    "capacity": 76.0,
+    "capacity_unit": "dwelling units",
+    "year": "2004",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20040110",
+    "lihtc_li_units": 76,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2002",
+    "possible_same_site_as": "hacp-122"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.892268,
+     40.471126
+    ]
+   },
+   "properties": {
+    "id": "lihtc-238",
+    "name": "EVA P MITCHELL RESIDENCE",
+    "address": "1621 LINCOLN AVE, PITTSBURGH, PA 15206",
+    "type": "lihtc_elderly",
+    "capacity": 79.0,
+    "capacity_unit": "dwelling units",
+    "year": "2010",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "lihtc_hud_id": "PAA20100035",
+    "lihtc_li_units": 79,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2009",
+    "possible_same_site_as": "hud_mf-194"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.010094,
+     40.467662
+    ]
+   },
+   "properties": {
+    "id": "lihtc-239",
+    "name": "PERRYSVILLE PLAZA",
+    "address": "2403 PERRYSVILLE AVE, PITTSBURGH, PA 15214",
+    "type": "lihtc_elderly",
+    "capacity": 101.0,
+    "capacity_unit": "dwelling units",
+    "year": "2016",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20162029",
+    "lihtc_li_units": 94,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2019",
+    "possible_same_site_as": "dhs-10,doh-123,hud_mf-200"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.968684,
+     40.442711
+    ]
+   },
+   "properties": {
+    "id": "lihtc-241",
+    "name": "OAK HILL IC",
+    "address": "415 BURROWS ST, PITTSBURGH, PA 15213",
+    "type": "lihtc_elderly",
+    "capacity": 150.0,
+    "capacity_unit": "dwelling units",
+    "year": "2002",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "lihtc_hud_id": "PAA20020090",
+    "lihtc_li_units": 93,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2000",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.925203,
+     40.464408
+    ]
+   },
+   "properties": {
+    "id": "lihtc-245",
+    "name": "EMORY SENIOR HOUSING",
+    "address": "324 N BEATTY ST, PITTSBURGH, PA 15206",
+    "type": "lihtc_elderly",
+    "capacity": 24.0,
+    "capacity_unit": "dwelling units",
+    "year": "2002",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UNC",
+    "zoning_full": "URBAN NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20020035",
+    "lihtc_li_units": 24,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2000",
+    "possible_same_site_as": "hud_mf-218"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.978259,
+     40.444805
+    ]
+   },
+   "properties": {
+    "id": "lihtc-246",
+    "name": "LOU MASON JR APTS",
+    "address": "2121 CENTRE AVE, PITTSBURGH, PA 15219",
+    "type": "lihtc_elderly",
+    "capacity": 108.0,
+    "capacity_unit": "dwelling units",
+    "year": "2007",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20070120",
+    "lihtc_li_units": 108,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2005",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.9465,
+     40.4622
+    ]
+   },
+   "properties": {
+    "id": "lihtc-247",
+    "name": "GARFIELD HEIGHTS PHASE III",
+    "address": "SCHENLEY COLUMBO STS, PITTSBURGH, PA 15224",
+    "type": "lihtc_disabled",
+    "capacity": 40.0,
+    "capacity_unit": "dwelling units",
+    "year": "2011",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=T)",
+    "zon_new": "EMI",
+    "zoning_full": "EDUCATIONAL/MEDICAL INSTITUTION",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "A",
+    "multi_unit_pathway": "za",
+    "lihtc_hud_id": "PAA20110035",
+    "lihtc_li_units": 31,
+    "lihtc_trgt_eld": "2",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2012",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.978612,
+     40.446943
+    ]
+   },
+   "properties": {
+    "id": "lihtc-248",
+    "name": "ADDISON TERRACE PH 1",
+    "address": "2136 ELMORE ST, PITTSBURGH, PA 15219",
+    "type": "lihtc_disabled",
+    "capacity": 186.0,
+    "capacity_unit": "dwelling units",
+    "year": "2014",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20142002",
+    "lihtc_li_units": 149,
+    "lihtc_trgt_eld": "2",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2017",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.001439,
+     40.438782
+    ]
+   },
+   "properties": {
+    "id": "lihtc-250",
+    "name": "WOOD STREET COMMONS",
+    "address": "300 WOOD ST, PITTSBURGH, PA 15222",
+    "type": "lihtc_elderly",
+    "capacity": 270.0,
+    "capacity_unit": "dwelling units",
+    "year": "1987",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "GT-C",
+    "zoning_full": "GOLDEN TRIANGLE DISTRICT C",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA19870440",
+    "lihtc_li_units": 270,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "1987",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.007559,
+     40.431059
+    ]
+   },
+   "properties": {
+    "id": "lihtc-251",
+    "name": "SYCAMORE STREET APTS",
+    "address": "124 W SYCAMORE ST, PITTSBURGH, PA 15211",
+    "type": "lihtc_elderly",
+    "capacity": 20.0,
+    "capacity_unit": "dwelling units",
+    "year": "2000",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "A",
+    "permission_pathway": "za",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20000165",
+    "lihtc_li_units": 20,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "1998",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.95399,
+     40.451124
+    ]
+   },
+   "properties": {
+    "id": "lihtc-252",
+    "name": "BELLEFIELD DWELLINGS",
+    "address": "4400 CENTRE AVE, PITTSBURGH, PA 15213",
+    "type": "lihtc_elderly",
+    "capacity": 158.0,
+    "capacity_unit": "dwelling units",
+    "year": "2013",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UC-MU",
+    "zoning_full": "URBAN CENTER MIXED USE",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20133006",
+    "lihtc_li_units": 155,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2015",
+    "possible_same_site_as": "hud_mf-195"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.980877,
+     40.437626
+    ]
+   },
+   "properties": {
+    "id": "lihtc-254",
+    "name": "SHANAHAN APARTMENTS",
+    "address": "1819 FORBES AVE, PITTSBURGH, PA 15219",
+    "type": "lihtc_disabled",
+    "capacity": 43.0,
+    "capacity_unit": "dwelling units",
+    "year": "2013",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UPR-B",
+    "zoning_full": "UPTOWN PUBLIC REALM DISTRICT B",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20130013",
+    "lihtc_li_units": 43,
+    "lihtc_trgt_eld": "2",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2014",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.968414,
+     40.452614
+    ]
+   },
+   "properties": {
+    "id": "lihtc-255",
+    "name": "RIVERVIEW TERRACE",
+    "address": "2829 BEDFORD AVE, PITTSBURGH, PA 15219",
+    "type": "lihtc_elderly",
+    "capacity": 36.0,
+    "capacity_unit": "dwelling units",
+    "year": "2000",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20000140",
+    "lihtc_li_units": 36,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "1996",
+    "possible_same_site_as": "hacp-118,hud_mf-152"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.897879,
+     40.453731
+    ]
+   },
+   "properties": {
+    "id": "lihtc-258",
+    "name": "HOMEWOOD SENIOR APARTMENTS",
+    "address": "7202 SUSQUEHANNA ST, PITTSBURGH, PA 15208",
+    "type": "lihtc_elderly",
+    "capacity": 41.0,
+    "capacity_unit": "dwelling units",
+    "year": "2014",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UNC",
+    "zoning_full": "URBAN NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20140001",
+    "lihtc_li_units": 41,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2015",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.978607,
+     40.446264
+    ]
+   },
+   "properties": {
+    "id": "lihtc-259",
+    "name": "ADDISON TERRACE PHASE 2",
+    "address": "385 ELMORE ST, PITTSBURGH, PA 15219",
+    "type": "lihtc_disabled",
+    "capacity": 90.0,
+    "capacity_unit": "dwelling units",
+    "year": "2016",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "P",
+    "permission_pathway": "by_right",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20163002",
+    "lihtc_li_units": 64,
+    "lihtc_trgt_eld": "2",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2020",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.903343,
+     40.458321
+    ]
+   },
+   "properties": {
+    "id": "lihtc-260",
+    "name": "SILVER LAKE COMMONS",
+    "address": "6935 FRANKSTOWN AVE, PITTSBURGH, PA 15208",
+    "type": "lihtc_elderly",
+    "capacity": 75.0,
+    "capacity_unit": "dwelling units",
+    "year": "2003",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20030150",
+    "lihtc_li_units": 75,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2001",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.976859,
+     40.382424
+    ]
+   },
+   "properties": {
+    "id": "lihtc-261",
+    "name": "HILLCREST SENIOR RESIDENCES",
+    "address": "2920 BROWNSVILLE RD, PITTSBURGH, PA 15227",
+    "type": "lihtc_elderly",
+    "capacity": 66.0,
+    "capacity_unit": "dwelling units",
+    "year": "2017",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "LNC",
+    "zoning_full": "LOCAL NEIGHBORHOOD COMMERCIAL",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20171006",
+    "lihtc_li_units": 56,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2019",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.957171,
+     40.46551
+    ]
+   },
+   "properties": {
+    "id": "lihtc-262",
+    "name": "YORK COMMONS",
+    "address": "4003 PENN AVE, PITTSBURGH, PA 15224",
+    "type": "lihtc_elderly",
+    "capacity": 102.0,
+    "capacity_unit": "dwelling units",
+    "year": "2010",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "R1A-H",
+    "zoning_full": "SINGLE-UNIT ATTACHED RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "lihtc_hud_id": "PAA20100145",
+    "lihtc_li_units": 97,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2008",
+    "possible_same_site_as": "hud_mf-186"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.924,
+     40.4692
+    ]
+   },
+   "properties": {
+    "id": "lihtc-263",
+    "name": "LARIMER PHASE 1",
+    "address": "SCATTERED SITES, PITTSBURGH, PA 15206",
+    "type": "lihtc_disabled",
+    "capacity": 40.0,
+    "capacity_unit": "dwelling units",
+    "year": "2015",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=T)",
+    "zon_new": "R2-H",
+    "zoning_full": "TWO-UNIT RESIDENTIAL HIGH DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "multi_unit",
+    "zoning_use_label": "Multi-Unit Residential",
+    "zoning_use_confidence": "low: disability housing could instead be a Community Home if group living; not verified",
+    "permission_code": "-",
+    "permission_pathway": "not_permitted",
+    "multi_unit_code": "",
+    "multi_unit_pathway": "not_permitted",
+    "lihtc_hud_id": "PAA20151006",
+    "lihtc_li_units": 40,
+    "lihtc_trgt_eld": "2",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2017",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.953303,
+     40.453549
+    ]
+   },
+   "properties": {
+    "id": "lihtc-264",
+    "name": "WILLIAM MOORHEAD TOWER",
+    "address": "375 N CRAIG ST, PITTSBURGH, PA 15213",
+    "type": "lihtc_elderly",
+    "capacity": 141.0,
+    "capacity_unit": "dwelling units",
+    "year": "2014",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UC-MU",
+    "zoning_full": "URBAN CENTER MIXED USE",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20142023",
+    "lihtc_li_units": 136,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "1",
+    "lihtc_yr_alloc": "2016",
+    "possible_same_site_as": "hud_mf-207"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.00479,
+     40.423444
+    ]
+   },
+   "properties": {
+    "id": "lihtc-266",
+    "name": "SOUTH HILLS RETIREMENT RES",
+    "address": "125 RUTH ST, PITTSBURGH, PA 15211",
+    "type": "lihtc_elderly",
+    "capacity": 106.0,
+    "capacity_unit": "dwelling units",
+    "year": "2010",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "lihtc_hud_id": "PAA20100120",
+    "lihtc_li_units": 84,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "2",
+    "lihtc_yr_alloc": "2008",
+    "possible_same_site_as": "hud_mf-231"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.984291,
+     40.445325
+    ]
+   },
+   "properties": {
+    "id": "lihtc-268",
+    "name": "BEDFORD IA",
+    "address": "245 HILLSIDE DR, PITTSBURGH, PA 15219",
+    "type": "lihtc_elderly",
+    "capacity": 48.0,
+    "capacity_unit": "dwelling units",
+    "year": "2003",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RP",
+    "zoning_full": "RESIDENTIAL PLANNED UNIT DEVELOPMENT",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "C",
+    "permission_pathway": "conditional_use",
+    "multi_unit_code": "per_plan",
+    "multi_unit_pathway": "per_plan",
+    "lihtc_hud_id": "PAA20030010",
+    "lihtc_li_units": 36,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2001",
+    "possible_same_site_as": null
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.968428,
+     40.452608
+    ]
+   },
+   "properties": {
+    "id": "lihtc-270",
+    "name": "MILLIONES MANOR",
+    "address": "2827 BEDFORD AVE, PITTSBURGH, PA 15219",
+    "type": "lihtc_elderly",
+    "capacity": 40.0,
+    "capacity_unit": "dwelling units",
+    "year": "1995",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA19950125",
+    "lihtc_li_units": 39,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "1993",
+    "possible_same_site_as": "hacp-118,hud_mf-152"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -79.95399,
+     40.451124
+    ]
+   },
+   "properties": {
+    "id": "lihtc-271",
+    "name": "BELLEFIELD DWELLINGS",
+    "address": "4400 CENTRE AVE, PITTSBURGH, PA 15213",
+    "type": "lihtc_elderly",
+    "capacity": 158.0,
+    "capacity_unit": "dwelling units",
+    "year": "1988",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "UC-MU",
+    "zoning_full": "URBAN CENTER MIXED USE",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_general",
+    "zoning_use_label": "Housing for the Elderly (General)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA19880440",
+    "lihtc_li_units": 157,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "1988",
+    "possible_same_site_as": "hud_mf-195"
+   }
+  },
+  {
+   "type": "Feature",
+   "geometry": {
+    "type": "Point",
+    "coordinates": [
+     -80.041495,
+     40.478143
+    ]
+   },
+   "properties": {
+    "id": "lihtc-272",
+    "name": "ST GEORGES CLOSE",
+    "address": "3505 MEXICO ST, PITTSBURGH, PA 15212",
+    "type": "lihtc_elderly",
+    "capacity": 18.0,
+    "capacity_unit": "dwelling units",
+    "year": "2002",
+    "year_basis": "LIHTC YR_PIS (placed in service)",
+    "source": "HUD LIHTC database (hudgis FeatureServer)",
+    "geocode": "HUD LIHTC point (LVL2KX=R)",
+    "zon_new": "RM-M",
+    "zoning_full": "MULTI-UNIT RESIDENTIAL MODERATE DENSITY",
+    "zoning_join": "point in polygon",
+    "zoning_use_inferred": "elderly_limited",
+    "zoning_use_label": "Housing for the Elderly (Limited)",
+    "zoning_use_confidence": "medium",
+    "permission_code": "S",
+    "permission_pathway": "zbe_special_exception",
+    "multi_unit_code": "P",
+    "multi_unit_pathway": "by_right",
+    "lihtc_hud_id": "PAA20020135",
+    "lihtc_li_units": 18,
+    "lihtc_trgt_eld": "1",
+    "lihtc_trgt_dis": "0",
+    "lihtc_yr_alloc": "2000",
+    "possible_same_site_as": "hud_mf-223"
+   }
+  }
+ ]
+}

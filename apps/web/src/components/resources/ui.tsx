@@ -1,3 +1,4 @@
+import katex from "katex";
 import type { ReactNode } from "react";
 
 // Building blocks for the /resources page: dense, hairline-bordered panels,
@@ -51,25 +52,44 @@ export function Panel({ children, className = "" }: { children: ReactNode; class
   return <div className={`rounded-sm border border-border bg-foreground/[0.02] ${className}`}>{children}</div>;
 }
 
-// A formula with its variables explained underneath.
-export function Equation({ label, lines, where, note }: { label: string; lines: string[]; where?: [string, ReactNode][]; note?: ReactNode }) {
+// LaTeX rendered to HTML by KaTeX at render time (works during SSR, no client
+// runtime). The stylesheet is linked from the /resources route head.
+function tex(source: string, displayMode: boolean) {
+  return katex.renderToString(source, { displayMode, throwOnError: false, output: "html", strict: "ignore" });
+}
+
+export function Tex({ children, block }: { children: string; block?: boolean }) {
+  return block ? (
+    <div className="overflow-x-auto overflow-y-hidden py-1" dangerouslySetInnerHTML={{ __html: tex(children, true) }} />
+  ) : (
+    <span dangerouslySetInnerHTML={{ __html: tex(children, false) }} />
+  );
+}
+
+// A typeset formula with its symbols explained underneath. `where` terms are
+// LaTeX too, so a symbol looks the same in the legend as in the formula.
+export function Equation({ label, tex: source, where, note }: { label: string; tex: string; where?: [string, ReactNode][]; note?: ReactNode }) {
   return (
-    <Panel>
-      <div className="flex items-center justify-between border-b border-border/60 px-3 py-1">
+    <Panel className="flex flex-col">
+      <div className="border-b border-border/60 px-3 py-1">
         <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground">{label}</span>
       </div>
-      <pre className="overflow-x-auto px-3 py-2 font-mono text-[12.5px] leading-6 text-foreground">{lines.join("\n")}</pre>
+      <div className="flex min-h-[5.5rem] items-center justify-center px-3 py-3 text-[15px] text-foreground">
+        <Tex block>{source}</Tex>
+      </div>
       {where?.length ? (
-        <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 border-t border-border/60 px-3 py-2 text-xs">
+        <dl className="grid grid-cols-[auto_1fr] items-baseline gap-x-4 gap-y-1 border-t border-border/60 px-3 py-2 text-xs">
           {where.map(([term, desc]) => (
             <div key={term} className="contents">
-              <dt className="font-mono text-foreground/90">{term}</dt>
+              <dt className="whitespace-nowrap text-right text-[13px] text-foreground/90">
+                <Tex>{term}</Tex>
+              </dt>
               <dd className="text-muted-foreground">{desc}</dd>
             </div>
           ))}
         </dl>
       ) : null}
-      {note ? <div className="border-t border-border/60 px-3 py-2 text-xs text-muted-foreground">{note}</div> : null}
+      {note ? <div className="mt-auto border-t border-border/60 px-3 py-2 text-xs text-muted-foreground">{note}</div> : null}
     </Panel>
   );
 }

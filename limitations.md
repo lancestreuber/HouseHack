@@ -4,24 +4,26 @@
 
 The app says this next to every result: in the parcel panel, the housing-types panel, under the chat box, in the map's attribution line, and at the top of `/resources`.
 
-This file lists what the tool doesn't do, what it assumes, and where its data is weak. The app's `/resources` page has the full method: every equation, weight, source and assumption. This file was checked against the code on `main` at `3fcff72` on 2026-09-27. If the code changes, this file has to change with it.
+This file lists what the tool doesn't do, what it assumes, and where its data is weak. The app's `/resources` page has the full method: every equation, weight, source and assumption. This file was checked against the code on branch `lance-verdict` (rebased on `main` at `d7b987b`) on 2026-09-27. If the code changes, this file has to change with it.
 
 ---
 
 ## 1. What the tool does not assess
 
-**Whether a project pencils, in the full sense.** The tool has no land price, achievable rent or sale price, and no financing or subsidy logic -- no comps are joined to parcels. It does have a lightweight, clearly-labeled stand-in: each typology shows an order-of-magnitude construction-cost range and a verdict (developable / needs approval or added cost / not developable / zoning unknown) computed from zoning, hazards and physical site fit, plus a proxy check against the block group's Market Value Analysis category. This tells you whether construction is *plausible* here, not whether it would make money. The chat assistant still says it can't answer detailed cost questions.
-
-The cost range and the typology's unit-count/size assumptions are practitioner opinion from the event's Slack, not a published source:
-- Vertical construction cost: $150/sf (high-volume production builder) to $375/sf (a practitioner's high-end estimate, spanning the $200–250/sf a third practitioner gave for City single-family infill).
-- Site work: $25k–50k per unit in the City.
-- Unit count and size per typology (e.g. a detached house assumed at ~1,400 sf, a 12-unit apartment building at ~700 sf/unit): planning assumptions, not measured.
-
-The Market Value Analysis check (`packages/api/src/typology/site-fit.ts`'s `verdictFor`) is a proxy: a weak MVA category makes a multi-unit typology's verdict yellow, on the reasoning that construction cost there may need a subsidy to pencil. It is not a modeled comparison of cost against rent or sale price, because no rent/sale comps are joined to parcels.
+**Whether a project pencils, beyond a rough screen.** The hackathon's housing experts said the first question a developer asks is whether revenue will cover cost, before zoning or any variance. The tool now runs a first screen per housing type, the "Does it pencil?" check. It is not a pro forma:
+- **Cost** uses the experts' ranges, which are practitioner opinion given in the event's Slack, not a published source:
+  - $150/sf (high-volume production builder)
+  - $225/sf (default, the middle of $200–250/sf for City single-family infill)
+  - $350/sf (another practitioner's $325–375/sf)
+  - plus $37.5k of site work per building (their $25k–50k range), and $30k more on a mostly steep lot.
+- **Our own assumptions:** 15% soft costs, a 10% margin, and ×103 to turn monthly rent into value.
+- **Value** is the census tract's median resale price for houses, and capitalized block-group rent for 2+ units. Both describe *existing* homes, which sell and rent for less than new ones. City new-build sales run about $370–390/sf, against about $180/sf for all valid sales, roughly 2×. Only 15 of 90 neighborhoods have 5+ new-build comps in 5 years, so no new-build premium is applied. Block-group ACS rents are also noisy: 48 of 265 City block groups have a coefficient of variation above 30%. So the check leans toward "doesn't pencil". Read that as the appraisal-gap risk, not a verdict on a project.
+- **Not modeled:** land cost, financing terms, subsidy programs and their per-unit limits, and construction-time carrying costs.
+- **Permit data can't stand in for cost.** Permit valuations for new City 1–2 family homes have a median of $104/sf (n=220), and the declared value is a median 0.31× the same homes' later sale price (`research/sweeps/r9-permit-cost-per-sf.md`).
 
 **Things that need paid due diligence.** None of these are in any score:
-- Environmental contamination and brownfields. We have no PA DEP Act 2 or activity-and-use-limitation layer. The experts named contamination as an up-front deal-killer.
-- Soils, foundations, and demolition debris buried in old basements on vacant lots.
+- Environmental contamination and brownfields. PA DEP Act 2 and activity-and-use-limitation records exist, but only as coarse points with no parcel ID and no cleanup status. They could support at most a "cleanup record within 100 m, verify" flag, which would hit about 1–1.5% of vacant parcels. That flag is not built, and absence of a record doesn't mean a site is clean. The experts named contamination as an up-front deal-killer.
+- Soils, foundations, and demolition debris buried in old basements on vacant lots. City demolition rules since 2021 require only a broken slab and clean fill, and 170 demolition permits from 2024–26 say the foundation walls remain. About 94% of vacant City lots have no demolition record at all, so the tool can't flag this.
 - The location, depth, condition and capacity of water and sewer lines. Capacity is not public, so the tool treats it as **unknown, not bad**.
 
 **Other things not covered:** school quality, tornado risk, and a project's odds of approval. Crime and race never enter any score, on purpose.
@@ -35,14 +37,17 @@ The Market Value Analysis check (`packages/api/src/typology/site-fit.ts`'s `verd
 ## 3. Zoning is a simplified reading
 
 - Legal pathways are our transcription of the Zoning Code use table (§911.02), the dimensional standards (§903.03, minimum lot sizes after the May 2025 reform) and the procedures in Ch. 922, read on eCode360 on 2026-09-26. Overlay districts, conditions attached to a use, and site-plan review are summarized, not fully applied.
-- **Setbacks are not checked.** The tool compares lot area to the district minimum, not lot width to the required side setbacks. A 24 ft lot with two 10 ft setbacks, the experts' own example of a lot that needs a variance, would pass.
+- **Setbacks are checked only roughly.** The verdict subtracts the §903.03 interior side setbacks from the lot width and flags a likely variance below 14 ft of buildable width. That catches the experts' own example: a 24 ft RM-M lot leaves 4 ft. Lot width is the short side of the lot's bounding rectangle, so irregular lots are approximate. Corner-lot exterior setbacks, front and rear setbacks, and contextual setbacks (§925.06) are not checked.
+- **Height, floor-area ratio and lot area per unit are not checked.** The verdict checks use, overlays, side setbacks and minimum lot size. We ran it on the Pro-Housing Pittsburgh "You Can't Build That Here" buildings. It calls all 6 residential-district apartment cases red for use, but it misses the cases blocked by height or FAR, such as Carson Towers (LNC) and the Clark Building (GT-C), which read yellow. Those 6 cases are a regression test (`typology-meta.test.ts`).
 - **The rules are changing.** Bill 2025-1545 (ADUs) and Bill 2026-0834 were pending as of this build, and a full zoning rewrite is planned. The tool shows the code as read on 2026-09-26.
 - **Zoning Board approval rates overstate how easy approval is.** The "likelihood" in the housing-type score is the share of 2023–26 Zoning Board decisions that were approved in each base district. It has three biases:
   - It counts only decisions posted on the City's site. Withdrawn and abandoned applications are missing.
   - Only projects whose sponsors thought they would pencil reach the Board, so the cases are already filtered.
   - It pools all kinds of relief, not rezonings specifically.
 
-  A high rate also doesn't mean the process is cheap. The experts stressed that variances are usually granted but slow and costly, and the tool does not model that time or cost.
+  Approval also isn't guaranteed. In November 2023 the Board denied the height variances for the Bloomfield ShurSave redevelopment (4401 Liberty Ave), calling height a policy question for Council. For 21 Lanark St, the variances were granted, then reversed in court, adding about $120k and at least a year.
+
+  A high rate also doesn't mean the process is cheap. The experts stressed that variances are usually granted but slow and costly. The verdict shows each pathway's approval clock and the 120–200 day permit median, but it doesn't turn that time into dollars.
 
 ## 4. Choices we made (value judgments, not data)
 
@@ -53,24 +58,32 @@ Every one of these is a choice we made, and a different reasonable choice would 
 | Pillar weights | All 1 by default. Presets (family, older adult, climate-first, affordability-first, market-first) give other sets. |
 | How pillars combine | Weighted geometric mean, so one strong pillar can only partly offset a weak one. Arithmetic is a toggle. Scores are floored at 1. |
 | Missing data | Missing indicators are dropped and the other weights renormalized. A pillar without enough data counts as that pillar's City 25th-percentile score. |
-| Zoning multiplier on the overall score | By right ×1.0, Zoning Administrator exception ×0.98, special exception ×0.94, conditional use ×0.92, not permitted ×0.2 (×0.35 within 30 m of a district that allows it), unknown district ×0.8. It uses the easiest pathway among five mainstream housing types, not the type you're looking at. |
+| Zoning multiplier on the overall score | By right ×1.0, Zoning Administrator exception ×0.98, special exception ×0.94, conditional use ×0.92, not permitted ×0.2 (×0.35 within 30 m of a district that allows it), unknown district ×0.8. By default it uses the easiest pathway among five mainstream housing types. The parcel panel's "zoning factor for" picker switches it to one type. |
 | Site-availability multiplier | Vacant or parking ×1.0, occupied building ×0.9, large building ×0.7, institution ×0.6, condo unit ×0.5, park, cemetery, rail or right-of-way ×0.05. |
 | Housing-type tile score | By right 100, ZA exception 85, special exception 60, conditional use 40, not permitted 5–35 (depends on how close a permitting district is and the Board approval rate; 0.7 where there are no local cases). |
-| Hazard caps on Site Feasibility | For example, half the lot in the floodway caps Site at 5, and mostly 25%+ slope caps it at 50. Lead service lines only flag; they don't cap. Undermining now hard-blocks multi-unit typologies specifically (see the verdict row below); it still only flags the Site Feasibility pillar itself, since that pillar is typology-agnostic. |
-| Score colors (pillars) | Green ≥ 70, yellow ≥ 45, red below. These are cutoffs we picked. They don't mean "developable" or "not developable" -- that's what the typology verdict is for. |
-| Typology verdict | Red: not permitted with no realistic rezoning path, over half the lot in the FEMA floodway, undermined + multi-unit (needs a mine investigation regardless of zoning), or Jev rates it "Cannot fit". Yellow: needs a variance/Special Exception, a lesser hazard (steep slope, landslide-prone, 100-yr floodplain) covers half the lot, Jev's fit or confidence is weak, or (for anything but a detached house) the block group's Market Value Analysis category is among the county's most distressed. Green: none of the above. Unknown: zoning district not covered. Computed from gates and hazards directly, never from the weighted pillar score, so it can't be averaged away. |
+| Hazard caps on Site Feasibility | Half the lot in the floodway caps Site at 5 (any part: 40). Half or more at 25%+ slope caps it at 50, half landslide-prone at 54, both together at 45, half over mapped mines at 70, and a sliver lot at 30. Lead service lines only flag. |
+| Deal-killer multiplier on the overall score | Half floodway ×0.2, part floodway ×0.6, sliver lot ×0.3, mines ×0.9; the lowest applies. Mines are mild because about 30% of City parcels (43,001) are over mapped mines and the layer has no depth of cover. |
+| Verdict (red / yellow / green) | The worst reason decides. Red: not permitted with no similar district that allows it; half or more floodway; sliver lot; park, rail or right-of-way; "cannot fit"; or the pencil check's "doesn't pencil". Yellow: a hearing; a nearby-density rezoning; partial floodway, floodplain, slope, landslide or mines; a narrow lot after setbacks; a tight fit; tight or subsidy-dependent finances. Unknown outranks green. |
+| Pencil-check bands | Pencils if value ≥ cost plus margin. Tight if it pencils only at $150/sf. Needs subsidy if value covers ≥35% of that. Otherwise it doesn't pencil. At the defaults, "doesn't pencil" covers about 16% of vacant or occupied parcels for a house, 36% for a duplex and 11% for apartments. The gap is shown beside URA's per-unit caps ($130k for-sale new construction, $75k rental at 30% AMI) for scale. A stricter rule, red whenever the gap exceeds the cap, would make about 63% of houses red; we didn't use it because the values understate new-build prices. |
+| Minimum building width | 14 ft after interior side setbacks. |
+| Score colors | Green ≥ 70, yellow ≥ 45, red below. These are cutoffs we picked. On the pillar scores they mean "better or worse place", not "developable". The verdict's red, yellow and green, which carry text labels, are the developability answer. |
 | Site-fit review flag | Confidence below 0.3 (0.2 for a detached house), tuned on observed answers. |
 
 ## 5. Known weaknesses in how the scores behave
 
-These are open as of `3fcff72`, except where noted as fixed:
+Fixed on `lance-verdict`:
+- Deal-killer hazards now multiply the overall score instead of being averaged away.
+- Undermining now caps Site Feasibility and multiplies the overall score.
+- The steep-slope cap now fires at half the lot, not three-quarters.
+- The housing-type tiles lead with the verdict, so a floodway lot no longer reads as a clean "100, by right".
+- Missing hazard data makes the verdict "unknown", and the overall card shows data coverage.
+- Your weights are no longer sent to the site-fit model.
 
-- **The overall pillar score can still average hazards away.** Hazard caps lower only the Site Feasibility pillar, which is then combined with four other pillars, so a floodway lot can get a middling *overall* score. The typology verdict (§4 table, Alerts pane) doesn't have this problem: it reads gates and hazards directly and is never blended with anything.
-- **The steep-slope cap on the Site Feasibility pillar fires only when about three-quarters of the lot is 25%+ slope.** Below that, slope only costs weighted points there. (The typology verdict uses a lower, 50% threshold for its own steep-slope/landslide/floodplain check.)
-- **The housing-type tiles' big number is the legal pathway only,** and still doesn't factor in hazards (e.g. a floodway lot can read "100, by right"). Every tile now shows a separate verdict badge (red/yellow/green/unknown) and an estimated cost range underneath -- Jev physically rates all 16 typologies -- but the big number itself is unchanged.
-- **Missing data can look fine.** Renormalizing and imputing keeps a parcel scoreable, but the result can look healthier than the evidence supports. The panel shows data coverage for each pillar.
-- **Your weights are passed to the site-fit model** as a note that may nudge a borderline rating. A physical judgment shouldn't depend on preferences.
-- **Jev physically rates all 16 typologies now, but legal permission is still only transcribed for five** (detached, attached, duplex, apartment, elderly). For the other eleven (three-unit, assisted living, community home, personal care, multi-suite, interim housing) the verdict's legal status comes back "unknown" -- never guessed -- even though Jev has an opinion on physical fit; the tile's own big number (from the full 57-district table) is the real legal reading for those.
+Still open:
+- **The overall score is still a blend.** The verdict is the answer to "can it be built?". The overall score answers "how good a place is this?", and a red-verdict lot can still have a middling overall score. The map hexes show the overall score, not the verdict.
+- **Mines are treated mildly** (yellow, ×0.9). The layer can't tell a 30 ft mine from a 300 ft one.
+- **The pencil check is pessimistic in weak markets** (see §1), and it ignores land cost, which pushes it the other way.
+- **Physical fit is still only a model's opinion.** A "cannot fit" rating turns the verdict red. The rating has not been checked against ground truth.
 
 ## 6. Data
 
@@ -86,7 +99,7 @@ These are open as of `3fcff72`, except where noted as fixed:
   - ZIP-based filters leak across the county line. Everything is clipped to the county.
 - **Some data is modeled, not measured:** EPA EJScreen air quality, which is an emissions and exposure proxy (EPA took EJScreen offline in 2025; we read a public mirror), HUD Location Affordability, DOE LEAD energy burden, and FEMA risk ratings.
 - **Crowd-mapped data:** license-plate-reader locations come from OpenStreetMap volunteers (DeFlock), not an official inventory.
-- **Paid data we don't have:** RS Means construction costs, MLS comps and CoStar rents. Zillow ZORI is used only as ZIP-level context.
+- **Paid data we don't have:** RS Means construction costs, MLS comps and CoStar rents. Zillow ZORI is used only as ZIP-level context. The pencil check uses County sales (valid residential sales 2024–25 by tract, blank under 10 sales) and ACS rents instead.
 
 The full catalog of 134 datasets, with endpoints, vintages and licenses, is on the `/resources` page.
 
@@ -98,11 +111,11 @@ The full catalog of 134 datasets, with endpoints, vintages and licenses, is on t
 ## 8. AI components
 
 - **Site fit** comes from Jev, a third-party "System One" decision model reached through OpenRouter. It returns a rating on a four-level rubric (Cannot fit → Comfortable fit) with probabilities and a confidence.
-  - **What it sees:** lot area, the width × depth of the lot's bounding rectangle, the zoning code and minimum lot size, the share of the lot in each hazard, and your weight settings.
+  - **What it sees:** lot area, the width × depth of the lot's bounding rectangle, the zoning code and minimum lot size, and the share of the lot in each hazard. It does not see your weight settings.
   - **What it doesn't see:** setbacks, buildings on the lot, topography beyond those shares, neighbors, street access, utilities, photos.
   - It never decides legality. We have **not validated its ratings against ground truth**. If it fails or isn't configured, the app says so instead of inventing a number.
 - **The chat** uses Google Gemini (free-tier "flash-lite" models).
-  - It sees only what the panels show for the selected parcel: scores, breakdowns, typology tiles with Jev's site fit, alerts and zoning. It can't see the map's other layers.
+  - It sees only what the panels show for the selected parcel: scores, breakdowns, typology tiles with Jev's site fit, the verdicts and pencil check, alerts and zoning. It can't see the map's other layers.
   - What-if answers are computed, never estimated: weight changes and presets by the same formula as the scorer, rezoning and vacant-land scenarios by the scorer itself. Other what-ifs get "not computed".
   - Replies must cite facts. Any sentence with a number not found in those facts is removed.
   - It can re-run the scoring formula with new weights. It never produces a score of its own.

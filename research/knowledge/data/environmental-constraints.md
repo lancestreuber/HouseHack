@@ -52,6 +52,16 @@ Steep slope ≥25% → SS-O Planning Commission review; landslide-prone → LS-O
 
 Contamination layers (Act 2, AUL, brownfields) add cost and time but brownfield status can also unlock grants ([r2 deeper sweep](../../sweeps/r2-deeper-data-sources.md)).
 
+### Contamination layer: what it can and can't say (checked 2026-09-27, [r9 sweep](../../sweeps/r9-brownfield-and-demolition-layers.md))
+
+The SMEs named "undermining and environmental conditions" as up-front deal-killers (S9). Our undermining layer is solid. The contamination layer is weak:
+- **Every DEP layer is points with no parcel ID and no editing date.** Inside the City there are 178 soil and 78 groundwater records (105 cleanup facilities) and 128 AUL points.
+- **There is no cleanup status.** No Act 2 standard, no completion field, and status fields are nearly all "ACTIVE"/"YES". eFACTS gives only NIR dates, mostly 1995–2009.
+- **Locations are coarse.** 61 of 85 points sit on a whole-arc-second grid, one point carries 26 records for the whole LTV South Side works, and 12% fall outside any parcel. **Join by distance buffer (≤30 m or ≤100 m), not containment.** Within 100 m, about 1–1.5% of vacant parcels get flagged.
+- **EPA brownfield points (103)** mostly mean "assessed with a grant" on housing sites, not "contaminated".
+- **No City or URA brownfield inventory exists.** Sanborn/Hopkins maps are images only.
+- **So:** show this as "known cleanup record nearby, verify", a yellow flag. Never show it as clean or contaminated. **A missing record does not mean the site is clean.**
+
 ## Coverage outside the city
 County landslide, FEMA NFHL, DEP and EPA layers are county- or state-wide, so environmental flags can be computed for suburban parcels even where zoning is unavailable ([municipal zoning](municipal-zoning-outside-city.md)).
 

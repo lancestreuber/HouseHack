@@ -1,13 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@HouseHack/ui/components/select";
+
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
-import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { COST_PRESETS, DEFAULT_PENCIL, PENCIL_TYPOLOGIES, pencilCheck } from "@/lib/pillars/pencil";
+import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
+import { VERDICT_COLOR, VERDICT_NOT_CHECKED, VERDICT_PERMIT_NOTE } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
+import { EASIEST, setLegalFor, useLegalFor } from "./legal-for-store";
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { usePillarWeights } from "./pillar-weights-store";
+import { type FitsById, legalLevelFor, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -126,6 +132,8 @@ export function formatRaw(value: number | null, unit: string | undefined) {
       return config.legal.levels.find((l) => l.code === value)?.label ?? "unknown";
     case "ratio":
       return `${value.toFixed(2)}×`;
+    case "usd":
+      return `$${Math.round(value).toLocaleString()}`;
     default:
       return String(value);
   }
@@ -308,15 +316,13 @@ function PillarCard({
   );
 }
 
-/** Shared by the typology panel (bottom) and the Alerts pane, so both read
- * the exact same (cached) System One result instead of issuing their own
- * near-duplicate requests. The chat also reads it, before data may have
- * loaded, so `data` can be null (the query just waits). */
+/** Shared by the typology panel (bottom) and the chat, so both read the exact
+ * same (cached) System One result instead of issuing their own near-duplicate
+ * requests. The chat also reads it before data may have loaded, so `data` can
+ * be null (the query just waits). Legal permission/verdict/cost are computed
+ * entirely client-side (typology-meta.ts) from this rating plus the full
+ * DISTRICT_PATHWAYS table -- this query only rates physical site fit. */
 export function useTypologyFit(pin: string, data: ParcelData | null) {
-  // Global navbar weights, fed straight into Jev's state so a borderline
-  // physical-fit rating can be nudged by what the evaluator says they
-  // prioritize (site-fit.ts's siteFitQuestion explains how to the model).
-  const weights = usePillarWeights();
   return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
@@ -329,12 +335,175 @@ export function useTypologyFit(pin: string, data: ParcelData | null) {
           landslideProne: data?.raw.site_landslide_prone_share,
           undermined: data?.raw.site_undermined_share,
         },
-        weights,
-        marketTier: data?.raw.demand_market_strength,
       },
       enabled: Boolean(data),
       staleTime: Number.POSITIVE_INFINITY,
     }),
+  );
+}
+
+// The brief's mainstream housing types, in size order.
+const VERDICT_TYPOLOGIES = ["single_detached", "single_attached", "two_unit", "three_unit", "multi_unit"];
+
+/** Red / yellow / green "can it be built?" per housing type, from pass/fail
+ * checks only (see lib/pillars/verdict.ts), kept apart from the weighted score. */
+function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useTypologyFit(pin, data);
+  const fitsById = useMemo(() => {
+    if (!query.data) return undefined;
+    const map: FitsById = {};
+    for (const t of query.data.typologies) map[t.id] = t.fit;
+    return map;
+  }, [query.data]);
+  const [open, setOpen] = useState<string | null>(null);
+  const pencil = usePencilAssumptions();
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <p className="font-medium">Can it be built?</p>
+      <ul className="mt-1 space-y-0.5">
+        {VERDICT_TYPOLOGIES.map((id) => {
+          const verdict = verdictFor(data.zoning, id, data, { fitsById, lotWidthFt: query.data?.lot.widthFt, pencil });
+          const blockers = verdict.reasons.filter((r) => r.level !== "green");
+          const shown = open === id ? verdict.reasons : blockers.slice(0, 1);
+          return (
+            <li key={id}>
+              <button type="button" onClick={() => setOpen((cur) => (cur === id ? null : id))} className="w-full text-left">
+                <span className="flex items-center gap-1.5">
+                  <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+                  <span className="font-medium">{SHORT_LABEL[id] ?? id}</span>
+                  <span style={{ color: VERDICT_COLOR[verdict.level] }}>{verdict.label}</span>
+                </span>
+                {shown.map((r) => (
+                  <span key={r.text} className="block pl-3.5 text-muted-foreground">
+                    <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text}
+                  </span>
+                ))}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-1 text-muted-foreground">
+        {query.isPending ? "Checking physical fit… " : ""}
+        {VERDICT_PERMIT_NOTE} {VERDICT_NOT_CHECKED}
+      </p>
+    </section>
+  );
+}
+
+const PENCIL_STATUS: Record<string, { label: string; color: string }> = {
+  pencils: { label: "Pencils", color: VERDICT_COLOR.green },
+  tight: { label: "Tight", color: VERDICT_COLOR.yellow },
+  subsidy: { label: "Needs subsidy", color: VERDICT_COLOR.yellow },
+  no: { label: "Doesn't pencil", color: VERDICT_COLOR.red },
+  unknown: { label: "No data", color: VERDICT_COLOR.unknown },
+};
+const usdK = (n: number | null) => (n == null ? "—" : `$${Math.round(n / 1000).toLocaleString()}k`);
+
+/** Value per unit vs. cost per unit for each mainstream type, with the two
+ * assumptions that move it most editable in place (SME: the tool should do
+ * the pro-forma work, and user-typed assumptions help if they're clear). */
+function PencilSection({ data }: { data: ParcelData }) {
+  const a = usePencilAssumptions();
+  const [open, setOpen] = useState(false);
+  const pencil = config.pencil;
+  const presets = [
+    ["low", "Production builder"],
+    ["mid", "Typical infill"],
+    ["high", "Small builder"],
+  ] as const;
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <p className="font-medium">Does it pencil?</p>
+      <div className="mt-1 flex flex-wrap items-center gap-1">
+        <span className="text-muted-foreground">Construction</span>
+        {presets.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            title={pencil.cost_per_sf.sources[key]}
+            onClick={() => setPencilAssumptions({ ...a, costPerSf: COST_PRESETS[key] })}
+            className={`rounded border px-1.5 py-0.5 ${a.costPerSf === COST_PRESETS[key] ? "border-foreground/60 bg-foreground/10" : "border-border/60"}`}
+          >
+            {label} ${COST_PRESETS[key]}
+          </button>
+        ))}
+        <label className="flex items-center gap-1">
+          <input
+            type="number"
+            min={50}
+            max={1000}
+            step={5}
+            value={a.costPerSf}
+            onChange={(e) => Number(e.target.value) > 0 && setPencilAssumptions({ ...a, costPerSf: Number(e.target.value) })}
+            className="w-16 rounded border border-border/60 bg-background px-1 tabular-nums"
+            aria-label="Construction cost per square foot"
+          />
+          /sf
+        </label>
+      </div>
+      <label className="mt-1 flex items-center gap-1 text-muted-foreground" title={pencil.site_cost_source}>
+        Site work per building $
+        <input
+          type="number"
+          min={0}
+          max={500000}
+          step={2500}
+          value={a.siteCostPerBuilding}
+          onChange={(e) => Number(e.target.value) >= 0 && setPencilAssumptions({ ...a, siteCostPerBuilding: Number(e.target.value) })}
+          className="w-20 rounded border border-border/60 bg-background px-1 tabular-nums text-foreground"
+          aria-label="Site work cost per building"
+        />
+        {(a.costPerSf !== DEFAULT_PENCIL.costPerSf || a.siteCostPerBuilding !== DEFAULT_PENCIL.siteCostPerBuilding) && (
+          <button type="button" onClick={() => setPencilAssumptions(DEFAULT_PENCIL)} className="underline">
+            reset
+          </button>
+        )}
+      </label>
+      <div className="mt-1 grid grid-cols-[1fr_auto_auto_auto] gap-x-2 text-muted-foreground">
+        <span>Type</span>
+        <span>Value/unit</span>
+        <span title={`Cost per unit plus the ${Math.round(config.pencil.margin_pct * 100)}% margin`}>Needed/unit</span>
+        <span />
+        {PENCIL_TYPOLOGIES.map((id) => {
+          const r = pencilCheck(id, data.norm, data.raw, a);
+          if (!r) return null;
+          const st = PENCIL_STATUS[r.status];
+          return [
+            <span key={`${id}-n`} className="text-foreground">
+              {SHORT_LABEL[id] ?? id}
+            </span>,
+            <span key={`${id}-v`} className="tabular-nums" title={r.basis === "sale" ? "Median home sale price in this census tract, 2024–25" : "Nearby median rent, capitalized"}>
+              {usdK(r.valuePerUnit)}
+            </span>,
+            <span key={`${id}-c`} className="tabular-nums">
+              {usdK(r.costPerUnit * (1 + config.pencil.margin_pct))}
+            </span>,
+            <span key={`${id}-s`} style={{ color: st.color }}>
+              {st.label}
+            </span>,
+          ];
+        })}
+      </div>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-muted-foreground underline">
+        {open ? "Hide" : "How this is worked out"}
+      </button>
+      {open && (
+        <div className="mt-1 space-y-1 text-muted-foreground">
+          <p>
+            Cost per unit = unit size × construction $/sf × (1 + {Math.round(pencil.soft_cost_pct * 100)}% soft costs) + site work per building ÷ units
+            {data.norm.site_steep_slope_share != null && data.norm.site_steep_slope_share < 51 ? `, + $${pencil.steep_site_adder.toLocaleString()} for a mostly steep lot` : ""}.
+            Value must beat cost by {Math.round(pencil.margin_pct * 100)}%. Houses use nearby sale prices (close to an appraiser's comps); 2+ units use nearby rent × {pencil.rent_multiplier}.
+            Value covering at least {Math.round(pencil.subsidy_floor * 100)}% of cost reads as "needs subsidy"; less doesn't pencil. For scale, URA's gap caps are $
+            {pencil.subsidy_cap_per_unit.sale.toLocaleString()} per for-sale unit and ${pencil.subsidy_cap_per_unit.rent.toLocaleString()} per rental unit. {pencil.subsidy_cap_note}
+          </p>
+          <p>{pencil.value_bias}</p>
+          <p>{pencil.not_priced}</p>
+          <p>{pencil.cost_per_sf.note}</p>
+          <p>{pencil.typologies_note}</p>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -355,14 +524,27 @@ export function PillarsPanel({
   weights: Partial<Record<PillarId, number>>;
 }) {
   const { data, status } = useParcelData(pin);
-  const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
+  // "easiest" = the zoning factor uses the easiest of the mainstream types (the
+  // published default); otherwise it follows the one housing type picked here.
+  // Shared with the chat, so it scores the parcel the way this panel does; back
+  // to the easiest type when the panel closes, as when this was local state.
+  const legalFor = useLegalFor();
+  useEffect(() => () => setLegalFor(EASIEST), []);
+  const overrides = useMemo<WeightOverrides>(
+    () => ({
+      pillars: weights,
+      ...(legalFor !== "easiest" && data ? { legalLevel: legalLevelFor(data.zoning, legalFor, data.norm.site_legal_pathway) } : {}),
+    }),
+    [weights, legalFor, data],
+  );
   const hasCustomWeights = Object.keys(weights).length > 0;
+  const isCustom = hasCustomWeights || legalFor !== "easiest";
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
   const range = useMemo(() => {
     if (!result) return null;
     const r = weightSensitivity(result.pillars, overrides);
     // The spread comes from the pillar blend; apply the same zoning and availability multipliers.
-    const m = (result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1);
+    const m = scoreMultiplier(result);
     return r ? { p10: r.p10 * m, p90: r.p90 * m } : null;
   }, [result, overrides]);
   const rank = data && result ? percentileRank(data.quantiles?.overall, result.overall) : null;
@@ -391,6 +573,8 @@ export function PillarsPanel({
         )}
         {data && result && (
           <>
+            <BuildVerdicts pin={pin} data={data} />
+            <PencilSection data={data} />
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>
@@ -406,10 +590,20 @@ export function PillarsPanel({
                   counted as a below-typical score (the City's 25th percentile for that pillar).
                 </p>
               )}
+              {(() => {
+                // Missing indicators are dropped and the rest reweighted, so say how much was actually measured.
+                const coverage = config.pillars.reduce((a, p) => a + result.pillars[p.id as PillarId].coverage, 0) / config.pillars.length;
+                return (
+                  <p className={`mt-1 ${coverage < 0.8 ? "text-amber-400/90" : "text-muted-foreground"}`}>
+                    Data coverage: {Math.round(coverage * 100)}% of indicator weight has data for this parcel
+                    {coverage < 0.8 ? "; the score leans on fewer measurements than usual." : "."}
+                  </p>
+                );
+              })()}
               {rank != null && (
                 <p className="mt-1">
                   Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
-                  {hasCustomWeights ? " (compared with scores at equal weights)" : ""}.
+                  {isCustom ? " (compared with scores at the default settings)" : ""}.
                 </p>
               )}
               {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
@@ -417,10 +611,22 @@ export function PillarsPanel({
                 Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
                 {hasCustomWeights ? "your weights" : "equal weights"}
                 {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
-                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
+                {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}
+                {result.hazard ? `, × ${result.hazard.multiplier} for a deal-killer hazard` : ""}.
                 {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
             </section>
+            {result.hazard && (
+              <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
+                <p className="font-medium">Deal-killer site hazard</p>
+                {result.hazard.flags.map((f) => (
+                  <p key={f}>{f}</p>
+                ))}
+                <p className="text-muted-foreground">
+                  Overall score × {result.hazard.multiplier}, so a good neighborhood can't average it away.
+                </p>
+              </section>
+            )}
             {result.availability && result.availability.multiplier < 1 && (
               <section className="rounded border border-red-500/60 bg-red-500/10 p-2">
                 <p className="font-medium">{result.availability.label}</p>
@@ -431,14 +637,35 @@ export function PillarsPanel({
             <section
               className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
             >
-              <p className="font-medium">Zoning (current code)</p>
-              <p>{result.legal ? result.legal.label : "Legal status unknown for this district"}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium">Zoning (current code)</p>
+                <Select value={legalFor} onValueChange={(v) => v && setLegalFor(v)}>
+                  <SelectTrigger size="sm" className="h-6 w-auto gap-1 px-1.5" aria-label="Zoning factor for which housing type">
+                    <SelectValue>{legalFor === "easiest" ? "Easiest type" : (SHORT_LABEL[legalFor] ?? legalFor)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easiest">Easiest type</SelectItem>
+                    {VERDICT_TYPOLOGIES.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {SHORT_LABEL[id] ?? id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p>
+                {legalFor !== "easiest" && `${SHORT_LABEL[legalFor] ?? legalFor}: `}
+                {result.legal ? result.legal.label : "Legal status unknown for this district"}
+              </p>
               {result.legal && result.legal.multiplier < 1 && (
                 <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
               )}
               {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
               <p className="text-muted-foreground">
-                Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing. Simplified reading of §911.02;
+                {legalFor === "easiest"
+                  ? "Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing; pick a type to score for that type instead."
+                  : "Pathway for this housing type only."}{" "}
+                Simplified reading of §911.02;
                 verify with the Zoning Administrator.
               </p>
             </section>

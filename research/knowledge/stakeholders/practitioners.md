@@ -3,7 +3,7 @@
 **Type:** stakeholder
 **One line:** What Pittsburgh builders, nonprofit developers, CDCs and advocates cite as the barriers to producing housing, and why that challenges the premise that site selection is the bottleneck.
 **Why we care:** Track 1 assumes "which site is easiest" is a decision people need help with. The people who build here mostly name other constraints first. A score that ignores acquisition, title and financing misses what they actually cite.
-**Last checked:** 2026-09-26
+**Last checked:** 2026-09-27
 
 ## Barriers practitioners cite
 
@@ -46,6 +46,21 @@
 
 - Landslides (Greenleaf St 2018, William St) and the ALCOSAN sewer consent decree. No public figures on PWSA/ALCOSAN capacity or tap-in fees per parcel were found. See [environmental overlays](../policy/environmental-overlays-ch906.md) and [infrastructure](../data/infrastructure.md).
 
+## Hackathon SMEs, 2026-09-27 (first direct practitioner voice in this base)
+
+Source: Slack `#housing-sme-help`, read 2026-09-27 and summarized as S1–S16 in [SME feedback gap analysis](../build-plan/sme-feedback-gap-analysis.md#1-what-the-smes-said-the-facts-were-comparing-against). This is practitioner opinion given in chat, not a published source. The SMEs were a City of Pittsburgh SME, a Pro-Housing Pittsburgh SME, a Housing Innovation Alliance SME, and a practitioner developer.
+
+- **Order of operations:** the developer checks whether the project *pencils* (cost vs. market value) **before** deciding to pursue a variance. "Cost exceeding market value is the biggest challenge" (S5). This supports the ⚠ section below: site selection is not what they name first. Financing is.
+- **Variances are granted but slow and costly.** A 24 ft lot with two 10 ft side setbacks leaves 4 ft, a clear hardship, but "the time and expense of the variance process make these lots hard to develop" (S11).
+- **Deal-killers:** undermining and environmental conditions (S9). Hardest to know without paying for due diligence: remediation, soils and foundations, and water/sewer line location and condition (S10).
+- **Cost ranges (practitioner estimates, not published):** vertical $325–375/sf excluding site (S6); city SF infill $200–250/sf, production builders about $150/sf (S7); site work $25–50k per unit, with demolished houses often folded into old basements (S8).
+- **Scope:** "ideally both financial and zoning feasibility", but one dimension done well beats several done poorly (S4).
+
+**Resources the SMEs pointed to, read 2026-09-27** ([r9 sweep](../../sweeps/r9-sme-pointed-resources.md)):
+- **ACTION-Housing talk to Pro-Housing Pittsburgh (2024-04-11)**, read from YouTube auto-captions ([excerpt](../../sources/prohousingpgh-2026-09-27-action-housing-talk-transcript-excerpts.md), `[read]`): hard:soft is about 70:30. It takes about 2 years to groundbreaking, then 16–18 months to build. One deal had a record 23 funding sources. On a 35-unit deal the sponsor put in about $1M of its own money and deferred its whole ≈$1.5M fee to close the gap. The ≈$460k/unit figure is Pro-Housing's reading of a slide `[skimmed]`. The tax-credit equity figure in the captions is garbled.
+- **Bloomfield ShurSave (4401 Liberty Ave, LNC)** ([excerpt](../../sources/wesa-2026-09-27-bloomfield-shursave-excerpts.md)): 3 stories / 45 ft by right vs. 5–6 stories and 248 units proposed ("financing required" six). On 2023-11-07 the ZBA **denied** the height and compatibility variances, calling height "policy-making" for Council, and granted the grocery. The developer appealed, then dropped the plans by 2024-07. ⚠ **A counterexample to "the ZBA usually approves":** large height variances are treated as Council's call.
+- **21 Lanark St** (a YCBTH entry): the ZBA granted the variances and a court reversed them. The sponsor estimated about $120k more cost and at least a year of delay. This is S11's "time and expense" in one case.
+
 ## ⚠ The challenge to "site selection is the bottleneck"
 
 This is the stakeholder sweep's main finding, restated as an assumption we must defend or drop:
@@ -59,7 +74,7 @@ What would rescue the premise (inference): score things practitioners do cite, s
 
 ## Gaps
 
-- The stakeholder sweep found nothing specific from Pro-Housing Pittsburgh on variances or the ZBA, or from the Housing Innovation Alliance, Mon Valley Initiative, Hill CDC, Bloomfield Development Corp or PCRG about site-finding obstacles.
+- *(Partly filled 2026-09-27 by the hackathon SMEs above; still chat opinion, not published.)* The stakeholder sweep found nothing specific from Pro-Housing Pittsburgh on variances or the ZBA, or from the Housing Innovation Alliance, Mon Valley Initiative, Hill CDC, Bloomfield Development Corp or PCRG about site-finding obstacles.
 
 ## Open questions
 

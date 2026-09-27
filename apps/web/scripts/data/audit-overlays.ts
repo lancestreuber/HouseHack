@@ -7,6 +7,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 
 import { OVERLAYS } from "../../src/components/map/overlays";
+import { detailSourceId } from "../../src/components/map/overlays/types";
 
 const PUBLIC = path.resolve(import.meta.dirname, "../../public");
 
@@ -21,7 +22,11 @@ for (const def of OVERLAYS) {
       def.source.kind === "raster"
         ? { type: "raster", tiles: ["https://example.com/{z}/{x}/{y}"], tileSize: 256 }
         : { type: "geojson", data: { type: "FeatureCollection", features: [] } };
-    for (const e of validateStyleMin({ version: 8, sources: { x: source }, layers: def.layers("x", metric as never) })) {
+    // Overlays with a `detail` file also draw from an `<id>-detail` source that
+    // overlay-controller adds at runtime; register it so those layers validate.
+    const sources: Record<string, unknown> = { x: source };
+    if (def.detail) sources[detailSourceId("x")] = { type: "geojson", data: { type: "FeatureCollection", features: [] } };
+    for (const e of validateStyleMin({ version: 8, sources, layers: def.layers("x", metric as never) })) {
       styleProblems++;
       console.log(`✗ style ${def.id}${metric ? ` [${metric.id}]` : ""}: ${e.message}`);
     }

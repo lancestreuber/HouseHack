@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import katexCss from "katex/dist/katex.min.css?url";
 import { useEffect, useRef, useState } from "react";
 
 import { OVERLAYS } from "@/components/map/overlays";
@@ -11,14 +12,14 @@ import {
   ReferencesSection,
   ServicesSection,
 } from "@/components/resources/sections-data";
-import { AiSection, EquationsSection, MultipliersSection, OverviewSection, PillarsSection, TypologySection } from "@/components/resources/sections-model";
+import { AiSection, EquationsSection, MultipliersSection, OverviewSection, PillarsSection, TypologySection, VerdictSection } from "@/components/resources/sections-model";
 import { DISCLAIMER } from "@/components/disclaimer";
 import { Stat } from "@/components/resources/ui";
 import config from "@/lib/pillars/pillars.config.json";
 import catalog from "@/lib/resources/catalog.generated.json";
 
 export const Route = createFileRoute("/resources")({
-  head: () => ({ meta: [{ title: "Resources · Yinzone" }] }),
+  head: () => ({ meta: [{ title: "Resources · Yinzone" }], links: [{ rel: "stylesheet", href: katexCss }] }),
   component: ResourcesPage,
 });
 
@@ -28,13 +29,14 @@ const TOC: [string, string, string][] = [
   ["pillars", "03", "Pillars"],
   ["multipliers", "04", "Multipliers"],
   ["housing-types", "05", "Housing types"],
-  ["ai", "06", "AI components"],
-  ["map-layers", "07", "Map layers"],
-  ["datasets", "08", "Datasets"],
-  ["licenses", "09", "Licenses & services"],
-  ["assumptions", "10", "Assumptions"],
-  ["limitations", "11", "Limitations"],
-  ["references", "12", "References"],
+  ["verdict", "06", "Verdict + pencil"],
+  ["ai", "07", "AI components"],
+  ["map-layers", "08", "Map layers"],
+  ["datasets", "09", "Datasets"],
+  ["licenses", "10", "Licenses & services"],
+  ["assumptions", "11", "Assumptions"],
+  ["limitations", "12", "Limitations"],
+  ["references", "13", "References"],
 ];
 
 function ResourcesPage() {
@@ -113,6 +115,7 @@ function ResourcesPage() {
           <PillarsSection />
           <MultipliersSection />
           <TypologySection />
+          <VerdictSection />
           <AiSection />
           <LayersSection />
           <CatalogSection />

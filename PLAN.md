@@ -166,6 +166,8 @@ Get dataset URLs from `https://data.wprdc.org/api/3/action/package_show?id=<slug
 - [ ] **A8 (M3)** `bun run data:refresh` runs everything in order. Document it in the README "Keeping it current" section.
 
 ### Lane B: Algorithm + API (lead)
+> **Superseded scoring (2026-09-27).** The consideration scores, hazard values and severity cutoffs in Lane B (B2–B4) describe the first design. The app now scores parcels with the five pillars in `apps/web/src/lib/pillars/` (`pillars.config.json`, `score.ts`), and answers "can it be built?" with `verdict.ts` and `pencil.ts`. The equations and every weight are on the app's `/resources` page. Where this plan and that code disagree, the code wins.
+
 - [ ] **B0 (M1)** Set up the shared Neon DB, send out the connection string, and turn off Vercel preview protection. Add `TYPESAFE_API_KEY` and `GEMINI_API_KEY` (optional, sensitive, server-only) to `apps/web/.env.schema`.
 - [ ] **B1 (M1)** Create `packages/scoring`. Commit `types.ts` + fixtures (§2b), then tell lanes C, D and J.
 - [ ] **B2 (M2)** `considerations.ts`: one entry per `ConsiderationId` holding its normalizer, thresholds, severity cutoffs (≥70 ok, 40–69 consider, <40 or any hazard = warn), comment template, source and kind. Examples:

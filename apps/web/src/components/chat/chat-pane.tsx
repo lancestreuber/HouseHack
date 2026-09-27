@@ -17,6 +17,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { onAskChat } from "./chat-context-store";
 import { FactChip } from "./fact-chip";
 import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
@@ -33,6 +34,8 @@ export interface ChatPaneProps {
   className?: string;
   /** Show only as a floating window (no docked state) with a close button. */
   onClose?: () => void;
+  /** Keep the pane mounted (so the conversation survives) but not shown. */
+  hidden?: boolean;
   /** Docked only: collapses the pane to just its header. */
   collapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -54,8 +57,11 @@ const EDGES: { edge: Edge; className: string }[] = [
  * pane sets the size). Popped out, it's a floating window you can drag by its
  * header and resize from any edge or corner; size and position are remembered.
  */
-export function ChatPane({ context, className, onClose, collapsed, onToggleCollapse }: ChatPaneProps) {
+export function ChatPane({ context, className, onClose, hidden, collapsed, onToggleCollapse }: ChatPaneProps) {
   const chat = useChat(context);
+  // Questions sent from elsewhere on the page (e.g. a scenario card).
+  const send = chat.send;
+  useEffect(() => onAskChat((question) => void send(question)), [send]);
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
@@ -73,7 +79,10 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
           : "h-full w-full",
         !floating && className,
       )}
-      style={floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : undefined}
+      style={{
+        ...(floating && win.rect ? { left: win.rect.x, top: win.rect.y, width: win.rect.w, height: win.rect.h } : {}),
+        ...(hidden ? { display: "none" } : {}),
+      }}
       {...(floating ? win.handlers : {})}
     >
       <header
