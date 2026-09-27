@@ -37,6 +37,7 @@ import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { CameraViewer } from "./map/camera-viewer";
 import { DISCLAIMER, LIMITATIONS_URL } from "./disclaimer";
+import { onAskChat } from "./chat/chat-context-store";
 import { ChatPane } from "./chat/chat-pane";
 import { useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
@@ -52,6 +53,8 @@ import {
 import { ParcelTab } from "./map/parcel-tab";
 import { PillarsPanel } from "./map/pillars-panel";
 import { TypologyPanel } from "./map/typology-panel";
+import { ScenarioCard } from "./scenario/scenario-card";
+import { closeScenario, useScenario } from "./scenario/scenario-store";
 
 type BasemapId = "carto" | "osm";
 
@@ -292,6 +295,19 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   };
   // The chat explains exactly what the panes show for the selected parcel.
   const chatContext = useParcelChatContext(selectedPin) ?? undefined;
+  // A typology tile's scenario card, shown on the map for the selected parcel.
+  const scenario = useScenario();
+  useEffect(() => closeScenario(), [selectedPin]);
+  // "Ask the chat" from elsewhere (e.g. the scenario card) opens the chat pane.
+  useEffect(
+    () =>
+      onAskChat(() => {
+        if (chatPane.ref.current?.isCollapsed()) chatPane.ref.current.expand();
+      }),
+    // chatPane.ref is a stable ref object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   const handleAddressSelect = (result: AddressResult) => {
     mapRef.current?.flyTo({ center: [result.lng, result.lat], zoom: 17 });
@@ -554,6 +570,15 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
                   <CameraViewer />
+                  {scenario && selectedPin && (
+                    <ScenarioCard
+                      map={mapRef.current}
+                      pin={selectedPin}
+                      typologyId={scenario.typologyId}
+                      overlayState={overlayState}
+                      setOverlayState={setOverlayState}
+                    />
+                  )}
                   <div className="absolute bottom-2 left-2 z-10">
                     <Popover>
                       <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">

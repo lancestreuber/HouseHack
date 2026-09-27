@@ -74,6 +74,20 @@ function normalize(n: string): string {
  * Numbers in `text` that no fact states. Small counting numbers (0–10) are
  * allowed, and a fraction like 0.81 also allows its percent form (81).
  */
+// A quantity written in words ("thirty-six percent", "zero percent of the lot")
+// can't be checked against the facts, so it counts as unverified.
+const NUMBER_WORD =
+  "zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|point";
+const SPELLED_QUANTITY = new RegExp(
+  `\\b(?:${NUMBER_WORD})(?:[\\s-]+(?:and[\\s-]+)?(?:${NUMBER_WORD}))*\\s+(?:percent|per cent|degrees?|meters?|metres?|feet|foot|miles?|square|of\\s+100|out\\s+of\\s+100)\\b`,
+  "gi",
+);
+
+/** Quantities written in words, which the number check can't verify. */
+export function spelledNumbers(text: string): string[] {
+  return [...text.matchAll(SPELLED_QUANTITY)].map((m) => m[0]);
+}
+
 export function unverifiedNumbers(text: string, allowedNumbers: string[]): string[] {
   const allowed = new Set<string>();
   for (const raw of allowedNumbers) {
@@ -82,11 +96,12 @@ export function unverifiedNumbers(text: string, allowedNumbers: string[]): strin
     const value = Number(n);
     if (value > 0 && value <= 1) allowed.add(String(Math.round(value * 100)));
   }
-  return numbersIn(text).filter((n) => {
+  const digits = numbersIn(text).filter((n) => {
     const value = Number(n);
     if (Number.isInteger(value) && value >= 0 && value <= 10) return false;
     return !allowed.has(n);
   });
+  return [...digits, ...spelledNumbers(text)];
 }
 
 /** Split a paragraph into sentences, keeping the terminal punctuation. */

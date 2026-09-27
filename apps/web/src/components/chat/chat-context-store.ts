@@ -20,3 +20,18 @@ function subscribe(listener: () => void) {
 export function useChatContext(): ChatContext | null {
   return useSyncExternalStore(subscribe, () => current, () => null);
 }
+
+// Questions sent to the chat from elsewhere on the page (e.g. a scenario card's
+// "Ask the chat about this"). The docked chat pane sends them as if typed.
+const askListeners = new Set<(question: string) => void>();
+
+export function askChat(question: string) {
+  for (const listener of askListeners) listener(question);
+}
+
+export function onAskChat(listener: (question: string) => void) {
+  askListeners.add(listener);
+  return () => {
+    askListeners.delete(listener);
+  };
+}
