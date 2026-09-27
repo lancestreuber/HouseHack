@@ -615,7 +615,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               onResize={mapPane.onResize}
             >
               <div className="flex h-full min-w-0 flex-col">
-                <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
+                <ParcelTab
+                  pin={selectedPin}
+                  collapsed={mapPane.collapsed}
+                  onToggleCollapse={mapPane.toggle}
+                  onClear={() => setSelectedPin(null)}
+                />
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute left-2 top-2 z-10">
                     <Popover>
