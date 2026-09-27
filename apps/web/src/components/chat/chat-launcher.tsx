@@ -12,7 +12,7 @@ import { stopNatural } from "./voice";
 const GENERAL = generalChatContext();
 
 /**
- * Floating "Ask Yinzone" button on every page; opens the chat window.
+ * Floating "Ask Parceltongue" button on every page; opens the chat window.
  * Closing only hides it, so reopening keeps the conversation.
  */
 export function ChatLauncher() {
@@ -57,7 +57,7 @@ function LaunchButton({ onClick }: { onClick: () => void }) {
       )}
     >
       <MessageCircle className="size-5" aria-hidden />
-      Ask Yinzone
+      Ask Parceltongue
     </button>
   );
 }

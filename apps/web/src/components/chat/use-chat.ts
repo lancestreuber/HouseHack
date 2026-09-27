@@ -1,13 +1,22 @@
-import type { ChatContext, ChatResult, ReplyBlock } from "@HouseHack/api/chat/types";
+import type { ChatContext, ChatResult, MapView, ReplyBlock } from "@HouseHack/api/chat/types";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { client } from "@/utils/orpc";
 
+import { applyMapView } from "./map-actions";
 import { speakNatural as speak, stopNatural as stopSpeaking, unlockAudio } from "./voice";
 
 export type ChatTurn =
   | { id: number; role: "user"; text: string }
-  | { id: number; role: "assistant"; result: ChatResult; shownWords: number; totalWords: number };
+  | {
+      id: number;
+      role: "assistant";
+      result: ChatResult;
+      shownWords: number;
+      totalWords: number;
+      /** Set when the reply changed the map: the view it replaced, for Undo. */
+      map?: { before: MapView; undone: boolean };
+    };
 
 const WORDS_PER_TICK = 2;
 const TICK_MS = 28;
@@ -85,6 +94,9 @@ export function useChat(context: ChatContext | undefined) {
         };
       }
       const total = result.status === "ok" ? wordCount(result.blocks) : 0;
+      // The reply asked to change the map: show it now, keeping the old view for Undo.
+      const mapAction = result.status === "ok" ? result.actions?.find((a) => a.type === "map") : undefined;
+      const before = mapAction ? applyMapView(mapAction.view) : null;
       setTurns((all) => [
         ...all,
         {
@@ -93,6 +105,7 @@ export function useChat(context: ChatContext | undefined) {
           result,
           totalWords: total,
           shownWords: prefersReducedMotion() ? total : 0,
+          ...(before ? { map: { before, undone: false } } : {}),
         },
       ]);
       setThinking(false);
@@ -126,11 +139,22 @@ export function useChat(context: ChatContext | undefined) {
     setSpeaking(false);
   }, []);
 
+  // Put the map back the way it was before this reply changed it.
+  const undoMap = useCallback(
+    (id: number) => {
+      const turn = turns.find((t) => t.id === id);
+      if (turn?.role !== "assistant" || !turn.map || turn.map.undone) return;
+      applyMapView(turn.map.before);
+      setTurns((all) => all.map((t) => (t.id === id && t.role === "assistant" && t.map ? { ...t, map: { ...t.map, undone: true } } : t)));
+    },
+    [turns],
+  );
+
   const clear = useCallback(() => {
     stopSpeaking();
     setSpeaking(false);
     setTurns([]);
   }, []);
 
-  return { turns, thinking, send, clear, readAloud, toggleReadAloud, speaking, speakTurn, stop };
+  return { turns, thinking, send, clear, readAloud, toggleReadAloud, speaking, speakTurn, stop, undoMap };
 }

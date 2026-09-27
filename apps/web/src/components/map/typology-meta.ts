@@ -41,17 +41,26 @@ export function rezoningLikelihood(zone: string): number {
   return outcomes.approved / outcomes.n;
 }
 
-// This panel's 16 legal-feasibility typologies are far more granular than
-// Jev's 5 site-fit categories; only map where there's a genuinely close
-// correspondence, so we're never implying false precision for the rest
-// (three_unit, community_home, interim_housing, etc. just show no fit line).
+// Maps this panel's 16 legal-feasibility typology ids to Jev's site-fit ids
+// (packages/api/src/typology/site-fit.ts's TYPOLOGIES), so every tile gets a
+// physical-fit rating from Jev, not just the five mainstream ones.
 export const SITE_FIT_TYPOLOGY: Record<string, string> = {
   single_detached: "detached",
   single_attached: "attached",
   two_unit: "duplex",
+  three_unit: "three_unit",
   multi_unit: "apartment",
   elderly_limited: "elderly",
   elderly_general: "elderly",
+  assisted_living_a: "assisted_living_a",
+  assisted_living_b: "assisted_living_b",
+  assisted_living_c: "assisted_living_c",
+  personal_care_small: "personal_care_small",
+  personal_care_large: "personal_care_large",
+  community_home: "community_home",
+  multi_suite_limited: "multi_suite_limited",
+  multi_suite_general: "multi_suite_general",
+  interim_housing: "interim_housing",
 };
 
 // Short, plain-English names for the dropdown/tile face -- TYPOLOGIES'
@@ -88,7 +97,7 @@ export function legalLevelFor(zoning: string, typologyId: string, parcelLegalCod
   return pathway;
 }
 
-export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
+export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean; probabilities?: number[] } | null>;
 
 export type VerdictContext = {
   fitsById?: FitsById;

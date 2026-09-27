@@ -3,16 +3,7 @@ import z from "zod";
 
 import { publicProcedure } from "../index";
 import { type SystemOne, SystemOneError } from "../system-one";
-import {
-  buildSiteState,
-  gateFor,
-  parseZoning,
-  siteFitQuestion,
-  type SiteFit,
-  toSiteFit,
-  TYPOLOGIES,
-  type TypologyId,
-} from "../typology/site-fit";
+import { buildSiteState, parseZoning, siteFitQuestion, type SiteFit, toSiteFit, TYPOLOGIES, type TypologyId } from "../typology/site-fit";
 
 const SQ_M_TO_SQ_FT = 10.7639;
 const M_TO_FT = 3.28084;
@@ -134,8 +125,10 @@ export const parcelsRouter = {
     };
   }),
 
-  // Ranks housing types on one parcel: the legal gate comes from the zoning use
-  // table in code; physical site fit comes from the System One decision layer.
+  // Rates physical site fit for every housing type on one parcel via the
+  // System One decision layer. Legal permission is decided entirely
+  // client-side (apps/web's typology-meta.ts, from the full 57-district
+  // DISTRICT_PATHWAYS table), not here.
   typologyFit: publicProcedure.input(typologyFitInput).handler(async ({ input, context }) => {
     const result = await context.db.execute<{ area_m2: number | null; side_a: number | null; side_b: number | null }>(sql`
       WITH p AS (
@@ -156,12 +149,7 @@ export const parcelsRouter = {
     };
 
     const zoning = parseZoning(input.zoning);
-    const typologies = TYPOLOGIES.map((t) => ({
-      id: t.id,
-      category: t.category,
-      label: t.label,
-      gate: gateFor(t.id, zoning, lot.areaSf),
-    }));
+    const typologies = TYPOLOGIES.map((t) => ({ id: t.id, category: t.category, label: t.label }));
     // Rate physical fit for every typology, even legally "not_permitted"
     // ones: physical fit doesn't depend on zoning, and knowing a lot would
     // comfortably fit a duplex is exactly the fact that makes a rezoning

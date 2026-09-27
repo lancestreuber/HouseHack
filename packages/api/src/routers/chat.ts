@@ -17,6 +17,12 @@ const contextFact = z.object({
   tone: z.enum(["good", "bad"]).optional(),
 });
 
+const layerId = z.string().regex(/^[a-z0-9_.:-]{1,80}$/i);
+const mapView = z.object({
+  heat: z.object({ id: layerId, metric: z.string().max(60).optional() }).nullable(),
+  stack: z.array(layerId).max(200),
+});
+
 export const chatContext = z.object({
   subject: z.string().max(200),
   facts: z.array(contextFact).max(300),
@@ -40,6 +46,28 @@ export const chatContext = z.object({
     .optional(),
   suggestions: z.array(z.string().max(200)).max(6).optional(),
   notes: z.array(z.string().max(400)).max(20).optional(),
+  map: z
+    .object({
+      layers: z
+        .array(
+          z.object({
+            id: layerId,
+            label: z.string().min(1).max(120),
+            group: z.string().max(40),
+            description: z.string().max(400).optional(),
+            heat: z.boolean(),
+            metrics: z
+              .array(z.object({ id: z.string().max(60), label: z.string().max(120) }))
+              .max(30)
+              .optional(),
+            minZoom: z.number().min(0).max(24).optional(),
+          }),
+        )
+        .max(200),
+      current: mapView,
+      zoom: z.number().min(0).max(24).optional(),
+    })
+    .optional(),
 });
 
 const askInput = z.object({

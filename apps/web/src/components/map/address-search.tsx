@@ -14,7 +14,7 @@ import { client } from "@/utils/orpc";
 
 export type AddressResult = { label: string; lng: number; lat: number; pin: string | null };
 
-export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) => void }) {
+export function AddressSearch({ onSelect, className }: { onSelect: (result: AddressResult) => void; className?: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<AddressResult[]>([]);
@@ -55,11 +55,11 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
+        className={`flex h-8 items-center gap-2 rounded-lg border border-border bg-card px-2.5 text-[13px] text-faint transition-colors hover:text-muted-foreground ${className ?? ""}`}
       >
-        <Search className="size-3.5" />
-        Search address
-        <kbd className="ml-1 rounded border bg-foreground/10 px-1 text-[10px]">⌘K</kbd>
+        <Search className="size-4 shrink-0" />
+        <span className="flex-1 truncate text-left">Search address, parcel PIN, or district…</span>
+        <kbd className="rounded border border-border bg-popover px-1.5 py-0.5 text-[11px] tnum">⌘K</kbd>
       </button>
       <CommandDialog open={open} onOpenChange={setOpen} title="Search address" description="Search for an address in Allegheny County">
         <CommandInput placeholder="Search an address…" value={query} onValueChange={setQuery} />

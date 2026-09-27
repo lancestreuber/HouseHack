@@ -6,77 +6,100 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Cartographic Precision palette. Light (default :root) and dark (.dark,
+   toggled by next-themes) share the same roles: tonal surface steps, one
+   brass accent, three semantic statuses. */
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --background: #fafaf9;
+  --foreground: #18181b;
+  --card: #ffffff;
+  --card-foreground: #18181b;
+  --popover: #ffffff;
+  --popover-foreground: #18181b;
+  --primary: #9a6d24;
+  --primary-foreground: #ffffff;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --accent: #e7e5e4;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #9a6d24;
+  --chart-1: #9a6d24;
+  --chart-2: #52525b;
+  --chart-3: #a1a1aa;
+  --chart-4: #b91c1c;
+  --chart-5: #059669;
+  --radius: 0.5rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #9a6d24;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #9a6d24;
+  --faint: #71717a;
+  --brass: #9a6d24;
+  --critical: #b91c1c;
+  --warn: #d97706;
+  --ok: #059669;
 }
 
+/* Dark console: #0A0A0B canvas, #141416 docked panels, #1C1C20 cards,
+   #2A2A30 hairlines; brass #D4A359 is the single accent. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #0a0a0b;
+  --foreground: #f4f4f5;
+  --card: #141416;
+  --card-foreground: #f4f4f5;
+  --popover: #1c1c20;
+  --popover-foreground: #f4f4f5;
+  --primary: #d4a359;
+  --primary-foreground: #0a0a0b;
+  --secondary: #1c1c20;
+  --secondary-foreground: #f4f4f5;
+  --muted: #1c1c20;
+  --muted-foreground: #a1a1aa;
+  --accent: #2a2a30;
+  --accent-foreground: #f4f4f5;
+  --destructive: #ef4444;
+  --border: #2a2a30;
+  --input: #2a2a30;
+  --ring: #d4a359;
+  --chart-1: #d4a359;
+  --chart-2: #a1a1aa;
+  --chart-3: #71717a;
+  --chart-4: #ffb4ab;
+  --chart-5: #10b981;
+  --radius: 0.5rem;
+  --sidebar: #141416;
+  --sidebar-foreground: #f4f4f5;
+  --sidebar-primary: #d4a359;
+  --sidebar-primary-foreground: #0a0a0b;
+  --sidebar-accent: #1c1c20;
+  --sidebar-accent-foreground: #f4f4f5;
+  --sidebar-border: #2a2a30;
+  --sidebar-ring: #d4a359;
+  /* Console extras: muted units/timestamps, the brass accent and the three
+     semantic statuses (critical / capacity warning / nominal). */
+  --faint: #71717a;
+  --brass: #d4a359;
+  --critical: #ffb4ab;
+  --warn: #f59e0b;
+  --ok: #10b981;
 }
 
 @theme inline {
-  --font-sans: "Inter Variable", sans-serif;
+  --font-sans: "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
+  --color-faint: var(--faint);
+  --color-brass: var(--brass);
+  --color-critical: var(--critical);
+  --color-warn: var(--warn);
+  --color-ok: var(--ok);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -127,4 +150,10 @@
   html {
     @apply font-sans;
   }
+}
+
+/* Tabular alignment for every numeric readout (scores, coordinates, layer
+   stats) so live GIS updates never jitter the layout. */
+@utility tnum {
+  font-feature-settings: "tnum" 1, "cv05" 1;
 }

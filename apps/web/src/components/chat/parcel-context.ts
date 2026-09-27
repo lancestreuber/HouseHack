@@ -15,7 +15,6 @@ import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 
 import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibility";
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
-import { typologyAlerts } from "../map/alerts-panel";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData, useTypologyFit } from "../map/pillars-panel";
 import { EASIEST, useLegalFor } from "../map/legal-for-store";
 import type { LeverSection, Levers } from "../map/levers";
@@ -244,17 +243,6 @@ function siteFitFacts(fit: FitState): ContextFact[] {
         )
       : fact("jev", `${FIT_BARS} Jev isn't available right now, so the tiles show zoning scores only, with no fit bars.`, "observed", JEV_SOURCE),
   ];
-  const alerts = typologyAlerts(data);
-  if (!alerts.length) facts.push(fact("alerts", "The Alerts panel shows no alerts for this parcel.", "observed", JEV_SOURCE));
-  for (const a of alerts) {
-    const modelBased = a.notes.some((n) => n.startsWith("Physical fit") || n.startsWith("Site-fit"));
-    facts.push(
-      withTone(
-        fact(`alert.${a.id}`, `Alerts for ${a.label}: ${a.notes.join(" ")}`, modelBased ? "assumption" : "policy", modelBased ? JEV_SOURCE : "Pittsburgh Zoning Code §911.02"),
-        "bad",
-      ),
-    );
-  }
   return facts;
 }
 

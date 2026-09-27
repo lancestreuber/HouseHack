@@ -2,18 +2,7 @@ import { GENERAL_QUESTIONS } from "@HouseHack/api/chat/suggestions";
 import type { ChatContext, ChatFact, ChatResult, ReplyBlock } from "@HouseHack/api/chat/types";
 import { Button } from "@HouseHack/ui/components/button";
 import { cn } from "@HouseHack/ui/lib/utils";
-import {
-  ArrowUp,
-  GripHorizontal,
-  Mic,
-  PanelRightClose,
-  PictureInPicture2,
-  RotateCcw,
-  Square,
-  Volume2,
-  VolumeX,
-  X,
-} from "lucide-react";
+import { ArrowUp, GripHorizontal, Layers, Mic, PanelRightClose, PictureInPicture2, RotateCcw, Square, Undo2, Volume2, VolumeX, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -23,7 +12,6 @@ import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
 import { type ChatTurn, useChat } from "./use-chat";
 import { PaneCollapseButton } from "../map/pane-collapse-button";
-import { Disclaimer } from "../disclaimer";
 
 export interface ChatPaneProps {
   /**
@@ -66,13 +54,12 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
-  const hasSubject = Boolean(context?.facts.length);
   // Parcel contexts always carry a "parcel" fact; others (e.g. how the tool works) don't.
   const aboutParcel = Boolean(context?.facts.some((f) => f.id === "parcel"));
 
   const pane = (
     <section
-      aria-label="Ask about this parcel"
+      aria-label="Parceltongue"
       className={cn(
         "flex min-h-0 flex-col bg-background text-foreground",
         floating
@@ -94,7 +81,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
         onPointerDown={floating ? win.begin("move") : undefined}
       >
         {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
-        <h2 className="mr-auto text-xs font-medium">{aboutParcel ? "Ask about this parcel" : "Ask Yinzone"}</h2>
+        <h2 className="mr-auto text-xs font-medium">Ask Parceltongue</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
           pressed={chat.readAloud}
@@ -125,7 +112,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
       </header>
       {!(collapsed && !floating) && (
         <>
-          {hasSubject && context?.subject && (
+          {aboutParcel && context?.subject && (
             <p className="shrink-0 truncate border-b border-border px-4 py-2 text-xs text-muted-foreground" title={context.subject}>
               {context.subject}
             </p>
@@ -159,7 +146,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
-        <p className="text-xs text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
+        <p className="text-xs text-muted-foreground">Parceltongue is popped out. Drag it anywhere and resize it from any edge.</p>
         <Button variant="outline" onClick={() => setFloating(false)}>
           <PanelRightClose /> Dock it back here
         </Button>
@@ -222,6 +209,7 @@ function Conversation({ chat, suggestions }: { chat: ReturnType<typeof useChat>;
                 isLast={turn.id === last?.id}
                 onListen={() => (chat.speaking ? chat.stop() : chat.speakTurn(turn.result))}
                 speaking={chat.speaking}
+                onUndoMap={() => chat.undoMap(turn.id)}
               />
             ),
           )
@@ -289,6 +277,7 @@ function AssistantTurn({
   isLast,
   onListen,
   speaking,
+  onUndoMap,
 }: {
   turn: Extract<ChatTurn, { role: "assistant" }>;
   onFollowUp: (q: string) => void;
@@ -297,6 +286,7 @@ function AssistantTurn({
   isLast: boolean;
   onListen: () => void;
   speaking: boolean;
+  onUndoMap: () => void;
 }) {
   const { result } = turn;
   if (result.status === "unavailable") return <Unavailable result={result} />;
@@ -346,6 +336,21 @@ function AssistantTurn({
             {speaking ? <Square className="size-3.5" /> : <Volume2 className="size-3.5" />}
             {speaking ? "Stop" : "Listen"}
           </button>
+          {turn.map && (
+            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Layers className="size-3.5" aria-hidden />
+              {turn.map.undone ? (
+                "Map put back"
+              ) : (
+                <>
+                  Map updated ·
+                  <button type="button" onClick={onUndoMap} className="inline-flex items-center gap-1 hover:text-foreground">
+                    <Undo2 className="size-3.5" aria-hidden /> Undo
+                  </button>
+                </>
+              )}
+            </span>
+          )}
         </div>
       )}
 
@@ -507,7 +512,6 @@ function Composer({
           <ArrowUp />
         </Button>
       </div>
-      <Disclaimer className="mx-auto mt-1.5 max-w-3xl text-center" />
     </form>
   );
 }

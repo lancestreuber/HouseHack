@@ -1,7 +1,7 @@
 import { Toaster } from "@HouseHack/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
@@ -10,7 +10,7 @@ import { ThemeProvider } from "next-themes";
 import type { orpc } from "@/utils/orpc";
 
 import { ChatLauncher } from "../components/chat/chat-launcher";
-import Header from "../components/header";
+import { AppShell } from "../components/shell/app-shell";
 
 import appCss from "../index.css?url";
 export interface RouterAppContext {
@@ -46,7 +46,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         type: "image/svg+xml",
         href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>`,
       },
-
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400;0,600;1,400;1,600&display=swap",
+      },
     ],
   }),
 
@@ -61,10 +66,7 @@ function RootDocument() {
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <div className="grid h-svh grid-rows-[auto_1fr]">
-            <Header />
-            <Outlet />
-          </div>
+          <AppShell />
           <ChatLauncher />
           <Toaster richColors />
         </ThemeProvider>
