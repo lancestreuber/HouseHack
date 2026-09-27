@@ -27,7 +27,7 @@ export function FactChip({ fact }: { fact: ChatFact }) {
             href={fact.source_url}
             target={external ? "_blank" : undefined}
             rel={external ? "noreferrer" : undefined}
-            className="inline-flex h-6 max-w-[14rem] items-center gap-1 truncate rounded-full border border-border/70 bg-muted/40 px-2.5 align-middle text-[12px] leading-none text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="inline-flex h-6 max-w-[14rem] items-center gap-1 truncate rounded-full border border-glass-border bg-glass-card px-2.5 align-middle text-[12px] leading-none text-muted-foreground transition-colors hover:bg-primary/15 hover:text-primary focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
           />
         }
       >

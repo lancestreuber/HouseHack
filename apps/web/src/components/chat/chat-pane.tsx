@@ -65,9 +65,9 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
     <section
       aria-label="Ask about this parcel"
       className={cn(
-        "flex min-h-0 flex-col bg-background text-foreground",
+        "flex min-h-0 flex-col text-foreground",
         floating
-          ? "fixed z-50 overflow-hidden rounded-xl border border-border shadow-2xl shadow-black/40"
+          ? "fixed z-50 overflow-hidden rounded-2xl border border-glass-border bg-pane/70 backdrop-blur-glass shadow-[var(--glass-shadow)]"
           : "h-full w-full",
         !floating && className,
       )}
@@ -76,7 +76,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
     >
       <header
         className={cn(
-          "flex h-12 shrink-0 items-center gap-1 border-b border-border px-4",
+          "flex h-12 shrink-0 items-center gap-1 border-b border-glass-border px-4",
           floating && "cursor-grab touch-none select-none active:cursor-grabbing",
         )}
         onPointerDown={floating ? win.begin("move") : undefined}
@@ -114,7 +114,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
       {!(collapsed && !floating) && (
         <>
           {hasSubject && context?.subject && (
-            <p className="shrink-0 truncate border-b border-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
+            <p className="shrink-0 truncate border-b border-glass-border px-4 py-2 text-[13px] text-muted-foreground" title={context.subject}>
               {context.subject}
             </p>
           )}
@@ -235,7 +235,7 @@ function Welcome({ suggestions, onPick }: { suggestions: string[]; onPick: (q: s
               key={q}
               type="button"
               onClick={() => onPick(q)}
-              className="rounded-lg border border-border px-4 py-3 text-left text-[15px] leading-6 transition-colors hover:border-foreground/30 hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+              className="rounded-lg border border-glass-border bg-glass-card px-4 py-3 text-left text-[15px] leading-6 transition-colors hover:bg-glass-card-hover focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
             >
               {q}
             </button>
@@ -249,7 +249,7 @@ function Welcome({ suggestions, onPick }: { suggestions: string[]; onPick: (q: s
 function UserTurn({ text }: { text: string }) {
   return (
     <div className="flex justify-end">
-      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-muted px-4 py-2.5 text-[15px] leading-6 whitespace-pre-wrap">
+      <p className="max-w-[85%] rounded-2xl rounded-br-md bg-primary/15 px-4 py-2.5 text-[15px] leading-6 text-foreground whitespace-pre-wrap">
         {text}
       </p>
     </div>
@@ -340,7 +340,7 @@ function AssistantTurn({
               key={q}
               type="button"
               onClick={() => onFollowUp(q)}
-              className="rounded-full border border-border px-3.5 py-1.5 text-left text-[13px] leading-5 text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+              className="rounded-full border border-glass-border bg-glass-card px-3.5 py-1.5 text-left text-[13px] leading-5 text-muted-foreground transition-colors hover:bg-glass-card-hover hover:text-foreground"
             >
               {q}
             </button>
@@ -438,13 +438,13 @@ function Composer({
 
   return (
     <form
-      className="shrink-0 border-t border-border p-3"
+      className="shrink-0 border-t border-glass-border p-3"
       onSubmit={(e) => {
         e.preventDefault();
         submit();
       }}
     >
-      <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-border bg-muted/20 px-3 py-2 focus-within:border-foreground/30">
+      <div className="mx-auto flex max-w-3xl items-end gap-2 rounded-2xl border border-glass-border bg-glass-card px-3 py-2 focus-within:border-primary/40">
         <textarea
           ref={box}
           rows={1}
