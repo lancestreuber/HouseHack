@@ -83,6 +83,8 @@ export type OverlaySource =
       fetch: (bounds: LngLatBounds, signal: AbortSignal) => Promise<GeoJSONData>;
     };
 
+export const detailSourceId = (sourceId: string) => `${sourceId}-detail`;
+
 export type OverlayDefinition = {
   id: string;
   label: string;
@@ -92,6 +94,12 @@ export type OverlayDefinition = {
   drawBelowOutlines?: boolean;
   description: string;
   source: OverlaySource;
+  // Overlays with the same sharedSource load one copy of a static file.
+  sharedSource?: string;
+  // A finer static file for close zooms. It is fetched once the map reaches
+  // minZoom, and only the features in view are loaded into the source
+  // detailSourceId(sourceId), which the overlay's layers draw from.
+  detail?: { url: string; minZoom: number };
   metrics?: OverlayMetric[];
   // Layers to add for this overlay, given the selected metric (if any).
   // Layer ids must be unique across overlays; prefix them with the overlay id.
