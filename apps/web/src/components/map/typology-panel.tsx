@@ -339,12 +339,6 @@ function TypologyTile({
       </span>
     </p>
   );
-  const jevDetails = fit && (
-    <p className="truncate">
-      Jev: {fit.label}, {Math.round(fit.confidence * 100)}% confidence
-      {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
-    </p>
-  );
   const scenarioButton = (
     <button
       type="button"
@@ -391,16 +385,7 @@ function TypologyTile({
           </span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="shrink-0 text-muted-foreground">Jev</span>
-          {fit ? (
-            <div className="flex-1" title={fit.label}>
-              <FitBar value={fit.fit * 100} />
-            </div>
-          ) : (
-            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
-              not rated
-            </span>
-          )}
+          <div className="min-w-0 flex-1">{verdictBlock}</div>
           {scenarioButton}
           <button
             type="button"
@@ -425,8 +410,6 @@ function TypologyTile({
             <p className="truncate" style={{ color }} title={tooltip}>
               {routeText}
             </p>
-            {verdictBlock}
-            {jevDetails}
           </div>
         </div>
       </div>
@@ -497,7 +480,6 @@ function TypologyTile({
         </div>
         <div className="min-h-[2.6em] text-[0.9167em] leading-[1.3] text-muted-foreground" data-details>
           {verdictBlock}
-          {jevDetails}
         </div>
       </div>
     </div>
