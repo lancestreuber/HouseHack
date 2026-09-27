@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } 
 import config from "@/lib/pillars/pillars.config.json";
 import { COST_PRESETS, DEFAULT_PENCIL } from "@/lib/pillars/pencil";
 import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
+import { scoreParcel } from "@/lib/pillars/score";
 import { VERDICT_COLOR } from "@/lib/pillars/verdict";
 
 import { Disclaimer } from "@/components/disclaimer";
@@ -32,8 +33,25 @@ import { openScenario } from "@/components/scenario/scenario-store";
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
+import { usePillarWeights } from "./pillar-weights-store";
 import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
-import { type FitsById, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
+import { type FitsById, legalLevelFor, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
+
+// The five mainstream types the "Overall for this type" stat covers (the
+// only ones with a legal level in pillars.config.json's zoning multiplier).
+// The other 11 (assisted living, personal care, ...) don't get this stat --
+// same limitation as the legal gate itself.
+const MAIN_TYPOLOGIES = new Set(config.legal.typologies as string[]);
+
+/** The parcel's Overall pillar-blend score, recomputed using this specific
+ * typology's own zoning factor instead of the easiest-of-five default --
+ * the same number scenario-card.tsx shows as "Overall score for a {type}".
+ * Null for typologies outside the five mainstream ones. */
+function overallForTypology(data: ParcelData, weights: ReturnType<typeof usePillarWeights>, typologyId: string): number | null {
+  if (!MAIN_TYPOLOGIES.has(typologyId)) return null;
+  const legalLevel = legalLevelFor(data.zoning, typologyId, data.norm.site_legal_pathway);
+  return scoreParcel(data.norm, { pillars: weights, legalLevel }).overall;
+}
 
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
@@ -261,7 +279,6 @@ const CHART_FULL_FONT_PX = 11;
 function TypologyTile({
   elementRef,
   typologyId,
-  rank,
   zoning,
   values,
   fitsById,
@@ -272,8 +289,6 @@ function TypologyTile({
 }: {
   elementRef?: (el: HTMLDivElement | null) => void;
   typologyId: string;
-  /** 1 = best on this parcel. */
-  rank: number;
   zoning: string;
   /** Parcel indicators: normalized for the hazard checks, raw for the pencil check's dollar values. */
   values: ParcelData;
@@ -320,24 +335,29 @@ function TypologyTile({
   const pencil = usePencilAssumptions();
   const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
   const blockers = verdict.reasons.filter((r) => r.level !== "green");
+  const weights = usePillarWeights();
+  const overall = overallForTypology(values, weights, typologyId);
 
   const scoreText = score == null ? "—" : Math.round(score);
   const routeText = pathway?.label ?? "Unresolved in the code";
   const canJumpToAlerts = Boolean(onSelectTypology);
-  // Summary only -- the full reasons live in the Alerts pane; click the card
-  // (or this line) to jump there.
+  // The generic level label ("Possible, with extra approvals or site cost")
+  // is only shown when there's nothing more specific to say; once a real
+  // dealkiller/blocker exists, its own text replaces it -- full detail (and
+  // every blocker beyond the first two) is a click away, in Alerts.
   const verdictBlock = (
-    <p
-      className="flex items-center gap-1 font-medium"
-      style={{ color: VERDICT_COLOR[verdict.level] }}
-      title={canJumpToAlerts ? "See why, in Alerts" : undefined}
-    >
-      <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-      <span className="truncate">
-        {verdict.label}
-        {blockers.length > 0 && ` (${blockers.length} in Alerts)`}
-      </span>
-    </p>
+    <div title={canJumpToAlerts ? "See why, in Alerts" : undefined}>
+      <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
+        <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+        {blockers.length === 0 && verdict.label}
+      </p>
+      {blockers.slice(0, 2).map((r) => (
+        <p key={r.text} className="text-muted-foreground">
+          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
+        </p>
+      ))}
+      {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
+    </div>
   );
   const scenarioButton = (
     <button
@@ -346,11 +366,9 @@ function TypologyTile({
         e.stopPropagation();
         openScenario(typologyId);
       }}
-      className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
-      aria-label={`Open the ${name} scenario`}
-      title="Scenario: pros, cons and the map layers behind them"
+      className="mt-1 flex w-full items-center justify-center gap-1 rounded bg-foreground/10 py-1 font-medium hover:bg-foreground/20"
     >
-      <MapPin className="size-3.5" aria-hidden />
+      <MapPin className="size-3" aria-hidden /> Scenario
     </button>
   );
   const shared = {
@@ -373,20 +391,16 @@ function TypologyTile({
         style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
       >
         <div className="flex items-center gap-1.5">
-          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
-            #{rank}
-          </span>
           <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
-          <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
+          <span className="shrink-0 font-semibold leading-none tabular-nums" style={{ color }} data-score>
             {scoreText}
           </span>
         </div>
         <div className="flex items-center gap-1.5">
           <div className="min-w-0 flex-1">{verdictBlock}</div>
-          {scenarioButton}
           <button
             type="button"
             aria-expanded={expanded}
@@ -406,10 +420,16 @@ function TypologyTile({
           style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
           data-details
         >
-          <div className="min-h-0 overflow-hidden text-[11px] leading-[14px] text-muted-foreground">
+          <div className="min-h-0 overflow-hidden text-muted-foreground">
             <p className="truncate" style={{ color }} title={tooltip}>
               {routeText}
             </p>
+            {overall != null && (
+              <p>
+                Overall <span style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
+              </p>
+            )}
+            {scenarioButton}
           </div>
         </div>
       </div>
@@ -420,31 +440,27 @@ function TypologyTile({
   return (
     <div
       {...shared}
-      className={`${cardBase} h-full w-[16em] justify-between gap-[0.35em] px-[0.667em] py-[0.4em]`}
-      style={
-        {
-          fontSize: `${BASE_FONT_PX}px`,
-          "--score-color": score == null ? undefined : scoreColor(score),
-        } as CSSProperties
-      }
+      className={`${cardBase} h-full w-[13rem] justify-between gap-1 p-2`}
+      style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
     >
-      <div className="flex flex-col gap-[0.25em]" data-top>
-        <div className="flex items-center gap-[0.4em]">
-          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
-            #{rank}
-          </span>
-          <Icon className="size-[1.333em] shrink-0 text-muted-foreground" aria-hidden />
-          <span className="min-w-0 flex-1 truncate text-[1.083em] font-medium" title={fullLabel}>
+      <div className="flex flex-col gap-0.5" data-top>
+        <div className="flex items-center gap-1.5">
+          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
-          {scenarioButton}
-          <span className="shrink-0 text-[1.5em] font-semibold leading-none tabular-nums" style={{ color }} data-score>
+          <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
             {scoreText}
           </span>
         </div>
-        <p className="truncate leading-[1.3]" style={{ color }} title={tooltip}>
+        <p className="truncate" style={{ color }} title={tooltip}>
           {routeText}
         </p>
+        {overall != null && (
+          <p className="text-muted-foreground">
+            Overall <span className="tabular-nums" style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
+          </p>
+        )}
       </div>
 
       <div className="flex min-h-0 items-center overflow-hidden" style={{ height: "var(--chart-h, 0px)" }} data-chart>
@@ -465,22 +481,24 @@ function TypologyTile({
         </div>
       </div>
 
-      <div className="flex flex-col gap-[0.25em]" data-bottom>
-        <div className="flex items-center gap-[0.4em]">
+      <div className="flex flex-col gap-0.5" data-bottom>
+        <div className="flex items-center gap-1.5">
           <span className="shrink-0 text-muted-foreground">Jev</span>
           {fit ? (
             <div className="flex-1" title={fit.label}>
-              <FitBar value={fit.fit * 100} className="h-[0.5em]" />
+              <FitBar value={fit.fit * 100} />
             </div>
           ) : (
             <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
               not rated
             </span>
           )}
+          {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
         </div>
-        <div className="min-h-[2.6em] text-[0.9167em] leading-[1.3] text-muted-foreground" data-details>
+        <div className="min-h-[2.6em]" data-details>
           {verdictBlock}
         </div>
+        {scenarioButton}
       </div>
     </div>
   );
@@ -743,7 +761,7 @@ function TypologyTrack({
           ref={trackRef}
           className={`relative flex h-full w-max gap-2 transition-opacity duration-300 ${compact ? "items-start" : "items-stretch"} ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
         >
-          {ranked.map(({ id }, rank) => (
+          {ranked.map(({ id }) => (
             <TypologyTile
               key={id}
               elementRef={(el) => {
@@ -751,7 +769,6 @@ function TypologyTrack({
                 else tileEls.current.delete(id);
               }}
               typologyId={id}
-              rank={rank + 1}
               zoning={zoning}
               values={snapshot.data}
               fitsById={fits}
