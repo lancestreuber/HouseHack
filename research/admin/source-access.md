@@ -9,7 +9,7 @@ Some sources were blocked, and each one is recorded here with the specific block
 | elaws mirror (`pittsburgh-pa.elaws.us`) | Timeout | None needed |
 | pittsburghpa.gov PDFs and pages | Akamai returns 403 to curl for some paths | WebFetch or a browser works. A ZBA decision scraper would need browser-like requests; this is untested. |
 | WPRDC `datastore_search_sql` | Any query with a `WHERE` clause returns a CloudFront 403 | Use `datastore_search` with URL-encoded `filters`, or the bulk `/datastore/dump/<id>` CSV |
-| Census Data API (ACS) | Keyless calls now redirect to `missing_key.html` | Get a free key, or use the City's ArcGIS layers `Tracts2020_Pgh_CommunityNeed` / `ACS_DP04` |
+| Census Data API (ACS) | Keyless calls now redirect to `missing_key.html` | **Census Reporter's API is keyless** and serves current ACS tables by tract and block group: `https://api.censusreporter.org/1.0/data/show/latest?table_ids=B25064&geo_ids=<14000US… or 15000US…>` (ACS 2024 5-year, with MOE; verified 2026-09-27, [r9 comps sweep](../sweeps/r9-revenue-comps-sub-zip.md)). Or get a free key, or use the City's ArcGIS layers `Tracts2020_Pgh_CommunityNeed` / `ACS_DP04` (2020 vintage) |
 | HUD USER API (income limits, FMR) | Returns "Unauthenticated" without a token | Use HUD's xlsx downloads, which may need a browser User-Agent (curl got an empty HTTP 202) |
 | HUD CHAS zip | curl gets an empty body unless it sends a browser User-Agent and Referer | Send those headers |
 | PASDA Allegheny MapServer mirror | "Application Error" | Use the County `gisdata.alleghenycounty.us` OPENDATA/Parcels service |

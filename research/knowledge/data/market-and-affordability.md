@@ -26,7 +26,7 @@ Catalog caveat: many nominal transfers are not arm's-length.
 |---|---|---|
 | Zillow ZORI by ZIP `https://files.zillowstatic.com/research/public_csvs/zori/Zip_zori_uc_sfrcondomfr_sm_month.csv` | 10 MB; 55 Allegheny ZIPs through 2026-08 | `[read]` |
 | Zillow ZHVI mid-tier CSV | 124 MB | `[read]` |
-| Census ACS B25064 (median rent) | **API now requires a free key**; unkeyed calls redirect to `missing_key.html` | `[read]` (redirect observed) |
+| Census ACS B25064 (median rent) | The Census API needs a free key (unkeyed calls redirect to `missing_key.html`). ⚠ **Keyless workaround (2026-09-27):** Census Reporter serves ACS 2024 5-year B25064 by tract and block group. City tracts run $501–$2,345 (p10–p90 $895–$1,773, 2.0×); 48 of 265 block groups have CV > 30%. → [r9 comps sweep](../../sweeps/r9-revenue-comps-sub-zip.md) | `[read]` (redirect observed; Census Reporter queried 2026-09-27) |
 | City `C/ACS_DP04` | DP04_0134E median gross rent, keyless; **2020 5-year** | `[read]` |
 | HUD FMR / SAFMR | API returned "Unauthenticated"; SAFMR xlsx returned 202 with empty body | `[inaccessible]` |
 
@@ -69,7 +69,7 @@ Max basis per unit $320k (9%) / $380k (4%); developer fee caps; cost limits: gen
 ACHD air quality, school quality (PA Future Ready), HUD FMR/SAFMR values, PHFA award lists.
 
 ## Open questions
-- A keyed Census API call for current ACS rents (needs a free key).
+- ~~A keyed Census API call for current ACS rents.~~ Census Reporter is keyless (above).
 - HUD FMR/SAFMR values via browser download.
 - PHFA QAP document URL and page references.
 - Opportunity Zone status after 2026.

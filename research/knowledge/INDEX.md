@@ -90,6 +90,7 @@ Use this to find where a fact lives. Humans: start with [`../BRIEFING.md`](../BR
 |---|---|
 | [architecture-options](build-plan/architecture-options.md) | Three ways to put parcel geometry, scores and explanations onto the team's scaffolded stack (TanStack Start, oRPC, Drizzle on Neon, Better-Auth, Vercel), with the risks of each. |
 | [data-pipeline](build-plan/data-pipeline.md) ⚠ | The offline steps that turn public parcel, zoning, overlay and elevation data into map tiles and per-parcel JSON, with the tools that were install-tested and the runtime estimates. |
+| [sme-feedback-gap-analysis](build-plan/sme-feedback-gap-analysis.md) | (no one-line summary) |
 | [timeline-and-workstreams](build-plan/timeline-and-workstreams.md) | A proposed split of the build into five workstreams, with timed checkpoints, cut lines and the critical path. |
 | [ux-patterns](build-plan/ux-patterns.md) ⚠ | Map-stack options with versions checked on npm, interface patterns worth borrowing from existing parcel and data tools, and accessibility and uncertainty-display practice. |
 

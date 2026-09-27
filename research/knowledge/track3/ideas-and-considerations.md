@@ -28,7 +28,7 @@
 | Label | Example |
 |---|---|
 | **Observed evidence** | 38% of renters in this tract are cost-burdened (CHAS 2018–22) |
-| **Assumption** | Hard cost of $250/sf for a duplex |
+| **Assumption** | Hard cost of $150–375/sf for a duplex, shown as a range: SME practitioner estimates of about $150 (production builder), $200–250 (city infill) and $325–375 (vertical, excluding site), plus $25–50k site work per unit ([gap analysis](../build-plan/sme-feedback-gap-analysis.md) S6–S8). *Corrected 2026-09-27: was a point value of $250/sf from a builder blog.* |
 | **Policy choice** | "Assume Bill 2025-1545 passes" |
 | **Value judgment** | Carbon measured per household, not per m²; displacement weighted at 30% |
 | **Unknown** *(our addition)* | Sewer capacity, which is not public |
@@ -79,7 +79,7 @@ Here the Track 1 work is reused directly. 📎
 - **Lot fit:** §903.03 minimum lots (VL 6,000 / L 3,000 / M 2,400 / H 1,200 / VH none), setbacks and heights. The residential lot-dimension layer (width and depth) tests whether a townhouse row or cottage court physically fits. → [parcels](../data/parcels-and-assessments.md)
 - **Undersized lots:** §921.04 gives one house via an Administrator Exception if the lot is in separate ownership from its neighbors. Two or more units need a ZBA special exception. Same-owner abutting lots have no stated path. → [r6 sweep](../../sweeps/r6-ch921-hillside-916.md)
 - **Hazards:** steep slope (Planning Commission review), undermined land (single-unit only with more than 100 ft of cover), floodway (effectively excluded), landslide. → [overlays](../policy/environmental-overlays-ch906.md)
-- 💡 **Three-level feasibility instead of pass/fail:** *by right* / *needs relief (likely)* / *needs relief (uncertain)* / *not allowed*. 📎 Our 2026 ZBA sample found **81% of relief requests approved**, with setbacks the most common variance. "Needs a variance" is therefore mostly a time cost, not a veto, though the sample is biased upward. → [ZBA](../data/zba-decisions.md)
+- 💡 **Three-level feasibility instead of pass/fail:** *by right* / *needs relief (likely)* / *needs relief (uncertain)* / *not allowed*. 📎 Our 2026 ZBA sample found **81% of relief requests approved**, with setbacks the most common variance. "Needs a variance" is therefore mostly a time cost, not a veto, though the sample is biased upward, twice: withdrawals are missing, and only projects that already pencil reach the ZBA (SMEs, 2026-09-27). The time cost is also a money cost (S11). → [ZBA](../data/zba-decisions.md)
 - 💡 **Buildable sites:** the 3,260 city-owned lots marked "Available for Sale" give real sites for CDC scenarios. Half are under 2,400 sf. → [land](../data/land-availability-and-title.md)
 
 ### 2.3 Affordability

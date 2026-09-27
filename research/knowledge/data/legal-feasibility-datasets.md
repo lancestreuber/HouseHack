@@ -13,7 +13,7 @@ This is working research, not legal advice. Files, schemas and rebuild scripts: 
 |---|---|---|
 | Typology × district pathway matrix | 57 `zon_new` × 16 uses = 912 cells | In R1D/R1A/R2, apartments are **not permitted**, while Housing for the Elderly (Limited) and Community Homes are a **ZBA special exception** and small personal care homes are an **Administrator Exception**. 43 cells are unresolved (`unknown`) |
 | New residential permits 2019–2026 | 1,088 | Only 4 of 124 permits for 4+ units are in R1/R2/R3/H districts. 38 of 42 two-unit permits in R1D/R1A are conversions. Median days to issue is about 120–200 for every type with n ≥ 20 |
-| ZBA decisions 2023–2026 | 476 (262 housing) | 85% of relief approved (n=470). Unit cases 82% (n=101). Use variances 22 of 30. Rates are biased upward because withdrawals are invisible |
+| ZBA decisions 2023–2026 | 476 (262 housing) | 85% of relief approved (n=470). Unit cases 82% (n=101). Use variances 22 of 30. Rates are biased upward because withdrawals are invisible. ⚠ Second bias: only projects that already pencil reach the ZBA (SME, 2026-09-27, [gap analysis](../build-plan/sme-feedback-gap-analysis.md)) |
 | Council land-use actions 2000–2026 | 284 (183 geocoded) | Conditional uses: 22 of 22 adopted since 2015, 18 of them "Passed pursuant to Case Law". Site rezonings: 42 of 49 adopted since 2015, none defeated, median 123 days |
 | Planning Commission motions 2020–2025 | 223 (56 housing) | 47 housing approvals, 0 denials. A lower bound; months are missing |
 | Existing senior / care sites | 124 points (~101 sites) | 27 sit in R1D/R1A/R2, where apartments are not permitted |
