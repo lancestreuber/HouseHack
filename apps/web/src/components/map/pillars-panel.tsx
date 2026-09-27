@@ -1,10 +1,6 @@
-import { SectionCard } from "@HouseHack/ui/components/glass";
-import { Button } from "@HouseHack/ui/components/button";
-import { Bus, Home, Leaf, Users, Wallet, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { accentHue, accentChipStyle, scoreColor } from "@/lib/pillars/score-color";
 import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from "@/lib/pillars/score";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
@@ -110,18 +106,17 @@ function ordinal(n: number) {
   return `${n}${suffix}`;
 }
 
+export function scoreColor(score: number | null) {
+  if (score == null) return "#525252";
+  if (score >= 70) return "#22c55e";
+  if (score >= 45) return "#eab308";
+  return "#ef4444";
+}
+
 function ScoreBar({ score }: { score: number | null }) {
-  const color = scoreColor(score);
   return (
-    <div className="h-1.5 w-full rounded-full bg-white/8">
-      <div
-        className="h-1.5 rounded-full"
-        style={{
-          width: `${score ?? 0}%`,
-          background: `linear-gradient(90deg, color-mix(in oklch, ${color}, black 25%), ${color})`,
-          boxShadow: `0 0 8px ${color}`,
-        }}
-      />
+    <div className="h-1.5 w-full rounded bg-foreground/10">
+      <div className="h-1.5 rounded" style={{ width: `${score ?? 0}%`, background: scoreColor(score) }} />
     </div>
   );
 }
@@ -133,7 +128,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
   const norm = data.norm[ind.id];
   const unitNote = ind.unit ? (config.units as Record<string, string>)[ind.unit] : undefined;
   return (
-    <li className="border-t border-glass-border py-1">
+    <li className="border-t border-border/40 py-1">
       <button type="button" onClick={() => setOpen((v) => !v)} className="grid w-full grid-cols-[1fr_auto] gap-x-2 text-left">
         <span className={ind.weight === 0 ? "text-muted-foreground" : ""}>{ind.label}</span>
         <span className="tabular-nums">{norm == null ? "—" : norm}</span>
@@ -143,7 +138,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
         </span>
       </button>
       {open && (
-        <div className="mt-1 space-y-0.5 rounded-md border border-glass-border bg-black/[0.03] p-2 text-muted-foreground dark:bg-black/20">
+        <div className="mt-1 space-y-0.5 rounded bg-foreground/5 p-1.5 text-muted-foreground">
           <p>
             Raw: <span className="text-foreground">{formatRaw(data.raw[ind.id], ind.unit)}</span>
             {unitNote ? ` (${unitNote})` : ""}
@@ -153,7 +148,7 @@ function IndicatorRow({ ind, data, contribution }: { ind: Indicator; data: Parce
           </p>
           <p>
             Weight: <span className="text-foreground">{ind.weight}</span> · {ind.geography} ·{" "}
-            <span className="rounded-full border border-glass-border bg-glass-card px-1.5 text-[10px]">{EVIDENCE_LABEL[ind.evidence] ?? ind.evidence}</span>
+            <span className="rounded bg-foreground/10 px-1">{EVIDENCE_LABEL[ind.evidence] ?? ind.evidence}</span>
           </p>
           {ind.rationale && <p>{ind.rationale}</p>}
           <p className="break-all">Source: {sourceLabel(ind)}</p>
@@ -178,19 +173,15 @@ function sourceLabel(ind: Indicator) {
   return `${files}${prop} (${src.kind})`;
 }
 
-const PILLAR_ICONS = [Users, Home, Wallet, Bus, Leaf] as const;
-
 function PillarCard({
   id,
   score,
   data,
-  index,
   onSelectPillar,
 }: {
   id: PillarId;
   score: PillarScore;
   data: ParcelData;
-  index: number;
   onSelectPillar?: (id: PillarId) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -199,40 +190,27 @@ function PillarCard({
   };
   const contributions = new Map(score.contributions.map((c) => [c.indicator, c.share]));
   const groups = pillar.subscores ?? [{ id: "", label: "", description: "" }];
-  const hue = accentHue(index);
-  const Icon = PILLAR_ICONS[index % PILLAR_ICONS.length];
   return (
-    <SectionCard className="p-0">
+    <section className="rounded border border-border/60 bg-background/60">
       <button
         type="button"
         onClick={() => {
           setOpen((v) => !v);
           onSelectPillar?.(id);
         }}
-        className="w-full space-y-1 p-2 text-left hover:bg-glass-card-hover"
+        className="w-full space-y-1 p-2 text-left"
       >
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden
-            className="flex size-7 shrink-0 items-center justify-center rounded-md text-white"
-            style={accentChipStyle(hue)}
-          >
-            <Icon className="size-4" />
+        <div className="flex items-baseline justify-between gap-2">
+          <span className="font-medium">
+            {open ? "▾" : "▸"} {pillar.label}
           </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="font-medium">
-                {open ? "▾" : "▸"} {pillar.label}
-              </span>
-              <span className="text-lg font-semibold tabular-nums tracking-[-0.02em]" style={{ color: scoreColor(score.score) }}>
-                {fmtScore(score.score)}
-              </span>
-            </div>
-            <ScoreBar score={score.score} />
-          </div>
+          <span className="text-base font-semibold tabular-nums" style={{ color: scoreColor(score.score) }}>
+            {fmtScore(score.score)}
+          </span>
         </div>
+        <ScoreBar score={score.score} />
         {score.subscores.length > 0 && (
-          <div className="flex gap-3 pl-9 text-muted-foreground">
+          <div className="flex gap-3 text-muted-foreground">
             {score.subscores.map((s) => (
               <span key={s.id}>
                 {groups.find((g) => g.id === s.id)?.label}: <span className="text-foreground tabular-nums">{fmtScore(s.score)}</span>
@@ -241,7 +219,7 @@ function PillarCard({
           </div>
         )}
         {score.flags.map((f) => (
-          <p key={f} className="pl-9 text-score-bad">
+          <p key={f} className="text-red-400">
             ⚠ {f} (pillar capped)
           </p>
         ))}
@@ -278,7 +256,7 @@ function PillarCard({
           })}
         </div>
       )}
-    </SectionCard>
+    </section>
   );
 }
 
@@ -300,25 +278,18 @@ export function PillarsPanel({
   const range = useMemo(() => (result ? weightSensitivity(result.pillars) : null), [result]);
 
   return (
-    <aside className="flex h-full w-full flex-col text-xs">
-      <header className="flex items-start justify-between gap-2 border-b border-glass-border p-3">
+    <aside className="flex h-full w-full flex-col bg-background text-xs">
+      <header className="flex items-start justify-between gap-2 border-b p-3">
         <div>
           <p className="text-muted-foreground">Parcel</p>
-          <p className="font-mono text-[13px]">{pin}</p>
+          <p className="font-mono text-sm">{pin}</p>
           {data && <p className="text-muted-foreground">Zoning {data.zoning || "unknown"}</p>}
         </div>
         <div className="flex items-center gap-1">
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="scores" />}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            onClick={onClose}
-            aria-label="Close parcel panel"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X />
-          </Button>
+          <button type="button" onClick={onClose} className="rounded px-2 py-1 hover:bg-foreground/10" aria-label="Close parcel panel">
+            ✕
+          </button>
         </div>
       </header>
       {!collapsed && (
@@ -329,26 +300,25 @@ export function PillarsPanel({
         )}
         {data && result && (
           <>
-            <SectionCard title="Overall">
-              <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-semibold tabular-nums tracking-[-0.02em]" style={{ color: scoreColor(result.overall) }}>
+            <section className="rounded border border-border/60 p-2">
+              <div className="flex items-baseline justify-between">
+                <span className="font-medium">Overall</span>
+                <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
                   {fmtScore(result.overall)}
                 </span>
-                <span className="text-[11px] text-muted-foreground">/ 100</span>
               </div>
               <ScoreBar score={result.overall} />
               <p className="mt-1 text-muted-foreground">
                 Weighted {config.overall.method} mean of the five pillars, equal weights.
                 {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
-            </SectionCard>
-            {config.pillars.map((p, i) => (
+            </section>
+            {config.pillars.map((p) => (
               <PillarCard
                 key={p.id}
                 id={p.id as PillarId}
                 score={result.pillars[p.id as PillarId]}
                 data={data}
-                index={i}
                 onSelectPillar={onSelectPillar}
               />
             ))}

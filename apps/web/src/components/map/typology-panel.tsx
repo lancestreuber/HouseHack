@@ -1,4 +1,5 @@
-import { SectionCard } from "@HouseHack/ui/components/glass";
+import { useMemo, useState } from "react";
+
 import {
   Select,
   SelectContent,
@@ -6,10 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@HouseHack/ui/components/select";
-import { Building, Building2, Home, Warehouse } from "lucide-react";
-import { useMemo, useState } from "react";
-
-import { accentChipStyle, accentHue, scoreColor } from "@/lib/pillars/score-color";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
@@ -31,54 +28,47 @@ const PATHWAY_SCORE: Record<string, number | null> = {
 
 const DEFAULT_TYPOLOGY_IDS = ["single_detached", "two_unit", "three_unit", "multi_unit"];
 
-const TILE_ICONS = [Home, Building2, Warehouse, Building] as const;
+function scoreColor(score: number | null) {
+  if (score == null) return "#525252";
+  if (score >= 70) return "#22c55e";
+  if (score >= 45) return "#eab308";
+  return "#ef4444";
+}
 
 function TypologyTile({
   typologyId,
   onTypologyChange,
   zoning,
-  index,
 }: {
   typologyId: string;
   onTypologyChange: (id: string) => void;
   zoning: string;
-  index: number;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score = pathwayId ? PATHWAY_SCORE[pathwayId] : undefined;
   const pathway = pathwayId ? PATHWAY_META[pathwayId] : undefined;
-  const Icon = TILE_ICONS[index % TILE_ICONS.length];
 
   return (
-    <SectionCard className="flex min-w-[9rem] flex-1 flex-col gap-1 p-2">
-      <div className="flex items-center gap-1.5">
-        <span
-          aria-hidden
-          className="flex size-6 shrink-0 items-center justify-center rounded-md text-white"
-          style={accentChipStyle(accentHue(index))}
-        >
-          <Icon className="size-3.5" />
-        </span>
-        <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
-          <SelectTrigger size="sm" className="h-6 w-full border-none px-0 text-muted-foreground shadow-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TYPOLOGIES.map(([id, label]) => (
-              <SelectItem key={id} value={id}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <span className="text-2xl font-semibold tabular-nums tracking-[-0.02em]" style={{ color: scoreColor(score ?? null) }}>
+    <div className="flex min-w-[9rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2">
+      <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
+        <SelectTrigger size="sm" className="h-6 w-full border-none px-0 text-muted-foreground shadow-none">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {TYPOLOGIES.map(([id, label]) => (
+            <SelectItem key={id} value={id}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
         {score == null ? "—" : score}
       </span>
       <span className="truncate text-muted-foreground" title={pathway?.label}>
         {pathway?.label ?? "Unresolved in the code"}
       </span>
-    </SectionCard>
+    </div>
   );
 }
 
@@ -109,7 +99,7 @@ export function TypologyPanel({
     return (
       <div className="flex h-full w-full gap-2">
         {typologyIds.map((id, i) => (
-          <TypologyTile key={i} typologyId={id} zoning={zoning} index={i} onTypologyChange={(next) => setTypologyAt(i, next)} />
+          <TypologyTile key={i} typologyId={id} zoning={zoning} onTypologyChange={(next) => setTypologyAt(i, next)} />
         ))}
       </div>
     );
@@ -118,7 +108,7 @@ export function TypologyPanel({
   return (
     <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 text-xs">
       <div className="flex items-baseline justify-between">
-        <span className="text-[13px] font-semibold tracking-[-0.01em]">Typology scores</span>
+        <span className="font-medium">Typology scores</span>
         <div className="flex items-center gap-2">
           {zoning && <span className="text-muted-foreground">Zoning {zoning}</span>}
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}

@@ -1,17 +1,15 @@
-import { SectionCard } from "@HouseHack/ui/components/glass";
 import { TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { scoreColor } from "@/lib/pillars/score-color";
 import { type PillarId, scoreParcel } from "@/lib/pillars/score";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { formatRaw, fmtScore, INDICATORS, useParcelData } from "./pillars-panel";
+import { formatRaw, fmtScore, INDICATORS, scoreColor, useParcelData } from "./pillars-panel";
 
 function AlertRow({ text }: { text: string }) {
   return (
-    <div className="flex items-start gap-1.5 rounded-md border border-score-bad/30 bg-score-bad/10 px-2 py-1 text-score-bad">
+    <div className="flex items-start gap-1.5 rounded border border-red-400/30 bg-red-400/10 px-2 py-1 text-red-400">
       <TriangleAlert className="mt-0.5 size-3 shrink-0" />
       <span>{text}</span>
     </div>
@@ -36,8 +34,8 @@ export function BreakdownPanel({
 
   return (
     <div className="flex h-full w-full flex-col text-xs">
-      <div className="flex items-center justify-between border-b border-glass-border p-2">
-        <span className="text-[13px] font-semibold tracking-[-0.01em]">Breakdowns</span>
+      <div className="flex items-center justify-between border-b p-2 font-medium">
+        Breakdowns
         {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="breakdowns" />}
       </div>
       {!collapsed && (
@@ -54,13 +52,13 @@ export function BreakdownPanel({
             const score = result.pillars[pillarId];
             const indicators = INDICATORS.filter((ind) => ind.pillar === pillarId);
             return (
-              <SectionCard
-                key={p.id}
-                id={`breakdown-${p.id}`}
-                className="scroll-mt-2"
-                title={p.label}
-                action={<span className="tabular-nums" style={{ color: scoreColor(score.score) }}>{fmtScore(score.score)}</span>}
-              >
+              <section key={p.id} id={`breakdown-${p.id}`} className="scroll-mt-2 space-y-1">
+                <div className="flex items-baseline justify-between">
+                  <span className="font-medium">{p.label}</span>
+                  <span className="tabular-nums" style={{ color: scoreColor(score.score) }}>
+                    {fmtScore(score.score)}
+                  </span>
+                </div>
                 {score.flags.map((f) => (
                   <AlertRow key={f} text={`${f} (pillar capped)`} />
                 ))}
@@ -69,7 +67,7 @@ export function BreakdownPanel({
                     const raw = data.raw[ind.id];
                     const norm = data.norm[ind.id];
                     return (
-                      <li key={ind.id} className="flex items-baseline justify-between gap-2 border-t border-glass-border py-0.5">
+                      <li key={ind.id} className="flex items-baseline justify-between gap-2 border-t border-border/40 py-0.5">
                         <span className={ind.weight === 0 ? "text-muted-foreground" : ""}>
                           {ind.label} = {formatRaw(raw, ind.unit)}
                         </span>
@@ -78,7 +76,7 @@ export function BreakdownPanel({
                     );
                   })}
                 </ul>
-              </SectionCard>
+              </section>
             );
           })}
       </div>

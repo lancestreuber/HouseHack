@@ -1,4 +1,6 @@
-import { GlassSurface } from "@HouseHack/ui/components/glass";
+import { Search } from "lucide-react";
+import { useEffect, useState } from "react";
+
 import {
   CommandDialog,
   CommandEmpty,
@@ -7,8 +9,6 @@ import {
   CommandItem,
   CommandList,
 } from "@HouseHack/ui/components/command";
-import { Search } from "lucide-react";
-import { useEffect, useState } from "react";
 
 import { client } from "@/utils/orpc";
 
@@ -52,24 +52,16 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
 
   return (
     <>
-      <GlassSurface edge="none" className="pointer-events-auto rounded-full">
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <Search className="size-3.5" />
-          Search address
-          <kbd className="ml-1 rounded border border-glass-border bg-glass-card px-1 text-[10px]">⌘K</kbd>
-        </button>
-      </GlassSurface>
-      <CommandDialog
-        open={open}
-        onOpenChange={setOpen}
-        title="Search address"
-        description="Search for an address in Allegheny County"
-        className="bg-pane/90 backdrop-blur-glass"
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground"
       >
+        <Search className="size-3.5" />
+        Search address
+        <kbd className="ml-1 rounded border bg-foreground/10 px-1 text-[10px]">⌘K</kbd>
+      </button>
+      <CommandDialog open={open} onOpenChange={setOpen} title="Search address" description="Search for an address in Allegheny County">
         <CommandInput placeholder="Search an address…" value={query} onValueChange={setQuery} />
         <CommandList>
           <CommandEmpty>{loading ? "Searching…" : query.trim().length < 3 ? "Type at least 3 characters." : "No results."}</CommandEmpty>

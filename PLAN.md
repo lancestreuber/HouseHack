@@ -1,6 +1,6 @@
 # PLAN: Groundwork PGH, 30-hour build
 
-The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md). This file covers **who, where and when**. If this file and older docs disagree, this file wins. Exception: for visual design, [DESIGN.md](DESIGN.md) and [ADR 0001](docs/adr/0001-glass-visual-system.md) win over both this file and the spec.
+The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md). This file covers **who, where and when**. If this file and older docs disagree, this file wins.
 
 **Budget:** 30 wall-clock hours, from Sat 2pm to Sun 8pm ET, with a submit buffer until 11:59pm.
 **Rule:** demoability over coverage. If a task slips more than 1h past its milestone, cut it and move on.
@@ -17,13 +17,13 @@ The *what and why* is in the [design spec](docs/superpowers/specs/2026-09-26-gro
 | AI: decisions | **Jev** (TypeSafe, **team early-access key**, `TYPESAFE_API_KEY`). It answers "how good is this parcel for purpose X": typology fit in Explore, ranking in Find (with an optional free-text purpose), and choice in Compare. It never decides legality. Rule-based fallback, labeled. Cloudflare Workers AI `typesafe/jev` is the backup transport. |
 | AI: explanation | **Explain-only chatbot** (Lane E, Vidyut, free Gemini tier). It answers questions using only facts the algorithm and Jev returned, cited with source chips. It never produces a score, fit or legal status. It is hideable, and the app works without it. |
 | Typologies | `sfd`, `adu`, `duplex`, `townhome`, `apartments`, `senior`, each with a demand profile (senior = air, health, transit, flat ground, 65+ share) |
-| UI | Resizable, collapsible panes: map (top left), considerations + notes (right), typology cards / shortlist (bottom), following the Grammarly content → comment → warning model. **Visual system superseded 2026-09-26** by the glass system in [DESIGN.md](DESIGN.md), see [ADR 0001](docs/adr/0001-glass-visual-system.md). "Super minimal dark" and task C2's tokens no longer apply. |
+| UI | Resizable, collapsible panes: map (top left), considerations + notes (right), typology cards / shortlist (bottom). Super minimal dark, following the Grammarly content → comment → warning model. |
 | Hospitals / fire | Consideration "Health & emergency" |
 | Air quality | `emissions-inventory` tons within 2 km (scored). Monitor AQI is context only. |
 | "Safety" card | Becomes **Hazards** (landslide/flood/undermined). Crime is never used. |
 | ADU | Always "not allowed" today, with a note about Bill 2025-1545. No reform toggle. |
 | Extras | City-owned lots layer (Must), print (Should) |
-| Basemap | Carto Dark Matter in dark theme, Carto Positron in light. Selection is teal (`--select`) with a glow. The former "yellow `#F2C230` only for selection" rule is retired by [ADR 0001](docs/adr/0001-glass-visual-system.md). |
+| Basemap | Carto dark. Yellow `#F2C230` only for selection. |
 | Owners | Claimed in Discord (§1) |
 
 ## 1. Lanes (5: A, B, C, D + E; Lane J goes to a 6th person, or B if there are only 5)

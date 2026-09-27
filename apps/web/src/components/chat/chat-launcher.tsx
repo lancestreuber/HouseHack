@@ -1,6 +1,5 @@
 import { reportContext } from "@HouseHack/api/chat/facts";
 import { homewoodEvals, homewoodReport } from "@HouseHack/api/chat/fixtures";
-import { GlassSurface } from "@HouseHack/ui/components/glass";
 import { cn } from "@HouseHack/ui/lib/utils";
 import { useLocation } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
@@ -62,21 +61,16 @@ export function ChatLauncher() {
 
 function LaunchButton({ onClick }: { onClick: () => void }) {
   return (
-    <GlassSurface
-      edge="none"
+    <button
+      type="button"
+      onClick={onClick}
       className={cn(
-        "fixed right-5 z-50 rounded-full",
+        "fixed right-5 z-50 flex items-center gap-2 rounded-full bg-primary px-5 py-3 text-[15px] font-medium text-primary-foreground shadow-lg shadow-black/30 transition hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
         import.meta.env.DEV ? "bottom-16" : "bottom-5",
       )}
     >
-      <button
-        type="button"
-        onClick={onClick}
-        className="flex items-center gap-2 px-5 py-3 text-[15px] font-medium text-foreground transition-colors hover:text-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-      >
-        <MessageCircle className="size-5 text-primary" aria-hidden />
-        Ask Groundwork
-      </button>
-    </GlassSurface>
+      <MessageCircle className="size-5" aria-hidden />
+      Ask Groundwork
+    </button>
   );
 }

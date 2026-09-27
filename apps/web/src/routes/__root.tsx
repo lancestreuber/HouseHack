@@ -10,7 +10,7 @@ import { ThemeProvider } from "next-themes";
 import type { orpc } from "@/utils/orpc";
 
 import { ChatLauncher } from "../components/chat/chat-launcher";
-import { Rail } from "../components/rail";
+import Header from "../components/header";
 
 import appCss from "../index.css?url";
 export interface RouterAppContext {
@@ -33,7 +33,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "Groundwork",
+        title: "My App",
       },
     ],
     links: [
@@ -55,8 +55,8 @@ function RootDocument() {
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <div className="grid h-svh grid-cols-[3rem_1fr] grid-rows-[1fr]">
-            <Rail />
+          <div className="grid h-svh grid-rows-[auto_1fr]">
+            <Header />
             <Outlet />
           </div>
           <ChatLauncher />

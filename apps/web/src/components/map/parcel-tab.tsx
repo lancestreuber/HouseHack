@@ -1,7 +1,7 @@
-import { GlassSurface } from "@HouseHack/ui/components/glass";
-import { cn } from "@HouseHack/ui/lib/utils";
 import { Star } from "lucide-react";
 import { useEffect, useState } from "react";
+
+import { cn } from "@HouseHack/ui/lib/utils";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 
@@ -35,26 +35,24 @@ export function ParcelTab({
   };
 
   return (
-    <GlassSurface edge="bottom" className="pointer-events-auto shrink-0 rounded-t-none">
-      <div className="flex items-center justify-between px-3 py-1.5 text-xs">
-        <span className="font-medium">{pin ? `Parcel ${pin}` : "Select a parcel"}</span>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={toggleStar}
-            disabled={!pin}
-            aria-pressed={starred}
-            aria-label="Star this parcel"
-            className={cn(
-              "rounded p-1 hover:bg-foreground/10 disabled:opacity-30",
-              starred ? "text-hue-amber" : "text-muted-foreground",
-            )}
-          >
-            <Star className={cn("size-3.5", starred && "fill-current")} />
-          </button>
-          <PaneCollapseButton collapsed={collapsed} onClick={onToggleCollapse} label="the map" />
-        </div>
+    <div className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
+      <span className="font-medium">{pin ? `Parcel ${pin}` : "Select a parcel"}</span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={toggleStar}
+          disabled={!pin}
+          aria-pressed={starred}
+          aria-label="Star this parcel"
+          className={cn(
+            "rounded p-1 hover:bg-foreground/10 disabled:opacity-30",
+            starred ? "text-yellow-400" : "text-muted-foreground",
+          )}
+        >
+          <Star className={cn("size-3.5", starred && "fill-current")} />
+        </button>
+        <PaneCollapseButton collapsed={collapsed} onClick={onToggleCollapse} label="the map" />
       </div>
-    </GlassSurface>
+    </div>
   );
 }

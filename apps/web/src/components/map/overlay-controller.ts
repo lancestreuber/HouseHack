@@ -139,7 +139,7 @@ export function loadingOverlayIds(map: MapLibreMap, state: OverlayState): string
 // One shared popup. Registered once per tooltip layer; MapLibre keeps
 // layer-scoped listeners across style swaps and fires them once the layer exists.
 export function registerTooltips(map: MapLibreMap, getState: () => OverlayState) {
-  const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "260px", className: "glass-popup" });
+  const popup = new Popup({ closeButton: false, closeOnClick: false, maxWidth: "260px" });
   for (const def of OVERLAYS) {
     for (const layerId of def.tooltipLayerIds ?? []) {
       map.on("mousemove", layerId, (e: MapLayerMouseEvent) => {
@@ -147,7 +147,7 @@ export function registerTooltips(map: MapLibreMap, getState: () => OverlayState)
         if (!feature || !def.tooltip) return;
         const lines = def.tooltip(feature.properties ?? {}, selectedMetric(def, getState()));
         const body = document.createElement("div");
-        body.className = "text-xs";
+        body.className = "text-xs text-neutral-900";
         const title = document.createElement("div");
         title.className = "font-medium";
         title.textContent = def.label;
