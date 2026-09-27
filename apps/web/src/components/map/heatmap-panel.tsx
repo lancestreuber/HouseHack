@@ -30,15 +30,6 @@ import { usePillarWeights } from "./pillar-weights-store";
 import { SHORT_LABEL } from "./typology-meta";
 
 const HAZARD_LABEL: Record<HazardKnob, string> = { floodway: "Floodway", floodplain: "Floodplain", steepSlope: "Steep slope", landslide: "Landslides", undermined: "Mines" };
-const PRESET_LABEL: Record<string, string> = {
-  affordability_first: "Affordability first",
-  equal: "Equal",
-  family: "Families",
-  older_adult: "Older adults",
-  climate_first: "Climate first",
-  market_first: "Market first",
-  mine: "My weights",
-};
 const PERMITS = new Set(["by_right", "za"]);
 const MODES: { id: HeatParams["zoning"]; label: string; tip: string }[] = [
   { id: "current", label: "Today", tip: "Where this type fits under today's zoning." },
@@ -223,14 +214,13 @@ export function HeatmapPanel({
   const heat = useHeat();
   const { params, result, previous, status } = heat;
   const myWeights = usePillarWeights();
-  const [weightsChoice, setWeightsChoice] = useState("affordability_first");
   const [showAll, setShowAll] = useState(false);
 
+  // Location scores use the app's pillar weights (set from the rail), not a separate picker.
   useEffect(() => {
-    const preset = weightsChoice === "mine" ? null : (config.presets as Record<string, Record<PillarId, number>>)[weightsChoice];
-    const weights = Object.fromEntries(config.pillars.map((p) => [p.id, preset ? preset[p.id as PillarId] : (myWeights[p.id as PillarId] ?? p.weight)])) as Record<PillarId, number>;
+    const weights = Object.fromEntries(config.pillars.map((p) => [p.id, myWeights[p.id as PillarId] ?? p.weight])) as Record<PillarId, number>;
     setHeatParams((prev) => ({ ...prev, weights }));
-  }, [weightsChoice, myWeights]);
+  }, [myWeights]);
 
   const update = (patch: Partial<HeatParams>) => setHeatParams((prev) => ({ ...prev, ...patch }));
   const updateIgnore = (patch: Partial<HeatParams["ignore"]>) => setHeatParams((prev) => ({ ...prev, ignore: { ...prev.ignore, ...patch } }));
@@ -329,9 +319,7 @@ export function HeatmapPanel({
       {status === "error" && <p className="text-red-600">Heatmap failed: {heat.error}</p>}
 
       {focused ? (
-        <div id="heat-area-report" className="scroll-mt-2 rounded-md border border-purple-500 p-2">
-          <AreaReportCard report={areaReport(focused, params)} onBack={() => focusHeatCluster(null)} />
-        </div>
+        <AreaReportCard report={areaReport(focused, params)} onBack={() => focusHeatCluster(null)} />
       ) : (
         s && (
           <div className="space-y-1.5">
@@ -362,12 +350,11 @@ export function HeatmapPanel({
 
       {selectedPin && (
         <Fold title="Selected parcel: what could the City do?">
-          <LeversPanel pin={selectedPin} typology={params.typology} embedded />
+          <LeversPanel pin={selectedPin} typology={params.typology} />
         </Fold>
       )}
 
       <Fold title="Settings">
-        <Pick label="Location weights" value={weightsChoice} options={[...Object.keys(config.presets), "mine"].map((p) => [p, PRESET_LABEL[p] ?? p])} onChange={setWeightsChoice} />
         <Pick label="Rank areas by" value={params.rezone.rankBy} options={Object.entries(RANK_LABEL) as [HeatParams["rezone"]["rankBy"], string][]} onChange={(rankBy) => updateRezone({ rankBy })} />
         <Pick
           label={
@@ -385,59 +372,54 @@ export function HeatmapPanel({
           onChange={(v) => updateRezone({ minLevers: Number(v) })}
         />
         <Knob label="Affordable share of new homes" value={params.rezone.affordableShare} display={pct(params.rezone.affordableShare)} min={0} max={1} step={0.05} onChange={(affordableShare) => updateRezone({ affordableShare })} />
+        <Pick label="Rezone to" value={params.rezone.target} options={["auto", ...targets].map((z) => [z, targetLabel(z)])} onChange={(target) => updateRezone({ target })} />
+        <Knob label="Group parcels within" value={params.rezone.joinFt} display={`${params.rezone.joinFt} ft`} min={25} max={500} step={25} onChange={(joinFt) => updateRezone({ joinFt })} />
+        <Knob label="Smallest area" value={params.rezone.minHomes} display={`${params.rezone.minHomes} homes`} min={1} max={200} step={1} onChange={(minHomes) => updateRezone({ minHomes })} />
+        <Knob label="Green = top" value={params.tiers.green} display={pct(params.tiers.green)} min={0.05} max={0.6} step={0.05} onChange={(green) => update({ tiers: { ...params.tiers, green } })} />
+        <Knob label="Red = bottom" value={params.tiers.red} display={pct(params.tiers.red)} min={0} max={0.6} step={0.05} onChange={(red) => update({ tiers: { ...params.tiers, red } })} />
+        <div className="grid grid-cols-2 gap-1">
+          {(Object.keys(HAZARD_KNOBS) as HazardKnob[]).map((k) => (
+            <Check key={k} checked={!params.ignore[k]} onChange={(v) => updateIgnore({ [k]: !v })}>
+              {HAZARD_LABEL[k]}
+            </Check>
+          ))}
+          <Check checked={!params.ignore.setbacks} onChange={(v) => updateIgnore({ setbacks: !v })}>
+            Setbacks
+          </Check>
+          <Check checked={!params.ignore.pencil} onChange={(v) => updateIgnore({ pencil: !v })}>
+            Pencil check
+          </Check>
+          <Check checked={!params.ignore.availability} onChange={(v) => updateIgnore({ availability: !v })}>
+            What's there
+          </Check>
+          <Check checked={params.subsidy} onChange={(v) => update({ subsidy: v })}>
+            Subsidy available
+          </Check>
+          <Check checked={params.strict} onChange={(v) => update({ strict: v })}>
+            Strict colors
+          </Check>
+        </div>
         <Check checked={params.rezone.vacantOnly} onChange={(v) => updateRezone({ vacantOnly: v })}>
           Vacant land and parking only
         </Check>
         <Check checked={params.rezone.excludeStressed} onChange={(v) => updateRezone({ excludeStressed: v })}>
           Skip mostly Transitional/Stressed markets <Tip text="MVA 2021 market types G–J. A value judgment: see the equity guardrail in each area report." />
         </Check>
-
-        <Fold title="Advanced">
-          <div className="text-foreground">Checks that count</div>
-          <div className="grid grid-cols-2 gap-1">
-            {(Object.keys(HAZARD_KNOBS) as HazardKnob[]).map((k) => (
-              <Check key={k} checked={!params.ignore[k]} onChange={(v) => updateIgnore({ [k]: !v })}>
-                {HAZARD_LABEL[k]}
-              </Check>
-            ))}
-            <Check checked={!params.ignore.setbacks} onChange={(v) => updateIgnore({ setbacks: !v })}>
-              Setbacks
-            </Check>
-            <Check checked={!params.ignore.pencil} onChange={(v) => updateIgnore({ pencil: !v })}>
-              Pencil check
-            </Check>
-            <Check checked={!params.ignore.availability} onChange={(v) => updateIgnore({ availability: !v })}>
-              What's there
-            </Check>
-            <Check checked={params.subsidy} onChange={(v) => update({ subsidy: v })}>
-              Subsidy available
-            </Check>
-            <Check checked={params.strict} onChange={(v) => update({ strict: v })}>
-              Strict colors
-            </Check>
-          </div>
-          <Knob label="Green = top" value={params.tiers.green} display={pct(params.tiers.green)} min={0.05} max={0.6} step={0.05} onChange={(green) => update({ tiers: { ...params.tiers, green } })} />
-          <Knob label="Red = bottom" value={params.tiers.red} display={pct(params.tiers.red)} min={0} max={0.6} step={0.05} onChange={(red) => update({ tiers: { ...params.tiers, red } })} />
-          <div className="pt-1 text-foreground">Rezoning areas</div>
-          <Pick label="Rezone to" value={params.rezone.target} options={["auto", ...targets].map((z) => [z, targetLabel(z)])} onChange={(target) => updateRezone({ target })} />
-          <Knob label="Group parcels within" value={params.rezone.joinFt} display={`${params.rezone.joinFt} ft`} min={25} max={500} step={25} onChange={(joinFt) => updateRezone({ joinFt })} />
-          <Knob label="Smallest area" value={params.rezone.minHomes} display={`${params.rezone.minHomes} homes`} min={1} max={200} step={1} onChange={(minHomes) => updateRezone({ minHomes })} />
-          <Check checked={params.rezone.requireCityLand} onChange={(v) => updateRezone({ requireCityLand: v })}>
-            Must have City land
-          </Check>
-          <Check checked={params.rezone.requireIncentive} onChange={(v) => updateRezone({ requireIncentive: v })}>
-            Must have a location incentive
-          </Check>
-          <Check checked={params.rezone.includeYellow} onChange={(v) => updateRezone({ includeYellow: v })}>
-            Include yellow parcels
-          </Check>
-          <Check checked={params.rezone.hearingsLocked} onChange={(v) => updateRezone({ hearingsLocked: v })}>
-            Count hearings as locked
-          </Check>
-          <Check checked={params.rezone.sameDistrict} onChange={(v) => updateRezone({ sameDistrict: v })}>
-            One district per area
-          </Check>
-        </Fold>
+        <Check checked={params.rezone.requireCityLand} onChange={(v) => updateRezone({ requireCityLand: v })}>
+          Must have City land
+        </Check>
+        <Check checked={params.rezone.requireIncentive} onChange={(v) => updateRezone({ requireIncentive: v })}>
+          Must have a location incentive
+        </Check>
+        <Check checked={params.rezone.includeYellow} onChange={(v) => updateRezone({ includeYellow: v })}>
+          Include yellow parcels
+        </Check>
+        <Check checked={params.rezone.hearingsLocked} onChange={(v) => updateRezone({ hearingsLocked: v })}>
+          Count hearings as locked
+        </Check>
+        <Check checked={params.rezone.sameDistrict} onChange={(v) => updateRezone({ sameDistrict: v })}>
+          One district per area
+        </Check>
       </Fold>
 
       <p className="border-t pt-1.5">

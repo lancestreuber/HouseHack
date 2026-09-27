@@ -1,10 +1,11 @@
-import { AlertTriangle, ArrowLeft, MessageSquare } from "lucide-react";
+import { ArrowLeft, MessageSquare } from "lucide-react";
 
 import type { AreaReport, Tone } from "@/lib/typology-map/area-report";
 
 import { askChat } from "../chat/chat-context-store";
 
-const TONE_CLASS: Record<Tone, string> = {
+/** Status dot per tone; shared with the levers list. */
+export const TONE_DOT: Record<Tone, string> = {
   go: "bg-green-500",
   maybe: "bg-yellow-500",
   stop: "bg-red-500",
@@ -15,7 +16,7 @@ const TONE_CLASS: Record<Tone, string> = {
 /** One rezoning area's report: homes, then the three public levers, then the equity guardrail. */
 export function AreaReportCard({ report, onBack }: { report: AreaReport; onBack: () => void }) {
   return (
-    <div className="space-y-2">
+    <div id="heat-area-report" className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={onBack} className="flex items-center gap-1 hover:text-foreground">
           <ArrowLeft className="size-3.5" /> All areas
@@ -24,30 +25,16 @@ export function AreaReportCard({ report, onBack }: { report: AreaReport; onBack:
           <MessageSquare className="size-3.5" /> Ask the chat
         </button>
       </div>
-      <div>
-        <div className="text-sm font-medium text-foreground">{report.title}</div>
-        <div>{report.subtitle}</div>
-      </div>
-      <div className="grid grid-cols-2 gap-1">
-        {report.sections
-          .filter((s) => s.key !== "homes")
-          .map((s) => (
-            <div key={s.key} className="rounded border px-1.5 py-1">
-              <div className="flex items-center gap-1">
-                <span className={`size-2 shrink-0 rounded-full ${TONE_CLASS[s.tone]}`} />
-                <span className="text-foreground">{s.title.split(":")[0]}</span>
-              </div>
-              <div className="leading-tight">{s.answer}</div>
-            </div>
-          ))}
-      </div>
+      <p>
+        <span className="text-sm font-medium text-foreground">{report.title}</span> {report.subtitle}
+      </p>
       {report.sections.map((s) => (
-        <details key={s.key} open={s.key === "homes" || s.tone === "warn"} className="rounded border px-2 py-1">
+        <details key={s.key} open={s.key === "homes" || s.tone === "warn"}>
           <summary className="cursor-pointer text-foreground">
-            {s.tone === "warn" && <AlertTriangle className="mr-1 inline size-3.5 text-orange-500" />}
+            <span className={`mr-1.5 inline-block size-2 rounded-full ${TONE_DOT[s.tone]}`} />
             {s.title}: <span className="text-muted-foreground">{s.answer}</span>
           </summary>
-          <dl className="mt-1 space-y-1">
+          <dl className="mt-1 space-y-1 pl-3.5">
             {s.lines.map((l) => (
               <div key={l.id}>
                 <dt className="text-foreground">{l.label}</dt>
