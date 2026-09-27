@@ -1653,14 +1653,14 @@
     "usd": "US dollars"
   },
   "verdict": {
-    "about": "Can this housing type be built here? A red / yellow / green verdict per typology, computed from pass/fail checks (zoning pathway, site hazards, site availability, lot size, physical fit), never from the weighted score. It answers a different question from the pillars: the pillars rank how good a place is; the verdict says what stands in the way. Framing suggested by a hackathon housing SME (2026-09-27): red = not developable, yellow = could be developable with variances or subsidy, green = developable as-is. Money is not checked: whether the project pencils is not assessed.",
+    "about": "Can this housing type be built here? A red / yellow / green verdict per typology, computed from pass/fail checks (zoning pathway, site hazards, site availability, lot size, physical fit, and a rough value-vs-cost pencil check), never from the weighted score. It answers a different question from the pillars: the pillars rank how good a place is; the verdict says what stands in the way. Framing suggested by a hackathon housing SME (2026-09-27): red = not developable, yellow = could be developable with variances or subsidy, green = developable as-is. The pencil check (see `pencil`) is a first screen, not a pro forma.",
     "levels": {
       "red": "Deal-killer found",
       "yellow": "Possible, with extra approvals or site cost",
       "green": "No blockers found in our checks",
       "unknown": "Can't tell from our data"
     },
-    "not_checked": "Not checked: whether it pencils (construction cost vs. value), soils, contamination, and utility lines. Decision support only, not legal, financial or zoning advice.",
+    "not_checked": "The pencil check is a rough screen: land, financing and subsidy terms are not modeled. Not checked: soils, contamination and utility lines. Decision support only, not legal, financial or zoning advice.",
     "rezoning_yellow_closeness": 0.5,
     "share": {
       "floodway_red": 0.5,
@@ -1693,6 +1693,43 @@
       "min_building_width_note": "Assumption: about the narrowest practical detached building (a narrow Pittsburgh rowhouse is ~14–16 ft). Below this, a hackathon SME's example (24 ft RM-M lot, two 10 ft setbacks, 4 ft left) says a dimensional variance is likely granted but costs time and money.",
       "skip_typologies": ["single_attached"]
     }
+  },
+  "pencil": {
+    "about": "Does it pencil? A first screen of value against cost per unit, the check hackathon SMEs said developers run before zoning or variances (2026-09-27): 'cost exceeding market value is the biggest challenge.' Value is what nearby homes sell for (close to what an appraiser's comparable sales would show) or what nearby rents capitalize to; cost is construction plus site work plus soft costs and a margin. Land cost, financing terms and subsidies are not modeled. Every number below is editable in the panel and is a value judgment or a practitioner estimate, not a quote.",
+    "cost_per_sf": {
+      "low": 150,
+      "mid": 225,
+      "high": 350,
+      "sources": {
+        "low": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: high-volume production builders would imply about $150/sf if they entered the City market.",
+        "mid": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: $200–250/sf for single-family infill in the City, varying with builder scale.",
+        "high": "Hackathon SME (practitioner), 2026-09-27: $325–375/sf vertical construction, excluding site work; no reliable local public source."
+      },
+      "note": "Permit valuations are not a usable substitute: 307 new 1–2 unit City permits (2019–26) joined to assessed living area give a median $101/sf, but those homes later sold for a median 2.7× their permit value, so permit values understate cost."
+    },
+    "site_cost_per_building": 37500,
+    "site_cost_source": "Hackathon SME (practitioner), 2026-09-27: $25k–50k for a single-unit City lot (water and sewer taps, grading, sidewalks, landscaping); midpoint. Depends on utility depth, soil, and demolition debris in old basements.",
+    "steep_site_adder": 30000,
+    "steep_site_adder_source": "Assumption: the low end of a builder blog's $30k–80k hillside site work (research/knowledge/methods/pro-forma.md); applied when half or more of the lot is 25%+ slope.",
+    "not_priced": "Not priced: land, landslide geotechnical work, floodplain elevation, mine investigation, environmental remediation, financing.",
+    "soft_cost_pct": 0.15,
+    "soft_cost_source": "Assumption: design, permits, fees and carrying costs as a share of hard cost; SMEs named soft costs but gave no figure.",
+    "margin_pct": 0.1,
+    "margin_source": "Assumption: value must beat cost by a margin 'large enough to attract investors and get banks to lend' (hackathon SME, Pro-Housing Pittsburgh); 10% is a placeholder.",
+    "rent_multiplier": 103,
+    "rent_multiplier_source": "Assumption: value per unit = monthly rent × 12 × (1 − 40% operating costs) ÷ 7% cap rate ≈ 103 × monthly rent.",
+    "rent_per_ami_ratio": 1242.5,
+    "subsidy_floor": 0.35,
+    "subsidy_floor_note": "Value judgment: if value covers at least 35% of the cost (with margin) at the user's assumption, call it a subsidy candidate (yellow); below that, it does not pencil (red). How much gap financing a project can get 'can vary wildly' (SME). At the defaults, red covers about 16% of vacant or occupied parcels for a house, 36% for a duplex and 11% for apartments.",
+    "value_bias": "Values come from existing homes (tract resale prices) and existing rents (ACS), which understate what new construction sells or rents for: 36 new City homes permitted 2019–26 resold at a median $285/sf. So the check leans toward 'doesn't pencil'; read it as the appraisal-gap risk, not a verdict on the project.",
+    "typologies": {
+      "single_detached": { "units": 1, "sf_per_unit": 1400, "basis": "sale" },
+      "single_attached": { "units": 1, "sf_per_unit": 1400, "basis": "sale" },
+      "two_unit": { "units": 2, "sf_per_unit": 1100, "basis": "rent" },
+      "three_unit": { "units": 3, "sf_per_unit": 1000, "basis": "rent" },
+      "multi_unit": { "units": 12, "sf_per_unit": 850, "basis": "rent" }
+    },
+    "typologies_note": "Unit sizes are assumptions; 1,400 sf is the SME example house. Houses are valued as for-sale homes; two or more units as rentals."
   },
   "legal": {
     "indicator": "site_legal_pathway",

@@ -7,12 +7,15 @@ import { useMemo } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase, pillarPhrase } from "@/lib/pillars/phrases";
 import { type ParcelScore, type PillarId, scoreMultiplier, scoreParcel } from "@/lib/pillars/score";
+import { DEFAULT_PENCIL, type PencilAssumptions } from "@/lib/pillars/pencil";
+import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { DEFAULT_WEIGHTS, type PillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 
 import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibility";
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData } from "../map/pillars-panel";
 import { PATHWAY_SCORE } from "../map/typology-panel";
+import { SHORT_LABEL, verdictFor } from "../map/typology-meta";
 
 const SCORES_AS_OF = config.version.slice(0, 10);
 const SCORES_SOURCE = `Groundwork pillars v${config.version}`;
@@ -118,13 +121,31 @@ function typologyFacts(zoning: string): ContextFact[] {
   });
 }
 
+// The same red / yellow / green verdict and pencil check the panels show, minus
+// the physical-fit rating and lot width, which load separately.
+function verdictFacts(data: ParcelData, pencil: PencilAssumptions): ContextFact[] {
+  const facts = [...MAIN_TYPOLOGIES].map((id) => {
+    const v = verdictFor(data.zoning, id, data, { pencil });
+    const reasons = v.reasons.map((r) => `${r.level}: ${r.text}`).join("; ");
+    return fact(`verdict.${id}`, `Can a ${SHORT_LABEL[id] ?? id} be built here? ${v.level.toUpperCase()}, ${v.label}. Reasons: ${reasons}.`, "value");
+  });
+  facts.push(
+    fact(
+      "pencil.assumptions",
+      `The pencil check assumes construction at $${pencil.costPerSf}/sf plus ${Math.round(config.pencil.soft_cost_pct * 100)}% soft costs, site work $${pencil.siteCostPerBuilding.toLocaleString()} per building, and a ${Math.round(config.pencil.margin_pct * 100)}% margin. ${config.pencil.value_bias} ${config.pencil.not_priced}`,
+      "assumption",
+    ),
+  );
+  return facts;
+}
+
 function definitions(): ContextFact[] {
   const def = (id: string, text: string) => fact(id, text, "definition", "Groundwork methodology");
   return [
     def("def.scale", config.scale),
     def(
       "def.overall",
-      `The overall score blends the five pillars with a weighted ${config.overall.method} mean, so one strong pillar can't fully make up for a weak one. It is then multiplied by a zoning factor (whether housing is legal here) and a site factor (what is on the parcel now), so good access can't rescue a parcel where housing isn't allowed. The weights are the user's priorities, equal by default.`,
+      `The overall score blends the five pillars with a weighted ${config.overall.method} mean, so one strong pillar can't fully make up for a weak one. It is then multiplied by a zoning factor (whether housing is legal here), a site factor (what is on the parcel now) and, for deal-killer hazards (floodway, sliver lot, mapped mines), a hazard factor, so good access can't rescue a parcel where housing isn't allowed or can't safely go. The weights are the user's priorities, equal by default.`,
     ),
     def("def.missing", `Missing data is excluded and the remaining weights renormalized; a score needs at least ${Math.round(config.missing.min_coverage * 100)}% of its weight to have data.`),
   ];
@@ -156,7 +177,12 @@ function statusFacts(result: ParcelScore): ContextFact[] {
 }
 
 /** What the chat may say about one explorer parcel: scores, key indicators and zoning, at the user's weights. */
-export function parcelChatContext(pin: string, data: ParcelData | null, weights: PillarWeights = DEFAULT_WEIGHTS): ChatContext {
+export function parcelChatContext(
+  pin: string,
+  data: ParcelData | null,
+  weights: PillarWeights = DEFAULT_WEIGHTS,
+  pencil: PencilAssumptions = DEFAULT_PENCIL,
+): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
     const text = "No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.";
@@ -202,6 +228,7 @@ export function parcelChatContext(pin: string, data: ParcelData | null, weights:
     ...pillarFacts(data, result),
     ...typologyFacts(data.zoning),
     ...indicatorFacts(data, result),
+    ...verdictFacts(data, pencil),
     ...definitions(),
   ];
 
@@ -236,10 +263,11 @@ export function parcelChatContext(pin: string, data: ParcelData | null, weights:
 export function useParcelChatContext(pin: string | null): ChatContext | null {
   const { pin: loadedPin, data, status } = useParcelData(pin);
   const weights = usePillarWeights();
+  const pencil = usePencilAssumptions();
   return useMemo(() => {
     if (!pin || loadedPin !== pin) return null;
-    if (status === "ready" && data) return parcelChatContext(pin, data, weights);
+    if (status === "ready" && data) return parcelChatContext(pin, data, weights, pencil);
     if (status === "missing") return parcelChatContext(pin, null);
     return null;
-  }, [pin, loadedPin, data, status, weights]);
+  }, [pin, loadedPin, data, status, weights, pencil]);
 }

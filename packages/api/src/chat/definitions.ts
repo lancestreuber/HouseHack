@@ -12,6 +12,6 @@ export const DEFINITIONS: ContextFact[] = [
   definition("def.uncertain", "Uncertain means the zoning rules are unclear for this case; verify with the Zoning Administrator."),
   definition("def.weights", "Weights are value judgments, not data. Changing them changes the scores, so different priorities can lead to different answers."),
   definition("def.suggestions", "Everything here is a suggestion to help you decide, not legal, financial or zoning advice. Zoning is a simplified interpretation; verify with the Zoning Administrator."),
-  definition("def.limits", "The scores don't use crime data. The chat only sees this parcel's scores, breakdowns and zoning, not the map's other layers, and it can't tell you about building costs, sale prices or whether a specific project will be approved."),
+  definition("def.limits", "The scores don't use crime data. The chat only sees this parcel's scores, breakdowns and zoning, not the map's other layers, and it can't tell you whether a specific project will be approved. Building costs and sale prices appear only as the rough pencil check: practitioner cost ranges against nearby sale prices and rents, with land, financing and subsidy left out."),
   definition("def.adu", "ADUs are not permitted in any Pittsburgh zoning district today. Pending Bill 2025-1545 would allow them by right; it is not law yet."),
 ];

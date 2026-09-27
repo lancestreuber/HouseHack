@@ -4,6 +4,7 @@
 // neighborhood can't average away a floodway. Thresholds and wording live in
 // pillars.config.json under `verdict`.
 
+import { type PencilResult, pencilReasonText } from "./pencil";
 import config from "./pillars.config.json";
 import type { IndicatorValues } from "./score";
 
@@ -26,6 +27,8 @@ export type VerdictInput = {
   zoning?: string;
   /** Lot width in feet (short side of the oriented bounding rectangle), when known. */
   lotWidthFt?: number | null;
+  /** Value vs. cost screen (lib/pillars/pencil.ts), for the typologies it covers. */
+  pencil?: PencilResult | null;
 };
 
 const V = config.verdict;
@@ -149,6 +152,18 @@ function setbackReason(typology: string, zoning: string | undefined, lotWidthFt:
   };
 }
 
+const PENCIL_LEVEL: Record<PencilResult["status"], VerdictLevel> = {
+  pencils: "green",
+  tight: "yellow",
+  subsidy: "yellow",
+  no: "red",
+  unknown: "unknown",
+};
+
+function pencilReason(pencil: PencilResult | null | undefined): VerdictReason | null {
+  return pencil ? { level: PENCIL_LEVEL[pencil.status], text: pencilReasonText(pencil) } : null;
+}
+
 function fitReason(fit: SiteFit | null | undefined): VerdictReason | null {
   if (!fit) return null;
   if (fit.label === "Cannot fit") return { level: "red", text: "Doesn't physically fit on this lot (model rating from lot size and shape)" };
@@ -166,6 +181,7 @@ export function typologyVerdict(input: VerdictInput): Verdict {
     ...hazardReasons(input.values, input.typology),
     setbackReason(input.typology, input.zoning, input.lotWidthFt),
     fitReason(input.fit),
+    pencilReason(input.pencil),
   ].filter((r): r is VerdictReason => r != null);
   reasons.sort((a, b) => RANK[b.level] - RANK[a.level]);
   const level = reasons.reduce<VerdictLevel>((worst, r) => (RANK[r.level] > RANK[worst] ? r.level : worst), "green");

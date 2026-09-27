@@ -1,4 +1,5 @@
 import type { IndicatorValues } from "@/lib/pillars/score";
+import { type PencilAssumptions, pencilCheck } from "@/lib/pillars/pencil";
 import { typologyVerdict, type Verdict } from "@/lib/pillars/verdict";
 
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
@@ -89,16 +90,23 @@ export function legalLevelFor(zoning: string, typologyId: string, parcelLegalCod
 
 export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
 
+export type VerdictContext = {
+  fitsById?: FitsById;
+  lotWidthFt?: number | null;
+  pencil?: PencilAssumptions;
+};
+
 /** The red / yellow / green verdict for one typology on one parcel. */
-export function verdictFor(zoning: string, typologyId: string, values: IndicatorValues, fitsById?: FitsById, lotWidthFt?: number | null): Verdict {
+export function verdictFor(zoning: string, typologyId: string, data: { norm: IndicatorValues; raw: IndicatorValues }, ctx: VerdictContext = {}): Verdict {
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   return typologyVerdict({
     typology: typologyId,
     pathway: DISTRICT_PATHWAYS[zoning]?.[typologyId],
     rezoningCloseness: rezoningCloseness(zoning, typologyId),
-    values,
-    fit: siteFitId ? fitsById?.[siteFitId] : undefined,
+    values: data.norm,
+    fit: siteFitId ? ctx.fitsById?.[siteFitId] : undefined,
     zoning,
-    lotWidthFt,
+    lotWidthFt: ctx.lotWidthFt,
+    pencil: pencilCheck(typologyId, data.norm, data.raw, ctx.pencil),
   });
 }

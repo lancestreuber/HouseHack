@@ -7,6 +7,8 @@ import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { Disclaimer } from "@/components/disclaimer";
 import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { COST_PRESETS, DEFAULT_PENCIL, PENCIL_TYPOLOGIES, pencilCheck } from "@/lib/pillars/pencil";
+import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { VERDICT_COLOR, VERDICT_NOT_CHECKED, VERDICT_PERMIT_NOTE } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
@@ -350,12 +352,13 @@ function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
     return map;
   }, [query.data]);
   const [open, setOpen] = useState<string | null>(null);
+  const pencil = usePencilAssumptions();
   return (
     <section className="rounded border border-border/60 p-2">
       <p className="font-medium">Can it be built?</p>
       <ul className="mt-1 space-y-0.5">
         {VERDICT_TYPOLOGIES.map((id) => {
-          const verdict = verdictFor(data.zoning, id, data.norm, fitsById, query.data?.lot.widthFt);
+          const verdict = verdictFor(data.zoning, id, data, { fitsById, lotWidthFt: query.data?.lot.widthFt, pencil });
           const blockers = verdict.reasons.filter((r) => r.level !== "green");
           const shown = open === id ? verdict.reasons : blockers.slice(0, 1);
           return (
@@ -380,6 +383,121 @@ function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
         {query.isPending ? "Checking physical fit… " : ""}
         {VERDICT_PERMIT_NOTE} {VERDICT_NOT_CHECKED}
       </p>
+    </section>
+  );
+}
+
+const PENCIL_STATUS: Record<string, { label: string; color: string }> = {
+  pencils: { label: "Pencils", color: VERDICT_COLOR.green },
+  tight: { label: "Tight", color: VERDICT_COLOR.yellow },
+  subsidy: { label: "Needs subsidy", color: VERDICT_COLOR.yellow },
+  no: { label: "Doesn't pencil", color: VERDICT_COLOR.red },
+  unknown: { label: "No data", color: VERDICT_COLOR.unknown },
+};
+const usdK = (n: number | null) => (n == null ? "—" : `$${Math.round(n / 1000).toLocaleString()}k`);
+
+/** Value per unit vs. cost per unit for each mainstream type, with the two
+ * assumptions that move it most editable in place (SME: the tool should do
+ * the pro-forma work, and user-typed assumptions help if they're clear). */
+function PencilSection({ data }: { data: ParcelData }) {
+  const a = usePencilAssumptions();
+  const [open, setOpen] = useState(false);
+  const pencil = config.pencil;
+  const presets = [
+    ["low", "Production builder"],
+    ["mid", "Typical infill"],
+    ["high", "Small builder"],
+  ] as const;
+  return (
+    <section className="rounded border border-border/60 p-2">
+      <p className="font-medium">Does it pencil?</p>
+      <div className="mt-1 flex flex-wrap items-center gap-1">
+        <span className="text-muted-foreground">Construction</span>
+        {presets.map(([key, label]) => (
+          <button
+            key={key}
+            type="button"
+            title={pencil.cost_per_sf.sources[key]}
+            onClick={() => setPencilAssumptions({ ...a, costPerSf: COST_PRESETS[key] })}
+            className={`rounded border px-1.5 py-0.5 ${a.costPerSf === COST_PRESETS[key] ? "border-foreground/60 bg-foreground/10" : "border-border/60"}`}
+          >
+            {label} ${COST_PRESETS[key]}
+          </button>
+        ))}
+        <label className="flex items-center gap-1">
+          <input
+            type="number"
+            min={50}
+            max={1000}
+            step={5}
+            value={a.costPerSf}
+            onChange={(e) => Number(e.target.value) > 0 && setPencilAssumptions({ ...a, costPerSf: Number(e.target.value) })}
+            className="w-16 rounded border border-border/60 bg-background px-1 tabular-nums"
+            aria-label="Construction cost per square foot"
+          />
+          /sf
+        </label>
+      </div>
+      <label className="mt-1 flex items-center gap-1 text-muted-foreground" title={pencil.site_cost_source}>
+        Site work per building $
+        <input
+          type="number"
+          min={0}
+          max={500000}
+          step={2500}
+          value={a.siteCostPerBuilding}
+          onChange={(e) => Number(e.target.value) >= 0 && setPencilAssumptions({ ...a, siteCostPerBuilding: Number(e.target.value) })}
+          className="w-20 rounded border border-border/60 bg-background px-1 tabular-nums text-foreground"
+          aria-label="Site work cost per building"
+        />
+        {(a.costPerSf !== DEFAULT_PENCIL.costPerSf || a.siteCostPerBuilding !== DEFAULT_PENCIL.siteCostPerBuilding) && (
+          <button type="button" onClick={() => setPencilAssumptions(DEFAULT_PENCIL)} className="underline">
+            reset
+          </button>
+        )}
+      </label>
+      <div className="mt-1 grid grid-cols-[1fr_auto_auto_auto] gap-x-2 text-muted-foreground">
+        <span>Type</span>
+        <span>Value/unit</span>
+        <span title={`Cost per unit plus the ${Math.round(config.pencil.margin_pct * 100)}% margin`}>Needed/unit</span>
+        <span />
+        {PENCIL_TYPOLOGIES.map((id) => {
+          const r = pencilCheck(id, data.norm, data.raw, a);
+          if (!r) return null;
+          const st = PENCIL_STATUS[r.status];
+          return [
+            <span key={`${id}-n`} className="text-foreground">
+              {SHORT_LABEL[id] ?? id}
+            </span>,
+            <span key={`${id}-v`} className="tabular-nums" title={r.basis === "sale" ? "Median home sale price in this census tract, 2024–25" : "Nearby median rent, capitalized"}>
+              {usdK(r.valuePerUnit)}
+            </span>,
+            <span key={`${id}-c`} className="tabular-nums">
+              {usdK(r.costPerUnit * (1 + config.pencil.margin_pct))}
+            </span>,
+            <span key={`${id}-s`} style={{ color: st.color }}>
+              {st.label}
+            </span>,
+          ];
+        })}
+      </div>
+      <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-muted-foreground underline">
+        {open ? "Hide" : "How this is worked out"}
+      </button>
+      {open && (
+        <div className="mt-1 space-y-1 text-muted-foreground">
+          <p>
+            Cost per unit = unit size × construction $/sf × (1 + {Math.round(pencil.soft_cost_pct * 100)}% soft costs) + site work per building ÷ units
+            {data.norm.site_steep_slope_share != null && data.norm.site_steep_slope_share < 51 ? `, + $${pencil.steep_site_adder.toLocaleString()} for a mostly steep lot` : ""}.
+            Value must beat cost by {Math.round(pencil.margin_pct * 100)}%. Houses use nearby sale prices (close to an appraiser's comps); 2+ units use nearby rent × {pencil.rent_multiplier}.
+            Below {Math.round(pencil.subsidy_floor * 100)}% coverage it doesn't pencil; above that, it needs subsidy.
+          </p>
+          <p>{pencil.value_bias}</p>
+          <p>{pencil.not_priced}</p>
+          <p>{pencil.cost_per_sf.note}</p>
+          <p>{pencil.typologies_note}</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -448,6 +566,7 @@ export function PillarsPanel({
         {data && result && (
           <>
             <BuildVerdicts pin={pin} data={data} />
+            <PencilSection data={data} />
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>

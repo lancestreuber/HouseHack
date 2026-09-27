@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import type { IndicatorValues } from "@/lib/pillars/score";
 import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
 
@@ -94,8 +95,8 @@ function TypologyTile({
   typologyId: string;
   onTypologyChange: (id: string) => void;
   zoning: string;
-  /** Normalized parcel indicators, for the hazard checks in the verdict. */
-  values: IndicatorValues;
+  /** Parcel indicators: normalized for the hazard checks, raw for the pencil check's dollar values. */
+  values: { norm: IndicatorValues; raw: IndicatorValues };
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
   fitsById?: FitsById;
@@ -115,7 +116,8 @@ function TypologyTile({
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
   const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
-  const verdict = verdictFor(zoning, typologyId, values, fitsById, lotWidthFt);
+  const pencil = usePencilAssumptions();
+  const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
   const blockers = verdict.reasons.filter((r) => r.level !== "green");
 
   return (
@@ -210,7 +212,7 @@ function TypologyTiles({
             key={i}
             typologyId={id}
             zoning={zoning}
-            values={data.norm}
+            values={data}
             onTypologyChange={(next) => onTypologyChange(i, next)}
             fitsById={fitsById}
             lotWidthFt={query.data?.lot.widthFt}
