@@ -6,6 +6,7 @@ import { type PillarId, scoreParcel } from "@/lib/pillars/score";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { formatRaw, fmtScore, INDICATORS, scoreColor, useParcelData } from "./pillars-panel";
+import { OutsideCityNotice } from "./outside-city-notice";
 
 /** Right-column pane, below Scores: the full indicator-level breakdown behind
  * every pillar score (e.g. "murder rate = 7.2 per 1,000"), not just the
@@ -23,7 +24,7 @@ export function BreakdownPanel({
   onToggleCollapse?: () => void;
   onSelectPillarAlert?: (pillarId: PillarId) => void;
 }) {
-  const { data, status } = useParcelData(pin);
+  const { data, status, scope } = useParcelData(pin);
   const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
 
   return (
@@ -36,8 +37,9 @@ export function BreakdownPanel({
       <div className="flex-1 space-y-3 overflow-y-auto p-2">
         {!pin && <p className="text-muted-foreground">Select a parcel to see its indicator breakdown.</p>}
         {pin && status === "loading" && <p className="text-muted-foreground">Loading…</p>}
+        {pin && status === "outside" && <OutsideCityNotice scope={scope} compact />}
         {pin && status === "missing" && (
-          <p className="text-muted-foreground">No indicator data for this parcel (city parcels only).</p>
+          <p className="text-muted-foreground">No indicator data for this City parcel.</p>
         )}
         {data &&
           result &&

@@ -11,6 +11,7 @@ import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
 import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
 import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
+import { OutsideCityNotice } from "./outside-city-notice";
 
 function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
   const cls =
@@ -150,7 +151,7 @@ export function AlertsPanel({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
-  const { data, status } = useParcelData(pin);
+  const { data, status, scope } = useParcelData(pin);
 
   return (
     <div className="flex h-full w-full flex-col text-xs">
@@ -162,8 +163,9 @@ export function AlertsPanel({
         <div className="flex-1 space-y-2 overflow-y-auto p-2">
           {!pin && <p className="text-muted-foreground">Select a parcel to see its alerts.</p>}
           {pin && status === "loading" && <p className="text-muted-foreground">Loading…</p>}
+          {pin && status === "outside" && <OutsideCityNotice scope={scope} compact />}
           {pin && status === "missing" && (
-            <p className="text-muted-foreground">No indicator data for this parcel (city parcels only).</p>
+            <p className="text-muted-foreground">No indicator data for this City parcel.</p>
           )}
           {pin && data && <AlertsContent pin={pin} data={data} />}
         </div>

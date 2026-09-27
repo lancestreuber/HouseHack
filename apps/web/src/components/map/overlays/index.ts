@@ -37,7 +37,7 @@ import { housingVouchersOverlay, subsidizedHousingOverlay } from "./subsidized-h
 import { transitStopsOverlay } from "./transit-stops";
 import type { Indicator, OverlayDefinition } from "./types";
 import { weatherRiskOverlay } from "./weather-risk";
-import { cityZoningOverlaysOverlay, rcoOverlay, suburbanZoningOverlay } from "./zoning-policy";
+import { cityZoningOverlaysOverlay, rcoOverlay } from "./zoning-policy";
 
 export const OVERLAYS: OverlayDefinition[] = [
   residentialZoningOverlay,
@@ -92,7 +92,6 @@ export const OVERLAYS: OverlayDefinition[] = [
   designationAreasOverlay,
   holcOverlay,
   cityZoningOverlaysOverlay,
-  suburbanZoningOverlay,
   rcoOverlay,
   shortageAreasOverlay,
   permitsActivityOverlay,
