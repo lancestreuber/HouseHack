@@ -14,7 +14,7 @@ import { orpc } from "@/utils/orpc";
 
 import { askChat } from "../chat/chat-context-store";
 import { FactChip } from "../chat/fact-chip";
-import { tileScore, useParcelChatContext } from "../chat/parcel-context";
+import { scenarioChatContext, tileScore, typologyScore, useParcelChatContext } from "../chat/parcel-context";
 import { Disclaimer } from "../disclaimer";
 import { typologyAlerts } from "../map/alerts-panel";
 import type { OverlayState } from "../map/overlay-controller";
@@ -52,7 +52,12 @@ export function ScenarioCard({
   const { data } = useParcelData(pin);
   const fit = useTypologyFit(pin, data);
   const weights = usePillarWeights();
-  const context = useParcelChatContext(pin);
+  const parcelContext = useParcelChatContext(pin);
+  // The overall score, zoning factor and what-ifs follow this type, not the easiest one.
+  const context = useMemo(
+    () => (parcelContext && data ? scenarioChatContext(parcelContext, data, weights, typologyId) : parcelContext),
+    [parcelContext, data, weights, typologyId],
+  );
 
   // Everything about this typology on this parcel, as the panels show it.
   const zoning = data?.zoning ?? "";
@@ -61,11 +66,12 @@ export function ScenarioCard({
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const siteFit = siteFitId ? fit.data?.typologies.find((t) => t.id === siteFitId)?.fit : undefined;
   const alerts = fit.data && siteFitId ? (typologyAlerts(fit.data).find((a) => a.id === siteFitId)?.notes ?? []) : [];
-  const score = useMemo(() => (data ? scoreParcel(data.norm, { pillars: weights }) : null), [data, weights]);
+  const ownScore = useMemo(() => (data ? typologyScore(data, weights, typologyId) : null), [data, weights, typologyId]);
+  const score = useMemo(() => ownScore ?? (data ? scoreParcel(data.norm, { pillars: weights }) : null), [ownScore, data, weights]);
 
   // Pros and cons, once the site-fit facts (Jev, alerts) are in the context.
   const focus = context
-    ? [`t.${typologyId}`, `verdict.${typologyId}`, `fit.${typologyId}`, ...(siteFitId ? [`alert.${siteFitId}`] : [])].filter((id) => context.facts.some((f) => f.id === id))
+    ? [`overall.${typologyId}`, `t.${typologyId}`, `verdict.${typologyId}`, `fit.${typologyId}`, ...(siteFitId ? [`alert.${siteFitId}`] : [])].filter((id) => context.facts.some((f) => f.id === id))
     : [];
   const result = useQuery({
     ...orpc.chat.scenario.queryOptions({ input: { context: context!, typology: { id: typologyId, name }, focus } }),
@@ -201,7 +207,7 @@ export function ScenarioCard({
 
           <span className="text-muted-foreground">Overall</span>
           <span>
-            <span className="font-medium tabular-nums">{fmtScore(score?.overall ?? null)}</span> of 100 for this parcel
+            <span className="font-medium tabular-nums">{fmtScore(score?.overall ?? null)}</span> of 100 {ownScore ? `for a ${name} here` : "for this parcel (zoning factor: easiest mainstream type)"}
             {score && (score.legal || score.availability || score.hazard) && (
               <span className="text-muted-foreground">
                 {" "}

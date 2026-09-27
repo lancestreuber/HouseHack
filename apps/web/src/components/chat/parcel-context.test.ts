@@ -11,9 +11,9 @@ import type { ParcelData } from "../map/pillars-panel";
 // The panels import the API client, which needs the server env; these tests
 // only use the pure scoring helpers, so stub it.
 mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
-const { generalChatContext, legalCodeFor, parcelChatContext } = await import("./parcel-context");
+const { generalChatContext, legalCodeFor, parcelChatContext, scenarioChatContext, typologyScore } = await import("./parcel-context");
 const { notPermittedScore, PATHWAY_SCORE } = await import("../map/typology-panel");
-const { SHORT_LABEL } = await import("../map/typology-meta");
+const { legalLevelFor, SHORT_LABEL } = await import("../map/typology-meta");
 const { typologyAlerts } = await import("../map/alerts-panel");
 const { DISTRICT_PATHWAYS } = await import("../map/overlays/legal-matrix.generated");
 const { TYPOLOGIES: TILE_TYPES } = await import("../map/overlays/legal-feasibility");
@@ -242,4 +242,40 @@ describe("across real parcels", () => {
     },
     120_000,
   );
+});
+
+describe("scenario facts for one housing type", () => {
+  const base = parcelChatContext(PIN, demo, {}, { status: "ready", data: fakeFit(demo.zoning) });
+
+  test("a mainstream type is scored with its own zoning factor, as the pillars panel does", () => {
+    for (const id of config.legal.typologies) {
+      const own = typologyScore(demo, {}, id)!;
+      const panel = scoreParcel(demo.norm, { pillars: {}, legalLevel: legalLevelFor(demo.zoning, id, demo.norm.site_legal_pathway) });
+      expect(own.overall).toBe(panel.overall);
+      const ctx = scenarioChatContext(base, demo, {}, id);
+      const fact = ctx.facts.find((f) => f.id === `overall.${id}`)!;
+      expect(fact.text).toContain(`${Math.round(own.overall!)} of 100`);
+      expect(fact.text).toContain(`zoning factor of ${own.legal!.multiplier}`);
+      // The easiest-type overall, zoning line and what-ifs are gone; everything else stays.
+      expect(ctx.facts.some((f) => f.id === "overall" || f.id === "legal" || f.id.startsWith("whatif."))).toBe(false);
+      expect(ctx.facts.length).toBe(base.facts.filter((f) => f.id !== "overall" && f.id !== "legal" && !f.id.startsWith("whatif.")).length + 1);
+      expect(fact.text.endsWith("…")).toBe(false);
+    }
+  });
+
+  test("demo parcel: a duplex isn't permitted, so its overall is far below the easiest type's", () => {
+    const duplex = scenarioChatContext(base, demo, {}, "two_unit").facts.find((f) => f.id === "overall.two_unit")!;
+    console.log(duplex.text);
+    expect(duplex.text).toContain("zoning factor of 0.2");
+    expect(duplex.tone).toBe("bad");
+    expect(typologyScore(demo, {}, "two_unit")!.overall!).toBeLessThan(scoreParcel(demo.norm).overall! / 2);
+    // A house is by right here, the same as the easiest type.
+    expect(typologyScore(demo, {}, "single_detached")!.overall).toBe(scoreParcel(demo.norm).overall);
+  });
+
+  test("types outside the overall score keep the parcel's facts", () => {
+    const other = TILE_TYPES.map(([id]) => id).find((id) => !config.legal.typologies.includes(id))!;
+    expect(typologyScore(demo, {}, other)).toBeNull();
+    expect(scenarioChatContext(base, demo, {}, other)).toBe(base);
+  });
 });

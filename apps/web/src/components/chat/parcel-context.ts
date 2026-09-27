@@ -19,7 +19,7 @@ import { typologyAlerts } from "../map/alerts-panel";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData, useTypologyFit } from "../map/pillars-panel";
 import { type PillarWeights, usePillarWeights } from "../map/pillar-weights-store";
 import { notPermittedScore, PATHWAY_SCORE } from "../map/typology-panel";
-import { type FitsById, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
+import { type FitsById, legalLevelFor, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
 
 /** What parcels.typologyFit returns: lot facts, zoning gates and Jev's site-fit ratings. */
 export type TypologyFit = NonNullable<ReturnType<typeof useTypologyFit>["data"]>;
@@ -472,6 +472,46 @@ export function parcelChatContext(
     notes: [
       overall != null ? `Overall score ${overall} of 100.` : "Not enough data for an overall score.",
       ...pillars.map((p) => `${p.label}: ${round(p.score) ?? "not enough data"}.`),
+    ],
+  };
+}
+
+/**
+ * A mainstream type's own score on this parcel: the zoning factor follows that
+ * type, as in the pillars panel when the type is picked there. Null for types
+ * the overall score doesn't cover (senior and group housing).
+ */
+export function typologyScore(data: ParcelData, weights: PillarWeights, typologyId: string): ParcelScore | null {
+  if (!MAIN_TYPOLOGIES.has(typologyId)) return null;
+  const legalLevel = legalLevelFor(data.zoning, typologyId, data.norm.site_legal_pathway);
+  return scoreParcel(data.norm, { pillars: weights, legalLevel });
+}
+
+/**
+ * The facts for one type's scenario. The parcel's overall score, zoning factor
+ * and rezoning what-ifs use the easiest type, so for a mainstream type they're
+ * replaced by that type's own overall score (e.g. "zoning by right" for a house
+ * mustn't become a pro for a duplex that isn't permitted).
+ */
+export function scenarioChatContext(context: ChatContext, data: ParcelData, weights: PillarWeights, typologyId: string): ChatContext {
+  const result = typologyScore(data, weights, typologyId);
+  if (!result) return context;
+  const name = SHORT_LABEL[typologyId] ?? typologyId;
+  const overall = round(result.overall);
+  const { legal, availability, hazard } = result;
+  const text =
+    overall == null
+      ? `Overall score for a ${name} on this parcel: not enough data to score.`
+      : within([
+          `Overall score for a ${name} on this parcel: ${overall} of 100, at ${weightsText(weights)}.`,
+          `The pillar blend is ${round(result.overallBeforeMultipliers)}, times a zoning factor of ${legal?.multiplier ?? 1} for a ${name} (${legal?.label ?? "legal status unknown"}), a site factor of ${availability?.multiplier ?? 1}${hazard ? ` and a hazard factor of ${hazard.multiplier}` : ""}.`,
+        ]);
+  const replaced = (id: string) => id === "overall" || id === "legal" || id.startsWith("whatif.");
+  return {
+    ...context,
+    facts: [
+      withTone(fact(`overall.${typologyId}`, text, "value", SCORES_SOURCE, LEGAL_MATRIX_SOURCE), toneOf(result.overall)),
+      ...context.facts.filter((f) => !replaced(f.id)),
     ],
   };
 }
