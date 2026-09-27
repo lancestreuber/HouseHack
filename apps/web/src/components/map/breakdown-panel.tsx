@@ -1,4 +1,4 @@
-import { TriangleAlert } from "lucide-react";
+import { Info } from "lucide-react";
 import { useMemo } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
@@ -7,27 +7,21 @@ import { type PillarId, scoreParcel } from "@/lib/pillars/score";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { formatRaw, fmtScore, INDICATORS, scoreColor, useParcelData } from "./pillars-panel";
 
-function AlertRow({ text }: { text: string }) {
-  return (
-    <div className="flex items-start gap-1.5 rounded border border-red-400/30 bg-red-400/10 px-2 py-1 text-red-400">
-      <TriangleAlert className="mt-0.5 size-3 shrink-0" />
-      <span>{text}</span>
-    </div>
-  );
-}
-
 /** Right-column pane, below Scores: the full indicator-level breakdown behind
  * every pillar score (e.g. "murder rate = 7.2 per 1,000"), not just the
  * rolled-up number -- with an anchor per pillar so a pillar card up top can
- * scroll straight to its section here. */
+ * scroll straight to its section here. A pillar's own flags (hazard caps,
+ * etc.) live in the Alerts pane, not inline here; the info icon jumps there. */
 export function BreakdownPanel({
   pin,
   collapsed,
   onToggleCollapse,
+  onSelectPillarAlert,
 }: {
   pin: string | null;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onSelectPillarAlert?: (pillarId: PillarId) => void;
 }) {
   const { data, status } = useParcelData(pin);
   const result = useMemo(() => (data ? scoreParcel(data.norm) : null), [data]);
@@ -53,15 +47,25 @@ export function BreakdownPanel({
             const indicators = INDICATORS.filter((ind) => ind.pillar === pillarId);
             return (
               <section key={p.id} id={`breakdown-${p.id}`} className="scroll-mt-2 space-y-1">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-medium">{p.label}</span>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="flex items-center gap-1 font-medium">
+                    {p.label}
+                    {score.flags.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => onSelectPillarAlert?.(pillarId)}
+                        aria-label={`${p.label}: see its flags in Alerts`}
+                        title="See why, in Alerts"
+                        className="rounded p-0.5 text-red-400 hover:bg-foreground/10"
+                      >
+                        <Info className="size-3" />
+                      </button>
+                    )}
+                  </span>
                   <span className="tabular-nums" style={{ color: scoreColor(score.score) }}>
                     {fmtScore(score.score)}
                   </span>
                 </div>
-                {score.flags.map((f) => (
-                  <AlertRow key={f.text} text={f.capped ? `${f.text} (pillar capped)` : f.text} />
-                ))}
                 <ul className="space-y-0.5">
                   {indicators.map((ind) => {
                     const raw = data.raw[ind.id];

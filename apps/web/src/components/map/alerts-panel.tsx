@@ -1,8 +1,9 @@
 import { TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
 
+import config from "@/lib/pillars/pillars.config.json";
 import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
-import { scoreParcel, type WeightOverrides } from "@/lib/pillars/score";
+import { type PillarId, scoreParcel, type WeightOverrides } from "@/lib/pillars/score";
 import { VERDICT_COLOR, VERDICT_LABEL, type VerdictLevel } from "@/lib/pillars/verdict";
 
 import { TYPOLOGIES } from "./overlays/legal-feasibility";
@@ -102,10 +103,39 @@ function ParcelAlerts({ data }: { data: ParcelData }) {
   );
 }
 
+/** Every pillar's own flags (from its gates in pillars.config.json, e.g. "half
+ * the lot is in the FEMA floodway"), one anchored section each
+ * (`pillar-alert-${pillarId}`) so the Breakdown pane's info icon can scroll
+ * straight to it -- the flags themselves no longer show inline there.
+ * Computed the same way (default weights, no overrides) so the numbers never
+ * disagree with what the icon points at. */
+function PillarAlerts({ data }: { data: ParcelData }) {
+  const result = useMemo(() => scoreParcel(data.norm), [data]);
+  const flagged = config.pillars
+    .map((p) => ({ id: p.id as PillarId, label: p.label, flags: result.pillars[p.id as PillarId].flags }))
+    .filter((p) => p.flags.length > 0);
+
+  if (!flagged.length) return null;
+
+  return (
+    <div className="space-y-2">
+      {flagged.map((p) => (
+        <section key={p.id} id={`pillar-alert-${p.id}`} className="scroll-mt-2 space-y-1">
+          <p className="font-medium">{p.label}</p>
+          {p.flags.map((f) => (
+            <AlertRow key={f.text} text={f.capped ? `${f.text} (pillar capped)` : f.text} level="red" />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
+
 function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
   return (
     <div className="space-y-3">
       <ParcelAlerts data={data} />
+      <PillarAlerts data={data} />
       <TypologyAlerts pin={pin} data={data} />
     </div>
   );

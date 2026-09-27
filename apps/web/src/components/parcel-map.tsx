@@ -329,6 +329,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     document.getElementById(`alert-${typologyId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const handleSelectPillarAlert = (id: PillarId) => {
+    if (alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current.expand();
+    if (!breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current?.collapse();
+    document.getElementById(`pillar-alert-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   // The address search itself lives in the navbar (mounted on every route);
   // registering here lets it drive this map while this page is showing it.
   useEffect(() => {
@@ -762,7 +768,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               panelRef={breakdownPane.ref}
               onResize={breakdownPane.onResize}
             >
-              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={toggleBreakdown} />
+              <BreakdownPanel
+                pin={selectedPin}
+                collapsed={breakdownPane.collapsed}
+                onToggleCollapse={toggleBreakdown}
+                onSelectPillarAlert={handleSelectPillarAlert}
+              />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
