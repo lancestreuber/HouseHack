@@ -351,7 +351,7 @@ function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
       <p className="font-medium">Can it be built?</p>
       <ul className="mt-1 space-y-0.5">
         {VERDICT_TYPOLOGIES.map((id) => {
-          const verdict = verdictFor(data.zoning, id, data.norm, fitsById);
+          const verdict = verdictFor(data.zoning, id, data.norm, fitsById, query.data?.lot.widthFt);
           const blockers = verdict.reasons.filter((r) => r.level !== "green");
           const shown = open === id ? verdict.reasons : blockers.slice(0, 1);
           return (

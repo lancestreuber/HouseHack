@@ -88,6 +88,7 @@ function TypologyTile({
   zoning,
   values,
   fitsById,
+  lotWidthFt,
   onSelectTypology,
 }: {
   typologyId: string;
@@ -98,6 +99,8 @@ function TypologyTile({
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
   fitsById?: FitsById;
+  /** Lot width in feet, for the side-setback check; undefined while loading. */
+  lotWidthFt?: number | null;
   /** Scrolls the Alerts pane to this card's typology, if it has one there. */
   onSelectTypology?: (siteFitId: string) => void;
 }) {
@@ -112,7 +115,7 @@ function TypologyTile({
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
   const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
-  const verdict = verdictFor(zoning, typologyId, values, fitsById);
+  const verdict = verdictFor(zoning, typologyId, values, fitsById, lotWidthFt);
   const blockers = verdict.reasons.filter((r) => r.level !== "green");
 
   return (
@@ -210,6 +213,7 @@ function TypologyTiles({
             values={data.norm}
             onTypologyChange={(next) => onTypologyChange(i, next)}
             fitsById={fitsById}
+            lotWidthFt={query.data?.lot.widthFt}
             onSelectTypology={onSelectTypology}
           />
         ))}

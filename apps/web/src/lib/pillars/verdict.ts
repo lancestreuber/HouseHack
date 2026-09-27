@@ -22,6 +22,10 @@ export type VerdictInput = {
   values: IndicatorValues;
   /** Physical site-fit rating, when one exists for this typology. */
   fit?: SiteFit | null;
+  /** Full zoning code (e.g. "RM-M"), for the side-setback check. */
+  zoning?: string;
+  /** Lot width in feet (short side of the oriented bounding rectangle), when known. */
+  lotWidthFt?: number | null;
 };
 
 const V = config.verdict;
@@ -109,6 +113,23 @@ function hazardReasons(values: IndicatorValues, typology: string): VerdictReason
   return out;
 }
 
+// Interior side setbacks can leave too little width to build on narrow lots.
+// The SME example: a 24 ft RM-M lot with two 10 ft setbacks leaves 4 ft.
+function setbackReason(typology: string, zoning: string | undefined, lotWidthFt: number | null | undefined): VerdictReason | null {
+  const sb = V.side_setbacks;
+  if (lotWidthFt == null || !zoning || sb.skip_typologies.includes(typology)) return null;
+  const [base, density] = zoning.split("-");
+  const total = (sb.total_ft as Record<string, Record<string, number>>)[base]?.[density ?? ""];
+  if (total == null) return null;
+  const buildable = lotWidthFt - total;
+  if (buildable >= sb.min_building_width_ft) return null;
+  const left = Math.max(0, Math.round(buildable));
+  return {
+    level: "yellow",
+    text: `About ${Math.round(lotWidthFt)} ft wide; ${zoning} side setbacks (${total} ft total) leave ${left} ft: likely needs a dimensional variance (time and cost)`,
+  };
+}
+
 function fitReason(fit: SiteFit | null | undefined): VerdictReason | null {
   if (!fit) return null;
   if (fit.label === "Cannot fit") return { level: "red", text: "Doesn't physically fit on this lot (model rating from lot size and shape)" };
@@ -124,6 +145,7 @@ export function typologyVerdict(input: VerdictInput): Verdict {
     legalReason(input.pathway, input.rezoningCloseness),
     availabilityReason(input.values.site_parcel_use),
     ...hazardReasons(input.values, input.typology),
+    setbackReason(input.typology, input.zoning, input.lotWidthFt),
     fitReason(input.fit),
   ].filter((r): r is VerdictReason => r != null);
   reasons.sort((a, b) => RANK[b.level] - RANK[a.level]);

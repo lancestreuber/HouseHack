@@ -79,7 +79,7 @@ export const SHORT_LABEL: Record<string, string> = {
 export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
 
 /** The red / yellow / green verdict for one typology on one parcel. */
-export function verdictFor(zoning: string, typologyId: string, values: IndicatorValues, fitsById?: FitsById): Verdict {
+export function verdictFor(zoning: string, typologyId: string, values: IndicatorValues, fitsById?: FitsById, lotWidthFt?: number | null): Verdict {
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   return typologyVerdict({
     typology: typologyId,
@@ -87,5 +87,7 @@ export function verdictFor(zoning: string, typologyId: string, values: Indicator
     rezoningCloseness: rezoningCloseness(zoning, typologyId),
     values,
     fit: siteFitId ? fitsById?.[siteFitId] : undefined,
+    zoning,
+    lotWidthFt,
   });
 }

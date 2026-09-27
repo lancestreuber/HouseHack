@@ -1650,7 +1650,21 @@
       "undermined_yellow": 0.1
     },
     "single_house_typologies": ["single_detached"],
-    "fit_yellow_below": 0.5
+    "fit_yellow_below": 0.5,
+    "side_setbacks": {
+      "source": "Pittsburgh Code §903.03 as amended Ord. 10-2025 (eff. 2025-05-07), read on eCode360 2026-09-26: research/sources/ecode360-2026-09-26-pittsburgh-903-03-dimensional-standards.md",
+      "about": "Total interior side setback (both sides, ft) by base district and density suffix. Buildable width = lot width minus this. Attached (party-wall) housing has no interior side setback, so it is skipped. Corner-lot exterior side setbacks and contextual setbacks (§925.06) are not modeled. Lot width is the short side of the lot's oriented bounding rectangle, so irregular lots are approximate.",
+      "total_ft": {
+        "R1D": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R2": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R3": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R1A": { "VL": 10, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "RM": { "VL": 60, "L": 50, "M": 20, "H": 20, "VH": 20 }
+      },
+      "min_building_width_ft": 14,
+      "min_building_width_note": "Assumption: about the narrowest practical detached building (a narrow Pittsburgh rowhouse is ~14–16 ft). Below this, a hackathon SME's example (24 ft RM-M lot, two 10 ft setbacks, 4 ft left) says a dimensional variance is likely granted but costs time and money.",
+      "skip_typologies": ["single_attached"]
+    }
   },
   "legal": {
     "indicator": "site_legal_pathway",

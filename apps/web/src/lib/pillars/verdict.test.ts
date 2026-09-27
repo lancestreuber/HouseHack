@@ -74,4 +74,16 @@ describe("typologyVerdict", () => {
     expect(typologyVerdict({ typology: "multi_unit", pathway: "by_right", values: clean(), fit: cannot }).level).toBe("red");
     expect(typologyVerdict({ typology: "multi_unit", pathway: "by_right", values: clean(), fit: tight }).level).toBe("yellow");
   });
+
+  test("narrow lots whose side setbacks leave too little width need a variance (SME's 24 ft RM-M example)", () => {
+    const base = { typology: "two_unit", pathway: "by_right", values: clean(), zoning: "RM-M" };
+    const narrow = typologyVerdict({ ...base, lotWidthFt: 24 });
+    expect(narrow.level).toBe("yellow");
+    expect(narrow.reasons[0].text).toContain("leave 4 ft");
+    expect(typologyVerdict({ ...base, lotWidthFt: 40 }).level).toBe("green");
+    // Party-wall rowhouses have no interior side setback.
+    expect(typologyVerdict({ ...base, typology: "single_attached", lotWidthFt: 24 }).level).toBe("green");
+    // Unknown district or width: no claim either way.
+    expect(typologyVerdict({ ...base, zoning: "UC-MU", lotWidthFt: 10 }).level).toBe("green");
+  });
 });
