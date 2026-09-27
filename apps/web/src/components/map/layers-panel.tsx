@@ -1,6 +1,9 @@
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+
 import type { OverlayState } from "./overlay-controller";
 import { selectedMetric } from "./overlay-controller";
-import { HEAT_OVERLAYS, overlaysInGroup, STACKABLE_GROUPS } from "./overlays";
+import { HEAT_OVERLAYS, overlaysInGroup, PILLAR_OVERLAYS, STACKABLE_GROUPS } from "./overlays";
 import type { LegendItem, OverlayDefinition } from "./overlays/types";
 
 const EVIDENCE_LABEL = {
@@ -29,7 +32,7 @@ function Swatch({ item }: { item: LegendItem }) {
 function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState }) {
   const metric = selectedMetric(def, state);
   return (
-    <div className="mt-1 space-y-1 rounded border border-border/60 bg-background/60 p-2">
+    <div className="space-y-1">
       <ul className="space-y-0.5">
         {def.legend(metric).map((item) => (
           <li key={item.label} className="flex items-center gap-1.5">
@@ -53,6 +56,94 @@ function Legend({ def, state }: { def: OverlayDefinition; state: OverlayState })
           ⚠ {c}
         </p>
       ))}
+    </div>
+  );
+}
+
+// How long the pointer can be off both the row and the flyout before it closes,
+// so it survives the short trip across the gap between them.
+const CLOSE_DELAY_MS = 150;
+
+// A row in the layers panel. When `active` (the selected radio or a checked
+// box), hovering it opens its details in a flyout to the right instead of
+// expanding the list. The flyout stays open while the pointer is on it (or a
+// select inside it is open) and closes as soon as the pointer leaves both.
+function HoverRow({ active, row, details }: { active: boolean; row: ReactNode; details: () => ReactNode }) {
+  const rowRef = useRef<HTMLDivElement>(null);
+  const flyoutRef = useRef<HTMLDivElement>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hovered = useRef(false);
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
+
+  const cancelClose = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+  const open = () => {
+    cancelClose();
+    if (active && rowRef.current) setAnchor(rowRef.current.getBoundingClientRect());
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => {
+      // A native <select> dropdown takes the pointer outside the flyout; keep it open until the select is done.
+      if (document.activeElement?.tagName === "SELECT" && flyoutRef.current?.contains(document.activeElement)) return;
+      setAnchor(null);
+    }, CLOSE_DELAY_MS);
+  };
+
+  // Selecting a row while hovering it opens its flyout straight away.
+  useEffect(() => {
+    if (!active) setAnchor(null);
+    else if (hovered.current && rowRef.current) setAnchor(rowRef.current.getBoundingClientRect());
+  }, [active]);
+  useEffect(() => cancelClose, []);
+
+  // Line the flyout up with the row, nudged up if it would run off the bottom.
+  // Inside the layers popover a transformed ancestor can offset `fixed`, so
+  // measure where it actually landed and correct by the difference.
+  useLayoutEffect(() => {
+    const el = flyoutRef.current;
+    if (!anchor || !el) return;
+    const want = { left: anchor.right + 6, top: Math.max(8, Math.min(anchor.top, window.innerHeight - el.offsetHeight - 8)) };
+    el.style.left = `${want.left}px`;
+    el.style.top = `${want.top}px`;
+    const got = el.getBoundingClientRect();
+    setPos({ left: 2 * want.left - got.left, top: 2 * want.top - got.top });
+  }, [anchor]);
+
+  // Render inside the layers popover when there is one, so clicks in the
+  // flyout (e.g. a metric select) don't count as clicks outside it.
+  const portalTarget = rowRef.current?.closest<HTMLElement>('[data-slot="popover-content"]') ?? document.body;
+
+  return (
+    <div
+      ref={rowRef}
+      onMouseEnter={() => {
+        hovered.current = true;
+        open();
+      }}
+      onMouseLeave={() => {
+        hovered.current = false;
+        scheduleClose();
+      }}
+    >
+      {row}
+      {anchor &&
+        createPortal(
+          <div
+            ref={flyoutRef}
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+            onChange={() => (document.activeElement as HTMLElement | null)?.blur()}
+            className="fixed z-50 max-h-[calc(100vh-16px)] w-72 overflow-y-auto rounded-md border bg-background/95 p-2 text-[11px] shadow-lg backdrop-blur"
+            style={pos}
+          >
+            {details()}
+          </div>,
+          portalTarget,
+        )}
     </div>
   );
 }
@@ -94,15 +185,25 @@ function StackableSection({
         const checked = state.infraIds.includes(def.id);
         const minZoom = minZoomOf(def);
         return (
-          <div key={def.id}>
-            <label className="flex items-center gap-1.5" title={def.description}>
-              <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
-              {def.label}
-              {checked && zoom < minZoom && <span className="text-muted-foreground">(zoom in to {minZoom}+)</span>}
-              {checked && zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
-            </label>
-            {checked && <Legend def={def} state={state} />}
-          </div>
+          <HoverRow
+            key={def.id}
+            active={checked}
+            row={
+              <label className="flex items-center gap-1.5" title={checked ? undefined : def.description}>
+                <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
+                {def.label}
+              </label>
+            }
+            details={() => (
+              <>
+                <p className="mb-1 font-medium">{def.label}</p>
+                {zoom < minZoom && <p className="mb-1 text-amber-400/90">Zoom in to {minZoom}+ to load this layer.</p>}
+                {zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
+                <p className="mb-1 text-muted-foreground">{def.description}</p>
+                <Legend def={def} state={state} />
+              </>
+            )}
+          />
         );
       })}
     </>
@@ -126,40 +227,57 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
       infraIds: state.infraIds.includes(id) ? state.infraIds.filter((x) => x !== id) : [...state.infraIds, id],
     });
 
+  // Pillar scores and heat overlays share one radio group: one choropleth at a time.
+  // Details (metric picker, legend, caveats) open in a hover flyout, so selecting never shifts the list.
+  const heatOption = (def: OverlayDefinition) => {
+    const active = state.heatId === def.id;
+    const metric = selectedMetric(def, state);
+    return (
+      <HoverRow
+        key={def.id}
+        active={active}
+        row={
+          <label className="flex items-center gap-1.5" title={active ? undefined : def.description}>
+            <input type="radio" name="heat-overlay" checked={active} onChange={() => setHeat(def.id)} />
+            {def.label}
+          </label>
+        }
+        details={() => (
+          <>
+            <p className="mb-1 font-medium">{def.label}</p>
+            {loadingIds.includes(def.id) && <LoadingBadge />}
+            <p className="mb-1 text-muted-foreground">{def.description}</p>
+            {def.metrics && (
+              <select
+                className="mb-1 w-full rounded border bg-background px-1 py-0.5"
+                value={metric?.id}
+                onChange={(e) => setMetric(def.id, e.target.value)}
+              >
+                {def.metrics.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+            )}
+            <Legend def={def} state={state} />
+          </>
+        )}
+      />
+    );
+  };
+
   return (
     <div className="max-h-[70vh] w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
-      <p className="mb-1 font-medium">Heat overlay</p>
+      <p className="mb-1 font-medium">Pillar scores</p>
       <label className="flex items-center gap-1.5">
         <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />
         None
       </label>
-      {HEAT_OVERLAYS.map((def) => (
-        <div key={def.id}>
-          <label className="flex items-center gap-1.5" title={def.description}>
-            <input type="radio" name="heat-overlay" checked={state.heatId === def.id} onChange={() => setHeat(def.id)} />
-            {def.label}
-            {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
-          </label>
-          {state.heatId === def.id && (
-            <>
-              {def.metrics && (
-                <select
-                  className="mt-1 w-full rounded border bg-background px-1 py-0.5"
-                  value={selectedMetric(def, state)?.id}
-                  onChange={(e) => setMetric(def.id, e.target.value)}
-                >
-                  {def.metrics.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <Legend def={def} state={state} />
-            </>
-          )}
-        </div>
-      ))}
+      {PILLAR_OVERLAYS.map(heatOption)}
+
+      <p className="mt-2 mb-1 font-medium">Heat overlay</p>
+      {HEAT_OVERLAYS.map(heatOption)}
 
       {STACKABLE_GROUPS.map(({ group, title }) => (
         <StackableSection

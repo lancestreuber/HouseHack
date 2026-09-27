@@ -60,7 +60,7 @@ export function BreakdownPanel({
                   </span>
                 </div>
                 {score.flags.map((f) => (
-                  <AlertRow key={f} text={`${f} (pillar capped)`} />
+                  <AlertRow key={f.text} text={f.capped ? `${f.text} (pillar capped)` : f.text} />
                 ))}
                 <ul className="space-y-0.5">
                   {indicators.map((ind) => {

@@ -6,6 +6,7 @@
 
 import { codeViolationsOverlay, condemnedPropertiesOverlay, permitsActivityOverlay } from "./activity";
 import { airQualityOverlay } from "./air-quality";
+import { alprOverlay, camerasOverlay } from "./cameras";
 import { chasOverlay } from "./chas";
 import { designationAreasOverlay, locationAffordabilityOverlay } from "./designations-lai";
 import { imperviousOverlay, surfaceHeatOverlay, treeCanopyOverlay } from "./environment";
@@ -25,6 +26,7 @@ import { landslideIncidentsOverlay, landslideSusceptibilityOverlay } from "./lan
 import { leadServiceLinesOverlay } from "./lead-service-lines";
 import { commerceDensityOverlay } from "./commerce-density";
 import { parksOverlay, trailsOverlay } from "./parks";
+import { PILLAR_OVERLAYS } from "./pillars";
 import { AMENITY_OVERLAYS, PLACE_OVERLAYS, SERVICE_OVERLAYS } from "./places";
 import { safetyOverlay, seriousCrashesOverlay } from "./safety";
 import { schoolQualityOverlay } from "./school-quality";
@@ -39,6 +41,7 @@ import { cityZoningOverlaysOverlay, rcoOverlay, suburbanZoningOverlay } from "./
 
 export const OVERLAYS: OverlayDefinition[] = [
   residentialZoningOverlay,
+  ...PILLAR_OVERLAYS,
   airQualityOverlay,
   weatherRiskOverlay,
   housingCostsOverlay,
@@ -105,9 +108,12 @@ export const OVERLAYS: OverlayDefinition[] = [
   zbaHousingOverlay,
   zbaOtherOverlay,
   careSpacingOverlay,
+  camerasOverlay,
+  alprOverlay,
 ];
 
 export const HEAT_OVERLAYS = OVERLAYS.filter((o) => o.group === "heat");
+export { PILLAR_OVERLAYS };
 
 // Stackable (checkbox) sections of the layers panel, in display order.
 export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: string }[] = [
@@ -119,6 +125,7 @@ export const STACKABLE_GROUPS: { group: OverlayDefinition["group"]; title: strin
   { group: "development", title: "Development & conditions" },
   { group: "land", title: "Land & acquisition" },
   { group: "legal", title: "Legal feasibility" },
+  { group: "cameras", title: "Live cameras" },
 ];
 export const overlaysInGroup = (group: OverlayDefinition["group"]) => OVERLAYS.filter((o) => o.group === group);
 

@@ -35,10 +35,12 @@ import { setAddressSelectHandler } from "./map/address-select-store";
 import { decodeWeights, encodeWeights, setPillarWeights, usePillarWeights } from "./map/pillar-weights-store";
 import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
+import { CameraViewer } from "./map/camera-viewer";
 import { ChatPane } from "./chat/chat-pane";
 import { useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
 import {
+  hitsClickableOverlay,
   INITIAL_OVERLAY_STATE,
   loadingOverlayIds,
   type OverlayState,
@@ -251,6 +253,10 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   const threeDEnabledRef = useRef(threeDEnabled);
   threeDEnabledRef.current = threeDEnabled;
   const wasZoomedInRef = useRef(false);
+  // True once the current style has been parsed and our layers can be added.
+  // Not map.isStyleLoaded(): that also waits for every tile, so it stays false
+  // while spin/3D keeps streaming tiles and layer toggles were silently dropped.
+  const styleReadyRef = useRef(false);
   const mapPane = usePaneCollapse();
   const scoresPane = usePaneCollapse();
   const alertsPane = usePaneCollapse();
@@ -396,6 +402,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     // in ./map/overlays. Re-applied after every style load, since a basemap
     // swap drops all sources and layers.
     const applyOverlays = () => {
+      styleReadyRef.current = true;
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
@@ -413,6 +420,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     registerTooltips(map, () => overlayStateRef.current);
 
     map.on("click", PARCEL_HIT_LAYER_ID, (e) => {
+      if (hitsClickableOverlay(map, e.point)) return;
       const pin = e.features?.[0]?.properties?.pin;
       if (typeof pin === "string") setSelectedPin(pin);
     });
@@ -443,6 +451,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       isFirstRun.current = false;
       return;
     }
+    styleReadyRef.current = false;
     map.setStyle(basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDark));
   }, [basemap, isDark]);
 
@@ -499,7 +508,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    // Mid style swap: the style.load handler applies the latest state instead.
+    if (!map || !styleReadyRef.current) return;
     syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
     setLoadingIds(loadingOverlayIds(map, overlayState));
     void refreshViewportOverlays(map, overlayState).then(() =>
@@ -542,6 +552,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                     </Popover>
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
+                  <CameraViewer />
                   <div className="absolute bottom-2 left-2 z-10">
                     <Popover>
                       <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">

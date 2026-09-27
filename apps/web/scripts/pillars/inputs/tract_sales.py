@@ -30,6 +30,7 @@ for t in sorted(set(k[0] for k in P)|set(hu)):
     o['n_2020_2021']=len(a); o['n_2024_2025']=len(b)
     o['median_2020_2021']=round(statistics.median(a)) if a else None; o['median_2024_2025']=round(statistics.median(b)) if b else None
     o['chg_pct_pooled_2021_to_2425']=round((o['median_2024_2025']-o['median_2020_2021'])/o['median_2020_2021'],3) if a and b else None
+    o['chg_pct_pooled_reliable']=o['chg_pct_pooled_2021_to_2425'] if len(a)>=10 and len(b)>=10 else None
     o['sales_per_100hu_2024_2025']=round(100*len(b)/o['housing_units_acs2024'],2) if o['housing_units_acs2024'] else None
     o['low_n_flag']='; '.join(k for k,n in (('n_2020<10',o['n_2020']),('n_2025<10',o['n_2025']),('pooled_2021<10',len(a)),('pooled_2425<10',len(b))) if n<10)
     out.append(o)
