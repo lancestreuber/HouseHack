@@ -55,7 +55,7 @@ export type ParcelData = {
 };
 
 // Share of City parcels (at default weights) scoring below this value.
-function percentileRank(q: number[] | undefined, v: number | null) {
+export function percentileRank(q: number[] | undefined, v: number | null) {
   if (!q || v == null) return null;
   let i = 0;
   while (i < q.length && q[i] < v) i++;

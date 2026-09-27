@@ -125,7 +125,10 @@ export interface ChatFact extends ContextFact {
 export interface ScoringModel {
   method: "geometric" | "arithmetic";
   floor: number;
-  parts: { id: string; label: string; score: number | null; weight: number }[];
+  /** A part with no score counts as `impute` when given, else it's left out. */
+  parts: { id: string; label: string; score: number | null; weight: number; impute?: number | null }[];
+  /** Applied to the blended score (e.g. zoning and site-availability factors). */
+  multiplier?: number;
 }
 
 /** What the screen shows right now. Every panel that wants chat support builds one. */
