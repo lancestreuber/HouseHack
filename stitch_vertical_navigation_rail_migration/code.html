@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400;0,600;1,400;1,600&amp;family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@100..900&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"on-surface-variant":"#d3c4b3","surface-variant":"#353436","surface-container-high":"#2a2a2b","on-tertiary-fixed":"#001d35","secondary":"#c8c5cb","surface-bright":"#3a393a","surface-container-low":"#1c1b1c","on-surface":"#e5e2e3","surface-tint":"#f2be71","on-secondary-fixed-variant":"#47464b","tertiary":"#a1cafb","secondary-container":"#47464b","tertiary-fixed-dim":"#a1cafa","on-error":"#690005","secondary-fixed-dim":"#c8c5cb","primary-fixed-dim":"#f2be71","surface":"#131314","primary-fixed":"#ffddb1","error-container":"#93000a","error":"#ffb4ab","on-secondary":"#303034","on-tertiary":"#003257","on-secondary-container":"#b6b4b9","inverse-on-surface":"#313031","primary":"#f2be71","surface-dim":"#131314","on-tertiary-container":"#10426b","tertiary-fixed":"#d0e4ff","outline":"#9c8f7f","primary-container":"#d4a359","surface-container":"#201f20","on-tertiary-fixed-variant":"#1b4972","outline-variant":"#4f4538","on-error-container":"#ffdad6","inverse-primary":"#7e5713","on-primary-fixed":"#291800","background":"#131314","inverse-surface":"#e5e2e3","on-background":"#e5e2e3","on-primary-fixed-variant":"#614000","on-secondary-fixed":"#1b1b1f","on-primary-container":"#583a00","on-primary":"#442b00","surface-container-highest":"#353436","secondary-fixed":"#e4e1e7","tertiary-container":"#86afde","surface-container-lowest":"#0e0e0f"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"margin-desktop":"1.5rem","margin":"1rem","gutter":"1rem","space-xs":"0.25rem","gutter-desktop":"1.5rem","space-md":"1rem","space-lg":"1.5rem","space-xl":"2rem","space-sm":"0.5rem"},"fontFamily":{"label-sm-emphasis":["Archivo Narrow"],"hero-metric":["Archivo Narrow"],"section-header":["Archivo Narrow"],"body":["Archivo Narrow"],"hero-metric-mobile":["Archivo Narrow"],"label-sm":["Archivo Narrow"],"body-emphasis":["Archivo Narrow"]},"fontSize":{"label-sm-emphasis":["13px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"600"}],"hero-metric":["36px",{"lineHeight":"40px","letterSpacing":"-0.02em","fontWeight":"600"}],"section-header":["20px",{"lineHeight":"26px","letterSpacing":"-0.01em","fontWeight":"600"}],"body":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"hero-metric-mobile":["28px",{"lineHeight":"32px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-sm":["13px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}],"body-emphasis":["15px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"600"}]}}}}</script></head><body class="bg-surface font-body text-on-surface antialiased selection:bg-primary-container selection:text-on-primary"><nav class="fixed left-0 top-0 h-full w-16 bg-[#0A0A0B] border-r border-[#2A2A30] z-50 flex flex-col justify-between items-center py-3 select-none font-['Archivo_Narrow']" id="primary-nav-rail"><div class="flex flex-col items-center gap-6 w-full"><div class="w-9 h-9 rounded bg-[#1C1C20] border border-[#d4a359]/30 flex items-center justify-center text-[#d4a359] shadow-md cursor-pointer hover:border-[#d4a359] transition-colors"><span class="material-symbols-outlined text-[20px]">radar</span></div><div class="flex flex-col items-center gap-1.5 w-full px-2"><button class="w-10 h-10 rounded flex items-center justify-center bg-[#1C1C20] text-[#d4a359] border border-[#d4a359]/30 hover:text-[#d4a359] transition-colors relative group" title="Spatial Map"><span class="material-symbols-outlined text-[20px]">map</span><span class="absolute left-0 top-2 bottom-2 w-[2px] rounded-r bg-[#d4a359]"></span></button><button class="w-10 h-10 rounded flex items-center justify-center text-[#71717A] hover:bg-[#141416] hover:text-[#F4F4F5] transition-colors" title="Cadastre &amp; Parcels"><span class="material-symbols-outlined text-[20px]">grid_view</span></button><button class="w-10 h-10 rounded flex items-center justify-center text-[#71717A] hover:bg-[#141416] hover:text-[#F4F4F5] transition-colors" title="Zoning Analytics"><span class="material-symbols-outlined text-[20px]">query_stats</span></button><button class="w-10 h-10 rounded flex items-center justify-center text-[#71717A] hover:bg-[#141416] hover:text-[#F4F4F5] transition-colors" title="Feasibility Reports"><span class="material-symbols-outlined text-[20px]">description</span></button></div></div><div class="flex flex-col items-center gap-2 w-full px-2"><button class="w-10 h-10 rounded flex items-center justify-center text-[#71717A] hover:bg-[#141416] hover:text-[#F4F4F5] transition-colors" title="System Settings"><span class="material-symbols-outlined text-[20px]">settings</span></button><div class="w-8 h-px bg-[#2A2A30] my-0.5"></div><button class="w-8 h-8 rounded-full bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#d4a359] hover:border-[#d4a359]/50 transition-colors" title="User Profile (PA-S)"><span class="material-symbols-outlined text-[18px]">person</span></button></div></nav><aside class="fixed top-0 h-full w-72 bg-[#0E0E10] border-r border-[#2A2A30] z-50 flex flex-col justify-between font-['Archivo_Narrow'] select-none transition-all duration-200 left-16" id="layers-sidebar">
+<!-- Header & Filter Region -->
+<div class="flex flex-col shrink-0 border-b border-[#2A2A30]">
+<!-- Top App / Sidebar Header -->
+<div class="flex items-center justify-between px-3.5 h-14 border-b border-[#2A2A30]/50">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 rounded bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#d4a359]">
+<span class="material-symbols-outlined text-[15px]">layers</span>
+</div>
+<div class="flex items-baseline gap-1.5">
+<span class="font-semibold text-[15px] tracking-tight text-[#F4F4F5]">Data Layers</span>
+<span class="text-[13px] text-[#71717A] [font-feature-settings:'tnum'_1]">PA-S</span>
+</div>
+</div>
+<button class="w-7 h-7 rounded hover:bg-[#1C1C20] flex items-center justify-center text-[#71717A] hover:text-[#F4F4F5] transition-colors" id="collapseSidebarBtn" title="Toggle Rail Mode">
+<span class="material-symbols-outlined text-[18px]">dock_to_right</span>
+</button>
+</div>
+<!-- Search / Filter Input -->
+<div class="p-3 flex flex-col gap-2">
+<div class="relative flex items-center w-full">
+<span class="material-symbols-outlined absolute left-2.5 text-[#71717A] text-[16px] pointer-events-none">search</span>
+<input class="w-full h-8 pl-8 pr-7 bg-[#141416] text-[#F4F4F5] placeholder:text-[#71717A] text-[13px] rounded border border-[#2A2A30] focus:outline-none focus:border-[#d4a359] transition-colors font-normal" placeholder="Filter layers..." type="text"/>
+<span class="absolute right-2 text-[11px] text-[#71717A] pointer-events-none font-normal [font-feature-settings:'tnum'_1]">/</span>
+</div>
+<!-- Summary Pill & Reset -->
+<div class="flex items-center justify-between px-0.5 text-[13px]">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+<span class="text-[#F4F4F5] font-normal [font-feature-settings:'tnum'_1]">2 active layers</span>
+</div>
+<button class="text-[#71717A] hover:text-[#F4F4F5] text-[13px] font-normal transition-colors">Clear all</button>
+</div>
+</div>
+</div>
+<!-- Accordion Layer Categories List -->
+<div class="flex-1 overflow-y-auto divide-y divide-[#2A2A30]/50">
+<!-- Group 1: Pillar Scores (Collapsed) -->
+<div class="flex flex-col">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#0E0E10] hover:bg-[#141416] transition-colors group focus:outline-none" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">equalizer</span>
+<span class="font-semibold text-[13px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Pillar Scores</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">0/5</span>
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">expand_more</span>
+</div>
+</button>
+</div>
+<!-- Group 2: Heat Overlays (EXPANDED by default) -->
+<div class="flex flex-col bg-[#111114]">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#141418] hover:bg-[#18181D] transition-colors group focus:outline-none" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#d4a359]">blur_on</span>
+<span class="font-semibold text-[13px] text-[#F4F4F5]">Heat Overlays</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded text-[11px] font-normal bg-[#1C1C20] text-[#d4a359] border border-[#d4a359]/30 [font-feature-settings:'tnum'_1]">1 active • 12</span>
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">expand_less</span>
+</div>
+</button>
+<!-- Layer Items List -->
+<div class="flex flex-col py-1 px-1.5 gap-0.5">
+<label class="relative flex items-center justify-between px-2.5 py-1.5 rounded bg-[#1C1C22] hover:bg-[#202028] cursor-pointer transition-colors group">
+<span class="absolute left-0 top-1 bottom-1 w-[2px] rounded-r bg-[#d4a359]"></span>
+<div class="flex items-center gap-2.5 pl-1">
+<input checked="" class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#F4F4F5]">Zoning: residential density allowed</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Air quality &amp; particulate pm2.5</span>
+</div>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Weather risk index</span>
+</div>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Income &amp; housing cost burden</span>
+</div>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Vacant addresses (USPS)</span>
+</div>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Market type &amp; displacement</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Group 3: Hazards & Environmental -->
+<div class="flex flex-col bg-[#111114]">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#141418] hover:bg-[#18181D] transition-colors group focus:outline-none" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#d4a359]">terrain</span>
+<span class="font-semibold text-[13px] text-[#F4F4F5]">Hazards &amp; Environmental</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="px-1.5 py-0.5 rounded text-[11px] font-normal bg-[#1C1C20] text-[#d4a359] border border-[#d4a359]/30 [font-feature-settings:'tnum'_1]">1 active • 6</span>
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">expand_less</span>
+</div>
+</button>
+<div class="flex flex-col py-1 px-1.5 gap-0.5">
+<label class="relative flex items-center justify-between px-2.5 py-1.5 rounded bg-[#1C1C22] hover:bg-[#202028] cursor-pointer transition-colors group">
+<span class="absolute left-0 top-1 bottom-1 w-[2px] rounded-r bg-[#d4a359]"></span>
+<div class="flex items-center gap-2.5 pl-1">
+<input checked="" class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#F4F4F5]">Steep slopes (&gt;25% grade)</span>
+</div>
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">FEMA flood zones (100-yr)</span>
+</div>
+</label>
+<label class="flex items-center justify-between px-2.5 py-1.5 rounded hover:bg-[#16161A] cursor-pointer transition-colors group">
+<div class="flex items-center gap-2.5 pl-1">
+<input class="w-3.5 h-3.5 rounded bg-[#141416] border border-[#2A2A30] accent-[#d4a359] cursor-pointer" type="checkbox"/>
+<span class="font-normal text-[15px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Landslide-prone areas</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Group 4: Demographics & Housing (Collapsed) -->
+<div class="flex flex-col">
+<button class="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#0E0E10] hover:bg-[#141416] transition-colors group focus:outline-none" type="button">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">groups</span>
+<span class="font-semibold text-[13px] text-[#A1A1AA] group-hover:text-[#F4F4F5]">Demographics &amp; Housing</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">0/4</span>
+<span class="material-symbols-outlined text-[16px] text-[#71717A]">expand_more</span>
+</div>
+</button>
+</div>
+</div>
+<!-- Bottom Status Footer -->
+<div class="shrink-0 p-3 border-t border-[#2A2A30] bg-[#0E0E10] flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#d4a359] animate-pulse"></div>
+<span class="font-normal text-[13px] text-[#71717A] [font-feature-settings:'tnum'_1]">Spatial engine synced</span>
+</div>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">v2.4</span>
+</div>
+</aside><div class="pl-[22rem]"><header class="fixed top-0 right-0 h-14 bg-[#0A0A0B]/90 backdrop-blur-xl border-b border-[#2A2A30] z-40 flex items-center justify-between px-4 gap-4 left-[22rem]"><div class="flex items-center gap-4 flex-1 max-w-xl"><div class="relative flex items-center w-full"><span class="material-symbols-outlined absolute left-2.5 text-[#71717A] text-[16px] pointer-events-none">search</span><input class="w-full h-8 pl-8 pr-14 bg-[#141416] text-[#F4F4F5] placeholder:text-[#71717A] font-['Archivo_Narrow'] text-[13px] rounded border border-[#2A2A30] focus:outline-none focus:border-[#d4a359] transition-colors" placeholder="Search address, parcel PIN, or district..." type="text"/><div class="absolute right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#1C1C20] text-[#71717A] font-['Archivo_Narrow'] text-[11px] pointer-events-none"><span class="">⌘K</span></div></div></div><div class="flex items-center gap-3"><button class="h-8 px-3 flex items-center gap-1.5 rounded bg-[#141416] hover:bg-[#1C1C20] border border-[#2A2A30] text-[#F4F4F5] font-['Archivo_Narrow'] text-[13px] font-semibold transition-colors"><span class="material-symbols-outlined text-[16px] text-[#d4a359]">tune</span><span class="">Weights &amp; Criteria</span></button></div></header><main class="relative pt-14 bg-[#0A0A0B] min-h-screen w-full"><div class="flex w-full h-[calc(100vh-3.5rem)] overflow-hidden relative select-none">
+<!-- Map Viewport Container -->
+<div class="relative flex-1 h-full bg-[#0A0A0B] overflow-hidden">
+<!-- 3D Cartographic Vector SVG Base Layer -->
+<svg class="absolute inset-0 w-full h-full cursor-grab active:cursor-grabbing" preserveaspectratio="xMidYMid slice" viewbox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="12" id="hatch-steep-slope" patterntransform="rotate(45 0 0)" patternunits="userSpaceOnUse" width="12">
+<line stroke="#d4a359" stroke-opacity="0.25" stroke-width="1.2" x1="0" x2="0" y1="0" y2="12"></line>
+</pattern>
+<pattern height="24" id="iso-cadastre-grid" patternunits="userSpaceOnUse" width="48">
+<path d="M 0 12 L 24 0 L 48 12 L 24 24 Z" fill="none" stroke="#2A2A30" stroke-opacity="0.4" stroke-width="0.5"></path>
+</pattern>
+</defs>
+<rect fill="#0A0A0B" height="100%" width="100%"></rect>
+<rect fill="url(#iso-cadastre-grid)" height="100%" opacity="0.6" width="100%"></rect>
+<path d="M -100,780 C 220,680 480,590 740,640 C 980,680 1200,610 1540,520 L 1540,920 L -100,920 Z" fill="#121317"></path>
+<path d="M -100,780 C 220,680 480,590 740,640 C 980,680 1200,610 1540,520" fill="none" stroke="#222329" stroke-width="2"></path>
+<path d="M -100,810 C 220,710 480,620 740,670 C 980,710 1200,640 1540,550" fill="none" stroke="#1c1d24" stroke-dasharray="6,4" stroke-width="1"></path>
+<g fill="none" opacity="0.8" stroke="#1c1c22" stroke-width="1">
+<path d="M 80,-40 C 260,140 400,260 520,380 C 640,500 820,530 1100,430"></path>
+<path d="M 160,-40 C 340,130 480,240 600,350 C 720,460 900,480 1180,390" stroke-dasharray="3,3"></path>
+<path d="M 280,-40 C 440,110 560,210 680,310 C 800,410 980,430 1260,340"></path>
+<path d="M 390,-40 C 530,90 640,180 750,270 C 860,360 1040,380 1340,290" stroke-dasharray="2,4"></path>
+</g>
+<g fill="none" stroke="#18181C" stroke-linecap="round" stroke-linejoin="round">
+<path d="M -40,310 L 480,110 L 980,310 L 1480,110" stroke-width="36"></path>
+<path d="M 120,640 L 480,110 L 620,-80" stroke-width="28"></path>
+<path d="M 440,650 L 980,310 L 1120,-60" stroke-width="28"></path>
+<path d="M 220,420 L 760,220 L 1260,420" stroke-width="18"></path>
+<path d="M 280,280 L 640,560" stroke-width="14"></path>
+<path d="M 680,180 L 1020,450" stroke-width="14"></path>
+</g>
+<g fill="none" stroke="#26262e" stroke-dasharray="10,12" stroke-width="1">
+<path d="M -40,310 L 480,110 L 980,310 L 1480,110"></path>
+<path d="M 120,640 L 480,110"></path>
+<path d="M 440,650 L 980,310"></path>
+</g>
+<polygon fill="#a0a0af" fill-opacity="0.08" points="180,380 340,310 460,410 300,480" stroke="#35353d" stroke-width="1"></polygon>
+<polygon fill="#787887" fill-opacity="0.09" points="560,180 720,120 860,220 700,280" stroke="#3a3a44" stroke-width="1"></polygon>
+<polygon fill="url(#hatch-steep-slope)" points="420,380 580,310 660,370 500,440" stroke="#d4a359" stroke-opacity="0.3" stroke-width="1"></polygon>
+<g>
+<polygon fill="#1b1b20" points="260,260 300,240 330,260 290,280" stroke="#2A2A30" stroke-width="0.8"></polygon>
+<polygon fill="#1e1e24" points="260,260 260,220 290,240 290,280"></polygon>
+<polygon fill="#24242b" points="290,280 290,240 330,220 330,260"></polygon>
+<polygon fill="#2d2d35" points="260,220 300,200 330,220 290,240" stroke="#383842" stroke-width="0.8"></polygon>
+<polygon fill="#1b1b20" points="340,230 390,210 420,230 370,250"></polygon>
+<polygon fill="#222229" points="340,230 340,160 370,180 370,250"></polygon>
+<polygon fill="#292931" points="370,250 370,180 420,160 420,230"></polygon>
+<polygon fill="#32323b" points="340,160 390,140 420,160 370,180" stroke="#43434e" stroke-width="0.8"></polygon>
+</g>
+<g>
+<polygon fill="#18181d" points="760,270 800,250 830,270 790,290"></polygon>
+<polygon fill="#1f1f26" points="760,270 760,245 790,265 790,290"></polygon>
+<polygon fill="#25252e" points="790,290 790,265 830,245 830,270"></polygon>
+<polygon fill="#2b2b34" points="760,245 800,225 830,245 790,265" stroke="#363640" stroke-width="0.8"></polygon>
+<polygon fill="#18181d" points="845,310 885,290 915,310 875,330"></polygon>
+<polygon fill="#1f1f26" points="845,310 845,285 875,305 875,330"></polygon>
+<polygon fill="#25252e" points="875,330 875,305 915,285 915,310"></polygon>
+<polygon fill="#2b2b34" points="845,285 885,265 915,285 875,305" stroke="#363640" stroke-width="0.8"></polygon>
+</g>
+<g class="transition-all duration-300" id="target-parcel">
+<polygon fill="#d4a359" fill-opacity="0.14" points="460,350 540,310 610,360 530,400" stroke="#d4a359" stroke-width="1.75"></polygon>
+<polygon fill="#201c18" points="485,355 520,335 555,355 520,375"></polygon>
+<polygon fill="#2b261f" points="485,355 485,315 520,335 520,375"></polygon>
+<polygon fill="#352e25" points="520,375 520,335 555,315 555,355"></polygon>
+<polygon fill="#44392a" points="485,315 520,295 555,315 520,335" stroke="#d4a359" stroke-width="1"></polygon>
+<line opacity="0.6" stroke="#d4a359" stroke-dasharray="2,2" stroke-width="0.75" x1="460" x2="540" y1="350" y2="310"></line>
+<line opacity="0.6" stroke="#d4a359" stroke-dasharray="2,2" stroke-width="0.75" x1="540" x2="610" y1="310" y2="360"></line>
+<circle cx="520" cy="335" fill="#d4a359" r="4"></circle>
+<circle class="animate-ping" cx="520" cy="335" fill="none" opacity="0.4" r="10" stroke="#d4a359" stroke-width="1" style="animation-duration: 3s;"></circle>
+</g>
+<foreignobject height="48" width="190" x="546" y="270">
+<div class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#141416]/95 backdrop-blur-md border border-[#2A2A30] text-[#F4F4F5] shadow-lg pointer-events-none" xmlns="http://www.w3.org/1999/xhtml">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+<div class="flex flex-col">
+<span class="font-['Archivo_Narrow'] font-semibold text-[13px] leading-tight tracking-tight text-[#F4F4F5]">R1D-H • Hillside</span>
+<span class="font-['Archivo_Narrow'] font-normal text-[13px] leading-tight text-[#A1A1AA] [font-feature-settings:'tnum'_1]">4,463 sq ft • 28% Grd</span>
+</div>
+</div>
+</foreignobject>
+<foreignobject height="36" width="160" x="710" y="100">
+<div class="inline-flex items-center px-2 py-1 rounded-lg bg-[#141416]/80 border border-[#2A2A30] text-[#A1A1AA] pointer-events-none" xmlns="http://www.w3.org/1999/xhtml">
+<span class="font-['Archivo_Narrow'] font-normal text-[13px] [font-feature-settings:'tnum'_1]">C2-B • Comm 0.85 FAR</span>
+</div>
+</foreignobject>
+</svg>
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 px-3 py-1.5 rounded-lg bg-[#141416]/90 backdrop-blur-md border border-[#2A2A30] text-[#71717A] text-[13px] font-['Archivo_Narrow'] [font-feature-settings:'tnum'_1] pointer-events-none z-10">
+<span class="">LAT 40°26'29.4"N</span>
+<span class="text-[#2A2A30]">•</span>
+<span class="">LON 79°58'44.2"W</span>
+<span class="text-[#2A2A30]">•</span>
+<span class="">ELEV 267.4m</span>
+<span class="text-[#2A2A30]">•</span>
+<span class="text-[#A1A1AA]">EPSG:2272 (PA-S)</span>
+</div>
+<div class="absolute bottom-4 left-4 z-20 flex flex-col gap-1.5">
+<button class="w-8 h-8 rounded-lg bg-[#141416] hover:bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] transition-colors" title="Reset North">
+<span class="material-symbols-outlined text-[18px] text-[#d4a359]">navigation</span>
+</button>
+<button class="w-8 h-8 rounded-lg bg-[#141416] hover:bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] text-[15px] font-semibold transition-colors" title="Zoom in">+
+</button>
+<button class="w-8 h-8 rounded-lg bg-[#141416] hover:bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] text-[15px] font-semibold transition-colors" title="Zoom out">−
+</button>
+<button class="w-8 h-8 rounded-lg bg-[#141416] hover:bg-[#1C1C20] border border-[#2A2A30] flex items-center justify-center text-[#A1A1AA] hover:text-[#F4F4F5] font-['Archivo_Narrow'] text-[13px] font-semibold transition-colors" title="Switch 2D / 2.5D tilt">2.5D
+</button>
+</div>
+</div>
+<!-- Sticky Docked Right Inspector Panel -->
+<aside class="w-[390px] shrink-0 h-full z-30 flex flex-col bg-[#141416] border-l border-[#2A2A30] shadow-2xl font-['Archivo_Narrow'] select-none relative" id="parcel-inspector">
+<!-- Top Combined Parcel ID & Overall Score Region -->
+<div class="px-4 pt-3.5 pb-3 border-b border-[#2A2A30] flex flex-col gap-2 shrink-0 bg-[#141416]">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="font-normal text-[13px] text-[#A1A1AA] [font-feature-settings:'tnum'_1] tracking-wider uppercase">0001N001540000</span>
+<span class="text-[#71717A] text-[13px]">•</span>
+<span class="font-normal text-[13px] text-[#71717A]">R1D-H Pittsburgh</span>
+</div>
+<button class="w-6 h-6 rounded flex items-center justify-center text-[#71717A] hover:text-[#F4F4F5] hover:bg-[#1C1C20] transition-colors focus:outline-none" title="Inspector Options">
+<span class="material-symbols-outlined text-[16px]">more_vert</span>
+</button>
+</div>
+<!-- Overall Score (Compact Headline) -->
+<div class="flex items-baseline justify-between pt-0.5">
+<span class="font-normal text-[13px] text-[#A1A1AA]">Overall Viability Score</span>
+<div class="flex items-baseline gap-1">
+<span class="font-semibold text-[36px] leading-none text-[#F4F4F5] [font-feature-settings:'tnum'_1]">57</span>
+<span class="font-normal text-[13px] text-[#71717A] [font-feature-settings:'tnum'_1]">/100</span>
+</div>
+</div>
+<!-- Gold Progress Line -->
+<div class="w-full h-1 bg-[#1C1C20] rounded-full overflow-hidden">
+<div class="h-full bg-[#d4a359] rounded-full" style="width: 57%;"></div>
+</div>
+</div>
+<!-- Tab / Segmented Menu Navigation -->
+<div class="px-3 py-2 border-b border-[#2A2A30] bg-[#111114] shrink-0">
+<div class="grid grid-cols-4 p-0.5 bg-[#18181C] rounded border border-[#2A2A30]/70" id="inspector-tabs" role="tablist">
+<button class="tab-btn flex items-center justify-center gap-1.5 py-1.5 px-1 rounded text-[13px] font-semibold transition-all text-[#F4F4F5] bg-[#222228] shadow-sm" data-tab="tab-alerts" type="button">
+<span>Alerts</span>
+<span class="px-1.5 py-0.2 rounded text-[11px] font-semibold bg-[#ffb4ab]/20 text-[#ffdad6] border border-[#ffb4ab]/30 [font-feature-settings:'tnum'_1] leading-none">2</span>
+</button>
+<button class="tab-btn flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[13px] font-normal transition-all text-[#71717A] hover:text-[#A1A1AA]" data-tab="tab-breakdowns" type="button">
+<span>Breakdowns</span>
+</button>
+<button class="tab-btn flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[13px] font-normal transition-all text-[#71717A] hover:text-[#A1A1AA]" data-tab="tab-typology" type="button">
+<span>Typology</span>
+</button>
+<button class="tab-btn flex items-center justify-center gap-1 py-1.5 px-1 rounded text-[13px] font-normal transition-all text-[#71717A] hover:text-[#A1A1AA]" data-tab="tab-chat" type="button">
+<span>Chat</span>
+</button>
+</div>
+</div>
+<!-- Tab Content Container -->
+<div class="flex-1 overflow-y-auto flex flex-col relative" id="tab-content-container">
+<!-- 1. ALERTS VIEW -->
+<div class="tab-panel flex flex-col p-4 gap-3" id="tab-alerts">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] tracking-wide text-[#F4F4F5] uppercase">Active Constraints</span>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">2 critical notices</span>
+</div>
+<div class="p-3 rounded-lg bg-[#ffb4ab]/10 border border-[#ffb4ab]/25 flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ffb4ab] mt-1.5 shrink-0"></span>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] text-[#ffdad6]">Severe steep-slope hazard (§911.04)</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-[#ffb4ab]/15 text-[#ffb4ab] font-semibold">Critical</span>
+</div>
+<p class="font-normal text-[13px] text-[#ffdad6]/80 leading-snug">28% grade triggers mandatory geotechnical site review before zoning permit clearance.</p>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-[#d4a359]/10 border border-[#d4a359]/25 flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359] mt-1.5 shrink-0"></span>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] text-[#F4F4F5]">Zoning density restricted</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-[#d4a359]/15 text-[#d4a359] font-semibold">Overlay</span>
+</div>
+<p class="font-normal text-[13px] text-[#A1A1AA] leading-snug">Duplex &amp; Multi-family typologies require conditional zoning adjustment in R1D-H hillside overlay.</p>
+</div>
+</div>
+<div class="p-3 rounded-lg bg-[#1C1C20] border border-[#2A2A30] flex items-start gap-2.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#71717A] mt-1.5 shrink-0"></span>
+<div class="flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] text-[#A1A1AA]">Environmental stormwater review</span>
+<span class="text-[11px] px-1.5 py-0.5 rounded bg-[#2A2A30] text-[#71717A] font-normal">Advisory</span>
+</div>
+<p class="font-normal text-[13px] text-[#71717A] leading-snug">Sites exceeding 2,500 sq ft impervious addition require PWSA green infrastructure compliance.</p>
+</div>
+</div>
+</div>
+<!-- 2. BREAKDOWNS VIEW -->
+<div class="tab-panel hidden flex-col p-4 gap-3.5" id="tab-breakdowns">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] tracking-wide text-[#F4F4F5] uppercase">Analytical Breakdowns</span>
+<span class="text-[11px] text-[#71717A]">R1D-H Base Standards</span>
+</div>
+<div class="flex flex-col divide-y divide-[#2A2A30] border border-[#2A2A30] rounded-lg bg-[#111114] px-3.5 py-1">
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Floor Area Ratio (FAR)</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">0.45 max (2,008 sq ft)</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Lot Footprint</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">4,463 sq ft</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Allowable Lot Coverage</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">40% max (1,785 sq ft)</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Frontage Width</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">42.5 ft</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Front Setback</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">25.0 ft required</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Side / Rear Setbacks</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">5.0 ft min / 20.0 ft rear</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Max Buildable Height</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">35.0 ft (3-sty)</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Impervious Surface Limit</span>
+<span class="text-[#F4F4F5] font-semibold [font-feature-settings:'tnum'_1]">55% total allowable</span>
+</div>
+<div class="flex items-center justify-between py-2 text-[13px]">
+<span class="text-[#71717A]">Slope Gradient Breakdown</span>
+<span class="text-[#ffdad6] font-semibold [font-feature-settings:'tnum'_1]">28.2% max grade</span>
+</div>
+</div>
+</div>
+<!-- 3. TYPOLOGY SCORES VIEW -->
+<div class="tab-panel hidden flex-col p-4 gap-3" id="tab-typology">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[13px] tracking-wide text-[#F4F4F5] uppercase">Typology Feasibility</span>
+<span class="text-[11px] text-[#71717A]">By allowable density</span>
+</div>
+<div class="flex flex-col gap-2.5">
+<!-- Single Family -->
+<div class="p-3 rounded-lg bg-[#111114] border border-[#2A2A30] flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+<span class="font-semibold text-[15px] text-[#F4F4F5]">Single-Detached House</span>
+</div>
+<span class="font-semibold text-[13px] text-[#d4a359] [font-feature-settings:'tnum'_1]">74 / 100</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="text-[#71717A]">Permitted by-right</span>
+<span class="text-[#A1A1AA] [font-feature-settings:'tnum'_1]">Relief odds: 98%</span>
+</div>
+<div class="w-full h-1 bg-[#1C1C20] rounded-full overflow-hidden mt-1">
+<div class="h-full bg-[#d4a359] rounded-full" style="width: 74%;"></div>
+</div>
+</div>
+<!-- Duplex -->
+<div class="p-3 rounded-lg bg-[#111114] border border-[#2A2A30] flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#71717A]"></span>
+<span class="font-semibold text-[15px] text-[#A1A1AA]">Duplex / Two-Unit</span>
+</div>
+<span class="font-semibold text-[13px] text-[#A1A1AA] [font-feature-settings:'tnum'_1]">42 / 100</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="text-[#ffb4ab]">Restricted (Conditional)</span>
+<span class="text-[#71717A] [font-feature-settings:'tnum'_1]">Relief odds: 38%</span>
+</div>
+<div class="w-full h-1 bg-[#1C1C20] rounded-full overflow-hidden mt-1">
+<div class="h-full bg-[#71717A] rounded-full" style="width: 42%;"></div>
+</div>
+</div>
+<!-- Triplex -->
+<div class="p-3 rounded-lg bg-[#111114] border border-[#2A2A30] flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#71717A]"></span>
+<span class="font-semibold text-[15px] text-[#A1A1AA]">Triplex / Three-Unit</span>
+</div>
+<span class="font-semibold text-[13px] text-[#71717A] [font-feature-settings:'tnum'_1]">38 / 100</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="text-[#ffb4ab]">Restricted (Variance needed)</span>
+<span class="text-[#71717A] [font-feature-settings:'tnum'_1]">Relief odds: 22%</span>
+</div>
+<div class="w-full h-1 bg-[#1C1C20] rounded-full overflow-hidden mt-1">
+<div class="h-full bg-[#71717A] rounded-full" style="width: 38%;"></div>
+</div>
+</div>
+<!-- Multi-Family -->
+<div class="p-3 rounded-lg bg-[#111114] border border-[#2A2A30] flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-[#ffb4ab]"></span>
+<span class="font-semibold text-[15px] text-[#71717A]">Apartments / Multi-Unit (4+)</span>
+</div>
+<span class="font-semibold text-[13px] text-[#ffb4ab] [font-feature-settings:'tnum'_1]">21 / 100</span>
+</div>
+<div class="flex items-center justify-between text-[13px]">
+<span class="text-[#ffdad6]">Prohibited in R1D-H</span>
+<span class="text-[#71717A] [font-feature-settings:'tnum'_1]">Relief odds: &lt;5%</span>
+</div>
+<div class="w-full h-1 bg-[#1C1C20] rounded-full overflow-hidden mt-1">
+<div class="h-full bg-[#93000a] rounded-full" style="width: 21%;"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- 4. CHAT VIEW -->
+<div class="tab-panel hidden flex-col h-full justify-between" id="tab-chat">
+<!-- Messages Stream -->
+<div class="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+<div class="flex items-center justify-between pb-1 border-b border-[#2A2A30]/50">
+<div class="flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-[#d4a359]"></span>
+<span class="font-semibold text-[13px] text-[#F4F4F5]">Parcel Intelligence</span>
+</div>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">GPT-4o Zoning Core</span>
+</div>
+<!-- Assistant Welcome Message -->
+<div class="flex flex-col gap-1 rounded-lg p-3 bg-[#111114] border border-[#2A2A30]">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[11px] text-[#d4a359] uppercase tracking-wider">AI Copilot</span>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">Just now</span>
+</div>
+<p class="font-normal text-[13px] text-[#e5e2e3] leading-relaxed">
+I have indexed parcel <strong>0001N001540000</strong> with Pittsburgh R1D-H zoning ordinances, Allegheny County GIS layers, and steep-slope topography. What would you like to explore?
+</p>
+</div>
+<!-- Sample User Query -->
+<div class="flex flex-col gap-1 rounded-lg p-3 bg-[#1C1C22] border border-[#2A2A30] ml-6">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[11px] text-[#A1A1AA] uppercase tracking-wider">You</span>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">1m ago</span>
+</div>
+<p class="font-normal text-[13px] text-[#F4F4F5] leading-relaxed">
+Why is the overall score 57?
+</p>
+</div>
+<!-- Sample Assistant Answer -->
+<div class="flex flex-col gap-1 rounded-lg p-3 bg-[#111114] border border-[#2A2A30]">
+<div class="flex items-center justify-between">
+<span class="font-semibold text-[11px] text-[#d4a359] uppercase tracking-wider">AI Copilot</span>
+<span class="text-[11px] text-[#71717A] [font-feature-settings:'tnum'_1]">1m ago</span>
+</div>
+<p class="font-normal text-[13px] text-[#e5e2e3] leading-relaxed">
+The score is penalized primarily by the <strong>28% slope grade</strong> (§911.04 geotechnical threshold), reducing site buildability, and restrictive single-family R1D-H zoning which curbs multi-unit yield.
+</p>
+</div>
+</div>
+<!-- Docked Question Suggestions & Chat Input -->
+<div class="p-3 bg-[#111114] border-t border-[#2A2A30] flex flex-col gap-2 shrink-0">
+<div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+<button class="shrink-0 px-2.5 py-1 rounded bg-[#1C1C20] hover:bg-[#2A2A30] text-[#A1A1AA] hover:text-[#F4F4F5] text-[13px] font-normal border border-[#2A2A30]/50 transition-colors" onclick="setQuery('Why is the overall score 57?')" type="button">Why is the overall score 57?</button>
+<button class="shrink-0 px-2.5 py-1 rounded bg-[#1C1C20] hover:bg-[#2A2A30] text-[#A1A1AA] hover:text-[#F4F4F5] text-[13px] font-normal border border-[#2A2A30]/50 transition-colors" onclick="setQuery('Could I build a duplex here?')" type="button">Could I build a duplex here?</button>
+<button class="shrink-0 px-2.5 py-1 rounded bg-[#1C1C20] hover:bg-[#2A2A30] text-[#A1A1AA] hover:text-[#F4F4F5] text-[13px] font-normal border border-[#2A2A30]/50 transition-colors" onclick="setQuery('What\'s holding back Affordability?')" type="button">What's holding back Affordability?</button>
+</div>
+<div class="relative flex items-center w-full bg-[#1C1C20] rounded border border-[#2A2A30] focus-within:border-[#d4a359] transition-all shadow-md">
+<input class="w-full h-9 pl-3 pr-16 bg-transparent text-[#F4F4F5] placeholder:text-[#71717A] text-[15px] font-normal focus:outline-none" id="chatInput" placeholder="Ask anything about this parcel..." type="text"/>
+<div class="absolute right-1.5 flex items-center gap-1">
+<button class="w-6 h-6 rounded flex items-center justify-center text-[#71717A] hover:text-[#F4F4F5] transition-colors focus:outline-none" title="Voice input" type="button"><span class="material-symbols-outlined text-[16px]">mic</span></button>
+<button class="w-6 h-6 rounded bg-[#d4a359] hover:bg-[#f2be71] flex items-center justify-center text-[#0E0E10] transition-colors focus:outline-none" title="Send prompt" type="button"><span class="material-symbols-outlined text-[16px]">arrow_upward</span></button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Quiet Disclaimer -->
+<div class="px-4 py-2.5 border-t border-[#2A2A30] bg-[#141416] shrink-0">
+<p class="font-normal text-[11px] leading-tight text-[#71717A]">
+Decision support only, not legal or financial advice. Simplified reading of City Code; verify with Zoning Administrator. <a class="underline hover:text-[#A1A1AA] transition-colors" href="#">Limitations</a>
+</p>
+</div>
+</aside>
+</div>
+<script>
+  // Tab switching vanilla JS
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const targetId = this.getAttribute('data-tab');
+
+      // Update button styles
+      tabButtons.forEach(b => {
+        b.classList.remove('bg-[#222228]', 'text-[#F4F4F5]', 'shadow-sm', 'font-semibold');
+        b.classList.add('text-[#71717A]', 'font-normal');
+      });
+      this.classList.remove('text-[#71717A]', 'font-normal');
+      this.classList.add('bg-[#222228]', 'text-[#F4F4F5]', 'shadow-sm', 'font-semibold');
+
+      // Update panel visibility
+      tabPanels.forEach(panel => {
+        if (panel.id === targetId) {
+          panel.classList.remove('hidden');
+          if (targetId === 'tab-chat') {
+            panel.classList.add('flex');
+          }
+        } else {
+          panel.classList.add('hidden');
+          if (panel.id === 'tab-chat') {
+            panel.classList.remove('flex');
+          }
+        }
+      });
+    });
+  });
+
+  function setQuery(text) {
+    const input = document.getElementById('chatInput');
+    if (input) {
+      input.value = text;
+      input.focus();
+    }
+  }
+
+  // Micro-interaction for sidebar collapse button
+  const collapseBtn = document.getElementById('collapseSidebarBtn');
+  if (collapseBtn) {
+    collapseBtn.addEventListener('click', function() {
+      const sidebar = document.getElementById('layers-sidebar');
+      if (sidebar) {
+        sidebar.classList.toggle('w-72');
+        sidebar.classList.toggle('w-14');
+      }
+    });
+  }
+</script></main></div></body></html>

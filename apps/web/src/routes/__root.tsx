@@ -5,7 +5,6 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
-import { ThemeProvider } from "next-themes";
 
 import type { orpc } from "@/utils/orpc";
 
@@ -46,7 +45,12 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
         type: "image/svg+xml",
         href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>`,
       },
-
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossorigin: "" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400;0,600;1,400;1,600&display=swap",
+      },
     ],
   }),
 
@@ -55,19 +59,19 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="en" suppressHydrationWarning>
+    // Dark-only console: the design system defines dark surfaces exclusively,
+    // so the dark variant is pinned here instead of via next-themes.
+    <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <div className="grid h-svh grid-rows-[auto_1fr]">
-            <Header />
-            <Outlet />
-          </div>
-          <ChatLauncher />
-          <Toaster richColors />
-        </ThemeProvider>
+        <div className="grid h-svh grid-rows-[auto_1fr]">
+          <Header />
+          <Outlet />
+        </div>
+        <ChatLauncher />
+        <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />
         <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         <Scripts />

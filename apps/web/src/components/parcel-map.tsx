@@ -2,7 +2,6 @@ import type { GeoJSONSource, StyleSpecification } from "maplibre-gl";
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@tanstack/react-router";
-import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
 // MapLibre parses vector tiles in a Web Worker. The bundler rewrites the
@@ -234,8 +233,9 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // makes sense on the CARTO style -- tilting a flat raster image just warps
   // it into a distorted trapezoid with nothing "3D" to show for it.
   const can3d = basemap === "carto";
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme !== "light";
+  // Dark-only console: the basemap and parcel outlines always use their dark
+  // variants.
+  const isDark = true;
   const isDarkRef = useRef(isDark);
   isDarkRef.current = isDark;
   const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
