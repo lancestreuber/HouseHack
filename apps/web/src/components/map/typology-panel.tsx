@@ -115,11 +115,38 @@ const SHORT_LABEL: Record<string, string> = {
   interim_housing: "Interim housing",
 };
 
+// Hex -> [hue, saturation%, lightness%], so the two endpoint colors below
+// can be interpolated in HSL space (a straight RGB lerp between these two
+// particular reds/greens middles out to a muddy olive, since neither is
+// fully saturated; HSL's hue sweeps through orange/yellow/lime instead).
+function hexToHsl(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return [0, 0, l * 100];
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h: number;
+  if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+  else if (max === g) h = (b - r) / d + 2;
+  else h = (r - g) / d + 4;
+  return [h * 60, s * 100, l * 100];
+}
+
+const SCORE_COLOR_LOW = hexToHsl("#ef4444");
+const SCORE_COLOR_HIGH = hexToHsl("#22c55e");
+
 function scoreColor(score: number | null) {
   if (score == null) return "#525252";
-  if (score >= 70) return "#22c55e";
-  if (score >= 45) return "#eab308";
-  return "#ef4444";
+  const t = Math.max(0, Math.min(1, score / 100));
+  const lerp = (a: number, b: number) => a + (b - a) * t;
+  const h = lerp(SCORE_COLOR_LOW[0], SCORE_COLOR_HIGH[0]);
+  const s = lerp(SCORE_COLOR_LOW[1], SCORE_COLOR_HIGH[1]);
+  const l = lerp(SCORE_COLOR_LOW[2], SCORE_COLOR_HIGH[2]);
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 function TypologyTile({
