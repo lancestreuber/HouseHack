@@ -127,6 +127,7 @@ function TypologyTile({
   onTypologyChange,
   zoning,
   fitsById,
+  onSelectTypology,
 }: {
   typologyId: string;
   onTypologyChange: (id: string) => void;
@@ -134,6 +135,8 @@ function TypologyTile({
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
   fitsById?: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
+  /** Scrolls the Alerts pane to this card's typology, if it has one there. */
+  onSelectTypology?: (siteFitId: string) => void;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score =
@@ -145,10 +148,15 @@ function TypologyTile({
       : pathway?.label;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
+  const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
 
   return (
-    <div className="flex min-w-[10rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2">
-      <div className="flex items-baseline gap-1.5">
+    <div
+      className={`flex min-w-[10rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2 ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`}
+      onClick={canJumpToAlerts ? () => onSelectTypology?.(siteFitId!) : undefined}
+      title={canJumpToAlerts ? "Jump to this typology's alerts" : undefined}
+    >
+      <div className="flex items-baseline gap-1.5" onClick={(e) => e.stopPropagation()}>
         <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
           <SelectTrigger size="sm" className="h-6 flex-1 border-none px-0 font-medium shadow-none">
             <SelectValue>{SHORT_LABEL[typologyId] ?? typologyId}</SelectValue>
@@ -197,12 +205,14 @@ function TypologyTiles({
   zoning,
   typologyIds,
   onTypologyChange,
+  onSelectTypology,
 }: {
   pin: string;
   data: ParcelData;
   zoning: string;
   typologyIds: string[];
   onTypologyChange: (index: number, id: string) => void;
+  onSelectTypology?: (siteFitId: string) => void;
 }) {
   const query = useTypologyFit(pin, data);
   const fitsById = useMemo(() => {
@@ -219,7 +229,14 @@ function TypologyTiles({
       </p>
       <div className="flex h-full w-full gap-2">
         {typologyIds.map((id, i) => (
-          <TypologyTile key={i} typologyId={id} zoning={zoning} onTypologyChange={(next) => onTypologyChange(i, next)} fitsById={fitsById} />
+          <TypologyTile
+            key={i}
+            typologyId={id}
+            zoning={zoning}
+            onTypologyChange={(next) => onTypologyChange(i, next)}
+            fitsById={fitsById}
+            onSelectTypology={onSelectTypology}
+          />
         ))}
       </div>
     </>
@@ -234,10 +251,12 @@ export function TypologyPanel({
   pin,
   collapsed,
   onToggleCollapse,
+  onSelectTypology,
 }: {
   pin: string | null;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onSelectTypology?: (siteFitId: string) => void;
 }) {
   const [typologyIds, setTypologyIds] = useState<string[]>(DEFAULT_TYPOLOGY_IDS);
   const { data, status } = useParcelData(pin);
@@ -252,9 +271,16 @@ export function TypologyPanel({
     if (status === "missing" || !data)
       return <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
     return (
-      <TypologyTiles pin={pin} data={data} zoning={zoning} typologyIds={typologyIds} onTypologyChange={setTypologyAt} />
+      <TypologyTiles
+        pin={pin}
+        data={data}
+        zoning={zoning}
+        typologyIds={typologyIds}
+        onTypologyChange={setTypologyAt}
+        onSelectTypology={onSelectTypology}
+      />
     );
-  }, [pin, status, data, typologyIds, zoning]);
+  }, [pin, status, data, typologyIds, zoning, onSelectTypology]);
 
   return (
     <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 text-xs">

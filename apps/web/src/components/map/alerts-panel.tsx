@@ -12,43 +12,46 @@ function AlertRow({ text }: { text: string }) {
   );
 }
 
+// Below this, the fit rubric is in its bottom half ("Cannot fit" / "Fits
+// only with major compromises") -- worth flagging on its own, independent of
+// confidence or legality.
+const POOR_FIT_THRESHOLD = 0.5;
+
 /** Alerts that need a person's attention before trusting a typology's
- * numbers at face value: it's legally blocked but could be rezoned, or the
- * model's site-fit rating came back too uncertain to lean on. */
+ * numbers at face value: it's legally blocked but could be rezoned, its
+ * physical fit came back poor, or the rating was too uncertain to lean on.
+ * Grouped per typology (one anchor each) rather than per alert type, so a
+ * typology card can scroll straight to everything about it here. */
 function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
   const query = useTypologyFit(pin, data);
 
   if (query.isPending) return <p className="text-muted-foreground">Checking zoning and site fit…</p>;
   if (query.isError || !query.data) return <p className="text-muted-foreground">Couldn't load alerts for this parcel.</p>;
 
-  const rezoning = query.data.typologies.filter((t) => t.gate.rezoningTo?.length);
-  const needsReview = query.data.typologies.filter((t) => t.fit?.needsReview);
+  const flagged = query.data.typologies
+    .map((t) => {
+      const notes: string[] = [];
+      if (t.gate.rezoningTo?.length) notes.push(`not permitted here; would need rezoning to ${t.gate.rezoningTo.join(", ")}`);
+      if (t.fit && t.fit.fit < POOR_FIT_THRESHOLD) notes.push(`physical fit: ${t.fit.label.toLowerCase()}`);
+      if (t.fit?.needsReview) notes.push("site-fit rating has low confidence, needs human review");
+      return { ...t, notes };
+    })
+    .filter((t) => t.notes.length > 0);
 
-  if (!rezoning.length && !needsReview.length) {
+  if (!flagged.length) {
     return <p className="text-muted-foreground">No alerts for this parcel right now.</p>;
   }
 
   return (
     <div className="space-y-2">
-      {rezoning.length > 0 && (
-        <section className="space-y-1">
-          <p className="font-medium">Would need rezoning</p>
-          {rezoning.map((t) => (
-            <AlertRow
-              key={t.id}
-              text={`${t.label}: not permitted here; would need rezoning to ${t.gate.rezoningTo?.join(", ")}.`}
-            />
+      {flagged.map((t) => (
+        <section key={t.id} id={`alert-${t.id}`} className="scroll-mt-2 space-y-1">
+          <p className="font-medium">{t.label}</p>
+          {t.notes.map((note) => (
+            <AlertRow key={note} text={note} />
           ))}
         </section>
-      )}
-      {needsReview.length > 0 && (
-        <section className="space-y-1">
-          <p className="font-medium">Low-confidence ratings</p>
-          {needsReview.map((t) => (
-            <AlertRow key={t.id} text={`${t.label}: site-fit rating has low confidence, needs human review.`} />
-          ))}
-        </section>
-      )}
+      ))}
     </div>
   );
 }

@@ -349,6 +349,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  const handleSelectTypology = (siteFitId: string) => {
+    if (alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current.expand();
+    if (!breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current?.collapse();
+    document.getElementById(`alert-${siteFitId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   // The address search itself lives in the navbar (mounted on every route);
   // registering here lets it drive this map while this page is showing it.
   useEffect(() => {
@@ -667,7 +673,12 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               panelRef={typologyPane.ref}
               onResize={typologyPane.onResize}
             >
-              <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
+              <TypologyPanel
+                pin={selectedPin}
+                collapsed={typologyPane.collapsed}
+                onToggleCollapse={typologyPane.toggle}
+                onSelectTypology={handleSelectTypology}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
