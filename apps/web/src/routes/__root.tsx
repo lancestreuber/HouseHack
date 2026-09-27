@@ -1,7 +1,7 @@
 import { Toaster } from "@HouseHack/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
@@ -9,7 +9,7 @@ import { evlogErrorHandler } from "evlog/nitro/v3";
 import type { orpc } from "@/utils/orpc";
 
 import { ChatLauncher } from "../components/chat/chat-launcher";
-import Header from "../components/header";
+import { AppShell } from "../components/shell/app-shell";
 
 import appCss from "../index.css?url";
 export interface RouterAppContext {
@@ -66,10 +66,7 @@ function RootDocument() {
         <HeadContent />
       </head>
       <body>
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Header />
-          <Outlet />
-        </div>
+        <AppShell />
         <ChatLauncher />
         <Toaster richColors />
         <TanStackRouterDevtools position="bottom-left" />
