@@ -592,6 +592,25 @@
       "unit": "index"
     },
     {
+      "id": "demand_median_sale_price",
+      "pillar": "demand",
+      "weight": 0,
+      "evidence": "observed",
+      "label": "Median home sale price, 2024–25 (census tract)",
+      "geography": "tract",
+      "unit": "usd",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "median_2024_2025",
+        "require": [{ "property": "n_2024_2025", "min": 10 }]
+      },
+      "normalize": { "method": "percentile", "direction": "higher_is_better" },
+      "rationale": "Context only (weight 0): what homes nearby sell for, close to what an appraiser's comparable sales would show. It feeds the pencil check, not the score. Valid residential sales only; blank under 10 sales."
+    },
+    {
       "id": "site_legal_pathway",
       "pillar": "site",
       "weight": 0,
@@ -1630,7 +1649,8 @@
     "score": "0 = lead, 40 = galvanized",
     "count": "count",
     "use": "parcel use category",
-    "sqft_score": "0–100 = 0–600 sq ft"
+    "sqft_score": "0–100 = 0–600 sq ft",
+    "usd": "US dollars"
   },
   "verdict": {
     "about": "Can this housing type be built here? A red / yellow / green verdict per typology, computed from pass/fail checks (zoning pathway, site hazards, site availability, lot size, physical fit), never from the weighted score. It answers a different question from the pillars: the pillars rank how good a place is; the verdict says what stands in the way. Framing suggested by a hackathon housing SME (2026-09-27): red = not developable, yellow = could be developable with variances or subsidy, green = developable as-is. Money is not checked: whether the project pencils is not assessed.",

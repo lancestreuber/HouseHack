@@ -130,6 +130,8 @@ export function formatRaw(value: number | null, unit: string | undefined) {
       return config.legal.levels.find((l) => l.code === value)?.label ?? "unknown";
     case "ratio":
       return `${value.toFixed(2)}×`;
+    case "usd":
+      return `$${Math.round(value).toLocaleString()}`;
     default:
       return String(value);
   }

@@ -12,7 +12,7 @@ type MetricId = PillarId | "overall";
 const BREAKS: Record<MetricId, number[]> = {
   overall: [35, 43, 47, 52, 59],
   demand: [27, 35, 44, 53, 64],
-  site: [53, 69, 74, 94, 100],
+  site: [52, 66, 71, 93, 99],
   afford: [33, 44, 55, 63, 78],
   access: [45, 56, 64, 75, 88],
   climate: [51, 57, 61, 64, 70],
