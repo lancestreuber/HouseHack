@@ -22,25 +22,29 @@ const POOR_FIT_THRESHOLD = 0.5;
  * physical fit came back poor, or the rating was too uncertain to lean on.
  * Grouped per typology (one anchor each) rather than per alert type, so a
  * typology card can scroll straight to everything about it here. */
-function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
-  const query = useTypologyFit(pin, data);
-
-  if (query.isPending) return <p className="text-muted-foreground">Checking zoning and site fit…</p>;
-  if (query.isError || !query.data) return <p className="text-muted-foreground">Couldn't load alerts for this parcel.</p>;
-
-  const flagged = query.data.typologies
+export function typologyAlerts(fit: NonNullable<ReturnType<typeof useTypologyFit>["data"]>) {
+  return fit.typologies
     .map((t) => {
       const notes: string[] = [];
       // Full reason text, not a shortened re-derivation: it already names the
       // exact district(s) a rezoning would need to go to, plus the code cite.
       if (t.gate.rezoningTo?.length) notes.push(t.gate.reason);
       if (t.fit && t.fit.fit < POOR_FIT_THRESHOLD) {
-        notes.push(`Physical fit: ${t.fit.label.toLowerCase()} -- ${query.data.facts.hazards}`);
+        notes.push(`Physical fit: ${t.fit.label.toLowerCase()} -- ${fit.facts.hazards}`);
       }
       if (t.fit?.needsReview) notes.push("Site-fit rating has low confidence, needs human review.");
       return { ...t, notes };
     })
     .filter((t) => t.notes.length > 0);
+}
+
+function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useTypologyFit(pin, data);
+
+  if (query.isPending) return <p className="text-muted-foreground">Checking zoning and site fit…</p>;
+  if (query.isError || !query.data) return <p className="text-muted-foreground">Couldn't load alerts for this parcel.</p>;
+
+  const flagged = typologyAlerts(query.data);
 
   if (!flagged.length) {
     return <p className="text-muted-foreground">No alerts for this parcel right now.</p>;

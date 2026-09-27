@@ -30,6 +30,11 @@ describe("parseReply", () => {
     expect(blocks[0]?.text).toBe("Schools are close");
   });
 
+  test("removes a comma stranded before the full stop by a citation", () => {
+    const blocks = parseReply("Not permitted in this district, [alert.duplex].", ["alert.duplex"]);
+    expect(blocks[0]?.text).toBe("Not permitted in this district.");
+  });
+
   test("treats each line as its own paragraph", () => {
     const blocks = parseReply("First thought.\nSecond thought.\n\nThird.", []);
     expect(blocks.map((b) => b.text)).toEqual(["First thought.", "Second thought.", "Third."]);

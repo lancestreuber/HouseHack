@@ -12,8 +12,8 @@ export interface ChatInput {
 }
 
 const MAX_HISTORY = 10;
-// Matches the "Your priorities" sliders in the scores panel (0–5).
-const MAX_WEIGHT = 5;
+// Matches the navbar's pillar weight sliders (weights-popover.tsx, 0–3).
+const MAX_WEIGHT = 3;
 const MAX_TOOL_STEPS = 3;
 const CACHE_LIMIT = 200;
 

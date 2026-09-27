@@ -41,7 +41,7 @@ export const PATHWAY_SCORE: Record<string, number | null> = {
 const NOT_PERMITTED_FLOOR = 5;
 const NOT_PERMITTED_RANGE = 30;
 
-function notPermittedScore(zone: string, typologyId: string): number {
+export function notPermittedScore(zone: string, typologyId: string): number {
   const closeness = rezoningCloseness(zone, typologyId);
   const likelihood = rezoningLikelihood(zone);
   return Math.round(NOT_PERMITTED_FLOOR + closeness * likelihood * NOT_PERMITTED_RANGE);
