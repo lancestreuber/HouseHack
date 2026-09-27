@@ -149,7 +149,7 @@ function TypologyTile({
         </p>
         {blockers.slice(0, 2).map((r) => (
           <p key={r.text} className="text-muted-foreground">
-            <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text}
+            <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
           </p>
         ))}
         {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
