@@ -69,12 +69,16 @@ function fakeFit(zoning: string): TypologyFit {
     jev: { status: "ok", model: "jev-test" },
     typologies: siteFit.TYPOLOGIES.map((t) => {
       const [fit, label, confidence] = ratings[t.id]!;
+      const gate = siteFit.gateFor(t.id, zone, lot.areaSf);
+      const fitResult = { fit, label, probabilities: [], confidence, needsReview: confidence < 0.3 };
       return {
         id: t.id,
         category: t.category,
         label: t.label,
-        gate: siteFit.gateFor(t.id, zone, lot.areaSf),
-        fit: { fit, label, probabilities: [], confidence, needsReview: confidence < 0.3 },
+        gate,
+        fit: fitResult,
+        cost: siteFit.estimateCost(t.id),
+        verdict: siteFit.verdictFor(t.id, gate, fitResult, { steepSlope: 0.12 }, null),
       };
     }),
   } as unknown as TypologyFit;

@@ -191,7 +191,7 @@ function siteFitFacts(fit: FitState): ContextFact[] {
   const alerts = typologyAlerts(data);
   if (!alerts.length) facts.push(fact("alerts", "The Alerts panel shows no alerts for this parcel.", "observed", JEV_SOURCE));
   for (const a of alerts) {
-    const modelBased = a.notes.some((n) => n.startsWith("Physical fit") || n.startsWith("Site-fit"));
+    const modelBased = a.notes.some((n) => n.startsWith("Site fit") || n.startsWith("Site-fit"));
     facts.push(fact(`alert.${a.id}`, `Alerts for ${a.label}: ${a.notes.join(" ")}`, modelBased ? "assumption" : "policy", modelBased ? JEV_SOURCE : "Pittsburgh Zoning Code §911.02"));
   }
   return facts;

@@ -331,6 +331,7 @@ export function useTypologyFit(pin: string, data: ParcelData | null) {
           undermined: data?.raw.site_undermined_share,
         },
         weights,
+        marketTier: data?.raw.demand_market_strength,
       },
       enabled: Boolean(data),
       staleTime: Number.POSITIVE_INFINITY,

@@ -14,6 +14,7 @@ import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { type ParcelData, ScoreBar, useParcelData, useTypologyFit } from "./pillars-panel";
+import { fmtUsd, VERDICT_DOT, VERDICT_LABEL, type VerdictLevel } from "./verdict";
 
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
@@ -155,15 +156,23 @@ function TypologyTile({
   typologyId,
   onTypologyChange,
   zoning,
-  fitsById,
+  entriesById,
   onSelectTypology,
 }: {
   typologyId: string;
   onTypologyChange: (id: string) => void;
   zoning: string;
-  /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
-   * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
-  fitsById?: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
+  /** Jev's site-fit results plus the verdict/cost estimate computed from
+   * them, keyed by its own (coarser) typology id -- see SITE_FIT_TYPOLOGY.
+   * Undefined while loading or if there's no close-enough mapping. */
+  entriesById?: Record<
+    string,
+    {
+      fit: { fit: number; label: string; confidence: number; needsReview: boolean } | null;
+      verdict: { level: VerdictLevel; reasons: string[] };
+      cost: { low: number; high: number; units: number };
+    }
+  >;
   /** Scrolls the Alerts pane to this card's typology, if it has one there. */
   onSelectTypology?: (siteFitId: string) => void;
 }) {
@@ -176,7 +185,8 @@ function TypologyTile({
       ? `${pathway?.label} -- rezoning closeness ${Math.round(rezoningCloseness(zoning, typologyId) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning) * 100)}%`
       : pathway?.label;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
-  const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
+  const entry = siteFitId ? entriesById?.[siteFitId] : undefined;
+  const fit = entry?.fit;
   const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
 
   return (
@@ -210,17 +220,32 @@ function TypologyTile({
       >
         {pathway?.label ?? "Unresolved in the code"}
       </span>
-      {fit && (
+      {entry && (
         <div className="space-y-0.5 border-t border-border/40 pt-1">
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1">
-              <ScoreBar score={fit.fit * 100} />
-            </div>
-            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
+          <div
+            className="flex items-center gap-1.5"
+            title={entry.verdict.reasons.join(" ")}
+            onClick={canJumpToAlerts ? (e) => e.stopPropagation() : undefined}
+          >
+            <span className={`size-2 shrink-0 rounded-full ${VERDICT_DOT[entry.verdict.level]}`} />
+            <span className="truncate">{VERDICT_LABEL[entry.verdict.level]}</span>
           </div>
-          <p className="text-muted-foreground">
-            {fit.label}
-            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+          {fit && (
+            <>
+              <div className="flex items-center gap-1.5">
+                <div className="flex-1">
+                  <ScoreBar score={fit.fit * 100} />
+                </div>
+                <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
+              </div>
+              <p className="text-muted-foreground">
+                {fit.label}
+                {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+              </p>
+            </>
+          )}
+          <p className="text-muted-foreground" title="Order-of-magnitude hard + site construction cost. Not a pro forma; excludes land, financing and soft costs.">
+            Est. cost: {fmtUsd(entry.cost.low)}–{fmtUsd(entry.cost.high)}
           </p>
         </div>
       )}
@@ -244,10 +269,17 @@ function TypologyTiles({
   onSelectTypology?: (siteFitId: string) => void;
 }) {
   const query = useTypologyFit(pin, data);
-  const fitsById = useMemo(() => {
+  const entriesById = useMemo(() => {
     if (!query.data) return undefined;
-    const map: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null> = {};
-    for (const t of query.data.typologies) map[t.id] = t.fit;
+    const map: Record<
+      string,
+      {
+        fit: { fit: number; label: string; confidence: number; needsReview: boolean } | null;
+        verdict: { level: VerdictLevel; reasons: string[] };
+        cost: { low: number; high: number; units: number };
+      }
+    > = {};
+    for (const t of query.data.typologies) map[t.id] = { fit: t.fit, verdict: t.verdict, cost: t.cost };
     return map;
   }, [query.data]);
 
@@ -263,7 +295,7 @@ function TypologyTiles({
             typologyId={id}
             zoning={zoning}
             onTypologyChange={(next) => onTypologyChange(i, next)}
-            fitsById={fitsById}
+            entriesById={entriesById}
             onSelectTypology={onSelectTypology}
           />
         ))}

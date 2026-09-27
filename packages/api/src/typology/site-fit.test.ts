@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildSiteState, gateFor, parseZoning, toSiteFit } from "./site-fit";
+import { buildSiteState, estimateCost, gateFor, parseZoning, toSiteFit, verdictFor } from "./site-fit";
 
 describe("gateFor", () => {
   const r2 = parseZoning("R2-L");
@@ -30,6 +30,82 @@ describe("gateFor", () => {
   test("unencoded or missing zoning is unknown, not guessed", () => {
     expect(gateFor("duplex", parseZoning("LNC"), 3000).status).toBe("unknown");
     expect(gateFor("duplex", parseZoning(null), 3000).status).toBe("unknown");
+  });
+
+  test("heavy undermining blocks multi-unit typologies even where zoning allows them", () => {
+    const gate = gateFor("duplex", r2, 3500, { undermined: 0.75 });
+    expect(gate.status).toBe("conditional");
+    expect(gate.hazardBlocked).toBe(true);
+    expect(gate.reason).toContain("mine-subsidence investigation");
+  });
+
+  test("undermining doesn't block a single-unit detached house", () => {
+    const gate = gateFor("detached", r2, 3500, { undermined: 0.9 });
+    expect(gate.status).toBe("allowed");
+    expect(gate.hazardBlocked).toBeUndefined();
+  });
+
+  test("light undermining below the threshold doesn't block", () => {
+    const gate = gateFor("duplex", r2, 3500, { undermined: 0.1 });
+    expect(gate.hazardBlocked).toBeUndefined();
+  });
+
+  test("a typology already not_permitted by zoning isn't relabeled hazard-blocked", () => {
+    const gate = gateFor("apartment", r2, 3500, { undermined: 0.9 });
+    expect(gate.status).toBe("not_permitted");
+    expect(gate.hazardBlocked).toBeUndefined();
+  });
+});
+
+describe("verdictFor", () => {
+  const r2 = parseZoning("R2-L");
+  const fit = (n: number, needsReview = false) => ({ fit: n, label: "x", probabilities: [], confidence: 1, needsReview });
+
+  test("unknown zoning is an unknown verdict, not a guess", () => {
+    const gate = gateFor("duplex", parseZoning(null), 3000);
+    expect(verdictFor("duplex", gate, null, undefined, null).level).toBe("unknown");
+  });
+
+  test("a hazard-blocked gate is red even though zoning otherwise allows it", () => {
+    const gate = gateFor("duplex", r2, 3500, { undermined: 0.75 });
+    expect(verdictFor("duplex", gate, fit(0.9), { undermined: 0.75 }, null).level).toBe("red");
+  });
+
+  test("not_permitted with a realistic rezoning path is yellow, with no path is red", () => {
+    const permitted = gateFor("apartment", parseZoning("R1D-L"), 8000);
+    expect(verdictFor("apartment", permitted, null, undefined, null).level).toBe("yellow");
+  });
+
+  test("half or more of the lot in the regulatory floodway is red", () => {
+    const gate = gateFor("detached", r2, 3500);
+    expect(verdictFor("detached", gate, fit(0.9), { floodway: 0.6 }, null).level).toBe("red");
+  });
+
+  test("a lot that physically cannot fit the typology is red even if legal and hazard-free", () => {
+    const gate = gateFor("detached", r2, 3500);
+    expect(verdictFor("detached", gate, fit(0.1), {}, null).level).toBe("red");
+  });
+
+  test("clean legal, hazard-free, comfortable-fit parcel is green", () => {
+    const gate = gateFor("detached", r2, 3500);
+    expect(verdictFor("detached", gate, fit(0.9), {}, 8).level).toBe("green");
+  });
+
+  test("a weak market pulls a multi-unit typology to yellow, but not a detached house", () => {
+    const gate = gateFor("duplex", r2, 3500);
+    expect(verdictFor("duplex", gate, fit(0.9), {}, 2).level).toBe("yellow");
+    const detachedGate = gateFor("detached", r2, 3500);
+    expect(verdictFor("detached", detachedGate, fit(0.9), {}, 2).level).toBe("green");
+  });
+});
+
+describe("estimateCost", () => {
+  test("scales with unit count and returns an ascending low/high range", () => {
+    const detached = estimateCost("detached");
+    const apartment = estimateCost("apartment");
+    expect(detached.low).toBeLessThan(detached.high);
+    expect(apartment.units).toBe(12);
+    expect(apartment.low).toBeGreaterThan(detached.low);
   });
 });
 

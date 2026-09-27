@@ -53,6 +53,10 @@ export type Gate = {
    * Exception), so a "not_permitted" gate isn't just a dead end -- it's a
    * fact about the current zoning, not the parcel's physical potential. */
   rezoningTo?: ResidentialBase[];
+  /** True when the status/reason above reflects a hazard override (mapped
+   * mines blocking multi-unit) rather than zoning alone. The verdict below
+   * treats this as a hard blocker, not an ordinary "needs a variance" case. */
+  hazardBlocked?: boolean;
 };
 
 const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"] as const;
@@ -134,7 +138,20 @@ export function parseZoning(code: string | null | undefined): ZoningInfo {
   };
 }
 
-export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: number | null): Gate {
+// Multi-unit typologies whose construction over mapped mines the Pittsburgh
+// Code's UM-O overlay blocks pending a mine-subsidence investigation,
+// independent of what the zoning use table otherwise allows. Detached and
+// attached single-unit housing aren't blocked this way. SME feedback
+// (2026-09-27, #housing-sme-help) called undermining an "up-front deal
+// killer" -- this is that, made a real gate instead of a flag that a
+// weighted average can wash out.
+const MULTI_UNIT_TYPOLOGIES = new Set<TypologyId>(["duplex", "apartment", "elderly"]);
+
+// Share of the lot treated as "materially undermined", matching the Site
+// pillar's own "half or more of the lot" framing (pillars.config.json).
+const UNDERMINED_BLOCK_SHARE = 0.49;
+
+function baseGateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: number | null): Gate {
   if (!zoning.base) {
     return {
       status: "unknown",
@@ -173,6 +190,20 @@ export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: num
     return { status: "conditional", reason: `Needs a Special Exception ${useReason(typology, zoning.base)}.` };
   }
   return { status: "allowed", reason: `Permitted by right ${useReason(typology, zoning.base)}.` };
+}
+
+export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: number | null, hazards?: HazardShares): Gate {
+  const base = baseGateFor(typology, zoning, lotAreaSf);
+  const undermined = hazards?.undermined ?? null;
+  if (base.status !== "not_permitted" && MULTI_UNIT_TYPOLOGIES.has(typology) && undermined != null && undermined >= UNDERMINED_BLOCK_SHARE) {
+    return {
+      ...base,
+      status: "conditional",
+      reason: `${Math.round(undermined * 100)}% of the lot is over mapped mines: multi-unit housing needs a mine-subsidence investigation before it can be permitted here (independent of zoning). ${base.reason}`,
+      hazardBlocked: true,
+    };
+  }
+  return base;
 }
 
 export type LotFacts = {
@@ -315,4 +346,115 @@ export function toSiteFit(answer: ScoreAnswer, typology: TypologyId): SiteFit {
     confidence: answer.confidence,
     needsReview: answer.confidence < threshold,
   };
+}
+
+// --- Order-of-magnitude construction cost (informational, not a pro forma) -
+
+// Hard construction cost per sq ft, excluding site work. Practitioner ranges
+// from hackathon housing SMEs (#housing-sme-help, 2026-09-27): $150/sf for a
+// high-volume production builder, $200-250/sf for typical City single-family
+// infill, $325-375/sf from a practitioner who noted no reliable local public
+// source exists. The SMEs' own ranges differ by more than 2x, so this is
+// shown as a range, not a point estimate -- it's opinion, not a published
+// source (see limitations.md).
+const COST_PER_SF = { low: 150, high: 375 };
+
+// Site work per unit in the City (water/sewer taps, grading, sidewalks,
+// landscaping): SME estimate, same source.
+const SITE_COST_PER_UNIT = { low: 25_000, high: 50_000 };
+
+// Typical unit count and size per typology. No public source: planning
+// assumptions for an order-of-magnitude estimate, not measured units.
+const UNIT_ASSUMPTIONS: Record<TypologyId, { units: number; sqftPerUnit: number }> = {
+  detached: { units: 1, sqftPerUnit: 1400 },
+  attached: { units: 1, sqftPerUnit: 1200 },
+  duplex: { units: 2, sqftPerUnit: 1000 },
+  apartment: { units: 12, sqftPerUnit: 700 },
+  elderly: { units: 10, sqftPerUnit: 600 },
+};
+
+export type CostEstimate = { low: number; high: number; units: number };
+
+/** Order-of-magnitude hard + site construction cost for this typology.
+ * Excludes soft costs, financing, land and demolition -- see limitations.md.
+ * Not compared against revenue: no rent/sale comps are joined to parcels
+ * (see verdictFor's market-tier proxy for the closest thing this tool has). */
+export function estimateCost(typology: TypologyId): CostEstimate {
+  const { units, sqftPerUnit } = UNIT_ASSUMPTIONS[typology];
+  const totalSqft = units * sqftPerUnit;
+  return {
+    low: totalSqft * COST_PER_SF.low + units * SITE_COST_PER_UNIT.low,
+    high: totalSqft * COST_PER_SF.high + units * SITE_COST_PER_UNIT.high,
+    units,
+  };
+}
+
+// --- Verdict: can this actually be built? -----------------------------------
+
+export type VerdictLevel = "red" | "yellow" | "green" | "unknown";
+export type Verdict = { level: VerdictLevel; reasons: string[] };
+
+// Half or more of the lot in a hazard area is treated as material added
+// cost/risk (steep slope, landslide-prone, 100-yr floodplain). The FEMA
+// regulatory floodway is checked on its own below since it's more severe:
+// construction there is federally restricted, not just costlier.
+const HAZARD_SEVERE_SHARE = 0.5;
+
+// MVA category (10 = strongest market, A, down to 1 = most distressed, J).
+// At or below this tier, treat the market as weak enough that construction
+// cost may exceed what the area supports without a subsidy.
+const WEAK_MARKET_TIER = 3;
+
+/** A simple, transparent verdict for one typology on one parcel: can this be
+ * built? Computed from gates, hazards and physical site fit -- never from
+ * the weighted pillar score, so a deal-killer can't be averaged away (SME
+ * feedback, 2026-09-27: "undermining and environmental conditions can be
+ * up-front deal killers"). The market-tier check is a proxy signal, not a
+ * modeled cost-vs-revenue comparison: no rent or sale comps are joined to
+ * parcels in this tool (see limitations.md). */
+export function verdictFor(
+  typology: TypologyId,
+  gate: Gate,
+  fit: SiteFit | null,
+  hazards: HazardShares | undefined,
+  marketTier: number | null | undefined,
+): Verdict {
+  if (gate.status === "unknown") return { level: "unknown", reasons: [gate.reason] };
+  if (gate.hazardBlocked) return { level: "red", reasons: [gate.reason] };
+  if (gate.status === "not_permitted") return { level: gate.rezoningTo?.length ? "yellow" : "red", reasons: [gate.reason] };
+
+  const reasons: string[] = [];
+  if (gate.status === "conditional") reasons.push(gate.reason);
+
+  const floodway = hazards?.floodway ?? 0;
+  if (floodway >= HAZARD_SEVERE_SHARE) {
+    reasons.push(`${Math.round(floodway * 100)}% of the lot is in the FEMA regulatory floodway.`);
+    return { level: "red", reasons };
+  }
+
+  if (fit && fit.fit < 0.25) {
+    reasons.push(`Site fit: ${fit.label.toLowerCase()}.`);
+    return { level: "red", reasons };
+  }
+
+  const severeHazard = (["floodplain", "steepSlope", "landslideProne"] as const).find((key) => (hazards?.[key] ?? 0) >= HAZARD_SEVERE_SHARE);
+  if (severeHazard) reasons.push(`Half or more of the lot is ${HAZARD_LABELS[severeHazard]}: expect added engineering/geotechnical cost.`);
+
+  if (fit && fit.fit < 0.5) {
+    reasons.push(`Site fit: ${fit.label.toLowerCase()}${fit.needsReview ? " (low-confidence rating)" : ""}.`);
+  } else if (fit?.needsReview) {
+    reasons.push("Site-fit rating has low confidence, needs human review.");
+  }
+
+  // Skip for a single detached house: it's the cheapest and least-demanding
+  // of the five typologies (see CALIBRATION_HINT), so a weak market alone
+  // isn't the same red flag it is for costlier multi-unit construction.
+  if (typology !== "detached" && marketTier != null && marketTier <= WEAK_MARKET_TIER) {
+    reasons.push(
+      "Market Value Analysis category is among the most distressed in the county (proxy signal, not a modeled cost-vs-rent comparison): construction here may need a subsidy to pencil.",
+    );
+  }
+
+  if (reasons.length > 0) return { level: "yellow", reasons };
+  return { level: "green", reasons: ["By right, no hazard flags, no weak-fit or weak-market signal."] };
 }

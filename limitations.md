@@ -10,11 +10,14 @@ This file lists what the tool doesn't do, what it assumes, and where its data is
 
 ## 1. What the tool does not assess
 
-**Whether a project pencils.** This is the biggest gap. The tool has no construction costs, land prices, achievable rents or sale prices, and no financing or subsidy logic. The hackathon's housing experts said the first question a developer asks is whether revenue will cover cost, before zoning or any variance. The scores tell you where housing *fits*. They do not tell you whether it would make money. The chat assistant says it can't answer cost questions.
+**Whether a project pencils, in the full sense.** The tool has no land price, achievable rent or sale price, and no financing or subsidy logic -- no comps are joined to parcels. It does have a lightweight, clearly-labeled stand-in: each typology shows an order-of-magnitude construction-cost range and a verdict (developable / needs approval or added cost / not developable / zoning unknown) computed from zoning, hazards and physical site fit, plus a proxy check against the block group's Market Value Analysis category. This tells you whether construction is *plausible* here, not whether it would make money. The chat assistant still says it can't answer detailed cost questions.
 
-For context only, these are the ranges the experts gave in the event's Slack. They are practitioner opinion, not a published source, and the tool does not use them:
-- Vertical construction cost: $150/sf (high-volume production builder), $200–250/sf (City single-family infill), $325–375/sf (another practitioner's estimate).
+The cost range and the typology's unit-count/size assumptions are practitioner opinion from the event's Slack, not a published source:
+- Vertical construction cost: $150/sf (high-volume production builder) to $375/sf (a practitioner's high-end estimate, spanning the $200–250/sf a third practitioner gave for City single-family infill).
 - Site work: $25k–50k per unit in the City.
+- Unit count and size per typology (e.g. a detached house assumed at ~1,400 sf, a 12-unit apartment building at ~700 sf/unit): planning assumptions, not measured.
+
+The Market Value Analysis check (`packages/api/src/typology/site-fit.ts`'s `verdictFor`) is a proxy: a weak MVA category makes a multi-unit typology's verdict yellow, on the reasoning that construction cost there may need a subsidy to pencil. It is not a modeled comparison of cost against rent or sale price, because no rent/sale comps are joined to parcels.
 
 **Things that need paid due diligence.** None of these are in any score:
 - Environmental contamination and brownfields. We have no PA DEP Act 2 or activity-and-use-limitation layer. The experts named contamination as an up-front deal-killer.
@@ -53,20 +56,21 @@ Every one of these is a choice we made, and a different reasonable choice would 
 | Zoning multiplier on the overall score | By right ×1.0, Zoning Administrator exception ×0.98, special exception ×0.94, conditional use ×0.92, not permitted ×0.2 (×0.35 within 30 m of a district that allows it), unknown district ×0.8. It uses the easiest pathway among five mainstream housing types, not the type you're looking at. |
 | Site-availability multiplier | Vacant or parking ×1.0, occupied building ×0.9, large building ×0.7, institution ×0.6, condo unit ×0.5, park, cemetery, rail or right-of-way ×0.05. |
 | Housing-type tile score | By right 100, ZA exception 85, special exception 60, conditional use 40, not permitted 5–35 (depends on how close a permitting district is and the Board approval rate; 0.7 where there are no local cases). |
-| Hazard caps on Site Feasibility | For example, half the lot in the floodway caps Site at 5, and mostly 25%+ slope caps it at 50. Undermining and lead service lines only flag; they don't cap. |
-| Score colors | Green ≥ 70, yellow ≥ 45, red below. These are cutoffs we picked. They don't mean "developable" or "not developable". |
+| Hazard caps on Site Feasibility | For example, half the lot in the floodway caps Site at 5, and mostly 25%+ slope caps it at 50. Lead service lines only flag; they don't cap. Undermining now hard-blocks multi-unit typologies specifically (see the verdict row below); it still only flags the Site Feasibility pillar itself, since that pillar is typology-agnostic. |
+| Score colors (pillars) | Green ≥ 70, yellow ≥ 45, red below. These are cutoffs we picked. They don't mean "developable" or "not developable" -- that's what the typology verdict is for. |
+| Typology verdict | Red: not permitted with no realistic rezoning path, over half the lot in the FEMA floodway, undermined + multi-unit (needs a mine investigation regardless of zoning), or Jev rates it "Cannot fit". Yellow: needs a variance/Special Exception, a lesser hazard (steep slope, landslide-prone, 100-yr floodplain) covers half the lot, Jev's fit or confidence is weak, or (for anything but a detached house) the block group's Market Value Analysis category is among the county's most distressed. Green: none of the above. Unknown: zoning district not covered. Computed from gates and hazards directly, never from the weighted pillar score, so it can't be averaged away. |
 | Site-fit review flag | Confidence below 0.3 (0.2 for a detached house), tuned on observed answers. |
 
 ## 5. Known weaknesses in how the scores behave
 
-These are open as of `3fcff72`:
+These are open as of `3fcff72`, except where noted as fixed:
 
-- **Hazards can be averaged away.** Hazard caps lower only the Site Feasibility pillar, which is then combined with four other pillars. A floodway lot can still get a middling overall score.
-- **Undermining barely moves the score.** It is a warning, not a cap, even though the code requires a mine investigation before multi-unit housing over mapped mines.
-- **The steep-slope cap fires only when about three-quarters of the lot is 25%+ slope.** Below that, slope only costs weighted points.
-- **The housing-type tiles show the legal pathway only.** A floodway lot can read "100, by right". Hazards appear in the pillar panel and in the alerts, not on the tile number.
+- **The overall pillar score can still average hazards away.** Hazard caps lower only the Site Feasibility pillar, which is then combined with four other pillars, so a floodway lot can get a middling *overall* score. The typology verdict (§4 table, Alerts pane) doesn't have this problem: it reads gates and hazards directly and is never blended with anything.
+- **The steep-slope cap on the Site Feasibility pillar fires only when about three-quarters of the lot is 25%+ slope.** Below that, slope only costs weighted points there. (The typology verdict uses a lower, 50% threshold for its own steep-slope/landslide/floodplain check.)
+- **The housing-type tiles' big number is the legal pathway only,** and still doesn't factor in hazards (e.g. a floodway lot can read "100, by right"). Each tile now shows a separate verdict badge (red/yellow/green/unknown) and an estimated cost range underneath, for the five typologies Jev rates; the big number itself is unchanged.
 - **Missing data can look fine.** Renormalizing and imputing keeps a parcel scoreable, but the result can look healthier than the evidence supports. The panel shows data coverage for each pillar.
 - **Your weights are passed to the site-fit model** as a note that may nudge a borderline rating. A physical judgment shouldn't depend on preferences.
+- **The typology verdict and cost estimate only cover the five typologies Jev rates** (detached, attached, duplex, apartment, elderly), not the other eleven on the housing-type tiles (three-unit, assisted living, community home, etc.).
 
 ## 6. Data
 

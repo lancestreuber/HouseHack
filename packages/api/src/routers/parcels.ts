@@ -5,6 +5,7 @@ import { publicProcedure } from "../index";
 import { type SystemOne, SystemOneError } from "../system-one";
 import {
   buildSiteState,
+  estimateCost,
   gateFor,
   parseZoning,
   siteFitQuestion,
@@ -12,6 +13,7 @@ import {
   toSiteFit,
   TYPOLOGIES,
   type TypologyId,
+  verdictFor,
 } from "../typology/site-fit";
 
 const SQ_M_TO_SQ_FT = 10.7639;
@@ -29,6 +31,11 @@ const typologyFitInput = z.object({
   // From the navbar's Weights popover (0-3, 1 = default); nudges borderline
   // site-fit judgments toward what the evaluator says they care about.
   weights: z.record(z.string(), z.number()).optional(),
+  // Market Value Analysis category, 10 (strongest, "A") to 1 (most
+  // distressed, "J"), from the pillars shard the client already loaded. A
+  // proxy for whether construction cost likely exceeds what the area
+  // supports -- not a modeled rent/cost comparison (see verdictFor).
+  marketTier: z.number().min(1).max(10).nullable().optional(),
 });
 
 type FitResult =
@@ -163,7 +170,8 @@ export const parcelsRouter = {
       id: t.id,
       category: t.category,
       label: t.label,
-      gate: gateFor(t.id, zoning, lot.areaSf),
+      gate: gateFor(t.id, zoning, lot.areaSf, input.hazards),
+      cost: estimateCost(t.id),
     }));
     // Rate physical fit for every typology, even legally "not_permitted"
     // ones: physical fit doesn't depend on zoning, and knowing a lot would
@@ -188,7 +196,10 @@ export const parcelsRouter = {
       zoning,
       facts: state,
       jev: jev.status === "ok" ? { status: "ok" as const, model: jev.model } : jev,
-      typologies: typologies.map((t) => ({ ...t, fit: jev.status === "ok" ? (jev.fits[t.id] ?? null) : null })),
+      typologies: typologies.map((t) => {
+        const fit = jev.status === "ok" ? (jev.fits[t.id] ?? null) : null;
+        return { ...t, fit, verdict: verdictFor(t.id, t.gate, fit, input.hazards, input.marketTier) };
+      }),
     };
   }),
 };
