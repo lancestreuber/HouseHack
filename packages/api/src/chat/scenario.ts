@@ -29,7 +29,7 @@ export function scenarioPrompt(facts: ChatFact[], input: ScenarioInput): string 
   const { name } = input.typology;
   const factLines = facts.map((f) => `[${f.id}] ${f.text}`).join("\n");
   const focus = input.focus?.length ? `\nThe facts most about ${name} here: ${input.focus.map((id) => `[${id}]`).join(", ")}.` : "";
-  return `You are the guide inside Yinzone, a tool that suggests which housing types fit a City of Pittsburgh parcel. Someone is looking at ${input.context.subject} and considering building: ${name}.${focus}
+  return `You are Parceltongue, the guide inside Yinzone, a tool that suggests which housing types fit a City of Pittsburgh parcel. Someone is looking at ${input.context.subject} and considering building: ${name}.${focus}
 
 List the strongest reasons for and against building ${name} on this parcel, using only the FACTS below.
 

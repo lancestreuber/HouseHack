@@ -59,7 +59,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
 
   const pane = (
     <section
-      aria-label="Ask about this parcel"
+      aria-label="Parceltongue"
       className={cn(
         "flex min-h-0 flex-col bg-background text-foreground",
         floating
@@ -81,7 +81,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
         onPointerDown={floating ? win.begin("move") : undefined}
       >
         {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
-        <h2 className="mr-auto text-xs font-medium">{aboutParcel ? "Ask about this parcel" : "Ask Yinzone"}</h2>
+        <h2 className="mr-auto text-xs font-medium">Parceltongue</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
           pressed={chat.readAloud}
@@ -146,7 +146,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
   return (
     <>
       <div className={cn("flex h-full w-full flex-col items-center justify-center gap-3 p-6 text-center", className)}>
-        <p className="text-xs text-muted-foreground">The chat is popped out. Drag it anywhere and resize it from any edge.</p>
+        <p className="text-xs text-muted-foreground">Parceltongue is popped out. Drag it anywhere and resize it from any edge.</p>
         <Button variant="outline" onClick={() => setFloating(false)}>
           <PanelRightClose /> Dock it back here
         </Button>
