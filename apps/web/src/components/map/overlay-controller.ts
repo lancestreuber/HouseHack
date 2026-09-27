@@ -5,7 +5,7 @@ import { OVERLAYS } from "./overlays";
 import type { OverlayDefinition, OverlayMetric } from "./overlays/types";
 
 export type OverlayState = {
-  // The single active "heat" overlay, or null.
+  // The single active "heat" or "pillar" overlay, or null.
   heatId: string | null;
   // Checked stackable overlays ("hazard" and "infrastructure" groups).
   infraIds: string[];
@@ -18,7 +18,7 @@ export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: null, infraIds: [],
 const sourceIdFor = (def: OverlayDefinition) => `overlay-${def.id}`;
 
 export function isVisible(def: OverlayDefinition, state: OverlayState) {
-  return def.group === "heat" ? state.heatId === def.id : state.infraIds.includes(def.id);
+  return def.group === "heat" || def.group === "pillar" ? state.heatId === def.id : state.infraIds.includes(def.id);
 }
 
 export function selectedMetric(def: OverlayDefinition, state: OverlayState): OverlayMetric | undefined {

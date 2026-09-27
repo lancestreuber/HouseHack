@@ -1,6 +1,6 @@
 import type { OverlayState } from "./overlay-controller";
 import { selectedMetric } from "./overlay-controller";
-import { HEAT_OVERLAYS, overlaysInGroup, STACKABLE_GROUPS } from "./overlays";
+import { HEAT_OVERLAYS, overlaysInGroup, PILLAR_OVERLAYS, STACKABLE_GROUPS } from "./overlays";
 import type { LegendItem, OverlayDefinition } from "./overlays/types";
 
 const EVIDENCE_LABEL = {
@@ -126,40 +126,46 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
       infraIds: state.infraIds.includes(id) ? state.infraIds.filter((x) => x !== id) : [...state.infraIds, id],
     });
 
+  // Pillar scores and heat overlays share one radio group: one choropleth at a time.
+  const heatOption = (def: OverlayDefinition) => (
+    <div key={def.id}>
+      <label className="flex items-center gap-1.5" title={def.description}>
+        <input type="radio" name="heat-overlay" checked={state.heatId === def.id} onChange={() => setHeat(def.id)} />
+        {def.label}
+        {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
+      </label>
+      {state.heatId === def.id && (
+        <>
+          {def.metrics && (
+            <select
+              className="mt-1 w-full rounded border bg-background px-1 py-0.5"
+              value={selectedMetric(def, state)?.id}
+              onChange={(e) => setMetric(def.id, e.target.value)}
+            >
+              {def.metrics.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
+          )}
+          <Legend def={def} state={state} />
+        </>
+      )}
+    </div>
+  );
+
   return (
     <div className="max-h-full w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
-      <p className="mb-1 font-medium">Heat overlay</p>
+      <p className="mb-1 font-medium">Pillar scores</p>
       <label className="flex items-center gap-1.5">
         <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />
         None
       </label>
-      {HEAT_OVERLAYS.map((def) => (
-        <div key={def.id}>
-          <label className="flex items-center gap-1.5" title={def.description}>
-            <input type="radio" name="heat-overlay" checked={state.heatId === def.id} onChange={() => setHeat(def.id)} />
-            {def.label}
-            {state.heatId === def.id && loadingIds.includes(def.id) && <LoadingBadge />}
-          </label>
-          {state.heatId === def.id && (
-            <>
-              {def.metrics && (
-                <select
-                  className="mt-1 w-full rounded border bg-background px-1 py-0.5"
-                  value={selectedMetric(def, state)?.id}
-                  onChange={(e) => setMetric(def.id, e.target.value)}
-                >
-                  {def.metrics.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                    </option>
-                  ))}
-                </select>
-              )}
-              <Legend def={def} state={state} />
-            </>
-          )}
-        </div>
-      ))}
+      {PILLAR_OVERLAYS.map(heatOption)}
+
+      <p className="mt-2 mb-1 font-medium">Heat overlay</p>
+      {HEAT_OVERLAYS.map(heatOption)}
 
       {STACKABLE_GROUPS.map(({ group, title }) => (
         <StackableSection

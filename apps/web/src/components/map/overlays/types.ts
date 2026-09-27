@@ -9,8 +9,11 @@ import type { AddLayerObject, LngLatBounds } from "maplibre-gl";
 // - "environment": environmental rasters (surface heat, canopy, impervious), stackable.
 // - "policy": zoning overlays and program designation areas, stackable.
 // - "development": permits, demolitions and property conditions, stackable.
+// - "pillar": the five pillar scores rolled up to hexes. Shares the single
+//   "heat" slot, so a pillar and a census choropleth never draw together.
 export type OverlayGroup =
   | "heat"
+  | "pillar"
   | "hazard"
   | "infrastructure"
   | "places"

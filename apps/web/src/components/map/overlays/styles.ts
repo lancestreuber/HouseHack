@@ -16,6 +16,8 @@ export const RAMPS = {
   neutral: ["#0c2a3a", "#134e66", "#1f7a8c", "#3fa9b8", "#8fd3d6", "#e0f7f5"],
   // Purple ramp for weather risk, so it never reads as air quality.
   purple: ["#2d1b4e", "#4c2a85", "#6f42c1", "#a07fe0", "#d9c8ff"],
+  // Viridis for pillar scores (100 = good place to build), so they never read as a hazard ramp.
+  score: ["#440154", "#414487", "#2a788e", "#22a884", "#7ad151", "#fde725"],
 };
 
 // Step choropleth on a numeric property: breaks[i] starts color i+1.
