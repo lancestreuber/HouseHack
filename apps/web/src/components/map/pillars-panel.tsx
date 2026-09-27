@@ -6,11 +6,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { useParcelScope } from "@/lib/use-parcel-scope";
 import { orpc } from "@/utils/orpc";
 
 import { EASIEST, setLegalFor, useLegalFor } from "./legal-for-store";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { legalLevelFor, SHORT_LABEL } from "./typology-meta";
+import { OutsideCityNotice } from "./outside-city-notice";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -65,8 +67,14 @@ export function percentileRank(q: number[] | undefined, v: number | null) {
   return Math.max(0, Math.min(100, i - 1));
 }
 
+export type ParcelStatus = "idle" | "loading" | "ready" | "missing" | "outside";
+
+/** Score data for a parcel. "outside" = not in the City of Pittsburgh (by the
+ * assessor's municipality code), which the app doesn't cover; "missing" = a
+ * City parcel with no score row. */
 export function useParcelData(pin: string | null) {
-  const [state, setState] = useState<{ pin: string | null; data: ParcelData | null; status: "idle" | "loading" | "ready" | "missing" }>({
+  const scope = useParcelScope(pin);
+  const [state, setState] = useState<{ pin: string | null; data: ParcelData | null; status: ParcelStatus }>({
     pin: null,
     data: null,
     status: "idle",
@@ -93,7 +101,10 @@ export function useParcelData(pin: string | null) {
       cancelled = true;
     };
   }, [pin]);
-  return state;
+  if (!pin) return { ...state, scope };
+  if (scope.status === "outside") return { pin, data: null, status: "outside" as const, scope };
+  if (scope.status === "loading" && state.status !== "idle") return { pin, data: null, status: "loading" as const, scope };
+  return { ...state, scope };
 }
 
 export function formatRaw(value: number | null, unit: string | undefined) {
@@ -361,7 +372,7 @@ export function PillarsPanel({
   /** Global pillar weights from the navbar's Weights popover (pillar-weights-store). */
   weights: Partial<Record<PillarId, number>>;
 }) {
-  const { data, status } = useParcelData(pin);
+  const { data, status, scope } = useParcelData(pin);
   // "easiest" = the zoning factor uses the easiest of the mainstream types (the
   // published default); otherwise it follows the one housing type picked here.
   // Shared with the chat, so it scores the parcel the way this panel does; back
@@ -411,8 +422,9 @@ export function PillarsPanel({
       {!collapsed && (
       <div className="flex-1 space-y-2 overflow-y-auto p-3">
         {status === "loading" && <p className="text-muted-foreground">Loading scores…</p>}
+        {status === "outside" && <OutsideCityNotice scope={scope} />}
         {status === "missing" && (
-          <p className="text-muted-foreground">No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.</p>
+          <p className="text-muted-foreground">No pillar scores for this City parcel. Verify with the Zoning Administrator.</p>
         )}
         {data && result && (
           <>

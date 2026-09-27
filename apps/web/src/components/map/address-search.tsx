@@ -10,9 +10,10 @@ import {
   CommandList,
 } from "@HouseHack/ui/components/command";
 
+import { isCityParcel, municipalityName } from "@/lib/city-scope";
 import { client } from "@/utils/orpc";
 
-export type AddressResult = { label: string; lng: number; lat: number; pin: string | null };
+export type AddressResult = { label: string; lng: number; lat: number; pin: string | null; municode: number | null };
 
 export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) => void }) {
   const [open, setOpen] = useState(false);
@@ -43,7 +44,7 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
     const handle = setTimeout(() => {
       void client.parcels
         .searchAddress({ query })
-        .then(setResults)
+        .then((rows) => setResults([...rows].sort((x, y) => Number(isCityParcel(y.municode)) - Number(isCityParcel(x.municode)))))
         .catch(() => setResults([]))
         .finally(() => setLoading(false));
     }, 350);
@@ -61,7 +62,7 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
         Search address
         <kbd className="ml-1 rounded border bg-foreground/10 px-1 text-[10px]">⌘K</kbd>
       </button>
-      <CommandDialog open={open} onOpenChange={setOpen} title="Search address" description="Search for an address in Allegheny County">
+      <CommandDialog open={open} onOpenChange={setOpen} title="Search address" description="Search for an address in the City of Pittsburgh">
         <CommandInput placeholder="Search an address…" value={query} onValueChange={setQuery} />
         <CommandList>
           <CommandEmpty>{loading ? "Searching…" : query.trim().length < 3 ? "Type at least 3 characters." : "No results."}</CommandEmpty>
@@ -76,8 +77,14 @@ export function AddressSearch({ onSelect }: { onSelect: (result: AddressResult) 
                 }}
               >
                 {r.label}
-                {r.pin == null && (
+                {r.pin == null ? (
                   <span className="ml-auto text-[10px] text-muted-foreground">no parcel match</span>
+                ) : (
+                  !isCityParcel(r.municode) && (
+                    <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                      outside the City{municipalityName(r.municode) ? ` (${municipalityName(r.municode)})` : ""}
+                    </span>
+                  )
                 )}
               </CommandItem>
             ))}

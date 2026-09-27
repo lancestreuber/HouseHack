@@ -11,7 +11,7 @@ import type { ParcelData } from "../map/pillars-panel";
 // The panels import the API client, which needs the server env; these tests
 // only use the pure scoring helpers, so stub it.
 mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
-const { generalChatContext, legalCodeFor, parcelChatContext, scenarioChatContext, typologyScore } = await import("./parcel-context");
+const { generalChatContext, legalCodeFor, outsideCityChatContext, parcelChatContext, scenarioChatContext, typologyScore } = await import("./parcel-context");
 const { notPermittedScore, PATHWAY_SCORE } = await import("../map/typology-panel");
 const { legalLevelFor, SHORT_LABEL } = await import("../map/typology-meta");
 const { DISTRICT_PATHWAYS } = await import("../map/overlays/legal-matrix.generated");
@@ -193,7 +193,14 @@ describe("parcelChatContext", () => {
   test("a parcel without scores says so instead of guessing", () => {
     const ctx = parcelChatContext("9999X00000000000", null);
     expect(ctx.facts).toHaveLength(1);
-    expect(ctx.facts[0]!.text).toContain("City of Pittsburgh parcels only");
+    expect(ctx.facts[0]!.text).toContain("No pillar scores for this City parcel");
+    expect(ctx.scoring).toBeUndefined();
+  });
+
+  test("a parcel outside the City names its municipality and gives no zoning", () => {
+    const ctx = outsideCityChatContext("0999X00000000000", "Mount Oliver Borough");
+    expect(ctx.facts).toHaveLength(1);
+    expect(ctx.facts[0]!.text).toContain("outside the City of Pittsburgh, in Mount Oliver Borough");
     expect(ctx.scoring).toBeUndefined();
   });
 });

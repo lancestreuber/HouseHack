@@ -284,7 +284,7 @@ export function AssumptionsSection() {
 
 const LIMITS: [string, string][] = [
   ["Not legal advice", "Zoning is a simplified interpretation of the City code. Verify with the Zoning Administrator before acting."],
-  ["City of Pittsburgh zoning only", "Legal pathways cover City districts. Suburban municipalities have their own codes, which are not encoded; the map still shows their data layers."],
+  ["City of Pittsburgh zoning only", "Yinzone covers City of Pittsburgh parcels only. Other municipalities, including the Mount Oliver enclave, have their own zoning codes, which are not encoded: parcels there show no scores, verdicts or zoning, and the map greys them out. Some context layers still extend across the county."],
   ["Only a rough cost check", "The pencil check compares practitioner cost ranges with nearby sale prices and rents. Land, financing, subsidy terms and new-build premiums are not modeled; it is a first screen, not a pro forma."],
   ["No project-level approval odds", "Zoning Board rates describe districts, not your application."],
   ["Excluded on purpose", "Crime and race never enter any score. Income and rent are context for need, not a filter."],

@@ -35,6 +35,7 @@ import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
 import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
 import { type FitsById, legalLevelFor, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
+import { OutsideCityNotice } from "./outside-city-notice";
 
 // The five mainstream types the "Overall for this type" stat covers (the
 // only ones with a legal level in pillars.config.json's zoning multiplier).
@@ -869,16 +870,16 @@ export function TypologyPanel({
   }, []);
 
   useEffect(() => {
-    if (!pin || parcel.status === "missing") setSnapshot(null);
+    if (!pin || parcel.status === "missing" || parcel.status === "outside") setSnapshot(null);
   }, [pin, parcel.status]);
 
   const ready = parcel.status === "ready" && parcel.pin === pin ? parcel.data : null;
-  const updating = Boolean(pin) && snapshot?.pin !== pin && parcel.status !== "missing";
+  const updating = Boolean(pin) && snapshot?.pin !== pin && parcel.status !== "missing" && parcel.status !== "outside";
 
   let body: ReactNode;
   if (!pin) body = <p className="text-muted-foreground">Select a parcel on the map to see typology scores.</p>;
-  else if (parcel.status === "missing")
-    body = <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
+  else if (parcel.status === "outside") body = <OutsideCityNotice scope={parcel.scope} compact />;
+  else if (parcel.status === "missing") body = <p className="text-muted-foreground">No zoning data for this City parcel.</p>;
   else if (!snapshot) body = <p className="text-muted-foreground">Loading…</p>;
   else body = <TypologyTrack snapshot={snapshot} updating={updating} onSelectTypology={onSelectTypology} />;
 

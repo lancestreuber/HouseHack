@@ -1,4 +1,4 @@
-import type { GeoJSONSource, StyleSpecification } from "maplibre-gl";
+import type { ExpressionSpecification, GeoJSONSource, StyleSpecification } from "maplibre-gl";
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@tanstack/react-router";
@@ -88,12 +88,22 @@ const PARCEL_LAYER_ID = "parcels-outline";
 // Invisible fill so a click anywhere inside a parcel selects it.
 const PARCEL_HIT_LAYER_ID = "parcels-hit";
 const PARCEL_SELECTED_LAYER_ID = "parcels-selected";
+// Yinzone covers the City of Pittsburgh only: everything outside it (including
+// the Mount Oliver enclave) sits under a grey mask, with the City line on top.
+const CITY_MASK_SOURCE_ID = "city-mask";
+const CITY_MASK_LAYER_ID = "city-mask";
+const CITY_BOUNDARY_SOURCE_ID = "city-boundary";
+const CITY_BOUNDARY_LAYER_ID = "city-boundary";
+const IN_CITY: ExpressionSpecification = [
+  "all",
+  [">=", ["to-number", ["get", "MUNICODE"], 0], 101],
+  ["<=", ["to-number", ["get", "MUNICODE"], 0], 132],
+];
 
-// Full Allegheny County extent, so the map opens zoomed out to the whole
-// county rather than any single neighborhood.
-const COUNTY_BOUNDS: [[number, number], [number, number]] = [
-  [-80.36, 40.19],
-  [-79.69, 40.68],
+// The City of Pittsburgh's extent, so the map opens on the area Yinzone covers.
+const CITY_BOUNDS: [[number, number], [number, number]] = [
+  [-80.1, 40.36],
+  [-79.86, 40.505],
 ];
 
 // Heat overlays are inserted beneath parcel outlines, so parcel boundaries
@@ -167,8 +177,22 @@ function addParcelLayer(map: MapLibreMap, isDark: boolean) {
       // Light outline reads on a dark basemap; needs to flip dark-on-light.
       "line-color": isDark ? "#f5f5f5" : "#171717",
       "line-width": 1,
-      "line-opacity": 0.85,
+      "line-opacity": ["case", IN_CITY, 0.85, 0.25],
     },
+  });
+  map.addSource(CITY_MASK_SOURCE_ID, { type: "geojson", data: "/data/overlays/city-mask.geojson" });
+  map.addLayer({
+    id: CITY_MASK_LAYER_ID,
+    type: "fill",
+    source: CITY_MASK_SOURCE_ID,
+    paint: { "fill-color": isDark ? "#0a0a0a" : "#737373", "fill-opacity": isDark ? 0.6 : 0.45 },
+  });
+  map.addSource(CITY_BOUNDARY_SOURCE_ID, { type: "geojson", data: "/data/overlays/city-boundary.geojson" });
+  map.addLayer({
+    id: CITY_BOUNDARY_LAYER_ID,
+    type: "line",
+    source: CITY_BOUNDARY_SOURCE_ID,
+    paint: { "line-color": isDark ? "#f5f5f5" : "#171717", "line-width": 2, "line-dasharray": [3, 2], "line-opacity": 0.8 },
   });
   map.addLayer({
     id: PARCEL_SELECTED_LAYER_ID,
@@ -369,7 +393,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     const map = new MapLibreMap({
       container: containerRef.current,
       style: basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDarkRef.current),
-      bounds: COUNTY_BOUNDS,
+      bounds: CITY_BOUNDS,
       attributionControl: { compact: true, customAttribution: `${DISCLAIMER} <a href="${LIMITATIONS_URL}">Limitations</a>` },
       // Container resizes are handled by the ResizeObserver below (which also
       // redraws in the same frame); MapLibre's own observer would resize a
