@@ -54,10 +54,24 @@ export function WeightsPopover({
             );
           })}
         </div>
+        <p className="mt-3 text-muted-foreground">Presets are starting points; each is a different view of what matters.</p>
+        <div className="mt-1 flex flex-wrap gap-1">
+          {Object.entries(config.presets).map(([name, preset]) => (
+            <button
+              key={name}
+              type="button"
+              onClick={() => onChange(preset as Partial<Record<PillarId, number>>)}
+              title={(config.preset_notes as Record<string, string>)[name]}
+              className="rounded border px-1.5 py-0.5 hover:bg-foreground/10"
+            >
+              {name.replace(/_/g, " ")}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           onClick={() => onChange({})}
-          className="mt-1 text-left text-muted-foreground underline hover:text-foreground"
+          className="mt-2 text-left text-muted-foreground underline hover:text-foreground"
         >
           Reset to defaults
         </button>
