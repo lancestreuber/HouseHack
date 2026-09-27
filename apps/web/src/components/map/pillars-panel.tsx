@@ -6,6 +6,7 @@ import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from 
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
+import { usePillarWeights } from "./pillar-weights-store";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
@@ -115,7 +116,7 @@ export function scoreColor(score: number | null) {
   return "#ef4444";
 }
 
-function ScoreBar({ score }: { score: number | null }) {
+export function ScoreBar({ score }: { score: number | null }) {
   return (
     <div className="h-1.5 w-full rounded bg-foreground/10">
       <div className="h-1.5 rounded" style={{ width: `${score ?? 0}%`, background: scoreColor(score) }} />
@@ -262,19 +263,14 @@ function PillarCard({
   );
 }
 
-const GATE_LABEL: Record<string, { text: string; className: string }> = {
-  allowed: { text: "By right", className: "bg-green-500/15 text-green-400" },
-  conditional: { text: "Needs approval", className: "bg-yellow-500/15 text-yellow-400" },
-  not_permitted: { text: "Not permitted", className: "bg-foreground/10 text-muted-foreground" },
-  unknown: { text: "Zoning unknown", className: "bg-foreground/10 text-muted-foreground" },
-};
-
-// Legal gate from the zoning use table (code) plus physical site fit from the
-// System One decision model. Ratings are judgments with a confidence, not measurements.
-/** Shared by the typology-fit section here and the Alerts pane, so both read
+/** Shared by the typology panel (bottom) and the Alerts pane, so both read
  * the exact same (cached) System One result instead of issuing their own
  * near-duplicate requests. */
 export function useTypologyFit(pin: string, data: ParcelData) {
+  // Global navbar weights, fed straight into Jev's state so a borderline
+  // physical-fit rating can be nudged by what the evaluator says they
+  // prioritize (site-fit.ts's siteFitQuestion explains how to the model).
+  const weights = usePillarWeights();
   return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
@@ -287,55 +283,10 @@ export function useTypologyFit(pin: string, data: ParcelData) {
           landslideProne: data.raw.site_landslide_prone_share,
           undermined: data.raw.site_undermined_share,
         },
+        weights,
       },
       staleTime: Number.POSITIVE_INFINITY,
     }),
-  );
-}
-
-function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
-  const query = useTypologyFit(pin, data);
-
-  return (
-    <section className="space-y-1.5 rounded border border-border/60 p-2">
-      <p className="font-medium">Housing types on this lot</p>
-      {query.isPending && <p className="text-muted-foreground">Checking zoning and site fit…</p>}
-      {query.data && (
-        <>
-          <p className="text-muted-foreground">{query.data.facts.lot}</p>
-          <ul className="space-y-1">
-            {query.data.typologies.map((t) => {
-              const gate = GATE_LABEL[t.gate.status] ?? GATE_LABEL.unknown!;
-              return (
-                <li key={t.id} className="border-t border-border/40 pt-1" title={t.gate.reason}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span>
-                      {t.label} <span className="text-muted-foreground">· {t.category}</span>
-                    </span>
-                    <span className={`rounded px-1 ${gate.className}`}>{gate.text}</span>
-                  </div>
-                  {t.fit && (
-                    <div className="mt-0.5 space-y-0.5">
-                      <ScoreBar score={t.fit.fit * 100} />
-                      <p className="text-muted-foreground">
-                        {t.fit.label} · confidence {Math.round(t.fit.confidence * 100)}%
-                        {t.fit.needsReview && <span className="text-yellow-400"> · needs human review</span>}
-                      </p>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          <p className="text-muted-foreground">
-            {query.data.jev.status === "ok"
-              ? `Permission: simplified zoning use table (hover a row for the rule). Site fit: judged by ${query.data.jev.model} from the lot facts above; physical fit only. Decision support, not zoning advice.`
-              : "Site-fit ratings are unavailable right now; zoning permissions are still shown."}
-          </p>
-        </>
-      )}
-      {query.isError && <p className="text-muted-foreground">Couldn't load housing types for this parcel.</p>}
-    </section>
   );
 }
 
@@ -397,7 +348,6 @@ export function PillarsPanel({
                 {range && ` Range under shifted weights: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
               </p>
             </section>
-            <TypologyFitSection pin={pin} data={data} />
             {config.pillars.map((p) => (
               <PillarCard
                 key={p.id}

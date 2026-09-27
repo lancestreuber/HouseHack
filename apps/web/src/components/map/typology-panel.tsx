@@ -11,7 +11,7 @@ import {
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { useParcelData } from "./pillars-panel";
+import { type ParcelData, ScoreBar, useParcelData, useTypologyFit } from "./pillars-panel";
 
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
@@ -79,6 +79,19 @@ function notPermittedScore(zone: string, typologyId: string): number {
 
 const DEFAULT_TYPOLOGY_IDS = ["single_detached", "two_unit", "three_unit", "multi_unit"];
 
+// This panel's 16 legal-feasibility typologies are far more granular than
+// Jev's 5 site-fit categories; only map where there's a genuinely close
+// correspondence, so we're never implying false precision for the rest
+// (three_unit, community_home, interim_housing, etc. just show no fit line).
+const SITE_FIT_TYPOLOGY: Record<string, string> = {
+  single_detached: "detached",
+  single_attached: "attached",
+  two_unit: "duplex",
+  multi_unit: "apartment",
+  elderly_limited: "elderly",
+  elderly_general: "elderly",
+};
+
 function scoreColor(score: number | null) {
   if (score == null) return "#525252";
   if (score >= 70) return "#22c55e";
@@ -90,10 +103,14 @@ function TypologyTile({
   typologyId,
   onTypologyChange,
   zoning,
+  fitsById,
 }: {
   typologyId: string;
   onTypologyChange: (id: string) => void;
   zoning: string;
+  /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
+   * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
+  fitsById?: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score =
@@ -103,9 +120,11 @@ function TypologyTile({
     pathwayId === "not_permitted"
       ? `${pathway?.label} -- rezoning closeness ${Math.round(rezoningCloseness(zoning, typologyId) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning) * 100)}%`
       : pathway?.label;
+  const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
+  const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
 
   return (
-    <div className="flex min-w-[9rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2">
+    <div className="flex min-w-[10rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2">
       <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
         <SelectTrigger size="sm" className="h-6 w-full border-none px-0 text-muted-foreground shadow-none">
           <SelectValue />
@@ -118,6 +137,7 @@ function TypologyTile({
           ))}
         </SelectContent>
       </Select>
+      <span className="font-mono text-[10px] text-muted-foreground">{typologyId}</span>
       <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
         {score == null ? "—" : score}
       </span>
@@ -128,13 +148,58 @@ function TypologyTile({
       >
         {pathway?.label ?? "Unresolved in the code"}
       </span>
+      {fit && (
+        <div className="space-y-0.5 border-t border-border/40 pt-1">
+          <ScoreBar score={fit.fit * 100} />
+          <p className="text-muted-foreground">
+            {fit.label} · confidence {Math.round(fit.confidence * 100)}%
+            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
+function TypologyTiles({
+  pin,
+  data,
+  zoning,
+  typologyIds,
+  onTypologyChange,
+}: {
+  pin: string;
+  data: ParcelData;
+  zoning: string;
+  typologyIds: string[];
+  onTypologyChange: (index: number, id: string) => void;
+}) {
+  const query = useTypologyFit(pin, data);
+  const fitsById = useMemo(() => {
+    if (!query.data) return undefined;
+    const map: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null> = {};
+    for (const t of query.data.typologies) map[t.id] = t.fit;
+    return map;
+  }, [query.data]);
+
+  return (
+    <>
+      <p className="text-muted-foreground">
+        {query.data?.facts.lot ?? "Checking lot size and shape…"}
+      </p>
+      <div className="flex h-full w-full gap-2">
+        {typologyIds.map((id, i) => (
+          <TypologyTile key={i} typologyId={id} zoning={zoning} onTypologyChange={(next) => onTypologyChange(i, next)} fitsById={fitsById} />
+        ))}
+      </div>
+    </>
+  );
+}
+
 /** Bottom pane: side-by-side feasibility scores for a handful of housing
- * typologies on the selected parcel's zoning district. Each tile's typology
- * is independently swappable via its dropdown. */
+ * typologies on the selected parcel's zoning district, plus (where a close
+ * enough match exists) Jev's physical site-fit judgment for that typology.
+ * Each tile's typology is independently swappable via its dropdown. */
 export function TypologyPanel({
   pin,
   collapsed,
@@ -157,11 +222,7 @@ export function TypologyPanel({
     if (status === "missing" || !data)
       return <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
     return (
-      <div className="flex h-full w-full gap-2">
-        {typologyIds.map((id, i) => (
-          <TypologyTile key={i} typologyId={id} zoning={zoning} onTypologyChange={(next) => setTypologyAt(i, next)} />
-        ))}
-      </div>
+      <TypologyTiles pin={pin} data={data} zoning={zoning} typologyIds={typologyIds} onTypologyChange={setTypologyAt} />
     );
   }, [pin, status, data, typologyIds, zoning]);
 
@@ -174,7 +235,7 @@ export function TypologyPanel({
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
         </div>
       </div>
-      {!collapsed && <div className="min-h-0 flex-1 overflow-x-auto">{body}</div>}
+      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-auto">{body}</div>}
     </div>
   );
 }

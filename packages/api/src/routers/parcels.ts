@@ -26,6 +26,9 @@ const typologyFitInput = z.object({
   hazards: z
     .object({ floodway: share, floodplain: share, steepSlope: share, landslideProne: share, undermined: share })
     .optional(),
+  // From the navbar's Weights popover (0-3, 1 = default); nudges borderline
+  // site-fit judgments toward what the evaluator says they care about.
+  weights: z.record(z.string(), z.number()).optional(),
 });
 
 type FitResult =
@@ -167,7 +170,7 @@ export const parcelsRouter = {
     // comfortably fit a duplex is exactly the fact that makes a rezoning
     // ask worth pursuing rather than a dead end.
     const rated = typologies.map((t) => t.id);
-    const state = buildSiteState(lot, zoning, input.hazards ?? {});
+    const state = buildSiteState(lot, zoning, input.hazards ?? {}, input.weights);
 
     const cacheKey = JSON.stringify([context.systemOne.model, state, rated]);
     let jev = fitCache.get(cacheKey);

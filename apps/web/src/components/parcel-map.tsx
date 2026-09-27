@@ -308,7 +308,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // handlers below).
   const breakdownPane = usePaneCollapse(true);
   const typologyPane = usePaneCollapse();
-  const chatPane = usePaneCollapse();
+  const chatPane = usePaneCollapse(true);
 
   const toggleAlerts = () => {
     const alerts = alertsPane.ref.current;
