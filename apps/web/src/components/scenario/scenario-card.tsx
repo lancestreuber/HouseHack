@@ -9,6 +9,7 @@ import { type Map as MapLibreMap, Marker } from "maplibre-gl";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
+import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { scoreParcel } from "@/lib/pillars/score";
 import { orpc } from "@/utils/orpc";
 
@@ -17,14 +18,13 @@ import { FactChip } from "../chat/fact-chip";
 import { parcelOverrides, scenarioChatContext, tileScore, typologyScore, useParcelChatContext } from "../chat/parcel-context";
 import { EASIEST, useLegalFor } from "../map/legal-for-store";
 import { Disclaimer } from "../disclaimer";
-import { typologyAlerts } from "../map/alerts-panel";
 import type { OverlayState } from "../map/overlay-controller";
 import { OVERLAYS } from "../map/overlays";
 import { PATHWAY_META, TYPOLOGIES } from "../map/overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { usePillarWeights } from "../map/pillar-weights-store";
 import { fmtScore, ScoreBar, scoreColor, useParcelData, useTypologyFit } from "../map/pillars-panel";
-import { SHORT_LABEL, SITE_FIT_TYPOLOGY } from "../map/typology-meta";
+import { type FitsById, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
 import { type LayerPick, layersForPoint, scenarioOverlayState } from "./layers";
 import { closeScenario } from "./scenario-store";
 
@@ -66,7 +66,19 @@ export function ScenarioCard({
   const tile = data ? tileScore(zoning, typologyId) : null;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const siteFit = siteFitId ? fit.data?.typologies.find((t) => t.id === siteFitId)?.fit : undefined;
-  const alerts = fit.data && siteFitId ? (typologyAlerts(fit.data).find((a) => a.id === siteFitId)?.notes ?? []) : [];
+  const pencil = usePencilAssumptions();
+  const fitsById = useMemo<FitsById | undefined>(() => {
+    if (!fit.data) return undefined;
+    const map: FitsById = {};
+    for (const t of fit.data.typologies) map[t.id] = t.fit;
+    return map;
+  }, [fit.data]);
+  const alerts =
+    data && zoning
+      ? verdictFor(zoning, typologyId, data, { fitsById, lotWidthFt: fit.data?.lot.widthFt, pencil })
+          .reasons.filter((r) => r.level !== "green")
+          .map((r) => r.text)
+      : [];
   const ownScore = useMemo(() => (data ? typologyScore(data, weights, typologyId) : null), [data, weights, typologyId]);
   // Types outside the overall score show the parcel's score, as the Parcel Score panel has it.
   const legalFor = useLegalFor();
@@ -75,9 +87,9 @@ export function ScenarioCard({
     [ownScore, data, weights, legalFor],
   );
 
-  // Pros and cons, once the site-fit facts (Jev, alerts) are in the context.
+  // Pros and cons, once the site-fit facts (Jev, verdict) are in the context.
   const focus = context
-    ? [`overall.${typologyId}`, `t.${typologyId}`, `verdict.${typologyId}`, `fit.${typologyId}`, ...(siteFitId ? [`alert.${siteFitId}`] : [])].filter((id) => context.facts.some((f) => f.id === id))
+    ? [`overall.${typologyId}`, `t.${typologyId}`, `verdict.${typologyId}`, `fit.${typologyId}`].filter((id) => context.facts.some((f) => f.id === id))
     : [];
   const result = useQuery({
     ...orpc.chat.scenario.queryOptions({ input: { context: context!, typology: { id: typologyId, name }, focus } }),

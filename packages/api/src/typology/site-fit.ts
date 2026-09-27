@@ -1,15 +1,17 @@
 import type { ScoreAnswer, ScoreQuestion } from "../system-one";
 
-// Which housing types could go on a parcel, in two separate layers:
-//   1. a legal gate, decided in code from the zoning use table (never by a model);
-//   2. a physical site-fit rating, decided by the System One model from lot facts
-//      that code has already computed (the model doesn't do arithmetic).
-// Zoning rules are a simplified transcription for residential districts only.
-// Anything else is "unknown", never guessed.
+// Jev's physical site-fit rating: a decision model judges how well a housing
+// type fits a lot from facts code has already computed (the model doesn't do
+// arithmetic). Legal permission is a separate concern, decided entirely
+// client-side from the full 16-type x 57-district DISTRICT_PATHWAYS table
+// (apps/web/src/components/map/typology-meta.ts's verdictFor), not here --
+// this file used to carry its own simplified 5-district legal gate, but that
+// was redundant with (and less complete than) the client's own reading, so it
+// was retired in favor of one consolidated verdict/dealkiller system.
 
-// The four use-table categories we rank. Multi-unit has two rows because its
-// two forms have different legal paths (apartments by right only in RM; housing
-// for the elderly by Special Exception) and different physical needs.
+// All 16 housing types the bottom typology panel offers (apps/web's
+// legal-feasibility.ts TYPOLOGIES), so Jev rates physical fit for every tile,
+// not just the five mainstream ones.
 export const TYPOLOGIES = [
   {
     id: "detached",
@@ -30,6 +32,12 @@ export const TYPOLOGIES = [
     describe: "a two-unit building",
   },
   {
+    id: "three_unit",
+    category: "Three-unit",
+    label: "Triplex",
+    describe: "a three-unit building",
+  },
+  {
     id: "apartment",
     category: "Multi-unit",
     label: "Apartment",
@@ -41,79 +49,69 @@ export const TYPOLOGIES = [
     label: "Elderly housing",
     describe: "a small apartment building for seniors, about 8–12 units, with an elevator and step-free entry",
   },
+  {
+    id: "assisted_living_a",
+    category: "Assisted living",
+    label: "Assisted living (small)",
+    describe: "a small assisted-living facility with fewer than 9 residents",
+  },
+  {
+    id: "assisted_living_b",
+    category: "Assisted living",
+    label: "Assisted living (mid)",
+    describe: "a mid-size assisted-living facility with 9 to 17 residents",
+  },
+  {
+    id: "assisted_living_c",
+    category: "Assisted living",
+    label: "Assisted living (large)",
+    describe: "a large assisted-living facility with 18 or more residents",
+  },
+  {
+    id: "personal_care_small",
+    category: "Personal care",
+    label: "Personal care (small)",
+    describe: "a small personal-care residence",
+  },
+  {
+    id: "personal_care_large",
+    category: "Personal care",
+    label: "Personal care (large)",
+    describe: "a large personal-care residence",
+  },
+  {
+    id: "community_home",
+    category: "Community home",
+    label: "Community home",
+    describe: "a community home for a small group of unrelated residents living together as a household",
+  },
+  {
+    id: "multi_suite_limited",
+    category: "Multi-suite residential",
+    label: "Multi-suite (limited)",
+    describe: "a small multi-suite residential building (independent-living suites sharing common areas)",
+  },
+  {
+    id: "multi_suite_general",
+    category: "Multi-suite residential",
+    label: "Multi-suite (general)",
+    describe: "a larger multi-suite residential building (independent-living suites sharing common areas)",
+  },
+  {
+    id: "interim_housing",
+    category: "Interim housing",
+    label: "Interim housing",
+    describe: "interim/transitional housing with shared common areas and on-site support services",
+  },
 ] as const;
 
 export type TypologyId = (typeof TYPOLOGIES)[number]["id"];
 
-export type GateStatus = "allowed" | "conditional" | "not_permitted" | "unknown";
-export type Gate = {
-  status: GateStatus;
-  reason: string;
-  /** Districts that *would* permit this typology (by right or Special
-   * Exception), so a "not_permitted" gate isn't just a dead end -- it's a
-   * fact about the current zoning, not the parcel's physical potential. */
-  rezoningTo?: ResidentialBase[];
-};
-
 const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"] as const;
 export type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
 
-function basesAllowing(typology: TypologyId): ResidentialBase[] {
-  return RESIDENTIAL_BASES.filter((base) => USE_TABLE[typology][base] !== "-");
-}
-
-// 2023-26 Zoning Board relief approval rate by base district ("ALL" cases),
-// snapshotted from apps/web's ZBA_OUTCOMES (legal-matrix.generated.ts) --
-// this file can't import that frontend-only generated data directly, and
-// it's only these 5 bases' aggregate rates that this simpler use table
-// needs. An approximation (relief broadly, not the exact rezoning/map-
-// amendment rate), same caveat as the bottom typology panel's own version.
-const ZBA_APPROVAL_RATE: Partial<Record<ResidentialBase, number>> = {
-  R1D: 87 / 101,
-  R1A: 74 / 83,
-  R2: 46 / 62,
-  RM: 30 / 31,
-  // R3: no local ZBA case data; falls back to the neutral estimate below.
-};
-const NEUTRAL_APPROVAL_RATE = 0.7;
-
-/** 0.5 if an adjacent district on the density ladder (RESIDENTIAL_BASES'
- * order) permits this typology, 0.2 if only a non-adjacent one does. This
- * table has no density-suffix variants (unlike DISTRICT_PATHWAYS' full zon_new
- * codes), so there's no "same family" 1.0 case here. */
-function rezoningCloseness(typology: TypologyId, base: ResidentialBase): number {
-  const currentRank = RESIDENTIAL_BASES.indexOf(base);
-  let best = 0;
-  for (const allowed of basesAllowing(typology)) {
-    const rank = RESIDENTIAL_BASES.indexOf(allowed);
-    best = Math.max(best, Math.abs(rank - currentRank) === 1 ? 0.5 : 0.2);
-  }
-  return best;
-}
-
-function rezoningLikelihood(base: ResidentialBase): number {
-  return ZBA_APPROVAL_RATE[base] ?? NEUTRAL_APPROVAL_RATE;
-}
-
-// §911.02 use table, residential columns (read on eCode360, 2026-09-26).
-// P = permitted by right, S = special exception, - = not permitted.
-// Elderly: "Housing for the Elderly (Limited)" is S in every residential district;
-// "(General)" is S only in R3 and RM (§911.04A.35).
-const USE_TABLE: Record<TypologyId, Record<ResidentialBase, "P" | "S" | "-">> = {
-  detached: { R1D: "P", R1A: "P", R2: "P", R3: "P", RM: "P" },
-  attached: { R1D: "S", R1A: "P", R2: "P", R3: "P", RM: "P" },
-  duplex: { R1D: "-", R1A: "-", R2: "P", R3: "P", RM: "P" },
-  apartment: { R1D: "-", R1A: "-", R2: "-", R3: "-", RM: "P" },
-  elderly: { R1D: "S", R1A: "S", R2: "S", R3: "S", RM: "S" },
-};
-
-function useReason(typology: TypologyId, base: ResidentialBase): string {
-  if (typology !== "elderly") return `in ${base} districts (§911.02)`;
-  const form = base === "R3" || base === "RM" ? "Limited or General" : "Limited only";
-  return `in ${base} districts as Housing for the Elderly (${form}) (§911.02, §911.04A.35)`;
-}
-
-// §903.03 minimum lot size by density suffix, post-May-2025 values.
+// §903.03 minimum lot size by density suffix, post-May-2025 values. Kept here
+// (not just in the client) because buildSiteState needs it for Jev's prompt.
 const MIN_LOT_SF: Record<string, number | null> = { VL: 6000, L: 3000, M: 2400, H: 1200, VH: null };
 
 export type ZoningInfo = {
@@ -132,47 +130,6 @@ export function parseZoning(code: string | null | undefined): ZoningInfo {
     base: isResidential ? (base as ResidentialBase) : null,
     minLotSf: isResidential && density ? (MIN_LOT_SF[density] ?? null) : null,
   };
-}
-
-export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: number | null): Gate {
-  if (!zoning.base) {
-    return {
-      status: "unknown",
-      reason: zoning.code
-        ? `Rules for ${zoning.code} aren't encoded in this tool; check the zoning code.`
-        : "Zoning district unknown for this parcel.",
-    };
-  }
-
-  const use = USE_TABLE[typology][zoning.base];
-  if (use === "-") {
-    const rezoningTo = basesAllowing(typology);
-    const rezoningNote = rezoningTo.length
-      ? ` Would need rezoning to ${rezoningTo.join(", ")} to allow it. Rezoning closeness ${Math.round(rezoningCloseness(typology, zoning.base) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning.base) * 100)}%.`
-      : "";
-    return {
-      status: "not_permitted",
-      reason: `Not permitted ${useReason(typology, zoning.base)}.${rezoningNote}`,
-      rezoningTo,
-    };
-  }
-
-  const undersized = zoning.minLotSf !== null && lotAreaSf !== null && lotAreaSf < zoning.minLotSf;
-  if (undersized) {
-    const path =
-      typology === "detached"
-        ? "one house may be allowed by Administrator Exception if the lot is in separate ownership (§921.04)"
-        : "needs a Special Exception from the Zoning Board of Adjustment (§921.04)";
-    return {
-      status: "conditional",
-      reason: `Lot is below the ${zoning.minLotSf?.toLocaleString("en-US")} sq ft district minimum; ${path}.`,
-    };
-  }
-
-  if (use === "S") {
-    return { status: "conditional", reason: `Needs a Special Exception ${useReason(typology, zoning.base)}.` };
-  }
-  return { status: "allowed", reason: `Permitted by right ${useReason(typology, zoning.base)}.` };
 }
 
 export type LotFacts = {

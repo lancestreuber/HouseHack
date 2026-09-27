@@ -1,4 +1,4 @@
-import { Star } from "lucide-react";
+import { Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { cn } from "@HouseHack/ui/lib/utils";
@@ -10,16 +10,20 @@ function starKey(pin: string) {
 }
 
 /** Slim bar above the map: shows the currently selected parcel (falling back
- * to its PIN -- the underlying parcel data has no street address field) and
- * a star to bookmark it. Starred state is local-only (no backend for it yet). */
+ * to its PIN -- the underlying parcel data has no street address field), a
+ * star to bookmark it, and a cancel button to deselect it (every sidebar
+ * goes back to its empty "select a parcel" state). Starred state is
+ * local-only (no backend for it yet). */
 export function ParcelTab({
   pin,
   collapsed,
   onToggleCollapse,
+  onClear,
 }: {
   pin: string | null;
   collapsed: boolean;
   onToggleCollapse: () => void;
+  onClear: () => void;
 }) {
   const [starred, setStarred] = useState(false);
 
@@ -50,6 +54,16 @@ export function ParcelTab({
           )}
         >
           <Star className={cn("size-3.5", starred && "fill-current")} />
+        </button>
+        <button
+          type="button"
+          onClick={onClear}
+          disabled={!pin}
+          aria-label="Deselect this parcel"
+          title="Deselect this parcel"
+          className="rounded p-1 text-muted-foreground hover:bg-foreground/10 disabled:opacity-30"
+        >
+          <X className="size-3.5" />
         </button>
         <PaneCollapseButton collapsed={collapsed} onClick={onToggleCollapse} label="the map" />
       </div>

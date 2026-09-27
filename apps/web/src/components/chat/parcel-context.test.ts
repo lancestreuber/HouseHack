@@ -14,7 +14,6 @@ mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
 const { generalChatContext, legalCodeFor, parcelChatContext, scenarioChatContext, typologyScore } = await import("./parcel-context");
 const { notPermittedScore, PATHWAY_SCORE } = await import("../map/typology-panel");
 const { legalLevelFor, SHORT_LABEL } = await import("../map/typology-meta");
-const { typologyAlerts } = await import("../map/alerts-panel");
 const { DISTRICT_PATHWAYS } = await import("../map/overlays/legal-matrix.generated");
 const { TYPOLOGIES: TILE_TYPES } = await import("../map/overlays/legal-feasibility");
 const siteFit = await import("@HouseHack/api/typology/site-fit");
@@ -50,8 +49,8 @@ const demo = toData((await shard("0001"))[PIN]!);
 
 // The navbar store holds only the pillars the user changed ({} = defaults).
 // A realistic parcels.typologyFit response for the demo lot, built with the
-// API's own gate and fact builders; Jev's ratings are stand-ins, including a
-// poor fit and a low-confidence one so every alert rule fires.
+// API's own buildSiteState; Jev's ratings are stand-ins, including a poor fit
+// and a low-confidence one so the verdict's fit-based reasons all fire.
 function fakeFit(zoning: string): TypologyFit {
   const lot = { areaSf: 4463, widthFt: 45, depthFt: 103 };
   const zone = siteFit.parseZoning(zoning);
@@ -62,6 +61,10 @@ function fakeFit(zoning: string): TypologyFit {
     apartment: [0.2, "Fits only with major compromises", 0.4],
     elderly: [0.4, "Fits only with major compromises", 0.1],
   };
+  // Everything else Jev now rates (three_unit, assisted living, personal
+  // care, community home, multi-suite, interim housing) gets the same
+  // stand-in rating; the tests don't assert on their specific values.
+  const fallbackRating: [number, string, number] = [0.6, "Fits with minor compromises", 0.5];
   return {
     pin: PIN,
     lot,
@@ -69,12 +72,11 @@ function fakeFit(zoning: string): TypologyFit {
     facts: siteFit.buildSiteState(lot, zone, { steepSlope: 0.12 }),
     jev: { status: "ok", model: "jev-test" },
     typologies: siteFit.TYPOLOGIES.map((t) => {
-      const [fit, label, confidence] = ratings[t.id]!;
+      const [fit, label, confidence] = ratings[t.id] ?? fallbackRating;
       return {
         id: t.id,
         category: t.category,
         label: t.label,
-        gate: siteFit.gateFor(t.id, zone, lot.areaSf),
         fit: { fit, label, probabilities: [], confidence, needsReview: confidence < 0.3 },
       };
     }),
@@ -132,7 +134,7 @@ describe("parcelChatContext", () => {
     }
   });
 
-  test("explains Jev's site-fit bars, the lot and every alert the panel shows", () => {
+  test("explains Jev's site-fit bars, the lot and the typology verdicts the bottom panel shows", () => {
     const fit = fakeFit(demo.zoning);
     const ctx = parcelChatContext(PIN, demo, {}, { status: "ready", data: fit });
     const text = (id: string) => ctx.facts.find((f) => f.id === id)?.text ?? "";
@@ -149,10 +151,13 @@ describe("parcelChatContext", () => {
     expect(text("lot")).toContain("Lot area 4,463 sq ft");
     expect(text("hazards")).toContain("12% of the lot is at 25%+ slope");
     expect(text("jev")).toContain("jev-test");
-    const alerts = typologyAlerts(fit);
-    expect(alerts.length).toBeGreaterThan(0);
-    for (const a of alerts) for (const note of a.notes) expect(text(`alert.${a.id}`)).toContain(note);
-    for (const a of alerts) expect(tone(`alert.${a.id}`)).toBe("bad");
+    // The bottom panel's own verdict + pencil check, computed once and cited by
+    // the chat -- not the old, now-removed per-alert facts.
+    for (const id of config.legal.typologies) {
+      const verdictText = text(`verdict.${id}`);
+      expect(verdictText).toContain(`Can a ${SHORT_LABEL[id] ?? id} be built here?`);
+      expect(verdictText).toMatch(/RED|YELLOW|GREEN|UNKNOWN/);
+    }
     // A pillar's warnings are separate, and always count against building.
     for (const f of ctx.facts.filter((f) => f.id.startsWith("warning."))) expect(f.tone).toBe("bad");
   });
