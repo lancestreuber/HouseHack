@@ -18,6 +18,7 @@ const ALLOWED_HOSTS = [
   /^usgs-nims-images\.s3\.amazonaws\.com$/,
   /^images\.weatherstem\.com$/,
   /^wx\.w3sll\.net$/,
+  /^images\.webcamgalore\.com$/,
 ];
 
 // The Referer the gated CDNs expect (a wrong/absent Referer gets a 403). Other

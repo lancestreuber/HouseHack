@@ -356,5 +356,20 @@
   "refresh_s": 60,
   "attribution": "W3SLL WeeWX cam",
   "verified_at": "2026-09-27"
+ },
+ {
+  "id": "camp-guyasuta",
+  "name": "Camp Guyasuta (O'Hara Twp)",
+  "operator": "WeatherBug (via Webcam Galore cache)",
+  "category": "weather",
+  "lat": 40.5011,
+  "lon": -79.9103,
+  "coord_quality": "approx",
+  "feed_type": "jpeg",
+  "feed_url": "https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg",
+  "page_url": "https://www.webcamgalore.com/webcam/USA-Pennsylvania-Sharpsburg/24760.html",
+  "refresh_s": 1800,
+  "attribution": "WeatherBug via Webcam Galore",
+  "verified_at": "2026-09-27"
  }
 ]

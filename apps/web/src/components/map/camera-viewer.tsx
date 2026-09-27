@@ -18,8 +18,9 @@ function RefreshingImage({ camera }: { camera: CameraFeed }) {
   const [frameAt, setFrameAt] = useState<number | null>(null);
   const [failed, setFailed] = useState(false);
   const [now, setNow] = useState(() => Date.now());
-  // Poll often enough to catch the next ~60s frame promptly, without hammering.
-  const pollMs = Math.min(camera.refresh_s ?? 15, 15) * 1000;
+  // Poll often enough to catch the next ~60s frame promptly, but back off for
+  // slow sources (e.g. a 30-min weather-cam cache) so we don't hammer them.
+  const pollMs = ((camera.refresh_s ?? 15) > 300 ? 60 : 15) * 1000;
 
   useEffect(() => {
     let cancelled = false;
