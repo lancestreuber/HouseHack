@@ -3,7 +3,7 @@ import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // MapLibre parses vector tiles in a Web Worker. The bundler rewrites the
 // worker's URL to an /assets/ path but never emits the file, so the worker 404s
@@ -39,7 +39,8 @@ import { CameraViewer } from "./map/camera-viewer";
 import { DISCLAIMER, LIMITATIONS_URL } from "./disclaimer";
 import { onAskChat } from "./chat/chat-context-store";
 import { ChatPane } from "./chat/chat-pane";
-import { useParcelChatContext } from "./chat/parcel-context";
+import { mapChatInfo, registerMapController } from "./chat/map-actions";
+import { generalChatContext, useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
 import {
   hitsClickableOverlay,
@@ -101,6 +102,8 @@ const COUNTY_BOUNDS: [[number, number], [number, number]] = [
 // overlays/legal-feasibility.ts as "residential-zoning"), so it no longer
 // needs its own entry in this list.
 const UNDER_OVERLAY_LAYER_IDS = [PARCEL_LAYER_ID];
+// With no parcel selected, the chat explains how Yinzone works (and can still change the map).
+const GENERAL_CHAT = generalChatContext();
 
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
@@ -293,8 +296,15 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       breakdown.collapse();
     }
   };
-  // The chat explains exactly what the panes show for the selected parcel.
-  const chatContext = useParcelChatContext(selectedPin) ?? undefined;
+  // The chat explains exactly what the panes show for the selected parcel, and
+  // can change the map's layers (it sees the layer list and what's on now).
+  const parcelChatContext = useParcelChatContext(selectedPin);
+  const zoomLevel = Math.floor(zoom);
+  const chatContext = useMemo(
+    () => ({ ...(parcelChatContext ?? GENERAL_CHAT), map: mapChatInfo(overlayState, zoomLevel) }),
+    [parcelChatContext, overlayState, zoomLevel],
+  );
+  useEffect(() => registerMapController({ get: () => overlayStateRef.current, set: setOverlayState }), []);
   // A typology tile's scenario card, shown on the map for the selected parcel.
   const scenario = useScenario();
   useEffect(() => closeScenario(), [selectedPin]);

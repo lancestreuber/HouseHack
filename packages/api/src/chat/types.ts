@@ -137,11 +137,35 @@ export interface ScoringModel {
   multiplier?: number;
 }
 
+/** One map layer the chat may turn on. `heat` layers color the whole map, one at a time. */
+export interface MapLayerInfo {
+  id: string;
+  label: string;
+  group: string;
+  /** What the layer shows, as the layers panel says it. */
+  description?: string;
+  heat: boolean;
+  metrics?: { id: string; label: string }[];
+  /** Drawn only once the map is zoomed in this far. */
+  minZoom?: number;
+}
+
+/** Which layers the map shows: at most one heat layer (with its metric) plus stacked layers. */
+export interface MapView {
+  heat: { id: string; metric?: string } | null;
+  stack: string[];
+}
+
+/** A change the chat made on the screen, applied by the page after the reply. */
+export type ChatAction = { type: "map"; view: MapView; summary: string };
+
 /** What the screen shows right now. Every panel that wants chat support builds one. */
 export interface ChatContext {
   subject: string;
   facts: ContextFact[];
   scoring?: ScoringModel;
+  /** The map beside the chat, if any: its layers and what it shows now. Enables the map tool. */
+  map?: { layers: MapLayerInfo[]; current: MapView; zoom?: number };
   suggestions?: string[];
   /** Plain notes shown if the assistant is unavailable. */
   notes?: string[];
@@ -155,5 +179,5 @@ export interface ReplyBlock {
 }
 
 export type ChatResult =
-  | { status: "ok"; blocks: ReplyBlock[]; facts: ChatFact[]; suggestions: string[] }
+  | { status: "ok"; blocks: ReplyBlock[]; facts: ChatFact[]; suggestions: string[]; actions?: ChatAction[] }
   | { status: "unavailable"; reason: string; notes: string[]; suggestions: string[] };
