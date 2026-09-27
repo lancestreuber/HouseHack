@@ -389,7 +389,7 @@ function TypologyTile({
     return (
       <div
         {...shared}
-        className={`${cardBase} w-44 gap-1 px-2 py-1.5`}
+        className={`${cardBase} w-48 gap-1 px-2 py-1.5`}
         style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
       >
         <div className="flex items-center gap-1.5">
@@ -442,7 +442,7 @@ function TypologyTile({
   return (
     <div
       {...shared}
-      className={`${cardBase} h-full w-[13rem] justify-between gap-1 p-2`}
+      className={`${cardBase} h-full w-[14rem] justify-between gap-1 p-2`}
       style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
     >
       <div className="flex flex-col gap-0.5" data-top>
@@ -451,7 +451,7 @@ function TypologyTile({
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
-          <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
+          <span className="shrink-0 font-semibold leading-none tabular-nums" style={{ color }} data-score>
             {scoreText}
           </span>
         </div>
@@ -486,22 +486,24 @@ function TypologyTile({
       <div className="flex flex-col gap-0.5" data-bottom>
         {/* The fit bar reads as a tiny, meaningless sliver at typical pane
          * heights; only worth showing once there's also room for the fit
-         * chart below it. */}
-        {showChart && (
-          <div className="flex items-center gap-1.5">
-            <span className="shrink-0 text-muted-foreground">Jev</span>
-            {fit ? (
-              <div className="flex-1" title={fit.label}>
-                <FitBar value={fit.fit * 100} />
-              </div>
-            ) : (
-              <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
-                not rated
-              </span>
-            )}
-            {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
-          </div>
-        )}
+         * chart below it. Hidden with `invisible`, not unmounted: this row's
+         * height is part of the card's fixed "cardPx" measurement below, so
+         * unmounting it when showChart flips would change that measurement
+         * and feed back into the very calculation that sets showChart --
+         * an infinite ResizeObserver loop while the pane is being dragged. */}
+        <div className={`flex items-center gap-1.5 ${showChart ? "" : "invisible"}`}>
+          <span className="shrink-0 text-muted-foreground">Jev</span>
+          {fit ? (
+            <div className="flex-1" title={fit.label}>
+              <FitBar value={fit.fit * 100} />
+            </div>
+          ) : (
+            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+              not rated
+            </span>
+          )}
+          {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
+        </div>
         <div className="min-h-[2.6em]" data-details>
           {verdictBlock}
         </div>
