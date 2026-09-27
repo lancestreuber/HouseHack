@@ -395,14 +395,10 @@ export function PillarsPanel({
 
   return (
     <aside className="flex h-full w-full flex-col bg-background text-xs">
-      <header className="flex items-start justify-between gap-2 border-b p-3">
-        <div>
-          <p className="text-muted-foreground">Parcel</p>
-          <p className="font-mono text-sm">{pin}</p>
-          {data && <p className="text-muted-foreground">Zoning {data.zoning || "unknown"}</p>}
-        </div>
+      <header className="flex items-center justify-between gap-2 border-b p-3">
+        <p className="font-medium">Pillar compliance</p>
         <div className="flex items-center gap-1">
-          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="scores" />}
+          {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="pillar compliance" />}
           <button type="button" onClick={onClose} className="rounded px-2 py-1 hover:bg-foreground/10" aria-label="Close parcel panel">
             ✕
           </button>

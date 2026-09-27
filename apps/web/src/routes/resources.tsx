@@ -62,7 +62,7 @@ function ResourcesPage() {
   }, []);
 
   return (
-    <div ref={scroller} className="min-h-0 overflow-y-auto bg-background">
+    <div ref={scroller} className="h-full min-h-0 overflow-y-auto bg-background">
       <div className="mx-auto grid max-w-[1600px] grid-cols-1 lg:grid-cols-[13rem_minmax(0,1fr)]">
         <aside className="hidden border-r border-border lg:block">
           <nav className="sticky top-0 p-4">
