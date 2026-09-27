@@ -46,10 +46,21 @@ export const TYPOLOGIES = [
 export type TypologyId = (typeof TYPOLOGIES)[number]["id"];
 
 export type GateStatus = "allowed" | "conditional" | "not_permitted" | "unknown";
-export type Gate = { status: GateStatus; reason: string };
+export type Gate = {
+  status: GateStatus;
+  reason: string;
+  /** Districts that *would* permit this typology (by right or Special
+   * Exception), so a "not_permitted" gate isn't just a dead end -- it's a
+   * fact about the current zoning, not the parcel's physical potential. */
+  rezoningTo?: ResidentialBase[];
+};
 
 const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"] as const;
-type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
+export type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
+
+function basesAllowing(typology: TypologyId): ResidentialBase[] {
+  return RESIDENTIAL_BASES.filter((base) => USE_TABLE[typology][base] !== "-");
+}
 
 // §911.02 use table, residential columns (read on eCode360, 2026-09-26).
 // P = permitted by right, S = special exception, - = not permitted.
@@ -102,7 +113,13 @@ export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: num
 
   const use = USE_TABLE[typology][zoning.base];
   if (use === "-") {
-    return { status: "not_permitted", reason: `Not permitted ${useReason(typology, zoning.base)}.` };
+    const rezoningTo = basesAllowing(typology);
+    const rezoningNote = rezoningTo.length ? ` Would need rezoning to ${rezoningTo.join(", ")} to allow it.` : "";
+    return {
+      status: "not_permitted",
+      reason: `Not permitted ${useReason(typology, zoning.base)}.${rezoningNote}`,
+      rezoningTo,
+    };
   }
 
   const undersized = zoning.minLotSf !== null && lotAreaSf !== null && lotAreaSf < zoning.minLotSf;

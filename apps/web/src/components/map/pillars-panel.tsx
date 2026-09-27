@@ -271,8 +271,11 @@ const GATE_LABEL: Record<string, { text: string; className: string }> = {
 
 // Legal gate from the zoning use table (code) plus physical site fit from the
 // System One decision model. Ratings are judgments with a confidence, not measurements.
-function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
-  const query = useQuery(
+/** Shared by the typology-fit section here and the Alerts pane, so both read
+ * the exact same (cached) System One result instead of issuing their own
+ * near-duplicate requests. */
+export function useTypologyFit(pin: string, data: ParcelData) {
+  return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
         pin,
@@ -288,6 +291,10 @@ function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
       staleTime: Number.POSITIVE_INFINITY,
     }),
   );
+}
+
+function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useTypologyFit(pin, data);
 
   return (
     <section className="space-y-1.5 rounded border border-border/60 p-2">

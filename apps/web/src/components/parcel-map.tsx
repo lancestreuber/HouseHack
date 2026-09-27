@@ -32,6 +32,7 @@ import { client } from "@/utils/orpc";
 
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
+import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { ChatPane } from "./chat/chat-pane";
 import { useParcelChatContext } from "./chat/parcel-context";
@@ -245,9 +246,9 @@ async function refreshParcels(map: MapLibreMap) {
 /** Wires a ResizablePanel up to a header collapse button: tracks whether
  * it's currently collapsed (via onResize, so dragging past the threshold
  * keeps the icon in sync too, not just button clicks) and exposes a toggle. */
-function usePaneCollapse() {
+function usePaneCollapse(defaultCollapsed = false) {
   const ref = useRef<PanelImperativeHandle | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const onResize = (size: { asPercentage: number }) => setCollapsed(size.asPercentage <= 0.5);
   const toggle = () => {
     const panel = ref.current;
@@ -255,6 +256,11 @@ function usePaneCollapse() {
     if (panel.isCollapsed()) panel.expand();
     else panel.collapse();
   };
+  useEffect(() => {
+    if (defaultCollapsed) ref.current?.collapse();
+    // Only ever applied once, right after the panel mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return { ref, collapsed, onResize, toggle };
 }
 
@@ -294,9 +300,36 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
   const wasZoomedInRef = useRef(false);
   const mapPane = usePaneCollapse();
   const scoresPane = usePaneCollapse();
-  const breakdownPane = usePaneCollapse();
+  const alertsPane = usePaneCollapse();
+  // Alerts and Breakdowns share one slot in spirit: only one is open by
+  // default, and opening either collapses the other (see the two toggle
+  // handlers below).
+  const breakdownPane = usePaneCollapse(true);
   const typologyPane = usePaneCollapse();
   const chatPane = usePaneCollapse();
+
+  const toggleAlerts = () => {
+    const alerts = alertsPane.ref.current;
+    const breakdown = breakdownPane.ref.current;
+    if (!alerts) return;
+    if (alerts.isCollapsed()) {
+      alerts.expand();
+      if (breakdown && !breakdown.isCollapsed()) breakdown.collapse();
+    } else {
+      alerts.collapse();
+    }
+  };
+  const toggleBreakdown = () => {
+    const alerts = alertsPane.ref.current;
+    const breakdown = breakdownPane.ref.current;
+    if (!breakdown) return;
+    if (breakdown.isCollapsed()) {
+      breakdown.expand();
+      if (alerts && !alerts.isCollapsed()) alerts.collapse();
+    } else {
+      breakdown.collapse();
+    }
+  };
   // The chat explains exactly what the panes show for the selected parcel.
   const chatContext = useParcelChatContext(selectedPin) ?? undefined;
 
@@ -310,6 +343,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
 
   const handleSelectPillar = (id: PillarId) => {
     if (breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current.expand();
+    if (!alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current?.collapse();
     document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -630,7 +664,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
         <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
           <ResizablePanelGroup orientation="vertical" className="h-full w-full">
             <ResizablePanel
-              defaultSize="45%"
+              defaultSize="35%"
               minSize={0}
               collapsible
               collapsedSize="80px"
@@ -653,18 +687,29 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
-              defaultSize="25%"
+              defaultSize="20%"
+              minSize={0}
+              collapsible
+              collapsedSize="34px"
+              panelRef={alertsPane.ref}
+              onResize={alertsPane.onResize}
+            >
+              <AlertsPanel pin={selectedPin} collapsed={alertsPane.collapsed} onToggleCollapse={toggleAlerts} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize="20%"
               minSize={0}
               collapsible
               collapsedSize="34px"
               panelRef={breakdownPane.ref}
               onResize={breakdownPane.onResize}
             >
-              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
+              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={toggleBreakdown} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
-              defaultSize="30%"
+              defaultSize="25%"
               minSize={0}
               collapsible
               collapsedSize="48px"

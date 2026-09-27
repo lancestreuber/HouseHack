@@ -162,7 +162,11 @@ export const parcelsRouter = {
       label: t.label,
       gate: gateFor(t.id, zoning, lot.areaSf),
     }));
-    const rated = typologies.filter((t) => t.gate.status !== "not_permitted").map((t) => t.id);
+    // Rate physical fit for every typology, even legally "not_permitted"
+    // ones: physical fit doesn't depend on zoning, and knowing a lot would
+    // comfortably fit a duplex is exactly the fact that makes a rezoning
+    // ask worth pursuing rather than a dead end.
+    const rated = typologies.map((t) => t.id);
     const state = buildSiteState(lot, zoning, input.hazards ?? {});
 
     const cacheKey = JSON.stringify([context.systemOne.model, state, rated]);
