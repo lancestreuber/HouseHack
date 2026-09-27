@@ -45,6 +45,11 @@ From 30,775 paginated ZDR + BDA records; start = earliest workflow date, end = I
 - Historical permits from 2012: WPRDC `city-of-pittsburgh-building-permit-summary` `[found]`. Catalog caveat: older records use different schemas.
 - `C/Development_Construction_Projects_v2`: 518 NEW CONSTRUCTION records with a `NUMBEROFUNITS` field `[read]`.
 
+### Demolitions as a site-cost signal (2026-09-27, [r9 sweep](../../sweeps/r9-brownfield-and-demolition-layers.md))
+- The SMEs said many vacant City lots have the demolished house folded into its old basement, which raises site cost (S8). **The permits confirm this.** In our count of the raw dump, 170 demolition permits from 2024–26 state "foundation walls (to) remain". Many say "void to be filled with clean material". PLI's 2021 private-demolition rules require only breaking the slab and backfilling with clean fill: **no wall removal, no compaction** ([excerpt](../../sources/pittsburghpa-2026-09-27-pli-private-demolition-requirements-2021.md)).
+- **The join is clean:** about 1,300 demolition permits (2019 onward) match County parcel IDs 100%. 731 of 22,354 vacant City parcels have a full demolition. Comparing against the 2017 assessment snapshot raises the count with a recent-building signal to 1,413 (6.3%).
+- **Limit:** about 94% of vacant lots have no machine-readable demolition record. Older demolitions are invisible, and a missing record does not mean there is no buried basement. Use it as a flag that adds site cost, not as a clearance.
+
 ## Other outcome sets
 | Set | Content | Caveat | Tag |
 |---|---|---|---|

@@ -40,7 +40,7 @@ Source: [brief page](https://ai-horizons-2026-ai-for-housing-hackathon.brandon83
 | [Brief page](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/policy-to-permit.html) `[read]` | "Development Feasibility & Pro Forma Navigator" (title only) | No. The body describes only the Development Ease Score. |
 | [Packet](https://docs.google.com/document/d/1L-UYid6Q0JDRH3iy4cpqGIDlZNpJspok_rPxIsILbLQ) `[read]` | "Development Feasibility Navigator" | No. |
 
-Our reading (inference, not a source statement): the scored deliverable is the Development Ease Score; a financing pro forma is at most an optional extension. What "approved affordability assumptions" means is unanswered. See [pro forma](../methods/pro-forma.md).
+Our reading (inference, not a source statement): the scored deliverable is the Development Ease Score; a financing pro forma is at most an optional extension. ⚠ **The SMEs disagreed, 2026-09-27:** "ideally both" financial and zoning feasibility, and the tool should build the pro forma if confirming feasibility needs one. They also said one dimension done well beats several done poorly ([gap analysis](../build-plan/sme-feedback-gap-analysis.md) S4, S12). What "approved affordability assumptions" means is still unanswered. See [pro forma](../methods/pro-forma.md).
 
 ## Track 2: Housing Production, Rents & Household Flow Observatory
 
