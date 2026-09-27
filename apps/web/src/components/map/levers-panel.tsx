@@ -75,7 +75,7 @@ export function LeversPanel({ pin, typology }: { pin: string; typology: string }
   const { data, status } = useParcelData(pin);
   const { levers, isError } = useLevers(pin, status === "ready" && data ? data.zoning : null, typology);
 
-  if (status === "missing") return <p>No zoning data for this parcel (City parcels only).</p>;
+  if (status === "missing" || status === "outside") return <p>No zoning data for this parcel (City parcels only).</p>;
   if (isError) return <p>Couldn't load the lever data.</p>;
   if (!levers) return <p>Loading…</p>;
   return (

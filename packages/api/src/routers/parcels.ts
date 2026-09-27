@@ -61,6 +61,15 @@ export const parcelsRouter = {
     const row = result.rows[0];
     return row ? { lng: row.lng, lat: row.lat } : null;
   }),
+  // The County assessor's municipality code for a parcel; the app only
+  // covers City of Pittsburgh parcels (codes 101-132, one per ward).
+  getMunicode: publicProcedure.input(z.object({ pin: z.string() })).handler(async ({ input, context }) => {
+    const result = await context.db.execute<{ municode: string | null }>(sql`
+      SELECT properties->>'MUNICODE' AS municode FROM parcel WHERE pin = ${input.pin} LIMIT 1
+    `);
+    const code = Number(result.rows[0]?.municode);
+    return { municode: Number.isFinite(code) && code > 0 ? code : null };
+  }),
   searchAddress: publicProcedure.input(addressSearchInput).handler(async ({ input, context }) => {
     // Free, no-API-key geocoder. Usage policy requires a real identifying
     // User-Agent and caps at ~1 req/sec, which the command palette's input
@@ -83,8 +92,8 @@ export const parcelsRouter = {
       results.map(async (r) => {
         const lng = Number(r.lon);
         const lat = Number(r.lat);
-        const parcel = await context.db.execute<{ pin: string }>(sql`
-          SELECT pin FROM parcel
+        const parcel = await context.db.execute<{ pin: string; municode: string | null }>(sql`
+          SELECT pin, properties->>'MUNICODE' AS municode FROM parcel
           WHERE ST_Contains(geom, ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326))
           LIMIT 1
         `);
@@ -93,6 +102,7 @@ export const parcelsRouter = {
           lng,
           lat,
           pin: parcel.rows[0]?.pin ?? null,
+          municode: parcel.rows[0]?.municode ? Number(parcel.rows[0].municode) : null,
         };
       }),
     );

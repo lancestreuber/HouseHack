@@ -407,7 +407,7 @@ export function parcelChatContext(
 ): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
-    const text = "No pillar scores for this parcel. Scores cover City of Pittsburgh parcels only.";
+    const text = "No pillar scores for this City parcel.";
     return { subject, facts: [fact("parcel", `Parcel ${pin}: ${text}`, "observed")], notes: [text] };
   }
 
@@ -562,9 +562,21 @@ export function generalChatContext(): ChatContext {
   };
 }
 
+/** A parcel outside the City: the app has no zoning, scores or verdicts for it. */
+export function outsideCityChatContext(pin: string, municipality: string | null): ChatContext {
+  const place = municipality ?? "another Allegheny County municipality";
+  const text = `This parcel is outside the City of Pittsburgh, in ${place}. Yinzone only covers City of Pittsburgh zoning; ${place} has its own zoning code, which is not encoded, so there are no scores, verdicts or zoning facts for it. Point the user to the municipality's zoning office.`;
+  return {
+    subject: `Parcel ${pin} (${place})`,
+    facts: [fact("parcel", `Parcel ${pin}: ${text}`, "observed", "Allegheny County parcel boundaries (MUNICODE)")],
+    suggestions: ["Why doesn't this cover my parcel?"],
+    notes: [text],
+  };
+}
+
 /** The chat context for the explorer's selected parcel; null while nothing is selected or it's loading. */
 export function useParcelChatContext(pin: string | null): ChatContext | null {
-  const { pin: loadedPin, data, status } = useParcelData(pin);
+  const { pin: loadedPin, data, status, scope } = useParcelData(pin);
   const weights = usePillarWeights();
   const pencil = usePencilAssumptions();
   const legalFor = useLegalFor();
@@ -576,9 +588,10 @@ export function useParcelChatContext(pin: string | null): ChatContext | null {
   return useMemo(() => {
     if (!pin || loadedPin !== pin) return null;
     if (status === "ready" && data) return parcelChatContext(pin, data, weights, fit, pencil, legalFor, levers);
+    if (status === "outside") return outsideCityChatContext(pin, scope.status === "outside" ? scope.name : null);
     if (status === "missing") return parcelChatContext(pin, null);
     return null;
     // `fit` is rebuilt each render; its inputs are listed instead.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin, loadedPin, data, status, weights, query.data, query.isError, pencil, legalFor, levers]);
+  }, [pin, loadedPin, data, status, scope, weights, query.data, query.isError, pencil, legalFor, levers]);
 }
