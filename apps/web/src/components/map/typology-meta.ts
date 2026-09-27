@@ -97,7 +97,7 @@ export function legalLevelFor(zoning: string, typologyId: string, parcelLegalCod
   return pathway;
 }
 
-export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
+export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean; probabilities?: number[] } | null>;
 
 export type VerdictContext = {
   fitsById?: FitsById;

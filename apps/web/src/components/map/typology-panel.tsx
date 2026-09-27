@@ -1,26 +1,35 @@
-import { MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
+import {
+  Armchair,
+  BedSingle,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Building,
+  Building2,
+  HandHeart,
+  HeartHandshake,
+  Hotel,
+  House,
+  HousePlus,
+  type LucideIcon,
+  MapPin,
+  Tent,
+  Users,
+  Warehouse,
+} from "lucide-react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
-import type { IndicatorValues } from "@/lib/pillars/score";
-import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@HouseHack/ui/components/select";
+import { VERDICT_COLOR } from "@/lib/pillars/verdict";
 
 import { Disclaimer } from "@/components/disclaimer";
 import { openScenario } from "@/components/scenario/scenario-store";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
-import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
+import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { type ParcelData, ScoreBar, useParcelData, useTypologyFit } from "./pillars-panel";
-import { type FitsById, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
+import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
+import { type FitsById, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
 
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
@@ -36,6 +45,43 @@ export const PATHWAY_SCORE: Record<string, number | null> = {
   not_city_jurisdiction: null,
 };
 
+// Density-ordered residential bases (same ordering used in the site-fit use
+// table): only used to judge how big a stretch a rezoning would be, never
+// to decide permission itself -- that's DISTRICT_PATHWAYS' job.
+const BASE_ORDER = ["R1D", "R1A", "R2", "R3", "RM"];
+const baseOf = (zone: string) => zone.split("-")[0] ?? zone;
+const PERMITTING_PATHWAYS = new Set(["by_right", "za", "conditional_use", "zbe_special_exception"]);
+
+/** 1 = another district in the same zoning family (e.g. just a density-suffix
+ * change) permits this typology; 0.5 = a one-step-away district on the
+ * density ladder does; 0.2 = only a distant/unrelated district does;
+ * 0 = no district anywhere permits it (not a realistic rezoning ask). */
+function rezoningCloseness(zone: string, typologyId: string): number {
+  const currentBase = baseOf(zone);
+  const currentRank = BASE_ORDER.indexOf(currentBase);
+  let best = 0;
+  for (const [otherZone, pathways] of Object.entries(DISTRICT_PATHWAYS)) {
+    if (!PERMITTING_PATHWAYS.has(pathways[typologyId] ?? "")) continue;
+    const otherBase = baseOf(otherZone);
+    if (otherBase === currentBase) return 1;
+    const otherRank = BASE_ORDER.indexOf(otherBase);
+    const closeness = currentRank === -1 || otherRank === -1 ? 0.2 : Math.abs(otherRank - currentRank) === 1 ? 0.5 : 0.2;
+    best = Math.max(best, closeness);
+  }
+  return best;
+}
+
+/** Approval rate for Zoning Board relief (any type) in this district,
+ * 2023-26 -- an approximation of "how this district treats requests to build
+ * something the code doesn't otherwise allow here", not the exact rezoning
+ * (map-amendment) approval rate specifically. Falls back to a neutral
+ * estimate where there's no local ZBA data at all. */
+function rezoningLikelihood(zone: string): number {
+  const outcomes = ZBA_OUTCOMES[baseOf(zone)]?.ALL;
+  if (!outcomes || outcomes.n === 0) return 0.7;
+  return outcomes.approved / outcomes.n;
+}
+
 // Kept a tier below conditional_use (which is already a known, in-code
 // process): "not permitted" always means *some* extra process is needed, so
 // it should never show as a flat, indistinguishable 0 -- but it also
@@ -48,8 +94,6 @@ export function notPermittedScore(zone: string, typologyId: string): number {
   const likelihood = rezoningLikelihood(zone);
   return Math.round(NOT_PERMITTED_FLOOR + closeness * likelihood * NOT_PERMITTED_RANGE);
 }
-
-const DEFAULT_TYPOLOGY_IDS = ["single_detached", "two_unit", "three_unit", "multi_unit"];
 
 // Hex -> [hue, saturation%, lightness%], so the two endpoint colors below
 // can be interpolated in HSL space (a straight RGB lerp between these two
@@ -85,28 +129,174 @@ function scoreColor(score: number | null) {
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
+// Lucide icon per typology (https://lucide.dev), shown next to the tile name.
+const TYPOLOGY_ICON: Record<string, LucideIcon> = {
+  single_detached: House,
+  single_attached: Warehouse,
+  two_unit: HousePlus,
+  three_unit: Building,
+  multi_unit: Building2,
+  elderly_limited: Armchair,
+  elderly_general: Hotel,
+  assisted_living_a: HeartHandshake,
+  assisted_living_b: HeartHandshake,
+  assisted_living_c: HeartHandshake,
+  personal_care_small: HandHeart,
+  personal_care_large: HandHeart,
+  community_home: Users,
+  multi_suite_limited: BedSingle,
+  multi_suite_general: BedSingle,
+  interim_housing: Tent,
+};
+
+/** The tile's headline number: the legal-pathway score for this typology in
+ * this district (undefined when the code doesn't resolve it). */
+function tileScore(zoning: string, typologyId: string): number | null | undefined {
+  const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
+  return pathwayId === "not_permitted" ? notPermittedScore(zoning, typologyId) : pathwayId ? PATHWAY_SCORE[pathwayId] : undefined;
+}
+
+// One motion language for the whole panel: tiles glide to their new rank,
+// numbers count, bars and colors ease, all on the same duration and curve.
+const MOVE_MS = 600;
+const EASE_OUT = "cubic-bezier(0.33, 1, 0.68, 1)";
+// How long to keep showing the previous parcel while Jev rates the new one,
+// so scores and fits land together in a single reorder instead of two.
+const FIT_WAIT_MS = 4000;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Eases a number to its new value, handing each frame to `write` to put on
+ * screen directly (no React re-render per frame). If the target changes
+ * mid-animation it continues from wherever it currently is. */
+function useNumberTween(target: number | null, write: (value: number | null) => void) {
+  const currentRef = useRef(target);
+  const writeRef = useRef(write);
+  writeRef.current = write;
+  // Layout effect: runs before paint, so the frame React just rendered (with
+  // the final value) is replaced by the starting value and never flashes.
+  useLayoutEffect(() => {
+    const from = currentRef.current;
+    if (target == null || from == null || from === target || prefersReducedMotion()) {
+      currentRef.current = target;
+      writeRef.current(target);
+      return;
+    }
+    writeRef.current(from);
+    const start = performance.now();
+    let frame = requestAnimationFrame(function tick(now) {
+      // rAF timestamps can predate `start` slightly; clamp so the ease never overshoots.
+      const t = Math.min(1, Math.max(0, (now - start) / MOVE_MS));
+      const next = from + (target - from) * (1 - (1 - t) ** 4);
+      currentRef.current = next;
+      writeRef.current(next);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [target]);
+}
+
+/** Site-fit bar. Animates with a GPU transform rather than width. */
+function FitBar({ value, className = "h-1.5" }: { value: number; className?: string }) {
+  return (
+    <div className={`${className} w-full overflow-hidden rounded bg-foreground/10`}>
+      <div
+        className="h-full w-full origin-left rounded"
+        style={{
+          transform: `scaleX(${Math.max(0, Math.min(1, value / 100))})`,
+          background: scoreColor(value),
+          transition: `transform ${MOVE_MS}ms ${EASE_OUT}, background-color ${MOVE_MS}ms ${EASE_OUT}`,
+        }}
+      />
+    </div>
+  );
+}
+
+// Jev's four fit levels, best first, for the distribution chart.
+const FIT_LEVELS_BEST_FIRST = ["Comfortable", "Minor compromises", "Major compromises", "Cannot fit"];
+
+/** How Jev's rating is spread across the four fit levels (bars only; exact
+ * odds on hover). Sized in em of the chart's own font, and its rows spread
+ * out to fill whatever height the card gives the chart. */
+function FitDistribution({ probabilities }: { probabilities: number[] }) {
+  const bestFirst = [...probabilities].reverse();
+  return (
+    <div className="flex h-full flex-col justify-evenly" role="img" aria-label="How Jev's rating is spread across the fit levels">
+      {FIT_LEVELS_BEST_FIRST.map((label, i) => {
+        const p = bestFirst[i] ?? 0;
+        return (
+          <div key={label} className="flex items-center gap-[0.6em]" title={`${label}: ${Math.round(p * 100)}% likely`}>
+            <span className="w-[9.5em] shrink-0 truncate leading-none text-muted-foreground" style={{ opacity: "var(--chart-label-o, 1)" }}>
+              {label}
+            </span>
+            <div className="h-[0.35em] flex-1 overflow-hidden rounded bg-foreground/10">
+              <div
+                className="h-full w-full origin-left rounded bg-foreground/40"
+                style={{ transform: `scaleX(${p})`, transition: `transform ${MOVE_MS}ms ${EASE_OUT}` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Card sizing. Cards stay one fixed size: the full card shows when the pane
+// is tall enough for it, the compact card (details behind a toggle) when it
+// isn't, and any extra height goes to the fit chart, which unfolds into it.
+const BASE_FONT_PX = 12;
+// Natural height of a full card (refined by measurement once one is on screen).
+const DEFAULT_CARD_PX = 110;
+// The chart needs about this many em of its own font for four rows.
+const CHART_ROWS_EM = 5;
+const CHART_MIN_FONT_PX = 9;
+const CHART_FULL_FONT_PX = 11;
+
 function TypologyTile({
+  elementRef,
   typologyId,
-  onTypologyChange,
+  rank,
   zoning,
   values,
   fitsById,
   lotWidthFt,
+  compact,
+  showChart,
 }: {
+  elementRef?: (el: HTMLDivElement | null) => void;
   typologyId: string;
-  onTypologyChange: (id: string) => void;
+  /** 1 = best on this parcel. */
+  rank: number;
   zoning: string;
   /** Parcel indicators: normalized for the hazard checks, raw for the pencil check's dollar values. */
-  values: { norm: IndicatorValues; raw: IndicatorValues };
+  values: ParcelData;
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
   fitsById?: FitsById;
   /** Lot width in feet, for the side-setback check; undefined while loading. */
   lotWidthFt?: number | null;
+  /** True when the pane is too short for the full card. */
+  compact: boolean;
+  /** Whether the pane has room for the fit chart (skips rendering it otherwise). */
+  showChart: boolean;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
-  const score =
-    pathwayId === "not_permitted" ? notPermittedScore(zoning, typologyId) : pathwayId ? PATHWAY_SCORE[pathwayId] : undefined;
+  const score = tileScore(zoning, typologyId) ?? null;
+  // The score counts to its new value and its color eases with it, written
+  // straight to the card each frame; React only renders the final values.
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  useNumberTween(score, (value) => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.setProperty("--score-color", value == null ? "" : scoreColor(value));
+    const text = card.querySelector<HTMLElement>("[data-score]");
+    if (text) text.textContent = value == null ? "—" : String(Math.round(value));
+  });
+  const Icon = TYPOLOGY_ICON[typologyId] ?? House;
+  const fullLabel = TYPOLOGIES.find(([id]) => id === typologyId)?.[1] ?? typologyId;
+  const name = SHORT_LABEL[typologyId] ?? fullLabel;
   const pathway = pathwayId ? PATHWAY_META[pathwayId] : undefined;
   const tooltip =
     pathwayId === "not_permitted"
@@ -114,127 +304,497 @@ function TypologyTile({
       : pathway?.label;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
+  const color = score == null ? undefined : "var(--score-color)";
+  const [expanded, setExpanded] = useState(false);
+
+  // The verdict/pencil check: can this actually be built, and does it pencil?
+  // Never derived from the tile's own legal-pathway score, so it can't be
+  // averaged away -- see lib/pillars/verdict.ts.
   const pencil = usePencilAssumptions();
   const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
   const blockers = verdict.reasons.filter((r) => r.level !== "green");
 
+  const scoreText = score == null ? "—" : Math.round(score);
+  const routeText = pathway?.label ?? "Unresolved in the code";
+  const verdictBlock = (
+    <div title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
+      <p className="flex items-center gap-1 font-medium" style={{ color: VERDICT_COLOR[verdict.level] }}>
+        <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+        <span className="truncate">{verdict.label}</span>
+      </p>
+      {blockers.slice(0, compact ? 1 : 2).map((r) => (
+        <p key={r.text} className="truncate">
+          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
+        </p>
+      ))}
+      {blockers.length > (compact ? 1 : 2) && <p>+{blockers.length - (compact ? 1 : 2)} more (hover)</p>}
+    </div>
+  );
+  const jevDetails = fit && (
+    <p className="truncate">
+      Jev: {fit.label}, {Math.round(fit.confidence * 100)}% confidence
+      {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+    </p>
+  );
+  const scenarioButton = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        openScenario(typologyId);
+      }}
+      className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+      aria-label={`Open the ${name} scenario`}
+      title="Scenario: pros, cons and the map layers behind them"
+    >
+      <MapPin className="size-3.5" aria-hidden />
+    </button>
+  );
+  const shared = {
+    ref: (el: HTMLDivElement | null) => {
+      cardRef.current = el;
+      elementRef?.(el);
+    },
+    "data-typology": typologyId,
+    "data-density": compact ? "compact" : "full",
+  };
+  const cardBase = "relative flex shrink-0 flex-col rounded border bg-background transition-colors";
+
+  if (compact) {
+    return (
+      <div
+        {...shared}
+        className={`${cardBase} w-44 gap-1 px-2 py-1.5`}
+        style={{ "--score-color": score == null ? undefined : scoreColor(score), borderColor: `${VERDICT_COLOR[verdict.level]}99` } as CSSProperties}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
+            #{rank}
+          </span>
+          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
+            {name}
+          </span>
+          <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
+            {scoreText}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="shrink-0 text-muted-foreground">Jev</span>
+          {fit ? (
+            <div className="flex-1" title={fit.label}>
+              <FitBar value={fit.fit * 100} />
+            </div>
+          ) : (
+            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+              not rated
+            </span>
+          )}
+          {scenarioButton}
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-label={expanded ? "Hide details" : "Show details"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+            className="-mr-1 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+          >
+            <ChevronDown className={`size-3.5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+          </button>
+        </div>
+        {/* Collapsed by default; grid-rows 0fr -> 1fr animates to the content's natural height. */}
+        <div
+          className="grid transition-[grid-template-rows] duration-200 ease-out"
+          style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
+          data-details
+        >
+          <div className="min-h-0 overflow-hidden text-[11px] leading-[14px] text-muted-foreground">
+            <p className="truncate" style={{ color }} title={tooltip}>
+              {routeText}
+            </p>
+            {verdictBlock}
+            {jevDetails}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full card.
   return (
     <div
-      className="flex min-w-[10rem] flex-1 flex-col gap-1 rounded border bg-background/60 p-2"
-      style={{ borderColor: `${VERDICT_COLOR[verdict.level]}99` }}
+      {...shared}
+      className={`${cardBase} h-full w-[16em] justify-between gap-[0.35em] px-[0.667em] py-[0.4em]`}
+      style={
+        {
+          fontSize: `${BASE_FONT_PX}px`,
+          "--score-color": score == null ? undefined : scoreColor(score),
+          borderColor: `${VERDICT_COLOR[verdict.level]}99`,
+        } as CSSProperties
+      }
     >
-      <div className="flex items-baseline gap-1.5">
-        <Select value={typologyId} onValueChange={(value) => value && onTypologyChange(value)}>
-          <SelectTrigger size="sm" className="h-6 flex-1 border-none px-0 font-medium shadow-none">
-            <SelectValue>{SHORT_LABEL[typologyId] ?? typologyId}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {TYPOLOGIES.map(([id, label]) => (
-              <SelectItem key={id} value={id} title={label}>
-                {SHORT_LABEL[id] ?? label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{typologyId}</span>
-      </div>
-      <div title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
-        <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
-          <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-          {verdict.label}
-        </p>
-        {blockers.slice(0, 2).map((r) => (
-          <p key={r.text} className="text-muted-foreground">
-            <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
-          </p>
-        ))}
-        {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
-      </div>
-      <div className="flex items-baseline gap-1.5 border-t border-border/40 pt-1" title={tooltip}>
-        <span className="font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
-          {score == null ? "—" : score}
-        </span>
-        <span className="truncate text-muted-foreground">{pathway?.label ?? "Unresolved in the code"}</span>
-        <button
-          type="button"
-          onClick={(e) => {
-            // The tile itself jumps to the Alerts pane; this only opens the scenario.
-            e.stopPropagation();
-            openScenario(typologyId);
-          }}
-          className="ml-auto flex h-4 shrink-0 items-center gap-0.5 self-center rounded border px-1 text-[10px] leading-none text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
-        >
-          <MapPin className="size-3" aria-hidden /> Scenario
-        </button>
-      </div>
-      {fit && (
-        <div className="space-y-0.5 border-t border-border/40 pt-1">
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1">
-              <ScoreBar score={fit.fit * 100} />
-            </div>
-            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
-          </div>
-          <p className="text-muted-foreground">
-            {fit.label}
-            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
-          </p>
+      <div className="flex flex-col gap-[0.25em]" data-top>
+        <div className="flex items-center gap-[0.4em]">
+          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
+            #{rank}
+          </span>
+          <Icon className="size-[1.333em] shrink-0 text-muted-foreground" aria-hidden />
+          <span className="min-w-0 flex-1 truncate text-[1.083em] font-medium" title={fullLabel}>
+            {name}
+          </span>
+          {scenarioButton}
+          <span className="shrink-0 text-[1.5em] font-semibold leading-none tabular-nums" style={{ color }} data-score>
+            {scoreText}
+          </span>
         </div>
-      )}
+        <p className="truncate leading-[1.3]" style={{ color }} title={tooltip}>
+          {routeText}
+        </p>
+      </div>
+
+      <div className="flex min-h-0 items-center overflow-hidden" style={{ height: "var(--chart-h, 0px)" }} data-chart>
+        <div
+          className="w-full shrink-0"
+          style={{
+            height: "var(--chart-inner-h, 0px)",
+            fontSize: "var(--chart-font, 11px)",
+            opacity: "var(--chart-o, 0)",
+            transform: "scaleY(var(--chart-unfold, 0))",
+          }}
+        >
+          {!showChart ? null : fit?.probabilities?.length ? (
+            <FitDistribution probabilities={fit.probabilities} />
+          ) : (
+            <p className="flex h-full items-center justify-center text-muted-foreground">Jev doesn't rate this housing type</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-[0.25em]" data-bottom>
+        <div className="flex items-center gap-[0.4em]">
+          <span className="shrink-0 text-muted-foreground">Jev</span>
+          {fit ? (
+            <div className="flex-1" title={fit.label}>
+              <FitBar value={fit.fit * 100} className="h-[0.5em]" />
+            </div>
+          ) : (
+            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+              not rated
+            </span>
+          )}
+        </div>
+        <div className="min-h-[2.6em] text-[0.9167em] leading-[1.3] text-muted-foreground" data-details>
+          {verdictBlock}
+          {jevDetails}
+        </div>
+      </div>
     </div>
   );
 }
 
-function TypologyTiles({
+/** What the tiles are currently showing. Swapped in one step once the next
+ * parcel's scores *and* site fits are ready, so the tiles move exactly once. */
+type Snapshot = { pin: string; data: ParcelData; fits: FitsById | undefined; lot: string | undefined; lotWidthFt: number | null | undefined };
+
+/** Invisible: fetches Jev's fits for the newly selected parcel and hands the
+ * finished snapshot up. Falls back to scores-only if Jev is slow. */
+function FitSettler({
   pin,
   data,
-  zoning,
-  typologyIds,
-  onTypologyChange,
+  onSettle,
 }: {
   pin: string;
   data: ParcelData;
-  zoning: string;
-  typologyIds: string[];
-  onTypologyChange: (index: number, id: string) => void;
+  onSettle: (next: Snapshot, partial?: boolean) => void;
 }) {
   const query = useTypologyFit(pin, data);
-  const fitsById = useMemo(() => {
-    if (!query.data) return undefined;
-    const map: FitsById = {};
-    for (const t of query.data.typologies) map[t.id] = t.fit;
-    return map;
-  }, [query.data]);
+  useEffect(() => {
+    if (query.status === "pending") return;
+    const fits: FitsById | undefined = query.data
+      ? Object.fromEntries(query.data.typologies.map((t) => [t.id, t.fit]))
+      : undefined;
+    onSettle({ pin, data, fits, lot: query.data?.facts.lot, lotWidthFt: query.data?.lot.widthFt });
+  }, [pin, data, query.status, query.data, onSettle]);
+  useEffect(() => {
+    const timer = setTimeout(() => onSettle({ pin, data, fits: undefined, lot: undefined, lotWidthFt: undefined }, true), FIT_WAIT_MS);
+    return () => clearTimeout(timer);
+  }, [pin, data, onSettle]);
+  return null;
+}
+
+const STEP = 0.2;
+
+// Worst-first rank of a verdict level, so the ranked track always puts a
+// dealkiller (red) behind anything that isn't one, no matter how high that
+// typology's own legal-pathway score happens to read.
+const VERDICT_RANK: Record<string, number> = { green: 0, unknown: 1, yellow: 2, red: 3 };
+
+/** Horizontal, ranked track of every housing type. Vertical mouse wheels
+ * scroll it sideways (eased, not stepped), arrows page through it, and the
+ * edges fade where there's more to see. */
+function TypologyTrack({ snapshot, updating }: { snapshot: Snapshot; updating: boolean }) {
+  const zoning = snapshot.data.zoning ?? "";
+  const { fits, lotWidthFt } = snapshot;
+  const pencil = usePencilAssumptions();
+
+  // Best to worst: the verdict (a dealkiller always sinks to the bottom),
+  // then tile score, then Jev's site fit as a tie-breaker, then the type's
+  // catalogue order so equal tiles keep a stable order. Unscored last.
+  const ranked = useMemo(() => {
+    const fitOf = (id: string) => {
+      const siteFitId = SITE_FIT_TYPOLOGY[id];
+      return (siteFitId ? fits?.[siteFitId]?.fit : undefined) ?? -1;
+    };
+    return TYPOLOGIES.map(([id], slot) => ({
+      id,
+      slot,
+      verdictRank: VERDICT_RANK[verdictFor(zoning, id, snapshot.data, { fitsById: fits, lotWidthFt, pencil }).level] ?? 1,
+      score: tileScore(zoning, id) ?? -1,
+      fit: fitOf(id),
+    })).sort((a, b) => a.verdictRank - b.verdictRank || b.score - a.score || b.fit - a.fit || a.slot - b.slot);
+  }, [zoning, fits, lotWidthFt, pencil, snapshot.data]);
+
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const [compact, setCompact] = useState(false);
+  const compactRef = useRef(false);
+  const [showChart, setShowChart] = useState(false);
+  const showChartRef = useRef(false);
+  const cardPx = useRef(DEFAULT_CARD_PX);
+
+  // Fits the cards to the pane height. Writes CSS variables directly (no React
+  // render) so dragging the pane stays smooth; React only re-renders when the
+  // layout flips between compact and full or the chart appears/disappears.
+  // `measure` re-reads the full card's natural height; only needed when its
+  // content changes, so a pane drag never forces an extra layout pass.
+  const fitCards = useCallback((measure: boolean) => {
+    const scroller = scrollerRef.current;
+    const track = trackRef.current;
+    if (!scroller || !track) return;
+    const card = measure ? track.querySelector<HTMLElement>('[data-density="full"]') : null;
+    if (card) {
+      // Top + bottom sections plus padding (0.8em) and two gaps (0.7em).
+      const top = card.querySelector<HTMLElement>("[data-top]")?.offsetHeight ?? 0;
+      const bottom = card.querySelector<HTMLElement>("[data-bottom]")?.offsetHeight ?? 0;
+      cardPx.current = top + bottom + 1.5 * BASE_FONT_PX;
+    }
+    const available = scroller.clientHeight - 6; // bottom padding + border
+    // A little hysteresis so the layout can't flicker at the boundary.
+    const nextCompact = compactRef.current ? available < cardPx.current + 4 : available < cardPx.current;
+    if (nextCompact !== compactRef.current) {
+      compactRef.current = nextCompact;
+      setCompact(nextCompact);
+    }
+    if (nextCompact) return;
+    const leftover = Math.max(0, available - cardPx.current);
+    // The chart takes all leftover height. Until there's room for it at its
+    // smallest readable size it unfolds (scaled vertically and faded in), so
+    // the space fills with something emerging rather than a blank band.
+    const minChartPx = CHART_ROWS_EM * CHART_MIN_FONT_PX;
+    const unfold = Math.min(1, leftover / minChartPx);
+    const chartNeeded = leftover > 0.5;
+    if (chartNeeded !== showChartRef.current) {
+      showChartRef.current = chartNeeded;
+      setShowChart(chartNeeded);
+    }
+    const chartFont = Math.max(CHART_MIN_FONT_PX, Math.min(CHART_FULL_FONT_PX, leftover / CHART_ROWS_EM));
+    track.style.setProperty("--chart-h", `${leftover.toFixed(1)}px`);
+    track.style.setProperty("--chart-inner-h", `${Math.max(leftover, minChartPx).toFixed(1)}px`);
+    track.style.setProperty("--chart-font", `${chartFont.toFixed(2)}px`);
+    track.style.setProperty("--chart-unfold", unfold.toFixed(3));
+    track.style.setProperty("--chart-o", (unfold * unfold).toFixed(3));
+    // Labels only appear once the chart is nearly unfolded, so squashed text is never visible.
+    track.style.setProperty("--chart-label-o", Math.max(0, (unfold - 0.85) / 0.15).toFixed(3));
+  }, []);
+
+  // FLIP: after React reorders the tiles, each one is drawn back where it was
+  // and glides to its new slot. Start positions come from the old rank x the
+  // current card stride, so resizing the pane between reorders can't skew
+  // them; a glide interrupted by another click continues from where the tile
+  // visibly is instead of snapping. Off-screen tiles glide too.
+  const tileEls = useRef(new Map<string, HTMLDivElement>());
+  const lastIndex = useRef(new Map<string, number>());
+  const orderKey = ranked.map((r) => r.id).join();
+  const lastOrderKey = useRef(orderKey);
+  useLayoutEffect(() => {
+    fitCards(true);
+    const reordered = lastOrderKey.current !== orderKey;
+    lastOrderKey.current = orderKey;
+    const els = ranked.map(({ id }) => tileEls.current.get(id));
+    const origin = els[0]?.offsetLeft ?? 0;
+    const stride = els[0] && els[1] ? els[1].offsetLeft - els[0].offsetLeft : 0;
+    const reduceMotion = prefersReducedMotion();
+    ranked.forEach(({ id }, index) => {
+      const el = tileEls.current.get(id);
+      const prevIndex = lastIndex.current.get(id);
+      lastIndex.current.set(id, index);
+      if (!el || !reordered || prevIndex == null) return;
+      const transform = getComputedStyle(el).transform;
+      const inFlight = transform && transform !== "none" ? new DOMMatrixReadOnly(transform).m41 : 0;
+      for (const animation of el.getAnimations()) animation.cancel();
+      const dx = origin + prevIndex * stride + inFlight - el.offsetLeft;
+      if (reduceMotion || Math.abs(dx) < 1) return;
+      // Tiles climbing the ranking pass over the ones dropping, lifted by a
+      // shadow that fades as they land.
+      const climbing = dx > 0;
+      el.style.zIndex = climbing ? "2" : "1";
+      const lift = climbing ? "0 6px 16px rgb(0 0 0 / 0.35)" : "0 0 0 rgb(0 0 0 / 0)";
+      const glide = el.animate(
+        [
+          { transform: `translateX(${dx}px)`, boxShadow: lift },
+          { transform: "translateX(0)", boxShadow: "0 0 0 rgb(0 0 0 / 0)" },
+        ],
+        { duration: MOVE_MS, easing: EASE_OUT },
+      );
+      glide.onfinish = () => (el.style.zIndex = "");
+    });
+  });
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const update = () => {
+      const left = el.scrollLeft > 2;
+      const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
+      setEdges((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
+    };
+    // The pane's own size drives the card scale; the track's width (which the
+    // scale itself changes) only affects the scroll edges.
+    const paneObserver = new ResizeObserver(() => {
+      fitCards(false);
+      update();
+    });
+    const trackObserver = new ResizeObserver(update);
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    paneObserver.observe(el);
+    if (trackRef.current) trackObserver.observe(trackRef.current);
+    return () => {
+      el.removeEventListener("scroll", update);
+      paneObserver.disconnect();
+      trackObserver.disconnect();
+    };
+  }, [fitCards]);
+
+  // Vertical wheel -> eased horizontal scroll. Horizontal trackpad swipes and
+  // pinch-zoom are left to the browser.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    let target = el.scrollLeft;
+    let frame = 0;
+    const step = () => {
+      const diff = target - el.scrollLeft;
+      if (Math.abs(diff) < 1) {
+        el.scrollLeft = target;
+        frame = 0;
+        return;
+      }
+      el.scrollLeft += Math.sign(diff) * Math.max(1, Math.abs(diff) * STEP);
+      frame = requestAnimationFrame(step);
+    };
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+      const max = el.scrollWidth - el.clientWidth;
+      if (max <= 0) return;
+      e.preventDefault();
+      const base = frame ? target : el.scrollLeft;
+      target = Math.max(0, Math.min(max, base + e.deltaY * (e.deltaMode === 1 ? 40 : 1)));
+      if (prefersReducedMotion()) {
+        el.scrollLeft = target;
+        return;
+      }
+      if (!frame) frame = requestAnimationFrame(step);
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  // A new parcel starts the track back at #1.
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (el && el.scrollLeft > 0) el.scrollTo({ left: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  }, [snapshot.pin]);
+
+  const page = (direction: 1 | -1) => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.8, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  };
+
+  const edgeButton = "absolute top-1/2 z-10 -translate-y-1/2 rounded-full border border-border/60 bg-background/90 p-1 shadow-sm transition-opacity duration-200 hover:bg-background";
 
   return (
-    <>
-      <p className="text-muted-foreground">
-        {query.data?.facts.lot ?? "Checking lot size and shape…"}
-      </p>
-      <div className="flex h-full w-full gap-2">
-        {typologyIds.map((id, i) => (
-          <TypologyTile
-            key={i}
-            typologyId={id}
-            zoning={zoning}
-            values={data}
-            onTypologyChange={(next) => onTypologyChange(i, next)}
-            fitsById={fitsById}
-            lotWidthFt={query.data?.lot.widthFt}
-          />
-        ))}
+    <div className="relative flex min-h-0 flex-1">
+      <div
+        ref={scrollerRef}
+        tabIndex={0}
+        role="region"
+        aria-label="Housing types ranked for this parcel"
+        className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [scrollbar-width:thin] focus-visible:outline-none"
+      >
+        <div
+          ref={trackRef}
+          className={`relative flex h-full w-max gap-2 transition-opacity duration-300 ${compact ? "items-start" : "items-stretch"} ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
+        >
+          {ranked.map(({ id }, rank) => (
+            <TypologyTile
+              key={id}
+              elementRef={(el) => {
+                if (el) tileEls.current.set(id, el);
+                else tileEls.current.delete(id);
+              }}
+              typologyId={id}
+              rank={rank + 1}
+              zoning={zoning}
+              values={snapshot.data}
+              fitsById={fits}
+              lotWidthFt={lotWidthFt}
+              compact={compact}
+              showChart={showChart}
+            />
+          ))}
+        </div>
       </div>
-      <p className="text-muted-foreground">{VERDICT_NOT_CHECKED}</p>
-    </>
+      <div
+        className={`pointer-events-none absolute inset-y-0 left-0 w-10 bg-gradient-to-r from-background to-transparent transition-opacity duration-200 ${edges.left ? "opacity-100" : "opacity-0"}`}
+      />
+      <div
+        className={`pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-background to-transparent transition-opacity duration-200 ${edges.right ? "opacity-100" : "opacity-0"}`}
+      />
+      <button
+        type="button"
+        aria-label="Scroll housing types left"
+        onClick={() => page(-1)}
+        className={`${edgeButton} left-1 ${edges.left ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      >
+        <ChevronLeft className="size-4" />
+      </button>
+      <button
+        type="button"
+        aria-label="Scroll housing types right"
+        onClick={() => page(1)}
+        className={`${edgeButton} right-1 ${edges.right ? "opacity-100" : "pointer-events-none opacity-0"}`}
+      >
+        <ChevronRight className="size-4" />
+      </button>
+    </div>
   );
 }
 
-/** Bottom pane: side-by-side feasibility scores for a handful of housing
- * typologies on the selected parcel's zoning district, plus (where a close
- * enough match exists) Jev's physical site-fit judgment for that typology.
- * Each tile's typology is independently swappable via its dropdown. Verdicts,
- * dealkillers and the pencil (value vs. cost) check all live here -- this
- * panel owns every typology-specific fact the app shows. */
+/** Bottom pane: every housing type ranked for the selected parcel, as a
+ * horizontal slider. Each tile shows the legal-pathway score for its zoning
+ * district, the red/yellow/green verdict and pencil (value vs. cost) check,
+ * and (where a close enough match exists) Jev's physical site fit. This
+ * panel owns every typology-specific fact the app shows -- verdicts,
+ * dealkillers and the pencil check are never split across another pane.
+ * Changing parcels keeps the tiles in place and glides them to their new rank. */
 export function TypologyPanel({
   pin,
   collapsed,
@@ -244,31 +804,48 @@ export function TypologyPanel({
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
-  const [typologyIds, setTypologyIds] = useState<string[]>(DEFAULT_TYPOLOGY_IDS);
-  const { data, status } = useParcelData(pin);
-  const zoning = data?.zoning ?? "";
+  const parcel = useParcelData(pin);
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
 
-  const setTypologyAt = (index: number, id: string) =>
-    setTypologyIds((prev) => prev.map((cur, i) => (i === index ? id : cur)));
+  // A timed-out "partial" snapshot never replaces a finished one for the same parcel.
+  const settle = useCallback((next: Snapshot, partial?: boolean) => {
+    setSnapshot((prev) => (partial && prev?.pin === next.pin ? prev : next));
+  }, []);
 
-  const body = useMemo(() => {
-    if (!pin) return <p className="text-muted-foreground">Select a parcel on the map to see typology scores.</p>;
-    if (status === "loading") return <p className="text-muted-foreground">Loading…</p>;
-    if (status === "missing" || !data)
-      return <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
-    return <TypologyTiles pin={pin} data={data} zoning={zoning} typologyIds={typologyIds} onTypologyChange={setTypologyAt} />;
-  }, [pin, status, data, typologyIds, zoning]);
+  useEffect(() => {
+    if (!pin || parcel.status === "missing") setSnapshot(null);
+  }, [pin, parcel.status]);
+
+  const ready = parcel.status === "ready" && parcel.pin === pin ? parcel.data : null;
+  const updating = Boolean(pin) && snapshot?.pin !== pin && parcel.status !== "missing";
+
+  let body: ReactNode;
+  if (!pin) body = <p className="text-muted-foreground">Select a parcel on the map to see typology scores.</p>;
+  else if (parcel.status === "missing")
+    body = <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
+  else if (!snapshot) body = <p className="text-muted-foreground">Loading…</p>;
+  else body = <TypologyTrack snapshot={snapshot} updating={updating} />;
 
   return (
-    <div className="flex h-full w-full flex-col gap-2 overflow-hidden p-2 text-xs">
-      <div className="flex items-baseline justify-between">
-        <span className="font-medium">Typology scores</span>
-        <div className="flex items-center gap-2">
-          {zoning && <span className="text-muted-foreground">Zoning {zoning}</span>}
+    <div className="flex h-full w-full flex-col gap-1.5 overflow-hidden p-2 text-xs">
+      {pin && ready && <FitSettler key={pin} pin={pin} data={ready} onSettle={settle} />}
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="shrink-0 font-medium">Typology scores</span>
+        <span className="min-w-0 flex-1 truncate text-muted-foreground" title={snapshot?.lot}>
+          {snapshot?.lot ?? ""}
+        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          <span
+            className={`text-muted-foreground transition-opacity duration-300 ${updating && snapshot ? "opacity-100 delay-150" : "opacity-0"}`}
+            aria-live="polite"
+          >
+            Updating…
+          </span>
+          {snapshot?.data.zoning && <span className="text-muted-foreground">Zoning {snapshot.data.zoning}</span>}
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
         </div>
       </div>
-      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-auto">{body}</div>}
+      {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2">{body}</div>}
       {!collapsed && <Disclaimer className="shrink-0" />}
     </div>
   );

@@ -357,6 +357,10 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       style: basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDarkRef.current),
       bounds: COUNTY_BOUNDS,
       attributionControl: { compact: true, customAttribution: `${DISCLAIMER} <a href="${LIMITATIONS_URL}">Limitations</a>` },
+      // Container resizes are handled by the ResizeObserver below (which also
+      // redraws in the same frame); MapLibre's own observer would resize a
+      // second time per frame, clearing the canvas and refetching parcels.
+      trackResize: false,
     });
     mapRef.current = map;
     map.addControl(new NavigationControl({}), "top-right");
@@ -380,7 +384,11 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
     map.on("resize", () => collapseAttribution(map));
-    map.on("moveend", () => {
+    map.on("moveend", (e) => {
+      // Pane drags resize the map every frame; the data refresh waits until
+      // the drag settles (see the ResizeObserver below) instead of re-fetching
+      // and re-drawing the parcels on every frame.
+      if ((e as { paneResize?: boolean }).paneResize) return;
       void refreshParcels(map);
       void refreshViewportOverlays(map, overlayStateRef.current);
       setZoom(map.getZoom());
@@ -459,10 +467,43 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
 
     // The map's container is one pane in a resizable/collapsible layout, so
     // its size changes from panel drags and collapses, not just React state.
-    const resizeObserver = new ResizeObserver(() => map.resize());
+    // Resizing the canvas clears it and MapLibre would only repaint on the next
+    // frame, so a drag flashed a blank map every frame; redraw in the same
+    // frame instead. Parcels and overlays refresh once the resize is over:
+    // when the pointer holding a pane divider is released, or shortly after a
+    // resize that had no pointer (a pane collapsed by a button, a window resize).
+    let resizeSettle = 0;
+    let resizePending = false;
+    let pointerDown = false;
+    const refreshAfterResize = () => {
+      window.clearTimeout(resizeSettle);
+      if (!resizePending) return;
+      resizePending = false;
+      void refreshParcels(map);
+      void refreshViewportOverlays(map, overlayStateRef.current);
+    };
+    const onPointerDown = () => (pointerDown = true);
+    const onPointerUp = () => {
+      pointerDown = false;
+      refreshAfterResize();
+    };
+    window.addEventListener("pointerdown", onPointerDown, true);
+    window.addEventListener("pointerup", onPointerUp, true);
+    window.addEventListener("pointercancel", onPointerUp, true);
+    const resizeObserver = new ResizeObserver(() => {
+      map.resize({ paneResize: true });
+      if (styleReadyRef.current) map.redraw();
+      resizePending = true;
+      window.clearTimeout(resizeSettle);
+      if (!pointerDown) resizeSettle = window.setTimeout(refreshAfterResize, 200);
+    });
     resizeObserver.observe(containerRef.current);
 
     return () => {
+      window.clearTimeout(resizeSettle);
+      window.removeEventListener("pointerdown", onPointerDown, true);
+      window.removeEventListener("pointerup", onPointerUp, true);
+      window.removeEventListener("pointercancel", onPointerUp, true);
       resizeObserver.disconnect();
       map.remove();
       mapRef.current = null;
