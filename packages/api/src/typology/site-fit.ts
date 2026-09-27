@@ -62,6 +62,39 @@ function basesAllowing(typology: TypologyId): ResidentialBase[] {
   return RESIDENTIAL_BASES.filter((base) => USE_TABLE[typology][base] !== "-");
 }
 
+// 2023-26 Zoning Board relief approval rate by base district ("ALL" cases),
+// snapshotted from apps/web's ZBA_OUTCOMES (legal-matrix.generated.ts) --
+// this file can't import that frontend-only generated data directly, and
+// it's only these 5 bases' aggregate rates that this simpler use table
+// needs. An approximation (relief broadly, not the exact rezoning/map-
+// amendment rate), same caveat as the bottom typology panel's own version.
+const ZBA_APPROVAL_RATE: Partial<Record<ResidentialBase, number>> = {
+  R1D: 87 / 101,
+  R1A: 74 / 83,
+  R2: 46 / 62,
+  RM: 30 / 31,
+  // R3: no local ZBA case data; falls back to the neutral estimate below.
+};
+const NEUTRAL_APPROVAL_RATE = 0.7;
+
+/** 0.5 if an adjacent district on the density ladder (RESIDENTIAL_BASES'
+ * order) permits this typology, 0.2 if only a non-adjacent one does. This
+ * table has no density-suffix variants (unlike DISTRICT_PATHWAYS' full zon_new
+ * codes), so there's no "same family" 1.0 case here. */
+function rezoningCloseness(typology: TypologyId, base: ResidentialBase): number {
+  const currentRank = RESIDENTIAL_BASES.indexOf(base);
+  let best = 0;
+  for (const allowed of basesAllowing(typology)) {
+    const rank = RESIDENTIAL_BASES.indexOf(allowed);
+    best = Math.max(best, Math.abs(rank - currentRank) === 1 ? 0.5 : 0.2);
+  }
+  return best;
+}
+
+function rezoningLikelihood(base: ResidentialBase): number {
+  return ZBA_APPROVAL_RATE[base] ?? NEUTRAL_APPROVAL_RATE;
+}
+
 // §911.02 use table, residential columns (read on eCode360, 2026-09-26).
 // P = permitted by right, S = special exception, - = not permitted.
 // Elderly: "Housing for the Elderly (Limited)" is S in every residential district;
@@ -114,7 +147,9 @@ export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: num
   const use = USE_TABLE[typology][zoning.base];
   if (use === "-") {
     const rezoningTo = basesAllowing(typology);
-    const rezoningNote = rezoningTo.length ? ` Would need rezoning to ${rezoningTo.join(", ")} to allow it.` : "";
+    const rezoningNote = rezoningTo.length
+      ? ` Would need rezoning to ${rezoningTo.join(", ")} to allow it. Rezoning closeness ${Math.round(rezoningCloseness(typology, zoning.base) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning.base) * 100)}%.`
+      : "";
     return {
       status: "not_permitted",
       reason: `Not permitted ${useReason(typology, zoning.base)}.${rezoningNote}`,
