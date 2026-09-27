@@ -7,9 +7,10 @@ import type { ScoreAnswer, ScoreQuestion } from "../system-one";
 // Zoning rules are a simplified transcription for residential districts only.
 // Anything else is "unknown", never guessed.
 
-// The four use-table categories we rank. Multi-unit has two rows because its
-// two forms have different legal paths (apartments by right only in RM; housing
-// for the elderly by Special Exception) and different physical needs.
+// All 16 housing types the bottom typology panel offers (apps/web's
+// legal-feasibility.ts TYPOLOGIES), so Jev rates physical fit for every tile,
+// not just the five mainstream ones. Legal permission (the gate below) is
+// only actually modeled for those five, though -- see MODELED_LEGAL_TYPOLOGIES.
 export const TYPOLOGIES = [
   {
     id: "detached",
@@ -30,6 +31,12 @@ export const TYPOLOGIES = [
     describe: "a two-unit building",
   },
   {
+    id: "three_unit",
+    category: "Three-unit",
+    label: "Triplex",
+    describe: "a three-unit building",
+  },
+  {
     id: "apartment",
     category: "Multi-unit",
     label: "Apartment",
@@ -41,9 +48,72 @@ export const TYPOLOGIES = [
     label: "Elderly housing",
     describe: "a small apartment building for seniors, about 8–12 units, with an elevator and step-free entry",
   },
+  {
+    id: "assisted_living_a",
+    category: "Assisted living",
+    label: "Assisted living (small)",
+    describe: "a small assisted-living facility with fewer than 9 residents",
+  },
+  {
+    id: "assisted_living_b",
+    category: "Assisted living",
+    label: "Assisted living (mid)",
+    describe: "a mid-size assisted-living facility with 9 to 17 residents",
+  },
+  {
+    id: "assisted_living_c",
+    category: "Assisted living",
+    label: "Assisted living (large)",
+    describe: "a large assisted-living facility with 18 or more residents",
+  },
+  {
+    id: "personal_care_small",
+    category: "Personal care",
+    label: "Personal care (small)",
+    describe: "a small personal-care residence",
+  },
+  {
+    id: "personal_care_large",
+    category: "Personal care",
+    label: "Personal care (large)",
+    describe: "a large personal-care residence",
+  },
+  {
+    id: "community_home",
+    category: "Community home",
+    label: "Community home",
+    describe: "a community home for a small group of unrelated residents living together as a household",
+  },
+  {
+    id: "multi_suite_limited",
+    category: "Multi-suite residential",
+    label: "Multi-suite (limited)",
+    describe: "a small multi-suite residential building (independent-living suites sharing common areas)",
+  },
+  {
+    id: "multi_suite_general",
+    category: "Multi-suite residential",
+    label: "Multi-suite (general)",
+    describe: "a larger multi-suite residential building (independent-living suites sharing common areas)",
+  },
+  {
+    id: "interim_housing",
+    category: "Interim housing",
+    label: "Interim housing",
+    describe: "interim/transitional housing with shared common areas and on-site support services",
+  },
 ] as const;
 
 export type TypologyId = (typeof TYPOLOGIES)[number]["id"];
+
+// Legal permission is only actually transcribed from the zoning use table
+// for these five (see USE_TABLE). The rest get a physical site-fit rating
+// from Jev like everyone else, but their gate is honestly "unknown" here --
+// this simplified backend doesn't encode §911.02/§911.04's rules for
+// assisted living, personal care, community homes, multi-suite or interim
+// housing. The bottom panel's own big tile number, from the full 16-type ×
+// 57-district DISTRICT_PATHWAYS table, still shows the real legal reading.
+const MODELED_LEGAL_TYPOLOGIES = new Set<TypologyId>(["detached", "attached", "duplex", "apartment", "elderly"]);
 
 export type GateStatus = "allowed" | "conditional" | "not_permitted" | "unknown";
 export type Gate = {
@@ -63,7 +133,8 @@ const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"] as const;
 export type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
 
 function basesAllowing(typology: TypologyId): ResidentialBase[] {
-  return RESIDENTIAL_BASES.filter((base) => USE_TABLE[typology][base] !== "-");
+  const table = USE_TABLE[typology];
+  return table ? RESIDENTIAL_BASES.filter((base) => table[base] !== "-") : [];
 }
 
 // 2023-26 Zoning Board relief approval rate by base district ("ALL" cases),
@@ -103,7 +174,7 @@ function rezoningLikelihood(base: ResidentialBase): number {
 // P = permitted by right, S = special exception, - = not permitted.
 // Elderly: "Housing for the Elderly (Limited)" is S in every residential district;
 // "(General)" is S only in R3 and RM (§911.04A.35).
-const USE_TABLE: Record<TypologyId, Record<ResidentialBase, "P" | "S" | "-">> = {
+const USE_TABLE: Partial<Record<TypologyId, Record<ResidentialBase, "P" | "S" | "-">>> = {
   detached: { R1D: "P", R1A: "P", R2: "P", R3: "P", RM: "P" },
   attached: { R1D: "S", R1A: "P", R2: "P", R3: "P", RM: "P" },
   duplex: { R1D: "-", R1A: "-", R2: "P", R3: "P", RM: "P" },
@@ -161,7 +232,15 @@ function baseGateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: number
     };
   }
 
-  const use = USE_TABLE[typology][zoning.base];
+  if (!MODELED_LEGAL_TYPOLOGIES.has(typology)) {
+    return {
+      status: "unknown",
+      reason:
+        "Legal permission for this housing type isn't modeled in this simplified backend (it only covers detached, attached, duplex, apartment and elderly housing); see the typology tile's pathway score for the full reading.",
+    };
+  }
+
+  const use = USE_TABLE[typology]![zoning.base];
   if (use === "-") {
     const rezoningTo = basesAllowing(typology);
     const rezoningNote = rezoningTo.length
@@ -369,8 +448,18 @@ const UNIT_ASSUMPTIONS: Record<TypologyId, { units: number; sqftPerUnit: number 
   detached: { units: 1, sqftPerUnit: 1400 },
   attached: { units: 1, sqftPerUnit: 1200 },
   duplex: { units: 2, sqftPerUnit: 1000 },
+  three_unit: { units: 3, sqftPerUnit: 900 },
   apartment: { units: 12, sqftPerUnit: 700 },
   elderly: { units: 10, sqftPerUnit: 600 },
+  assisted_living_a: { units: 8, sqftPerUnit: 400 },
+  assisted_living_b: { units: 15, sqftPerUnit: 400 },
+  assisted_living_c: { units: 24, sqftPerUnit: 400 },
+  personal_care_small: { units: 6, sqftPerUnit: 400 },
+  personal_care_large: { units: 20, sqftPerUnit: 400 },
+  community_home: { units: 6, sqftPerUnit: 500 },
+  multi_suite_limited: { units: 6, sqftPerUnit: 500 },
+  multi_suite_general: { units: 15, sqftPerUnit: 500 },
+  interim_housing: { units: 10, sqftPerUnit: 350 },
 };
 
 export type CostEstimate = { low: number; high: number; units: number };

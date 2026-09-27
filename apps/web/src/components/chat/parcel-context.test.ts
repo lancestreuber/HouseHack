@@ -61,6 +61,10 @@ function fakeFit(zoning: string): TypologyFit {
     apartment: [0.2, "Fits only with major compromises", 0.4],
     elderly: [0.4, "Fits only with major compromises", 0.1],
   };
+  // Everything else Jev now rates (three_unit, assisted living, personal
+  // care, community home, multi-suite, interim housing) gets the same
+  // stand-in rating; the tests don't assert on their specific values.
+  const fallbackRating: [number, string, number] = [0.6, "Fits with minor compromises", 0.5];
   return {
     pin: PIN,
     lot,
@@ -68,7 +72,7 @@ function fakeFit(zoning: string): TypologyFit {
     facts: siteFit.buildSiteState(lot, zone, { steepSlope: 0.12 }),
     jev: { status: "ok", model: "jev-test" },
     typologies: siteFit.TYPOLOGIES.map((t) => {
-      const [fit, label, confidence] = ratings[t.id]!;
+      const [fit, label, confidence] = ratings[t.id] ?? fallbackRating;
       const gate = siteFit.gateFor(t.id, zone, lot.areaSf);
       const fitResult = { fit, label, probabilities: [], confidence, needsReview: confidence < 0.3 };
       return {

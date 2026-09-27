@@ -67,10 +67,10 @@ These are open as of `3fcff72`, except where noted as fixed:
 
 - **The overall pillar score can still average hazards away.** Hazard caps lower only the Site Feasibility pillar, which is then combined with four other pillars, so a floodway lot can get a middling *overall* score. The typology verdict (§4 table, Alerts pane) doesn't have this problem: it reads gates and hazards directly and is never blended with anything.
 - **The steep-slope cap on the Site Feasibility pillar fires only when about three-quarters of the lot is 25%+ slope.** Below that, slope only costs weighted points there. (The typology verdict uses a lower, 50% threshold for its own steep-slope/landslide/floodplain check.)
-- **The housing-type tiles' big number is the legal pathway only,** and still doesn't factor in hazards (e.g. a floodway lot can read "100, by right"). Each tile now shows a separate verdict badge (red/yellow/green/unknown) and an estimated cost range underneath, for the five typologies Jev rates; the big number itself is unchanged.
+- **The housing-type tiles' big number is the legal pathway only,** and still doesn't factor in hazards (e.g. a floodway lot can read "100, by right"). Every tile now shows a separate verdict badge (red/yellow/green/unknown) and an estimated cost range underneath -- Jev physically rates all 16 typologies -- but the big number itself is unchanged.
 - **Missing data can look fine.** Renormalizing and imputing keeps a parcel scoreable, but the result can look healthier than the evidence supports. The panel shows data coverage for each pillar.
 - **Your weights are passed to the site-fit model** as a note that may nudge a borderline rating. A physical judgment shouldn't depend on preferences.
-- **The typology verdict and cost estimate only cover the five typologies Jev rates** (detached, attached, duplex, apartment, elderly), not the other eleven on the housing-type tiles (three-unit, assisted living, community home, etc.).
+- **Jev physically rates all 16 typologies now, but legal permission is still only transcribed for five** (detached, attached, duplex, apartment, elderly). For the other eleven (three-unit, assisted living, community home, personal care, multi-suite, interim housing) the verdict's legal status comes back "unknown" -- never guessed -- even though Jev has an opinion on physical fit; the tile's own big number (from the full 57-district table) is the real legal reading for those.
 
 ## 6. Data
 

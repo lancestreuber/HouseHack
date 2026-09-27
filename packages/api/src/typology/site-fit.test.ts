@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { buildSiteState, estimateCost, gateFor, parseZoning, toSiteFit, verdictFor } from "./site-fit";
+import { buildSiteState, estimateCost, gateFor, parseZoning, siteFitQuestion, toSiteFit, TYPOLOGIES, verdictFor } from "./site-fit";
 
 describe("gateFor", () => {
   const r2 = parseZoning("R2-L");
@@ -55,6 +55,13 @@ describe("gateFor", () => {
     expect(gate.status).toBe("not_permitted");
     expect(gate.hazardBlocked).toBeUndefined();
   });
+
+  test("legal gates are only modeled for the original 5 typologies; the rest come back unknown", () => {
+    expect(gateFor("community_home", r2, 3500).status).toBe("unknown");
+    expect(gateFor("interim_housing", r2, 3500).status).toBe("unknown");
+    expect(gateFor("three_unit", r2, 3500).status).toBe("unknown");
+    expect(gateFor("assisted_living_a", r2, 3500).status).toBe("unknown");
+  });
 });
 
 describe("verdictFor", () => {
@@ -106,6 +113,20 @@ describe("estimateCost", () => {
     expect(detached.low).toBeLessThan(detached.high);
     expect(apartment.units).toBe(12);
     expect(apartment.low).toBeGreaterThan(detached.low);
+  });
+
+  test("has a cost estimate for every one of the 16 typologies", () => {
+    for (const t of TYPOLOGIES) {
+      const cost = estimateCost(t.id);
+      expect(cost.low).toBeGreaterThan(0);
+      expect(cost.low).toBeLessThan(cost.high);
+    }
+  });
+});
+
+describe("siteFitQuestion", () => {
+  test("has a question for every one of the 16 typologies", () => {
+    for (const t of TYPOLOGIES) expect(siteFitQuestion(t.id).instructions).toContain(t.describe);
   });
 });
 
