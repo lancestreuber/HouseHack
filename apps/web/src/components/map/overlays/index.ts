@@ -15,7 +15,7 @@ import { floodZonesOverlay } from "./flood-zones";
 import { foodAccessOverlay, homeInternetOverlay, walkabilityOverlay } from "./everyday-access";
 import { healthOutcomesOverlay, lifeExpectancyOverlay, shortageAreasOverlay } from "./health";
 import { childBloodLeadOverlay, evictionsOverlay } from "./housing-stability";
-import { careSpacingOverlay, councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
+import { careSpacingOverlay, councilActionsOverlay, legalPathwayOverlay, permitsByTypeOverlay, residentialZoningOverlay, seniorHousingOverlay, zbaHousingOverlay, zbaOtherOverlay } from "./legal-feasibility";
 import { cityHazardOverlaysOverlay, citySteepSlopesOverlay, landslidePublicAssistanceOverlay } from "./city-hazards";
 import { vacantBuildingsOverlay, vacantLotsOverlay } from "./vacancy";
 import { housingCostsOverlay, uspsVacancyOverlay } from "./housing-costs";
@@ -40,6 +40,7 @@ import { weatherRiskOverlay } from "./weather-risk";
 import { cityZoningOverlaysOverlay, rcoOverlay, suburbanZoningOverlay } from "./zoning-policy";
 
 export const OVERLAYS: OverlayDefinition[] = [
+  residentialZoningOverlay,
   ...PILLAR_OVERLAYS,
   airQualityOverlay,
   weatherRiskOverlay,

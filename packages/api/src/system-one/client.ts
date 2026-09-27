@@ -73,12 +73,19 @@ function toAnswer<Q extends Question>(id: string, question: Q, raw: RawAnswer | 
     case "score": {
       const levels = (question as Extract<Question, { type: "score" }>).criteria;
       const top = levels.length - 1;
+      const probabilities = levels.map((_, i) => raw.probabilities[String(i)] ?? 0);
+      // Use the probability-weighted expected value, not the model's raw top
+      // pick: a raw score of e.g. 0 can be near-argmax on an almost-even
+      // split against 1, which collapses real uncertainty into a falsely
+      // confident extreme. Expected value only softens *that* case -- a
+      // genuinely confident distribution still lands near the extreme.
+      const expected = probabilities.reduce((sum, p, i) => sum + p * i, 0);
       return {
         type: "score",
         score: raw.score,
-        normalized: top > 0 ? raw.score / top : 0,
-        label: levels[Math.min(top, Math.max(0, Math.round(raw.score)))] ?? "",
-        probabilities: levels.map((_, i) => raw.probabilities[String(i)] ?? 0),
+        normalized: top > 0 ? expected / top : 0,
+        label: levels[Math.min(top, Math.max(0, Math.round(expected)))] ?? "",
+        probabilities,
         confidence: raw.confidence,
       } as AnswerFor<Q>;
     }

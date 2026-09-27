@@ -49,7 +49,13 @@ describe("buildSiteState", () => {
 describe("toSiteFit", () => {
   test("flags low-confidence ratings for human review", () => {
     const base = { type: "score" as const, score: 1, normalized: 0.33, label: "x", probabilities: [] };
-    expect(toSiteFit({ ...base, confidence: 0.2 }).needsReview).toBe(true);
-    expect(toSiteFit({ ...base, confidence: 0.5 }).needsReview).toBe(false);
+    expect(toSiteFit({ ...base, confidence: 0.2 }, "duplex").needsReview).toBe(true);
+    expect(toSiteFit({ ...base, confidence: 0.5 }, "duplex").needsReview).toBe(false);
+  });
+
+  test("detached gets a lower review-confidence bar (least demanding typology)", () => {
+    const base = { type: "score" as const, score: 3, normalized: 1, label: "x", probabilities: [] };
+    expect(toSiteFit({ ...base, confidence: 0.25 }, "detached").needsReview).toBe(false);
+    expect(toSiteFit({ ...base, confidence: 0.25 }, "duplex").needsReview).toBe(true);
   });
 });

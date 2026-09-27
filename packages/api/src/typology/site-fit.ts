@@ -46,10 +46,54 @@ export const TYPOLOGIES = [
 export type TypologyId = (typeof TYPOLOGIES)[number]["id"];
 
 export type GateStatus = "allowed" | "conditional" | "not_permitted" | "unknown";
-export type Gate = { status: GateStatus; reason: string };
+export type Gate = {
+  status: GateStatus;
+  reason: string;
+  /** Districts that *would* permit this typology (by right or Special
+   * Exception), so a "not_permitted" gate isn't just a dead end -- it's a
+   * fact about the current zoning, not the parcel's physical potential. */
+  rezoningTo?: ResidentialBase[];
+};
 
 const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"] as const;
-type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
+export type ResidentialBase = (typeof RESIDENTIAL_BASES)[number];
+
+function basesAllowing(typology: TypologyId): ResidentialBase[] {
+  return RESIDENTIAL_BASES.filter((base) => USE_TABLE[typology][base] !== "-");
+}
+
+// 2023-26 Zoning Board relief approval rate by base district ("ALL" cases),
+// snapshotted from apps/web's ZBA_OUTCOMES (legal-matrix.generated.ts) --
+// this file can't import that frontend-only generated data directly, and
+// it's only these 5 bases' aggregate rates that this simpler use table
+// needs. An approximation (relief broadly, not the exact rezoning/map-
+// amendment rate), same caveat as the bottom typology panel's own version.
+const ZBA_APPROVAL_RATE: Partial<Record<ResidentialBase, number>> = {
+  R1D: 87 / 101,
+  R1A: 74 / 83,
+  R2: 46 / 62,
+  RM: 30 / 31,
+  // R3: no local ZBA case data; falls back to the neutral estimate below.
+};
+const NEUTRAL_APPROVAL_RATE = 0.7;
+
+/** 0.5 if an adjacent district on the density ladder (RESIDENTIAL_BASES'
+ * order) permits this typology, 0.2 if only a non-adjacent one does. This
+ * table has no density-suffix variants (unlike DISTRICT_PATHWAYS' full zon_new
+ * codes), so there's no "same family" 1.0 case here. */
+function rezoningCloseness(typology: TypologyId, base: ResidentialBase): number {
+  const currentRank = RESIDENTIAL_BASES.indexOf(base);
+  let best = 0;
+  for (const allowed of basesAllowing(typology)) {
+    const rank = RESIDENTIAL_BASES.indexOf(allowed);
+    best = Math.max(best, Math.abs(rank - currentRank) === 1 ? 0.5 : 0.2);
+  }
+  return best;
+}
+
+function rezoningLikelihood(base: ResidentialBase): number {
+  return ZBA_APPROVAL_RATE[base] ?? NEUTRAL_APPROVAL_RATE;
+}
 
 // §911.02 use table, residential columns (read on eCode360, 2026-09-26).
 // P = permitted by right, S = special exception, - = not permitted.
@@ -102,7 +146,15 @@ export function gateFor(typology: TypologyId, zoning: ZoningInfo, lotAreaSf: num
 
   const use = USE_TABLE[typology][zoning.base];
   if (use === "-") {
-    return { status: "not_permitted", reason: `Not permitted ${useReason(typology, zoning.base)}.` };
+    const rezoningTo = basesAllowing(typology);
+    const rezoningNote = rezoningTo.length
+      ? ` Would need rezoning to ${rezoningTo.join(", ")} to allow it. Rezoning closeness ${Math.round(rezoningCloseness(typology, zoning.base) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning.base) * 100)}%.`
+      : "";
+    return {
+      status: "not_permitted",
+      reason: `Not permitted ${useReason(typology, zoning.base)}.${rezoningNote}`,
+      rezoningTo,
+    };
   }
 
   const undersized = zoning.minLotSf !== null && lotAreaSf !== null && lotAreaSf < zoning.minLotSf;
@@ -143,8 +195,40 @@ const HAZARD_LABELS: Record<keyof HazardShares, string> = {
 
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
+// Mirrors apps/web/src/lib/pillars/pillars.config.json's pillar ids/labels.
+// Duplicated rather than imported: that config is a frontend-only artifact,
+// and these five short labels are presentation text, not shared business logic.
+const PILLAR_LABELS: Record<string, string> = {
+  demand: "Demand",
+  site: "Site Feasibility",
+  afford: "Affordability & Displacement",
+  access: "Access to Opportunity",
+  climate: "Climate & Environment",
+};
+
+/** The person's pillar weights from the navbar Weights popover, 0-3 (1 =
+ * published default). Only present pillars are considered; absent ones are
+ * assumed to be at their default. */
+export type PillarWeights = Record<string, number>;
+
+/** Plain-language note about which pillars the evaluator is weighing above or
+ * below the published default, or null if everyone's at (or near) default --
+ * nothing to say. */
+function describeWeights(weights: PillarWeights | undefined): string | null {
+  if (!weights) return null;
+  const parts = Object.entries(weights)
+    .filter(([, w]) => Math.abs(w - 1) >= 0.01)
+    .map(([id, w]) => {
+      const label = PILLAR_LABELS[id] ?? id;
+      if (w <= 0) return `${label} (ignored entirely)`;
+      const times = (w / 1).toFixed(w % 1 === 0 ? 0 : 2);
+      return w > 1 ? `${label} ${times}x normal` : `${label} only ${times}x normal (de-emphasized)`;
+    });
+  return parts.length ? parts.join("; ") : null;
+}
+
 /** Plain-language facts for the model. All arithmetic happens here, not in the model. */
-export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: HazardShares) {
+export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: HazardShares, weights?: PillarWeights) {
   const shape =
     lot.widthFt !== null && lot.depthFt !== null
       ? ` Roughly ${fmt(lot.widthFt)} ft wide by ${fmt(lot.depthFt)} ft deep (bounding rectangle).`
@@ -167,7 +251,14 @@ export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: Hazar
     ? `${hazardParts.join("; ")}.`
     : "No mapped floodway, floodplain, steep slope, landslide-prone area or undermining on this lot.";
 
-  return { lot: lotText, zoning: zoningText, hazards: hazardsText };
+  const weightsNote = describeWeights(weights);
+
+  return {
+    lot: lotText,
+    zoning: zoningText,
+    hazards: hazardsText,
+    ...(weightsNote ? { weights: `The person evaluating this parcel weighs: ${weightsNote}.` } : {}),
+  };
 }
 
 export const SITE_FIT_LEVELS = [
@@ -177,17 +268,34 @@ export const SITE_FIT_LEVELS = [
   "Comfortable fit",
 ] as const;
 
+// Extra calibration nudge, appended only for typologies whose ratings ran
+// harsher than warranted. "detached" is the least space/design-demanding of
+// the five (no shared walls, no elevator/step-free requirements, smallest
+// realistic footprint) -- most ordinary lots fit one, so it should take a
+// real disqualifier (genuinely tiny, oddly-shaped, or hazard-heavy) to rate
+// it below "Comfortable fit", not just "isn't a large lot".
+const CALIBRATION_HINT: Partial<Record<TypologyId, string>> = {
+  detached: " This is the least demanding of the five typologies; don't rate it down just for being an ordinary-sized lot -- reserve low ratings for lots that are genuinely small, oddly shaped, or hazard-heavy.",
+};
+
 export function siteFitQuestion(typology: TypologyId): ScoreQuestion {
   const { describe } = TYPOLOGIES.find((t) => t.id === typology)!;
   return {
     type: "score",
-    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit only (size, shape, hazards); legality is checked separately.`,
+    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit primarily from those two facts; legality is checked separately. If \`weights\` is present, it's the evaluator's stated priorities -- let it nudge a genuinely borderline rating in that direction (e.g. someone weighing Climate heavily should see a mild penalty for tight, low-canopy lots reflected in a marginal case), but never let it override real physical constraints like lot size or hazard exposure.${CALIBRATION_HINT[typology] ?? ""}`,
     criteria: SITE_FIT_LEVELS,
   };
 }
 
 /** Below this confidence a rating is shown but flagged for human review. Tuned on real answers (~0.3–0.55 observed). */
 export const REVIEW_CONFIDENCE = 0.3;
+
+// "detached" ratings are the ones that should least often need a human
+// second-guess (see CALIBRATION_HINT); a lower bar means fewer of its
+// borderline-but-reasonable calls get an unnecessary "needs review" flag.
+const REVIEW_CONFIDENCE_OVERRIDE: Partial<Record<TypologyId, number>> = {
+  detached: 0.2,
+};
 
 export type SiteFit = {
   /** 0–1, probability-weighted position on the rubric. */
@@ -198,12 +306,13 @@ export type SiteFit = {
   needsReview: boolean;
 };
 
-export function toSiteFit(answer: ScoreAnswer): SiteFit {
+export function toSiteFit(answer: ScoreAnswer, typology: TypologyId): SiteFit {
+  const threshold = REVIEW_CONFIDENCE_OVERRIDE[typology] ?? REVIEW_CONFIDENCE;
   return {
     fit: answer.normalized,
     label: answer.label,
     probabilities: answer.probabilities,
     confidence: answer.confidence,
-    needsReview: answer.confidence < REVIEW_CONFIDENCE,
+    needsReview: answer.confidence < threshold,
   };
 }

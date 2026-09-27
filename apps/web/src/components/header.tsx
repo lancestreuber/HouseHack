@@ -2,8 +2,10 @@ import { Link } from "@tanstack/react-router";
 
 import { AddressSearch } from "./map/address-search";
 import { dispatchAddressSelect } from "./map/address-select-store";
+import { setPillarWeights, usePillarWeights } from "./map/pillar-weights-store";
 import { ThemeToggle } from "./theme-toggle";
 import UserMenu from "./user-menu";
+import { WeightsPopover } from "./map/weights-popover";
 
 export default function Header() {
   const links = [
@@ -11,6 +13,7 @@ export default function Header() {
     { to: "/dashboard", label: "Dashboard" },
     { to: "/todos", label: "Todos" },
   ] as const;
+  const weights = usePillarWeights();
 
   return (
     <div>
@@ -26,6 +29,7 @@ export default function Header() {
         </nav>
         <div className="flex items-center gap-2">
           <AddressSearch onSelect={dispatchAddressSelect} />
+          <WeightsPopover weights={weights} onChange={setPillarWeights} />
           <ThemeToggle />
           <UserMenu />
         </div>

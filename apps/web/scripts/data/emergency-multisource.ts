@@ -64,7 +64,7 @@ export async function buildEmergencyMultisource() {
   );
   const psp = await fetchAllGeoJSON(STATE_POLICE, { outFields: ["*"], extraParams: COUNTY_BBOX });
   for (const f of psp) {
-    const [lon, lat] = f.geometry.coordinates as number[];
+    const [lon, lat] = (f.geometry as { coordinates: number[] }).coordinates;
     if (!inCounty(lon, lat)) continue;
     const name = Object.entries(f.properties).find(([k]) => /name|station/i.test(k))?.[1];
     police.push({ type: "Feature", geometry: point(lon, lat), properties: { name: `PA State Police ${name ?? ""}`.trim(), address: null, serves: null, sources: "PASDA" } });
@@ -80,8 +80,8 @@ export async function buildEmergencyMultisource() {
   const medics = await fetchAllGeoJSON(CITY_EMS, { outFields: ["name", "address"] });
   let added = 0;
   for (const f of medics) {
-    const c = f.geometry.coordinates as number[];
-    if (ems.some((e) => meters(c, e.geometry.coordinates as number[]) < 150)) continue;
+    const c = (f.geometry as { coordinates: number[] }).coordinates;
+    if (ems.some((e) => meters(c, (e.geometry as { coordinates: number[] }).coordinates) < 150)) continue;
     ems.push({ type: "Feature", geometry: point(c[0], c[1]), properties: { name: `Pittsburgh EMS ${f.properties.name ?? ""}`.trim(), address: f.properties.address ?? null, serves: "City of Pittsburgh", sources: "City" } });
     added++;
   }
