@@ -11,7 +11,7 @@ import type { ParcelData } from "../map/pillars-panel";
 // The panels import the API client, which needs the server env; these tests
 // only use the pure scoring helpers, so stub it.
 mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
-const { legalCodeFor, parcelChatContext } = await import("./parcel-context");
+const { generalChatContext, legalCodeFor, parcelChatContext } = await import("./parcel-context");
 const { notPermittedScore, PATHWAY_SCORE, SHORT_LABEL } = await import("../map/typology-panel");
 const { typologyAlerts } = await import("../map/alerts-panel");
 const { DISTRICT_PATHWAYS } = await import("../map/overlays/legal-matrix.generated");
@@ -163,6 +163,14 @@ describe("parcelChatContext", () => {
       const next = Math.round(alt.overall!);
       expect(f.text).toContain(next === now ? `overall score would stay ${now}` : `overall score would be ${next} instead of ${now}`);
     }
+  });
+
+  test("the no-parcel chat explains how Yinzone works, with no mock parcel", () => {
+    const ctx = generalChatContext();
+    expect(chatContext.safeParse(ctx).success).toBe(true);
+    expect(ctx.facts.some((f) => f.id === "parcel")).toBe(false);
+    expect(ctx.facts.find((f) => f.id === "def.tiles")!.text).toContain("by right 100");
+    for (const f of ctx.facts) expect(f.text.endsWith("…")).toBe(false);
   });
 
   test("a parcel without scores says so instead of guessing", () => {

@@ -1,7 +1,7 @@
 import type { ContextFact } from "./types";
 
 function definition(id: string, text: string): ContextFact {
-  return { id, text, source: "Groundwork PGH methodology", source_url: "/methodology", as_of: "2026-09-27", kind: "definition" };
+  return { id, text, source: "Yinzone methodology", source_url: "/resources", as_of: "2026-09-27", kind: "definition" };
 }
 
 /** Plain-language definitions the chatbot may always cite, whatever is on screen. */
@@ -12,6 +12,6 @@ export const DEFINITIONS: ContextFact[] = [
   definition("def.uncertain", "Uncertain means the zoning rules are unclear for this case; verify with the Zoning Administrator."),
   definition("def.weights", "Weights are value judgments, not data. Changing them changes the scores, so different priorities can lead to different answers."),
   definition("def.suggestions", "Everything here is a suggestion to help you decide, not legal, financial or zoning advice. Zoning is a simplified interpretation; verify with the Zoning Administrator."),
-  definition("def.limits", "The scores don't use crime data. The chat only sees this parcel's scores, breakdowns and zoning, not the map's other layers, and it can't tell you about building costs, sale prices or whether a specific project will be approved."),
+  definition("def.limits", "Crime and race never enter any score. The chat only sees what the panels show for this parcel (scores, breakdowns, typology tiles, site fit, alerts and zoning), not the map's other layers, and it can't tell you about building costs, sale prices, rents or whether a specific project will be approved."),
   definition("def.adu", "ADUs are not permitted in any Pittsburgh zoning district today. Pending Bill 2025-1545 would allow them by right; it is not law yet."),
 ];

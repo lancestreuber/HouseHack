@@ -31,7 +31,7 @@ export type TypologyFit = NonNullable<ReturnType<typeof useTypologyFit>["data"]>
 export type FitState = { status: "loading" } | { status: "error" } | { status: "ready"; data: TypologyFit };
 
 const SCORES_AS_OF = config.version.slice(0, 10);
-const SCORES_SOURCE = `Groundwork pillars v${config.version}`;
+const SCORES_SOURCE = `Yinzone pillars v${config.version}`;
 const MAX_TEXT = 600;
 
 const round = (n: number | null) => (n == null ? null : Math.round(n));
@@ -280,7 +280,7 @@ function scenarioFacts(data: ParcelData, weights: PillarWeights, result: ParcelS
 }
 
 function definitions(): ContextFact[] {
-  const def = (id: string, text: string) => fact(id, text, "definition", "Groundwork methodology");
+  const def = (id: string, text: string) => fact(id, text, "definition", "Yinzone methodology", "/resources");
   return [
     def("def.scale", config.scale),
     def(
@@ -411,6 +411,34 @@ export function parcelChatContext(
       overall != null ? `Overall score ${overall} of 100.` : "Not enough data for an overall score.",
       ...pillars.map((p) => `${p.label}: ${round(p.score) ?? "not enough data"}.`),
     ],
+  };
+}
+
+/** How Yinzone works, for pages with no parcel selected: the same definitions the parcel chat uses. */
+export function generalChatContext(): ChatContext {
+  return {
+    subject: "How Yinzone works",
+    facts: [
+      ...config.pillars.map((p) => fact(`pillar.${p.id}`, `${p.label} pillar: ${p.description}`, "definition", "Yinzone methodology", "/resources")),
+      // One fact per level: the full lists don't fit in one.
+      ...config.legal.levels.map((l) =>
+        fact(`def.zoning.${l.id}`, `Zoning factor: "${l.label}" multiplies the overall score by ${l.multiplier}.`, "policy", "Yinzone methodology", "/resources"),
+      ),
+      ...config.availability.levels.map((l) =>
+        fact(`def.site.${l.id}`, `Site factor: "${l.label}" multiplies the overall score by ${l.multiplier}.`, "observed", "Yinzone methodology", "/resources"),
+      ),
+      fact(
+        "def.tiles",
+        `Typology tile scores: by right ${PATHWAY_SCORE.by_right}, Zoning Administrator exception ${PATHWAY_SCORE.za}, special exception ${PATHWAY_SCORE.zbe_special_exception}, conditional use ${PATHWAY_SCORE.conditional_use}; not permitted scores 5 to 35 by how close a rezoning would be. Higher means fewer approvals or hearings.`,
+        "policy",
+        "Yinzone methodology",
+        "/resources",
+      ),
+      fact("jev", FIT_BARS, "definition", JEV_SOURCE),
+      ...definitions(),
+    ],
+    suggestions: ["How is the overall score calculated?", "What do the five pillars measure?", "What do the typology tile scores mean?"],
+    notes: ["Pick a parcel on the map to ask about it."],
   };
 }
 

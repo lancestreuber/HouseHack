@@ -88,7 +88,7 @@ The full catalog of 134 datasets, with endpoints, vintages and licenses, is on t
 
 ## 7. Synthetic data
 
-- **The floating chat on pages other than the map uses a sample parcel with mock values** (`packages/api/src/chat/fixtures.ts`, "7200 Hamilton Ave, Homewood"). It is labeled "Sample parcel (demo data)" in the chat. Its definition of the Parcel Score is out of date: it says "average", but the real score is a weighted geometric mean times the zoning and availability multipliers.
+- **The floating chat on pages other than the map** has no parcel, so it only explains how Yinzone works (the score, pillars, zoning and site factors, tile scores and site fit), from the same config the scorer uses. It uses no mock data.
 - Everything on the map and in the parcel panels is real public data.
 
 ## 8. AI components
@@ -98,7 +98,8 @@ The full catalog of 134 datasets, with endpoints, vintages and licenses, is on t
   - **What it doesn't see:** setbacks, buildings on the lot, topography beyond those shares, neighbors, street access, utilities, photos.
   - It never decides legality. We have **not validated its ratings against ground truth**. If it fails or isn't configured, the app says so instead of inventing a number.
 - **The chat** uses Google Gemini (free-tier "flash-lite" models).
-  - It sees only the selected parcel's scores, breakdowns and zoning. It can't see the map's other layers.
+  - It sees only what the panels show for the selected parcel: scores, breakdowns, typology tiles with Jev's site fit, alerts and zoning. It can't see the map's other layers.
+  - What-if answers are computed, never estimated: weight changes and presets by the same formula as the scorer, rezoning and vacant-land scenarios by the scorer itself. Other what-ifs get "not computed".
   - Replies must cite facts. Any sentence with a number not found in those facts is removed.
   - It can re-run the scoring formula with new weights. It never produces a score of its own.
   - It can still word things poorly or leave things out. Treat it as an explainer, not a source.
