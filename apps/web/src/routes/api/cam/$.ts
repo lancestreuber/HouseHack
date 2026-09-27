@@ -1,24 +1,24 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-// Same-origin HLS proxy for public traffic-camera streams that are gated by a
-// Referer header (PA Turnpike's CloudFront) or lack CORS, so the browser can't
-// fetch them directly. We fetch server-side with the right Referer and rewrite
-// each playlist's segment URLs to come back through here. Not an open proxy:
-// only the hosts below are allowed, and only their video endpoints.
-const ALLOWED_HOSTS = [
-  /\.cloudfront\.net$/,
-  /\.arcadis-ivds\.com$/,
-  // PPG Place downtown plaza cam (StarDot), HTTP-only — proxied so it works on
-  // an HTTPS page without mixed-content blocking.
-  /^96\.69\.79\.178$/,
-  // Still-image cameras. These send ACAO:* but pair it with
-  // Allow-Credentials:true, which browsers reject, so a direct fetch() fails —
-  // proxying makes them same-origin and lets us read their Last-Modified.
-  /^www\.511pa\.com$/,
-  /^usgs-nims-images\.s3\.amazonaws\.com$/,
-  /^images\.weatherstem\.com$/,
-  /^wx\.w3sll\.net$/,
-  /^images\.webcamgalore\.com$/,
+// Same-origin proxy for public camera feeds the browser can't fetch directly
+// (Referer-gated, mixed-content, or broken CORS). We fetch server-side and, for
+// playlists, rewrite segment URLs to come back through here. Not an open proxy:
+// each entry pins a host, and a `path` where the host is a shared/multi-tenant
+// CDN, so the endpoint can't be used to proxy arbitrary content.
+const HLS_PATH = /\.(m3u8|ts)$/;
+const ALLOWED: { host: RegExp; path?: RegExp }[] = [
+  // Shared CDNs — restrict to HLS stream files so they can't proxy anything else.
+  { host: /\.cloudfront\.net$/, path: HLS_PATH }, // PA Turnpike streams
+  { host: /\.arcadis-ivds\.com$/, path: HLS_PATH }, // 511PA streams
+  // 511PA camera stills live only under /map/Cctv/<id>.
+  { host: /^www\.511pa\.com$/, path: /^\/map\/Cctv\// },
+  // Single-purpose camera hosts (a dedicated device or image bucket) — host is
+  // enough; proxying anything else they serve gains nothing.
+  { host: /^96\.69\.79\.178$/ }, // PPG Place StarDot cam (HTTP-only)
+  { host: /^usgs-nims-images\.s3\.amazonaws\.com$/ },
+  { host: /^images\.weatherstem\.com$/ },
+  { host: /^wx\.w3sll\.net$/ },
+  { host: /^images\.webcamgalore\.com$/ },
 ];
 
 // The Referer the gated CDNs expect (a wrong/absent Referer gets a 403). Other
@@ -30,7 +30,7 @@ const REFERER_FOR = (host: string): string | undefined => {
 };
 
 function allowed(target: URL) {
-  return ALLOWED_HOSTS.some((re) => re.test(target.hostname));
+  return ALLOWED.some((e) => e.host.test(target.hostname) && (!e.path || e.path.test(target.pathname)));
 }
 
 const CORS = { "access-control-allow-origin": "*" };
