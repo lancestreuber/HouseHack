@@ -16,7 +16,7 @@ type Indicator = (typeof config.indicators)[number] & {
   source: { kind: string; file?: string | string[]; property?: string; radius_m?: number; max_m?: number; transform?: string };
 };
 type Condition = { indicator: string; below?: number; atLeast?: number; notEquals?: number };
-type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; flag: string };
+type Gate = { indicator?: string; below?: number; when?: Condition[]; cap: number; overall?: number; flag: string };
 type Pillar = {
   id: string;
   label: string;
@@ -68,10 +68,11 @@ const STAGES: { tag: string; title: string; body: string }[] = [
   { tag: "observed", title: "1 · Public data", body: "134 datasets from City, County, WPRDC, Census, HUD, FEMA, EPA, USGS, PA agencies and OSM, pulled 2026-09-26/27." },
   { tag: "code", title: "2 · Build scripts", body: "Clip to Allegheny County, clean known traps, write map overlays and per-parcel indicator shards. No model involved." },
   { tag: "code", title: "3 · Normalize", body: `${INDICATORS.length} indicators → 0–100 by percentile rank or fixed linear thresholds. 100 = a good place to build.` },
-  { tag: "value", title: "4 · Weight + aggregate", body: "Open weights (a published JSON file) → sub-scores → 5 pillars → overall. Hazard gates cap Site Feasibility." },
-  { tag: "policy", title: "5 · Legal + availability", body: "Zoning use table (§911.02) and current land use multiply the overall score. Legality is read from code, never estimated." },
+  { tag: "value", title: "4 · Weight + aggregate", body: "Open weights (a published JSON file) → sub-scores → 5 pillars → overall. Hazard gates cap Site Feasibility; deal-killers also multiply the overall." },
+  { tag: "policy", title: "5 · Legal + availability", body: "Zoning use table (§911.02), current land use and deal-killer hazards multiply the overall score. Legality is read from code, never estimated." },
   { tag: "model", title: "6 · Site fit (Jev)", body: "A typed decision model rates physical fit per housing type from facts code already computed. Shown with its confidence." },
-  { tag: "llm", title: "7 · Explain (chat)", body: "Gemini explains on-screen facts with citations. Sentences with numbers not found in the facts are dropped." },
+  { tag: "code", title: "7 · Verdict + pencil", body: "Per housing type: red / yellow / green from pass/fail checks and a rough value-vs-cost screen. Never derived from the weighted score." },
+  { tag: "llm", title: "8 · Explain (chat)", body: "Gemini explains on-screen facts with citations. Sentences with numbers not found in the facts are dropped." },
 ];
 
 export function OverviewSection() {
@@ -231,12 +232,13 @@ export function EquationsSection() {
         />
         <Equation
           label="E6 · Final parcel score"
-          lines={["Score = O × m_legal × m_availability"]}
+          lines={["Score = O × m_legal × m_availability × m_hazard"]}
           where={[
-            ["m_legal", "multiplier for the easiest legal pathway among detached, townhouse, two-, three- and multi-unit homes (§4)"],
+            ["m_legal", "multiplier for the easiest legal pathway among detached, townhouse, two-, three- and multi-unit homes, or for one type the user picks in the panel (§4)"],
             ["m_availability", "multiplier for what's on the lot now: vacant 1.0 … park, rail, right-of-way 0.05"],
+            ["m_hazard", "lowest overall factor among the fired deal-killer gates (floodway, sliver lot, mines), else 1 (§4)"],
           ]}
-          note="Multiplied, not averaged: a parcel where housing isn't permitted can't be rescued by good access."
+          note="Multiplied, not averaged: a parcel where housing isn't permitted, or sits in a floodway, can't be rescued by good access."
         />
         <Equation
           label="E7 · Contribution shown in the panel"
@@ -336,10 +338,11 @@ export function PillarsSection() {
             />
             {p.gates?.length ? (
               <DataTable
-                head={["Gate: fires when", "Cap", "Flag shown"]}
+                head={["Gate: fires when", "Cap", "Overall ×", "Flag shown"]}
                 rows={p.gates.map((g) => [
                   <span className="text-muted-foreground">{gateText(g)}</span>,
                   <span className="font-mono tabular-nums">{g.cap === 100 ? "flag only" : `≤ ${g.cap}`}</span>,
+                  <span className="font-mono tabular-nums">{g.overall == null ? "—" : g.overall.toFixed(2)}</span>,
                   g.flag,
                 ])}
               />
@@ -368,10 +371,11 @@ export function MultipliersSection() {
     <Section
       id="multipliers"
       code="04"
-      title="Zoning and site-availability multipliers"
+      title="Zoning, site-availability and hazard multipliers"
       lede={
         <>
-          The two factors in E6. Both are <Tag kind="value" /> judgments about how much approval risk and existing use should cost, applied on top of <Tag kind="policy" /> facts.
+          The three factors in E6. All are <Tag kind="value" /> judgments about how much approval risk, existing use and deal-killer hazards should cost, applied on top of{" "}
+          <Tag kind="policy" /> and <Tag kind="observed" /> facts.
         </>
       }
     >
@@ -399,6 +403,105 @@ export function MultipliersSection() {
             <span className="text-muted-foreground">{(l as { note?: string }).note ?? ""}</span>,
           ])}
       />
+      <SubHead right="Site Feasibility gates with an overall factor">Deal-killer hazards (m_hazard)</SubHead>
+      <p className="max-w-3xl text-xs text-muted-foreground">{config.overall.hazard_multiplier.rationale}</p>
+      <DataTable
+        head={["Gate: fires when", "Overall ×", "Flag shown"]}
+        rows={PILLARS.flatMap((p) => p.gates ?? [])
+          .filter((g) => g.overall != null)
+          .map((g) => [
+            <span className="text-muted-foreground">{gateText(g)}</span>,
+            <span className="font-mono tabular-nums">{g.overall?.toFixed(2)}</span>,
+            g.flag,
+          ])}
+      />
+    </Section>
+  );
+}
+
+// ─── Verdict + pencil ────────────────────────────────────────────────────────
+
+const VERDICT_RULES: [string, string, string][] = [
+  ["red", "Zoning", "Not permitted and no district of similar density allows it"],
+  ["yellow", "Zoning", "Special exception or conditional use; or not permitted but a nearby-density district allows it (rezoning or use variance). Each reason carries its approval clock."],
+  ["green", "Zoning", "By right or Zoning Administrator approval"],
+  ["unknown", "Zoning", "District not in the use table, planned district, or Mount Oliver"],
+  ["red", "Site", "Half or more floodway; sliver lot under 600 sq ft; park, cemetery, rail or right-of-way"],
+  ["yellow", "Site", "Part floodway; mostly floodplain, 25%+ slope or landslide-prone; recent landslide; over mapped mines (investigation or cover check); condo unit, large building or institution"],
+  ["yellow", "Width", "Lot width minus §903.03 interior side setbacks leaves less than the minimum building width (likely dimensional variance)"],
+  ["red / yellow", "Fit", "Jev rates 'Cannot fit' (red) or below the halfway point (yellow)"],
+  ["red / yellow / green", "Pencil", "Value per unit vs. cost per unit with margin (below)"],
+  ["unknown", "Data", "Missing hazard, sale or rent data. Unknown outranks green, so missing data never reads as buildable."],
+];
+
+export function VerdictSection() {
+  const v = config.verdict;
+  const p = config.pencil;
+  const sb = v.side_setbacks;
+  return (
+    <Section
+      id="verdict"
+      code="06"
+      title="Can it be built? The verdict and the pencil check"
+      lede={
+        <>
+          A second answer beside the scores. The pillars rank how good a place is; the verdict says what stands in the way, per housing type, from <Tag kind="code" /> pass/fail
+          checks. The worst reason decides the color. The framing came from a hackathon housing expert: red = not developable, yellow = could be developable with variances or
+          subsidy, green = developable as-is.
+        </>
+      }
+    >
+      <DataTable head={["Color", "Check", "When"]} rows={VERDICT_RULES.map(([c, k, w]) => [<Mono>{c}</Mono>, k, <span className="text-muted-foreground">{w}</span>])} />
+      <SubHead right={`min building width ${sb.min_building_width_ft} ft`}>Side-setback check (§903.03)</SubHead>
+      <p className="max-w-3xl text-xs text-muted-foreground">
+        {sb.about} {sb.min_building_width_note} Source: {sb.source}
+      </p>
+      <DataTable
+        head={["Base district", "VL", "L", "M", "H", "VH"]}
+        rows={Object.entries(sb.total_ft).map(([base, row]) => [<Mono>{base}</Mono>, ...Object.values(row).map((ft) => <span className="font-mono tabular-nums">{ft} ft</span>)])}
+      />
+      <Equation
+        label="E11 · Pencil check (per unit)"
+        lines={[
+          "cost   = sf × $/sf × (1 + soft) + (site + steep adder) / units",
+          "need   = cost × (1 + margin)",
+          "value  = tract median sale price          (houses)",
+          `value  = monthly rent × ${p.rent_multiplier}                 (2+ units)`,
+          "status = pencils  if value ≥ need",
+          "         tight    if value ≥ need at the low $/sf",
+          `         subsidy  if value ≥ ${p.subsidy_floor} × need`,
+          "         no       otherwise",
+        ]}
+        where={[
+          ["$/sf", `editable; presets ${p.cost_per_sf.low} / ${p.cost_per_sf.mid} / ${p.cost_per_sf.high}`],
+          ["site", `$${p.site_cost_per_building.toLocaleString()} per building, editable`],
+          ["steep adder", `$${p.steep_site_adder.toLocaleString()} when half the lot is 25%+ slope`],
+          ["soft", `${Math.round(p.soft_cost_pct * 100)}% of hard cost`],
+          ["margin", `${Math.round(p.margin_pct * 100)}%`],
+        ]}
+        note={p.about}
+      />
+      <DataTable
+        head={["Assumption", "Value", "Source"]}
+        rows={[
+          ["$/sf, production builder", `$${p.cost_per_sf.low}`, p.cost_per_sf.sources.low],
+          ["$/sf, typical infill (default)", `$${p.cost_per_sf.mid}`, p.cost_per_sf.sources.mid],
+          ["$/sf, small builder", `$${p.cost_per_sf.high}`, p.cost_per_sf.sources.high],
+          ["Site work per building", `$${p.site_cost_per_building.toLocaleString()}`, p.site_cost_source],
+          ["Steep-lot adder", `$${p.steep_site_adder.toLocaleString()}`, p.steep_site_adder_source],
+          ["Soft costs", `${Math.round(p.soft_cost_pct * 100)}%`, p.soft_cost_source],
+          ["Margin", `${Math.round(p.margin_pct * 100)}%`, p.margin_source],
+          ["Rent → value", `× ${p.rent_multiplier}`, p.rent_multiplier_source],
+          ["Subsidy floor", `${Math.round(p.subsidy_floor * 100)}%`, p.subsidy_floor_note],
+          ["Unit sizes", Object.entries(p.typologies).map(([id, t]) => `${id} ${t.units}×${t.sf_per_unit} sf`).join(", "), p.typologies_note],
+        ].map(([a, b, c]) => [a, <span className="font-mono tabular-nums">{b}</span>, <span className="text-muted-foreground">{c}</span>])}
+      />
+      <Panel className="space-y-1 p-3 text-xs text-muted-foreground">
+        <p>{p.value_bias}</p>
+        <p>{p.cost_per_sf.note}</p>
+        <p>{p.not_priced}</p>
+        <p>{v.pathway_time.about}</p>
+      </Panel>
     </Section>
   );
 }
@@ -421,8 +524,8 @@ export function TypologySection() {
       lede={
         <>
           The bottom panel scores {TYPOLOGIES.length} housing types on a parcel in two independent layers: a <Tag kind="policy" /> legal pathway read from the City zoning code, and a{" "}
-          <Tag kind="model" /> physical site fit. They are shown side by side and never blended, so a lot that would physically fit a duplex but isn't zoned for one reads as a
-          rezoning question, not a dead end.
+          <Tag kind="model" /> physical site fit. They are shown side by side and never blended into one number, so a lot that would physically fit a duplex but isn't zoned for
+          one reads as a rezoning question, not a dead end. Both feed the verdict (§6) as separate pass/fail reasons.
         </>
       }
     >
@@ -545,7 +648,7 @@ export function AiSection() {
   return (
     <Section
       id="ai"
-      code="06"
+      code="07"
       title="The AI components and their guardrails"
       lede="Each model gets narrow, pre-computed inputs and has a documented failure mode. No model output becomes a score without being labeled as such."
     >
@@ -562,7 +665,7 @@ export function AiSection() {
             </li>
             <li>Facts are computed first in PostGIS and code: lot area, oriented-rectangle width and depth, district minimum lot size, hazard shares. The model does no arithmetic.</li>
             <li>Every type is rated, including ones zoning forbids, because physical fit is what makes a rezoning ask worth pursuing.</li>
-            <li>Your pillar weights are passed as a note that may nudge a borderline rating, never override lot size or hazards.</li>
+            <li>Your pillar weights are not sent: a physical judgment shouldn't move with preferences.</li>
             <li>Answers are cached per (model, facts, types). On timeout (10 s) or a missing key the panel says the fit is unavailable. It never shows a guessed number.</li>
           </ul>
         </Panel>

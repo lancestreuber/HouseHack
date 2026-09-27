@@ -1660,7 +1660,7 @@
       "green": "No blockers found in our checks",
       "unknown": "Can't tell from our data"
     },
-    "not_checked": "The pencil check is a rough screen: land, financing and subsidy terms are not modeled. Not checked: soils, contamination and utility lines. Decision support only, not legal, financial or zoning advice.",
+    "not_checked": "The pencil check is a rough screen: land, financing and subsidy terms are not modeled. Not checked: soils, contamination and utility lines.",
     "rezoning_yellow_closeness": 0.5,
     "share": {
       "floodway_red": 0.5,
