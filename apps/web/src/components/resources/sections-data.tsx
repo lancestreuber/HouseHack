@@ -24,7 +24,7 @@ export function LayersSection() {
   return (
     <Section
       id="map-layers"
-      code="07"
+      code="08"
       title="Every map layer and where it comes from"
       lede={
         <>
@@ -104,7 +104,7 @@ export function CatalogSection() {
   return (
     <Section
       id="datasets"
-      code="08"
+      code="09"
       title="Dataset catalog"
       lede={
         <>
@@ -153,7 +153,7 @@ export function CatalogSection() {
 
 export function ServicesSection() {
   return (
-    <Section id="licenses" code="09" title="Licenses, attribution and runtime services">
+    <Section id="licenses" code="10" title="Licenses, attribution and runtime services">
       <SubHead>Attribution obligations</SubHead>
       <DataTable
         head={["Source", "License / terms", "What we must do"]}
@@ -203,7 +203,12 @@ const HAND_ASSUMPTIONS: { area: string; text: string; where: string }[] = [
   { area: "Scoring", text: "A pillar with too little data counts as that pillar's City 25th-percentile score, so missing data is never rewarded.", where: "pillars.config.json · impute" },
   { area: "Scoring", text: "Pillar scores are floored at 1 inside the geometric mean so one zero doesn't zero the overall.", where: "overall.floor" },
   { area: "Scoring", text: "All pillar weights default to 1. Equal weights are a starting point, not a finding; presets show other value sets.", where: "pillars[].weight" },
-  { area: "Zoning", text: "The overall zoning factor uses the easiest pathway among the five mainstream housing types; senior and group housing are scored separately in the typology panel.", where: "legal.typologies" },
+  { area: "Zoning", text: "The overall zoning factor uses the easiest pathway among the five mainstream housing types unless the user picks one type in the panel; senior and group housing are scored separately in the typology panel.", where: "legal.typologies · legalLevel" },
+  { area: "Scoring", text: "Deal-killer hazards (floodway, sliver lot, mapped mines) multiply the overall score; the lowest factor applies. Mines get a mild ×0.9 because about 30% of City parcels are over mapped mines and the layer has no depth of cover.", where: "overall.hazard_multiplier" },
+  { area: "Verdict", text: "The worst reason sets the verdict color; unknown outranks green so missing data never reads as buildable. Mines are yellow (investigation needed), not red.", where: "verdict.ts" },
+  { area: "Verdict", text: "A lot is flagged for a likely setback variance when its width minus the §903.03 interior side setbacks leaves under 14 ft. Width is the short side of the oriented bounding rectangle; corner-lot exterior setbacks are not modeled.", where: "verdict.side_setbacks" },
+  { area: "Pencil", text: "Houses are valued at the tract's median resale price (close to an appraiser's comps); 2+ units at capitalized block-group rent. Both describe existing stock and understate new-build value, so the check leans pessimistic.", where: "pencil.value_bias" },
+  { area: "Pencil", text: "Soft costs 15%, margin 10%, rent-to-value ×103 (40% operating costs, 7% cap rate) and the 35% subsidy floor are our assumptions; construction $/sf and site cost come from hackathon experts and are editable.", where: "pencil.*" },
   { area: "Zoning", text: "A parcel within 30 m of a district that allows attached or multi-unit homes is treated as a border case (×0.35 instead of ×0.2).", where: "legal.border_m" },
   { area: "Zoning", text: "Where a district has no local Zoning Board cases, the approval likelihood is a neutral 0.7.", where: "typology-panel.tsx · E9" },
   { area: "Zoning", text: "Rezoning closeness uses a simple density ladder R1D → R1A → R2 → R3 → RM; non-residential districts count as distant (0.2).", where: "typology-panel.tsx · E9" },
@@ -233,7 +238,7 @@ export function AssumptionsSection() {
   return (
     <Section
       id="assumptions"
-      code="10"
+      code="11"
       title="Assumptions register"
       lede="Everything we chose rather than measured, in one place. If you disagree with one, the weights popover or the config file is where to change it."
     >
@@ -280,7 +285,7 @@ export function AssumptionsSection() {
 const LIMITS: [string, string][] = [
   ["Not legal advice", "Zoning is a simplified interpretation of the City code. Verify with the Zoning Administrator before acting."],
   ["City of Pittsburgh zoning only", "Legal pathways cover City districts. Suburban municipalities have their own codes, which are not encoded; the map still shows their data layers."],
-  ["No market or cost feasibility", "No construction costs, land prices, rents a project could achieve, or financing. Scores say where housing fits, not whether a deal pencils."],
+  ["Only a rough cost check", "The pencil check compares practitioner cost ranges with nearby sale prices and rents. Land, financing, subsidy terms and new-build premiums are not modeled; it is a first screen, not a pro forma."],
   ["No project-level approval odds", "Zoning Board rates describe districts, not your application."],
   ["Excluded on purpose", "Crime and race never enter any score. Income and rent are context for need, not a filter."],
   ["Not covered", "Water and sewer capacity, school quality, and tornado risk are not scored."],
@@ -292,7 +297,7 @@ const LIMITS: [string, string][] = [
 
 export function LimitationsSection() {
   return (
-    <Section id="limitations" code="11" title="What this tool can't tell you">
+    <Section id="limitations" code="12" title="What this tool can't tell you">
       <div className="grid gap-px overflow-hidden rounded-sm border border-border bg-border md:grid-cols-2">
         {LIMITS.map(([title, body]) => (
           <div key={title} className="bg-background p-3 text-xs">
@@ -309,7 +314,7 @@ export function LimitationsSection() {
 
 export function ReferencesSection() {
   return (
-    <Section id="references" code="12" title="Methodology references and sources not used">
+    <Section id="references" code="13" title="Methodology references and sources not used">
       <SubHead right={`${catalog.methodology.length} references`}>Composite-indicator standards and index designs we followed</SubHead>
       <Panel className="p-3">
         <ol className="columns-1 gap-6 space-y-1 text-xs md:columns-2 xl:columns-3">

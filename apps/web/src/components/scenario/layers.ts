@@ -77,10 +77,10 @@ export function layersForFact(factId: string, typologyId: string, factText = "")
       (id) => layers.find((l) => l.id === id)?.metric,
     );
   }
-  if (factId.startsWith("t.") || factId === "legal" || factId.startsWith("alert.")) return pick([legal.id], () => legal.metric);
+  if (factId.startsWith("t.") || factId.startsWith("verdict.") || factId === "legal" || factId.startsWith("alert.")) return pick([legal.id], () => legal.metric);
   // "No mapped floodway, floodplain, …" names hazards that aren't there.
   if (factId === "hazards") return factText.includes("No mapped") ? { stack: [] } : pick(hazardLayers(factText));
-  if (factId.startsWith("warning.")) return pick(hazardLayers(factText));
+  if (factId.startsWith("warning.") || factId === "site_hazard") return pick(hazardLayers(factText));
   if (factId.startsWith("pillar.")) return pick([`pillar-${factId.slice(7)}`]);
   if (factId === "overall") return pick(["overall"]);
   return { stack: [] };

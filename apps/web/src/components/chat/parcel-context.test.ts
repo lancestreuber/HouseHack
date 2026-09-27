@@ -4,7 +4,7 @@ import { overallScore } from "@HouseHack/api/chat/rescore";
 import { chatContext } from "@HouseHack/api/routers/chat";
 
 import config from "@/lib/pillars/pillars.config.json";
-import { type PillarId, scoreParcel } from "@/lib/pillars/score";
+import { type PillarId, scoreMultiplier, scoreParcel } from "@/lib/pillars/score";
 import type { PillarWeights } from "../map/pillar-weights-store";
 import type { ParcelData } from "../map/pillars-panel";
 
@@ -12,7 +12,8 @@ import type { ParcelData } from "../map/pillars-panel";
 // only use the pure scoring helpers, so stub it.
 mock.module("@/utils/orpc", () => ({ orpc: {}, client: {} }));
 const { generalChatContext, legalCodeFor, parcelChatContext } = await import("./parcel-context");
-const { notPermittedScore, PATHWAY_SCORE, SHORT_LABEL } = await import("../map/typology-panel");
+const { notPermittedScore, PATHWAY_SCORE } = await import("../map/typology-panel");
+const { SHORT_LABEL } = await import("../map/typology-meta");
 const { typologyAlerts } = await import("../map/alerts-panel");
 const { DISTRICT_PATHWAYS } = await import("../map/overlays/legal-matrix.generated");
 const { TYPOLOGIES: TILE_TYPES } = await import("../map/overlays/legal-feasibility");
@@ -228,7 +229,7 @@ describe("across real parcels", () => {
             }
           }
           const result = scoreParcel(data.norm);
-          if ((result.legal?.multiplier ?? 1) * (result.availability?.multiplier ?? 1) < 1) multiplied++;
+          if (scoreMultiplier(result) < 1) multiplied++;
           if (Object.values(result.pillars).some((p) => p.score == null)) imputed++;
           parcels++;
         }

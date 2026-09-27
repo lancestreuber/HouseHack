@@ -12,7 +12,7 @@
 //   bun scripts/pillars/build-hexes.ts   (after build-indicators.ts)
 
 import config from "../../src/lib/pillars/pillars.config.json";
-import { PILLAR_IDS, scoreParcel } from "../../src/lib/pillars/score";
+import { PILLAR_IDS, scoreMultiplier, scoreParcel } from "../../src/lib/pillars/score";
 import { CACHE } from "./fetch-inputs";
 
 const ROOT = new URL("../../", import.meta.url).pathname;
@@ -88,7 +88,7 @@ for (const line of csv.slice(1)) {
 }
 
 // Everything mapped: the five pillars, plus the overall score exactly as the
-// parcel panel shows it (pillar blend × zoning and site-availability multipliers).
+// parcel panel shows it (pillar blend × zoning, site-availability and hazard multipliers).
 const METRICS = [...PILLAR_IDS, "overall"] as const;
 
 // Located parcels as flat arrays: position in meters, score per metric (NaN =
@@ -113,7 +113,7 @@ for (let i = 0; i < data.count; i++) {
     capped[p].push(s.pillars[p].flags.some((f) => f.capped));
   }
   score.overall.push(s.overall ?? Number.NaN);
-  capped.overall.push((s.legal?.multiplier ?? 1) * (s.availability?.multiplier ?? 1) < 1);
+  capped.overall.push(scoreMultiplier(s) < 1);
 }
 const located = X.length;
 

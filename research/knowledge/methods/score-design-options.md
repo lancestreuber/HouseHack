@@ -50,6 +50,10 @@ Parking: the sweep proposes a code-table lookup with a toggle for pending Bill 2
 
 Map each failed requirement to the pathway that cures it (by right, Administrator Exception, Special Exception, Variance, Conditional Use, plus Historic Review if in a historic district). The **most demanding required pathway** sets the time and uncertainty ([scoring sweep](../../sweeps/r2-scoring-algorithm-and-validation.md)). The approval-pathway sweep gives realistic durations (for example ZBA 2–4 months, Conditional Use at least about 3–5 months) and found **no published ZBA approval rates** ([approval sweep](../../sweeps/r2-approval-pathway-and-timelines.md)). Any approval probability used in the score is therefore an assumption and must be labeled as one. Details: [approval pathway](../policy/approval-pathway.md), [permit timelines](../policy/permit-timelines.md).
 
+## What the SMEs said about structure (2026-09-27)
+
+No scoring system is prescribed. Their suggestion is **red / yellow / green, where each colour is a meaning**: red = not developable (zoning, financial, topography); yellow = developable only with a variance or subsidy; green = developable at market as-is (S1). Thresholds are our choice but must be "clear and intuitive" (S13). This is practitioner advice in chat, not a published standard. It fits the "gates + separate subscores" option below, with finance as one of the gates. → [gap analysis](../build-plan/sme-feedback-gap-analysis.md) P1
+
 ## How to combine: multiplicative vs additive
 
 | Option | Form | Strength | Weakness |

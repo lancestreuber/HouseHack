@@ -195,40 +195,8 @@ const HAZARD_LABELS: Record<keyof HazardShares, string> = {
 
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 
-// Mirrors apps/web/src/lib/pillars/pillars.config.json's pillar ids/labels.
-// Duplicated rather than imported: that config is a frontend-only artifact,
-// and these five short labels are presentation text, not shared business logic.
-const PILLAR_LABELS: Record<string, string> = {
-  demand: "Demand",
-  site: "Site Feasibility",
-  afford: "Affordability & Displacement",
-  access: "Access to Opportunity",
-  climate: "Climate & Environment",
-};
-
-/** The person's pillar weights from the navbar Weights popover, 0-3 (1 =
- * published default). Only present pillars are considered; absent ones are
- * assumed to be at their default. */
-export type PillarWeights = Record<string, number>;
-
-/** Plain-language note about which pillars the evaluator is weighing above or
- * below the published default, or null if everyone's at (or near) default --
- * nothing to say. */
-function describeWeights(weights: PillarWeights | undefined): string | null {
-  if (!weights) return null;
-  const parts = Object.entries(weights)
-    .filter(([, w]) => Math.abs(w - 1) >= 0.01)
-    .map(([id, w]) => {
-      const label = PILLAR_LABELS[id] ?? id;
-      if (w <= 0) return `${label} (ignored entirely)`;
-      const times = (w / 1).toFixed(w % 1 === 0 ? 0 : 2);
-      return w > 1 ? `${label} ${times}x normal` : `${label} only ${times}x normal (de-emphasized)`;
-    });
-  return parts.length ? parts.join("; ") : null;
-}
-
 /** Plain-language facts for the model. All arithmetic happens here, not in the model. */
-export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: HazardShares, weights?: PillarWeights) {
+export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: HazardShares) {
   const shape =
     lot.widthFt !== null && lot.depthFt !== null
       ? ` Roughly ${fmt(lot.widthFt)} ft wide by ${fmt(lot.depthFt)} ft deep (bounding rectangle).`
@@ -251,14 +219,7 @@ export function buildSiteState(lot: LotFacts, zoning: ZoningInfo, hazards: Hazar
     ? `${hazardParts.join("; ")}.`
     : "No mapped floodway, floodplain, steep slope, landslide-prone area or undermining on this lot.";
 
-  const weightsNote = describeWeights(weights);
-
-  return {
-    lot: lotText,
-    zoning: zoningText,
-    hazards: hazardsText,
-    ...(weightsNote ? { weights: `The person evaluating this parcel weighs: ${weightsNote}.` } : {}),
-  };
+  return { lot: lotText, zoning: zoningText, hazards: hazardsText };
 }
 
 export const SITE_FIT_LEVELS = [
@@ -282,7 +243,7 @@ export function siteFitQuestion(typology: TypologyId): ScoreQuestion {
   const { describe } = TYPOLOGIES.find((t) => t.id === typology)!;
   return {
     type: "score",
-    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit primarily from those two facts; legality is checked separately. If \`weights\` is present, it's the evaluator's stated priorities -- let it nudge a genuinely borderline rating in that direction (e.g. someone weighing Climate heavily should see a mild penalty for tight, low-canopy lots reflected in a marginal case), but never let it override real physical constraints like lot size or hazard exposure.${CALIBRATION_HINT[typology] ?? ""}`,
+    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit only from those two facts; legality is checked separately.${CALIBRATION_HINT[typology] ?? ""}`,
     criteria: SITE_FIT_LEVELS,
   };
 }

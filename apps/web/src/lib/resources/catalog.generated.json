@@ -381,7 +381,7 @@
   {
    "theme": "Housing costs, affordability and subsidy",
    "dataset": "FY2026 income limits (HUD)",
-   "source": "https://www.huduser.gov/portal/datasets/il/il26/Section8-FY26.xlsx (Pittsburgh HMFA, fips 4200399999; MFI $110,400); also the HUD USER API https://www.huduser.gov/hudapi/public/il/data/METRO38300M38300",
+   "source": "https://www.huduser.gov/portal/datasets/il/il26/Section8-FY26.xlsx (Pittsburgh HMFA, fips 4200399999; MFI $110,400); also the HUD USER API https://www.huduser.gov/hudapi/public/il/data/METRO38300M38300 (needs a HUD USER token; the xlsx was used)",
    "vintage": "FY2026",
    "license": "Public domain",
    "usedIn": "`hud_fy2026_pittsburgh.json` (affordability context)"
@@ -525,7 +525,7 @@
   {
    "theme": "Land, ownership and property condition",
    "dataset": "USPS-vacant parcels `Vacant_USPS_Feb_24` (City of Pittsburgh)",
-   "source": "`CITY/Vacant_USPS_Feb_24/FeatureServer/0` (4,686 parcels), joined to `ParcelsPublic` addresses",
+   "source": "`CITY/Vacant_USPS_Feb_24/FeatureServer/0` (4,686 parcels; 4,677 on the map), joined to `ParcelsPublic` addresses",
    "vintage": "Feb 2024 snapshot; edited 2026-05-28",
    "license": "City open data",
    "usedIn": "`vacant-buildings`"
@@ -533,7 +533,7 @@
   {
    "theme": "Land, ownership and property condition",
    "dataset": "City-owned property (City of Pittsburgh, via WPRDC)",
-   "source": "https://data.wprdc.org/dataset/city-owned-properties (resource `e1dcee82-9179-4306-8167-5891915b62a7`, 12,477 parcels)",
+   "source": "https://data.wprdc.org/dataset/city-owned-properties (resource `e1dcee82-9179-4306-8167-5891915b62a7`, 12,477 parcels; 12,454 on the map)",
    "vintage": "updated daily (2026-09-26)",
    "license": "CC BY",
    "usedIn": "`city-owned-land`"
@@ -821,7 +821,7 @@
   {
    "theme": "Places and everyday services (points)",
    "dataset": "Food assistance programs (Greater Pittsburgh Community Food Bank; hosted by PRT)",
-   "source": "https://services3.arcgis.com/544gNI3xxlFIWuTc/arcgis/rest/services/Food_Banks__Greater_Pittsburgh_Community_Food_Bank_/FeatureServer/8 (163 sites)",
+   "source": "https://services3.arcgis.com/544gNI3xxlFIWuTc/arcgis/rest/services/Food_Banks__Greater_Pittsburgh_Community_Food_Bank_/FeatureServer/8 (163 sites; 162 on the map)",
    "vintage": "April 2025",
    "license": "Not stated",
    "usedIn": "`places-food-banks`; access pillar"
@@ -909,7 +909,7 @@
   {
    "theme": "Places and everyday services (points)",
    "dataset": "Regional trails (Allegheny County planning)",
-   "source": "`COUNTY/Regional_Trails_(PUBLIC)/FeatureServer/0` (3,193 segments)",
+   "source": "`COUNTY/Regional_Trails_(PUBLIC)/FeatureServer/0` (3,193 segments; 3,192 on the map)",
    "vintage": "2025-01-02",
    "license": "Not stated",
    "usedIn": "`trails`"
@@ -1029,7 +1029,7 @@
   {
    "theme": "Live cameras",
    "dataset": "511PA traffic cameras (PennDOT)",
-   "source": "https://www.511pa.com/cctv (still images, ~10 s refresh); camera list from the site's data endpoint https://www.511pa.com/List/GetData/Cameras (DataTables query parameter, 100 rows per page), which yields 210 PennDOT stills (image `/map/Cctv/<id>`, ~60 s) plus 8 PA Turnpike HLS feeds; video URLs via https://www.511pa.com/Camera/GetVideoUrl (PennDOT streams on pa-se1.arcadis-ivds.com returned 401, so stills are used)",
+   "source": "https://www.511pa.com/cctv (still images); camera list from the site's data endpoint https://www.511pa.com/List/GetData/Cameras (DataTables query parameter, 100 rows per page), which yields 210 PennDOT stills (image `/map/Cctv/<id>`, ~60 s) plus 8 PA Turnpike HLS feeds; video URLs via https://www.511pa.com/Camera/GetVideoUrl (PennDOT streams on pa-se1.arcadis-ivds.com returned 401, so stills are used)",
    "vintage": "",
    "license": "511PA terms",
    "usedIn": "`cameras`"
@@ -1037,7 +1037,7 @@
   {
    "theme": "Live cameras",
    "dataset": "PA Turnpike traffic cameras (Pennsylvania Turnpike Commission)",
-   "source": "https://www.paturnpike.com/traveling/traffic-cameras ; roadway API https://www.paturnpike.com/traveling/traffic-cameras/getroadways and `/getbyroadway?roadwayId=` (needs header `X-Requested-With: XMLHttpRequest`; in-county roadways I-76 `ef2829cb-fea1-4083-af4c-9bfbd85b8568` and PA-576 `2e8b2a93-1f81-4fed-8919-58b33b638eb8`; CloudFront streams are Referer-gated) (HLS streams on CloudFront, played through the app's same-origin proxy)",
+   "source": "https://www.paturnpike.com/traveling/traffic-cameras ; camera API `https://www.paturnpike.com/traveling/traffic-cameras/getbyroadway?roadwayId=` (needs header `X-Requested-With: XMLHttpRequest`; in-county roadways I-76 `ef2829cb-fea1-4083-af4c-9bfbd85b8568` and PA-576 `2e8b2a93-1f81-4fed-8919-58b33b638eb8`; CloudFront streams are Referer-gated) (HLS streams on CloudFront, played through the app's same-origin proxy)",
    "vintage": "",
    "license": "PA Turnpike terms",
    "usedIn": "`cameras`"
@@ -1117,7 +1117,7 @@
   {
    "theme": "Live cameras",
    "dataset": "Camp Guyasuta cam (WeatherBug, via the Webcam Galore cache)",
-   "source": "https://www.webcamgalore.com/webcam/USA-Pennsylvania-Sharpsburg/24760.html ; image https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg (~30 min refresh)",
+   "source": "image https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg (~30 min refresh); its former page https://www.webcamgalore.com/webcam/USA-Pennsylvania-Sharpsburg/24760.html returned 404 on 2026-09-27",
    "vintage": "",
    "license": "Owner terms",
    "usedIn": "`cameras`"
@@ -1209,7 +1209,7 @@
   {
    "service": "Jev (\"TypeSafe\") decision model, served through OpenRouter",
    "use": "Site-fit scores per housing type (with confidence) shown in the typology panel and cited by the chat companion; outputs are labeled \"assumption\", not evidence",
-   "endpoint": "https://openrouter.ai/api (model set by the `SYSTEM_ONE_MODEL` environment variable). About Jev: https://typesafe.ai/blog/introducing-system-one-models-and-jev ; https://dev.to/valyuai/how-to-use-jev-a-practical-guide-to-typesafes-system-one-model-g5e ; press: https://www.marktechpost.com/2026/09/19/typesafe-ai-releases-jev , https://www.tomshardware.com/tech-industry/artificial-intelligence/typesafe-ais-jev-offers-an-alternative-to-llms-that-claims-to-be-193x-faster-and-44"
+   "endpoint": "https://openrouter.ai/api (model set by the `SYSTEM_ONE_MODEL` environment variable). About Jev: https://typesafe.ai/blog/introducing-system-one-models-and-jev ; https://dev.to/valyuai/how-to-use-jev-a-practical-guide-to-typesafes-system-one-model-g5e ; press: https://www.marktechpost.com/2026/09/19/typesafe-ai-releases-jev , https://www.tomshardware.com/tech-industry/artificial-intelligence/typesafe-ais-jev-offers-an-alternative-to-llms-that-claims-to-be-193x-faster-and-445x-cheaper-system-one-type-model-is-bespoke-for-probabilistic-decision-making"
   },
   {
    "service": "Google Gemini API",
@@ -1346,23 +1346,23 @@
   },
   {
    "source": "OpenFreeMap tiles (tiles.openfreemap.org)",
-   "reason": "Considered as a basemap; CARTO and OSM are used"
+   "reason": "Recommended in early research; the app uses CARTO Positron / Dark Matter and OSM raster tiles instead"
   },
   {
    "source": "Census Bureau API (api.census.gov)",
-   "reason": "Requires a key since 2026; Census Reporter was used"
+   "reason": "Keyless requests are redirected to its missing-key page (checked 2026-09-27); Census Reporter was used instead"
   },
   {
    "source": "Municode (https://library.municode.com/pa/pittsburgh/codes/code_of_ordinances ; api.municode.com)",
-   "reason": "eCode360 is Pittsburgh's code of record"
+   "reason": "The City's zoning GIS links each district to its eCode360 section, so the legal work used eCode360; the Municode library is a JavaScript app that wasn't scraped"
   },
   {
-   "source": "Allegheny County Housing Needs Assessment (https://www.alleghenycounty.us/Services/Housing/Housing-Needs-Assessment)",
-   "reason": "Listed in the organizer catalog; too aggregated for parcel scoring"
+   "source": "Allegheny County Housing Needs Assessment (https://www.alleghenycounty.us/Services/Housing/Housing-Needs-Assessment) and the City of Pittsburgh Housing Needs Assessment (January 2022; https://www.pittsburghpa.gov/files/assets/city/v/1/dcp/documents/21887_pittsburgh_hna_final_report.pdf ; implementation https://engage.pittsburghpa.gov/implementing-housing-needs-assessment)",
+   "reason": "The County assessment is listed in the organizer data catalog; both are too aggregated for parcel scoring and are used as policy context"
   },
   {
-   "source": "CDC PLACES other releases (data.cdc.gov `yjkw-uj5s` 2025, `cwsq-ngmh`)",
-   "reason": "2025 release has no Pennsylvania tract values; the 2024 release was used"
+   "source": "CDC PLACES 2025 release (data.cdc.gov `yjkw-uj5s` GIS format, `cwsq-ngmh` long format)",
+   "reason": "For Pennsylvania tracts it carries only 5 measures (dental visits, teeth lost, short sleep, colon and mammography screening; checked 2026-09-27), none of the health outcomes the layer shows, so the 2024 release is used"
   },
   {
    "source": "Water-lead context pages cited in answers: https://www.pgh2o.com/your-water/lead-information , https://gettheleadoutpgh.org/as-an-allegheny-county-resident-is-lead-in-my-drinking-water-something-i-should-worry-about , https://www.amwater.com/paaw/water-quality/lead-and-drinking-water/service-line-material-inventory-project , https://www.alcosan.org/clean-water-plan/system-mapping",

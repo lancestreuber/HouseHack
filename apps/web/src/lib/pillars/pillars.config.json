@@ -1,5 +1,5 @@
 {
-  "version": "2026-09-26.21",
+  "version": "2026-09-27.1",
   "about": "The open weights for the five parcel pillars. Every indicator, source, normalization rule, weight and gate lives here; the build script, the scorer, the methodology page and the chatbot all read this file. Change a weight here (or pass an override file to score-parcels.ts) and every score changes. Weights are value judgments, not data.",
   "scale": "Every indicator, sub-score and pillar is 0–100, where 100 means this is a good place to build new housing and 0 means a poor one.",
   "reference": "Area indicators are percentile-ranked across all Allegheny County units in their source file (block groups, tracts or ZIPs); parcel indicators use fixed thresholds.",
@@ -15,9 +15,12 @@
     ],
     "floor": 1,
     "rationale": "Weighted geometric mean limits how much a strong pillar can offset a weak one (UN HDI, 2010 switch; OECD/JRC Handbook 2008). Scores are floored at 1 so a zero doesn't zero the product. Arithmetic is available as a toggle.",
+    "hazard_multiplier": {
+      "rationale": "A few Site gates are deal-killers, not just a low Site score: most of the lot in the floodway, a sliver lot, or mapped mines under anything larger than a house. Capping only the Site pillar let the other four pillars average them away (a fully undermined lot moved the overall about 2%). Those gates carry an `overall` factor that multiplies the overall score, like zoning and availability; the lowest fired factor applies. Hackathon SMEs (2026-09-27) called undermining and environmental conditions up-front deal killers. Undermining gets a mild factor (×0.9) because about 30% of City parcels (43,001 of 142,365) are over mapped mines and the layer gives no depth of cover: it means a mine investigation, not a ban. The factors are value judgments."
+    },
     "missing_pillar": {
       "impute": 50,
-      "rationale": "A pillar without enough data counts as that pillar's City 25th-percentile score (the per-pillar `impute` value, from the 2026-09-26 build) and is flagged: conservative, so missing data is never rewarded (round-2 review). 50 is the fallback if a pillar has no `impute`."
+      "rationale": "A pillar without enough data counts as that pillar's City 25th-percentile score (the per-pillar `impute` value, from the 2026-09-26 build; Site re-taken 2026-09-27 after the undermined gate started capping) and is flagged: conservative, so missing data is never rewarded (round-2 review). 50 is the fallback if a pillar has no `impute`."
     }
   },
   "pillars": [
@@ -51,6 +54,7 @@
             }
           ],
           "cap": 5,
+          "overall": 0.2,
           "flag": "Half or more of the lot is in the FEMA regulatory floodway"
         },
         {
@@ -61,6 +65,7 @@
             }
           ],
           "cap": 40,
+          "overall": 0.6,
           "flag": "Part of the lot is in the FEMA regulatory floodway"
         },
         {
@@ -77,11 +82,11 @@
           "when": [
             {
               "indicator": "site_steep_slope_share",
-              "below": 26
+              "below": 51
             }
           ],
           "cap": 50,
-          "flag": "Most of the lot is 25%+ slope (steep-slope overlay: Planning Commission review)"
+          "flag": "Half or more of the lot is 25%+ slope (steep-slope overlay: Planning Commission hearing, §906.08)"
         },
         {
           "when": [
@@ -114,8 +119,9 @@
               "below": 51
             }
           ],
-          "cap": 100,
-          "flag": "Over mapped mines: multi-unit needs a mine investigation first"
+          "cap": 70,
+          "overall": 0.9,
+          "flag": "Over mapped mines: anything larger than a single house is prohibited until a mine investigation clears it (§906.05)"
         },
         {
           "when": [
@@ -139,10 +145,11 @@
             }
           ],
           "cap": 30,
+          "overall": 0.3,
           "flag": "Sliver lot under 600 sq ft"
         }
       ],
-      "impute": 79
+      "impute": 70
     },
     {
       "id": "afford",
@@ -432,7 +439,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Used only as a gate: half or more of the lot in the floodway caps Site Feasibility at 5; any part caps it at 40. Never averaged.",
+      "rationale": "Used only as a gate: half or more of the lot in the floodway caps Site Feasibility at 5 and multiplies the overall score by 0.2; any part caps it at 40 and multiplies the overall by 0.6. Never averaged.",
       "unit": "share"
     },
     {
@@ -476,7 +483,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Triggers the City steep-slope overlay (Ch. 906) and raises foundation cost.",
+      "rationale": "Triggers the City steep-slope overlay (Ch. 906) and raises foundation cost. Half or more of the lot at 25%+ slope caps Site Feasibility at 50 (was three-quarters until 2026-09-27; any development in SS-O needs a Planning Commission hearing, §906.08.C.1). Not an overall multiplier: a hackathon SME described slope as added cost, not a deal-killer.",
       "unit": "share"
     },
     {
@@ -539,7 +546,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Triggers the City undermined overlay (Ch. 906); subsidence risk.",
+      "rationale": "Triggers the City undermined overlay (Ch. 906); subsidence risk. Half or more of the lot over mapped mines caps Site Feasibility at 70 and multiplies the overall score by 0.9: anything larger than a single house needs a mine investigation first (§906.05).",
       "unit": "share"
     },
     {
@@ -583,6 +590,25 @@
       },
       "rationale": "Context only (weight 0). FEMA's National Risk Index score multiplies expected annual loss by a community risk factor built from social vulnerability, so it partly measures who lives there, not just the hazard (round-2 equity review). Parcel-level floodplain and surface-heat indicators carry these hazards instead.",
       "unit": "index"
+    },
+    {
+      "id": "demand_median_sale_price",
+      "pillar": "demand",
+      "weight": 0,
+      "evidence": "observed",
+      "label": "Median home sale price, 2024–25 (census tract)",
+      "geography": "tract",
+      "unit": "usd",
+      "source": {
+        "kind": "table",
+        "file": "scripts/pillars/inputs/allegheny_tract_sales_2019_2025.csv",
+        "key": "tract",
+        "join": "tract",
+        "property": "median_2024_2025",
+        "require": [{ "property": "n_2024_2025", "min": 10 }]
+      },
+      "normalize": { "method": "percentile", "direction": "higher_is_better" },
+      "rationale": "Context only (weight 0): what homes nearby sell for, close to what an appraiser's comparable sales would show. It feeds the pencil check, not the score. Valid residential sales only; blank under 10 sales."
     },
     {
       "id": "site_legal_pathway",
@@ -786,7 +812,7 @@
         "zero": 0,
         "full": 600
       },
-      "rationale": "Not averaged. Lots under 600 sq ft (slivers) cap Site Feasibility at 30 unless they are condo units."
+      "rationale": "Not averaged. Lots under 600 sq ft (slivers) cap Site Feasibility at 30 and multiply the overall score by 0.3, unless they are condo units."
     },
     {
       "id": "afford_lowinc_renter_burden",
@@ -1623,7 +1649,89 @@
     "score": "0 = lead, 40 = galvanized",
     "count": "count",
     "use": "parcel use category",
-    "sqft_score": "0–100 = 0–600 sq ft"
+    "sqft_score": "0–100 = 0–600 sq ft",
+    "usd": "US dollars"
+  },
+  "verdict": {
+    "about": "Can this housing type be built here? A red / yellow / green verdict per typology, computed from pass/fail checks (zoning pathway, site hazards, site availability, lot size, physical fit, and a rough value-vs-cost pencil check), never from the weighted score. It answers a different question from the pillars: the pillars rank how good a place is; the verdict says what stands in the way. Framing suggested by a hackathon housing SME (2026-09-27): red = not developable, yellow = could be developable with variances or subsidy, green = developable as-is. The pencil check (see `pencil`) is a first screen, not a pro forma.",
+    "levels": {
+      "red": "Deal-killer found",
+      "yellow": "Possible, with extra approvals or site cost",
+      "green": "No blockers found in our checks",
+      "unknown": "Can't tell from our data"
+    },
+    "not_checked": "The pencil check is a rough screen: land, financing and subsidy terms are not modeled. Not checked: soils, contamination and utility lines.",
+    "rezoning_yellow_closeness": 0.5,
+    "share": {
+      "floodway_red": 0.5,
+      "floodplain_yellow": 0.5,
+      "steep_yellow": 0.5,
+      "landslide_yellow": 0.5,
+      "undermined_yellow": 0.1
+    },
+    "single_house_typologies": ["single_detached"],
+    "fit_yellow_below": 0.5,
+    "pathway_time": {
+      "about": "How long each approval can take before a building permit, shown with the pathway reason so hearings read as time and carrying cost, not just a probability (hackathon SME, 2026-09-27: variances are usually granted, but the time and expense make lots hard to develop). Code deadlines are maximums from the City code; the rezoning figure is observed.",
+      "za": "decision due 21 days after a complete application (§922.08)",
+      "zbe_special_exception": "hearing within 45 days, decision within 45 days after: up to about 3 months (§922.07)",
+      "conditional_use": "up to about 6 months across Planning Commission and Council (§922.06)",
+      "not_permitted": "a use variance runs on the ZBA clock (about 3 months); site rezonings took a median 123 days at Council (2015–26, 42 of 49 adopted)",
+      "permit_note": "Then the building permit: median 120–200 days to issue for new residential, 2019–26 (WPRDC PLI permits)."
+    },
+    "side_setbacks": {
+      "source": "Pittsburgh Code §903.03 as amended Ord. 10-2025 (eff. 2025-05-07), read on eCode360 2026-09-26: research/sources/ecode360-2026-09-26-pittsburgh-903-03-dimensional-standards.md",
+      "about": "Total interior side setback (both sides, ft) by base district and density suffix. Buildable width = lot width minus this. Attached (party-wall) housing has no interior side setback, so it is skipped. Corner-lot exterior side setbacks and contextual setbacks (§925.06) are not modeled. Lot width is the short side of the lot's oriented bounding rectangle, so irregular lots are approximate.",
+      "total_ft": {
+        "R1D": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R2": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R3": { "VL": 15, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "R1A": { "VL": 10, "L": 10, "M": 10, "H": 10, "VH": 10 },
+        "RM": { "VL": 60, "L": 50, "M": 20, "H": 20, "VH": 20 }
+      },
+      "min_building_width_ft": 14,
+      "min_building_width_note": "Assumption: about the narrowest practical detached building (a narrow Pittsburgh rowhouse is ~14–16 ft). Below this, a hackathon SME's example (24 ft RM-M lot, two 10 ft setbacks, 4 ft left) says a dimensional variance is likely granted but costs time and money.",
+      "skip_typologies": ["single_attached"]
+    }
+  },
+  "pencil": {
+    "about": "Does it pencil? A first screen of value against cost per unit, the check hackathon SMEs said developers run before zoning or variances (2026-09-27): 'cost exceeding market value is the biggest challenge.' Value is what nearby homes sell for (close to what an appraiser's comparable sales would show) or what nearby rents capitalize to; cost is construction plus site work plus soft costs and a margin. Land cost, financing terms and subsidies are not modeled. Every number below is editable in the panel and is a value judgment or a practitioner estimate, not a quote.",
+    "cost_per_sf": {
+      "low": 150,
+      "mid": 225,
+      "high": 350,
+      "sources": {
+        "low": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: high-volume production builders would imply about $150/sf if they entered the City market. Matches NAHB's 2024 national cost survey without its site-work stage ($149/sf; Pittsburgh's RSMeans residential location factor is 1.01).",
+        "mid": "Hackathon SME (Housing Innovation Alliance), 2026-09-27: $200–250/sf for single-family infill in the City, varying with builder scale.",
+        "high": "Hackathon SME (practitioner), 2026-09-27: $325–375/sf vertical construction, excluding site work; no reliable local public source."
+      },
+      "note": "Permit valuations are not a usable substitute: 220 new 1–2 family City permits (2019–24, deduplicated, assessed living area built after the permit) give a median $104/sf, and the declared value was a median 0.31× the same homes' later sale price (n=63), so permit values understate cost. Reproduce with research/admin/scripts/permit_cost_per_sf.py (research/sweeps/r9-permit-cost-per-sf.md)."
+    },
+    "site_cost_per_building": 37500,
+    "site_cost_source": "Hackathon SME (practitioner), 2026-09-27: $25k–50k for a single-unit City lot (water and sewer taps, grading, sidewalks, landscaping); midpoint. Depends on utility depth, soil, and demolition debris in old basements.",
+    "steep_site_adder": 30000,
+    "steep_site_adder_source": "Assumption: the low end of a builder blog's $30k–80k hillside site work (research/knowledge/methods/pro-forma.md); applied when half or more of the lot is 25%+ slope.",
+    "not_priced": "Not priced: land, landslide geotechnical work, floodplain elevation, mine investigation, environmental remediation, financing.",
+    "soft_cost_pct": 0.15,
+    "soft_cost_source": "Assumption: design, permits, fees and carrying costs as a share of hard cost; SMEs named soft costs but gave no figure.",
+    "margin_pct": 0.1,
+    "margin_source": "Assumption: value must beat cost by a margin 'large enough to attract investors and get banks to lend' (hackathon SME, Pro-Housing Pittsburgh); 10% is a placeholder.",
+    "rent_multiplier": 103,
+    "rent_multiplier_source": "Assumption: value per unit = monthly rent × 12 × (1 − 40% operating costs) ÷ 7% cap rate ≈ 103 × monthly rent.",
+    "rent_per_ami_ratio": 1242.5,
+    "subsidy_floor": 0.35,
+    "subsidy_floor_note": "Value judgment: if value covers at least 35% of the cost (with margin) at the user's assumption, call it a subsidy candidate (yellow); otherwise it does not pencil (red). URA's per-unit caps are shown beside the gap for scale; any gap within a cap already clears this floor at realistic costs. At the defaults, red covers about 16% of vacant or occupied parcels for a house, 36% for a duplex and 11% for apartments. A stricter rule (red whenever the gap exceeds URA's cap) would make about 63% of houses and 88% of duplexes red; we did not use it because the value inputs understate new-build value and URA's Rental Gap Program needs 4+ units.",
+    "subsidy_cap_per_unit": { "sale": 130000, "rent": 75000 },
+    "subsidy_cap_note": "Shown next to every gap for scale. For-sale: URA For-Sale Development Program, max $130,000 per newly constructed unit, buyers at or below 80% AMI. Rental: URA Rental Gap Program (guidelines amended Aug 2024), max $75,000 per unit at 30% AMI ($50k at 50%, $35k at 60%); URA often waives its caps, and other sources (LIHTC, PHFA) can stack. Read 2026-09-27: research/sources/ura-2026-09-27-rgp-fsdp-guidelines-and-hof-2026-plan.md. How much gap financing a project can get 'can vary wildly' (SME).",
+    "value_bias": "Values come from existing homes (tract resale prices) and existing rents (ACS block groups, which are noisy: 48 of 265 City block groups have a CV above 30%). Both understate what new construction sells or rents for. City new-build sales run about $370–390/sf, against about $180/sf for all valid sales, roughly 2×, but only 15 of 90 neighborhoods have 5+ new-build comps in 5 years (research/sweeps/r9-revenue-comps-sub-zip.md). No new-build premium is applied, so the check leans toward 'doesn't pencil'. Read it as the appraisal-gap risk, not a verdict on the project.",
+    "typologies": {
+      "single_detached": { "units": 1, "sf_per_unit": 1400, "basis": "sale" },
+      "single_attached": { "units": 1, "sf_per_unit": 1400, "basis": "sale" },
+      "two_unit": { "units": 2, "sf_per_unit": 1100, "basis": "rent" },
+      "three_unit": { "units": 3, "sf_per_unit": 1000, "basis": "rent" },
+      "multi_unit": { "units": 12, "sf_per_unit": 850, "basis": "rent" }
+    },
+    "typologies_note": "Unit sizes are assumptions; 1,400 sf is the SME example house. Houses are valued as for-sale homes; two or more units as rentals."
   },
   "legal": {
     "indicator": "site_legal_pathway",

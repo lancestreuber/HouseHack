@@ -1,6 +1,10 @@
 import { MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
+import type { IndicatorValues } from "@/lib/pillars/score";
+import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
+
 import {
   Select,
   SelectContent,
@@ -13,9 +17,10 @@ import { Disclaimer } from "@/components/disclaimer";
 import { openScenario } from "@/components/scenario/scenario-store";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
-import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
+import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { type ParcelData, ScoreBar, useParcelData, useTypologyFit } from "./pillars-panel";
+import { type FitsById, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "./typology-meta";
 
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
@@ -31,43 +36,6 @@ export const PATHWAY_SCORE: Record<string, number | null> = {
   not_city_jurisdiction: null,
 };
 
-// Density-ordered residential bases (same ordering used in the site-fit use
-// table): only used to judge how big a stretch a rezoning would be, never
-// to decide permission itself -- that's DISTRICT_PATHWAYS' job.
-const BASE_ORDER = ["R1D", "R1A", "R2", "R3", "RM"];
-const baseOf = (zone: string) => zone.split("-")[0] ?? zone;
-const PERMITTING_PATHWAYS = new Set(["by_right", "za", "conditional_use", "zbe_special_exception"]);
-
-/** 1 = another district in the same zoning family (e.g. just a density-suffix
- * change) permits this typology; 0.5 = a one-step-away district on the
- * density ladder does; 0.2 = only a distant/unrelated district does;
- * 0 = no district anywhere permits it (not a realistic rezoning ask). */
-export function rezoningCloseness(zone: string, typologyId: string): number {
-  const currentBase = baseOf(zone);
-  const currentRank = BASE_ORDER.indexOf(currentBase);
-  let best = 0;
-  for (const [otherZone, pathways] of Object.entries(DISTRICT_PATHWAYS)) {
-    if (!PERMITTING_PATHWAYS.has(pathways[typologyId] ?? "")) continue;
-    const otherBase = baseOf(otherZone);
-    if (otherBase === currentBase) return 1;
-    const otherRank = BASE_ORDER.indexOf(otherBase);
-    const closeness = currentRank === -1 || otherRank === -1 ? 0.2 : Math.abs(otherRank - currentRank) === 1 ? 0.5 : 0.2;
-    best = Math.max(best, closeness);
-  }
-  return best;
-}
-
-/** Approval rate for Zoning Board relief (any type) in this district,
- * 2023-26 -- an approximation of "how this district treats requests to build
- * something the code doesn't otherwise allow here", not the exact rezoning
- * (map-amendment) approval rate specifically. Falls back to a neutral
- * estimate where there's no local ZBA data at all. */
-export function rezoningLikelihood(zone: string): number {
-  const outcomes = ZBA_OUTCOMES[baseOf(zone)]?.ALL;
-  if (!outcomes || outcomes.n === 0) return 0.7;
-  return outcomes.approved / outcomes.n;
-}
-
 // Kept a tier below conditional_use (which is already a known, in-code
 // process): "not permitted" always means *some* extra process is needed, so
 // it should never show as a flat, indistinguishable 0 -- but it also
@@ -82,42 +50,6 @@ export function notPermittedScore(zone: string, typologyId: string): number {
 }
 
 const DEFAULT_TYPOLOGY_IDS = ["single_detached", "two_unit", "three_unit", "multi_unit"];
-
-// This panel's 16 legal-feasibility typologies are far more granular than
-// Jev's 5 site-fit categories; only map where there's a genuinely close
-// correspondence, so we're never implying false precision for the rest
-// (three_unit, community_home, interim_housing, etc. just show no fit line).
-export const SITE_FIT_TYPOLOGY: Record<string, string> = {
-  single_detached: "detached",
-  single_attached: "attached",
-  two_unit: "duplex",
-  multi_unit: "apartment",
-  elderly_limited: "elderly",
-  elderly_general: "elderly",
-};
-
-// Short, plain-English names for the dropdown/tile face -- TYPOLOGIES'
-// own labels (legal-feasibility.ts) are the full, precise zoning-code
-// descriptions ("Multi-unit apartments (4+)"), which reads fine inside the
-// dropdown's option list but is too long to be *the* name on a narrow tile.
-export const SHORT_LABEL: Record<string, string> = {
-  single_detached: "House",
-  single_attached: "Rowhouse",
-  two_unit: "Duplex",
-  three_unit: "Triplex",
-  multi_unit: "Apartments",
-  elderly_limited: "Elderly housing (limited)",
-  elderly_general: "Elderly housing (general)",
-  assisted_living_a: "Assisted living (small)",
-  assisted_living_b: "Assisted living (mid)",
-  assisted_living_c: "Assisted living (large)",
-  personal_care_small: "Personal care (small)",
-  personal_care_large: "Personal care (large)",
-  community_home: "Community home",
-  multi_suite_limited: "Multi-suite (limited)",
-  multi_suite_general: "Multi-suite (general)",
-  interim_housing: "Interim housing",
-};
 
 // Hex -> [hue, saturation%, lightness%], so the two endpoint colors below
 // can be interpolated in HSL space (a straight RGB lerp between these two
@@ -157,15 +89,21 @@ function TypologyTile({
   typologyId,
   onTypologyChange,
   zoning,
+  values,
   fitsById,
+  lotWidthFt,
   onSelectTypology,
 }: {
   typologyId: string;
   onTypologyChange: (id: string) => void;
   zoning: string;
+  /** Parcel indicators: normalized for the hazard checks, raw for the pencil check's dollar values. */
+  values: { norm: IndicatorValues; raw: IndicatorValues };
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
-  fitsById?: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
+  fitsById?: FitsById;
+  /** Lot width in feet, for the side-setback check; undefined while loading. */
+  lotWidthFt?: number | null;
   /** Scrolls the Alerts pane to this card's typology, if it has one there. */
   onSelectTypology?: (siteFitId: string) => void;
 }) {
@@ -180,10 +118,14 @@ function TypologyTile({
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
   const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
+  const pencil = usePencilAssumptions();
+  const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
+  const blockers = verdict.reasons.filter((r) => r.level !== "green");
 
   return (
     <div
-      className={`flex min-w-[10rem] flex-1 flex-col gap-1 rounded border border-border/60 bg-background/60 p-2 ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`}
+      className={`flex min-w-[10rem] flex-1 flex-col gap-1 rounded border bg-background/60 p-2 ${canJumpToAlerts ? "cursor-pointer" : ""}`}
+      style={{ borderColor: `${VERDICT_COLOR[verdict.level]}99` }}
       onClick={canJumpToAlerts ? () => onSelectTypology?.(siteFitId!) : undefined}
       title={canJumpToAlerts ? "Jump to this typology's alerts" : undefined}
     >
@@ -202,11 +144,23 @@ function TypologyTile({
         </Select>
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{typologyId}</span>
       </div>
-      {/* The score row has room beside the number, so the tile keeps its size. */}
-      <div className="flex items-center justify-between gap-1">
-        <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
+      <div title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
+        <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
+          <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+          {verdict.label}
+        </p>
+        {blockers.slice(0, 2).map((r) => (
+          <p key={r.text} className="text-muted-foreground">
+            <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
+          </p>
+        ))}
+        {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
+      </div>
+      <div className="flex items-baseline gap-1.5 border-t border-border/40 pt-1" title={tooltip}>
+        <span className="font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
           {score == null ? "—" : score}
         </span>
+        <span className="truncate text-muted-foreground">{pathway?.label ?? "Unresolved in the code"}</span>
         <button
           type="button"
           onClick={(e) => {
@@ -214,18 +168,11 @@ function TypologyTile({
             e.stopPropagation();
             openScenario(typologyId);
           }}
-          className="flex h-5 shrink-0 items-center gap-0.5 rounded border px-1 text-[10px] text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+          className="ml-auto flex h-4 shrink-0 items-center gap-0.5 self-center rounded border px-1 text-[10px] leading-none text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
         >
           <MapPin className="size-3" aria-hidden /> Scenario
         </button>
       </div>
-      <span
-        className={score == null ? "truncate text-muted-foreground" : "truncate"}
-        style={{ color: score == null ? undefined : scoreColor(score) }}
-        title={tooltip}
-      >
-        {pathway?.label ?? "Unresolved in the code"}
-      </span>
       {fit && (
         <div className="space-y-0.5 border-t border-border/40 pt-1">
           <div className="flex items-center gap-1.5">
@@ -262,7 +209,7 @@ function TypologyTiles({
   const query = useTypologyFit(pin, data);
   const fitsById = useMemo(() => {
     if (!query.data) return undefined;
-    const map: Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null> = {};
+    const map: FitsById = {};
     for (const t of query.data.typologies) map[t.id] = t.fit;
     return map;
   }, [query.data]);
@@ -278,12 +225,15 @@ function TypologyTiles({
             key={i}
             typologyId={id}
             zoning={zoning}
+            values={data}
             onTypologyChange={(next) => onTypologyChange(i, next)}
             fitsById={fitsById}
+            lotWidthFt={query.data?.lot.widthFt}
             onSelectTypology={onSelectTypology}
           />
         ))}
       </div>
+      <p className="text-muted-foreground">{VERDICT_NOT_CHECKED}</p>
     </>
   );
 }

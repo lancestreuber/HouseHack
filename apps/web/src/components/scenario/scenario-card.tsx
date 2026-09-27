@@ -23,7 +23,7 @@ import { PATHWAY_META, TYPOLOGIES } from "../map/overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { usePillarWeights } from "../map/pillar-weights-store";
 import { fmtScore, ScoreBar, scoreColor, useParcelData, useTypologyFit } from "../map/pillars-panel";
-import { SHORT_LABEL, SITE_FIT_TYPOLOGY } from "../map/typology-panel";
+import { SHORT_LABEL, SITE_FIT_TYPOLOGY } from "../map/typology-meta";
 import { type LayerPick, layersForPoint, scenarioOverlayState } from "./layers";
 import { closeScenario } from "./scenario-store";
 
@@ -65,7 +65,7 @@ export function ScenarioCard({
 
   // Pros and cons, once the site-fit facts (Jev, alerts) are in the context.
   const focus = context
-    ? [`t.${typologyId}`, `fit.${typologyId}`, ...(siteFitId ? [`alert.${siteFitId}`] : [])].filter((id) => context.facts.some((f) => f.id === id))
+    ? [`t.${typologyId}`, `verdict.${typologyId}`, `fit.${typologyId}`, ...(siteFitId ? [`alert.${siteFitId}`] : [])].filter((id) => context.facts.some((f) => f.id === id))
     : [];
   const result = useQuery({
     ...orpc.chat.scenario.queryOptions({ input: { context: context!, typology: { id: typologyId, name }, focus } }),
@@ -202,10 +202,11 @@ export function ScenarioCard({
           <span className="text-muted-foreground">Overall</span>
           <span>
             <span className="font-medium tabular-nums">{fmtScore(score?.overall ?? null)}</span> of 100 for this parcel
-            {score && (score.legal || score.availability) && (
+            {score && (score.legal || score.availability || score.hazard) && (
               <span className="text-muted-foreground">
                 {" "}
                 · zoning ×{score.legal?.multiplier ?? 1}, site ×{score.availability?.multiplier ?? 1}
+                {score.hazard && `, hazard ×${score.hazard.multiplier}`}
               </span>
             )}
           </span>

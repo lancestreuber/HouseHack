@@ -35,7 +35,7 @@ describe("scenario layers", () => {
   });
 
   test("zoning points show where this housing type is legal", () => {
-    for (const id of ["t.two_unit", "legal", "alert.duplex"]) {
+    for (const id of ["t.two_unit", "legal", "alert.duplex", "verdict.two_unit"]) {
       expect(layersForFact(id, "two_unit").heat).toEqual({ id: "legal-pathway", metric: "two_unit" });
     }
     const legal = OVERLAYS.find((o) => o.id === "legal-pathway")!;
@@ -49,6 +49,7 @@ describe("scenario layers", () => {
     expect(layersForFact("hazards", "two_unit", text).stack).toEqual(["city-hazard-overlays", "city-steep-slopes"]);
     expect(layersForFact("hazards", "two_unit", "Hazards on the lot: No mapped floodway, floodplain, steep slope, landslide-prone area or undermining on this lot.").stack).toEqual([]);
     expect(layersForFact("hazards", "two_unit", "Hazards on the lot: 20% of the lot is in the 100-year floodplain.").stack).toEqual(["flood-zones"]);
+    expect(layersForFact("site_hazard", "two_unit", "Deal-killer site hazard: Part of the lot is in the FEMA regulatory floodway, so the overall score is multiplied by 0.6.").stack).toEqual(["flood-zones"]);
     for (const [, id] of [[0, "city-hazard-overlays"], [0, "city-steep-slopes"], [0, "flood-zones"]] as const) expect(exists(id)).toBe(true);
     for (const p of config.pillars) expect(exists(`pillar-${p.id}`)).toBe(true);
   });
