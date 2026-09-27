@@ -1,7 +1,6 @@
 import {
   Armchair,
   BedSingle,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Building,
@@ -266,15 +265,13 @@ function FitDistribution({ probabilities }: { probabilities: number[] }) {
 }
 
 // Card sizing. Cards stay one fixed size: the full card shows when the pane
-// is tall enough for it, the compact card (details behind a toggle) when it
-// isn't, and any extra height goes to the fit chart, which unfolds into it.
+// is tall enough for it, the compact card when it isn't. Every card in the
+// row stretches to match the tallest one (default flex align-items:
+// stretch), so a typology with more blocker text never leaves the row
+// visibly uneven -- it just grows every card together.
 const BASE_FONT_PX = 12;
 // Natural height of a full card (refined by measurement once one is on screen).
 const DEFAULT_CARD_PX = 110;
-// The chart needs about this many em of its own font for four rows.
-const CHART_ROWS_EM = 5;
-const CHART_MIN_FONT_PX = 9;
-const CHART_FULL_FONT_PX = 11;
 
 function TypologyTile({
   elementRef,
@@ -284,7 +281,6 @@ function TypologyTile({
   fitsById,
   lotWidthFt,
   compact,
-  showChart,
   onSelectTypology,
 }: {
   elementRef?: (el: HTMLDivElement | null) => void;
@@ -299,8 +295,6 @@ function TypologyTile({
   lotWidthFt?: number | null;
   /** True when the pane is too short for the full card. */
   compact: boolean;
-  /** Whether the pane has room for the fit chart (skips rendering it otherwise). */
-  showChart: boolean;
   /** Scrolls the Alerts pane to this card's full verdict reasons. */
   onSelectTypology?: (typologyId: string) => void;
 }) {
@@ -373,6 +367,48 @@ function TypologyTile({
       <MapPin className="size-3" aria-hidden /> Scenario
     </button>
   );
+  // Jev's fit bar, confidence and the probability chart are hidden until the
+  // score number is clicked -- they're a model's opinion, not the tile's
+  // headline fact, and stayed too small to read at typical pane heights.
+  const scoreButton = (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        setExpanded((v) => !v);
+      }}
+      aria-expanded={expanded}
+      aria-label={expanded ? "Hide Jev's site-fit rating" : "Show Jev's site-fit rating"}
+      title="Click for Jev's physical site-fit rating"
+      className="shrink-0 font-semibold leading-none tabular-nums hover:underline"
+      style={{ color }}
+      data-score
+    >
+      {scoreText}
+    </button>
+  );
+  const jevDetail = expanded && (
+    <div className="space-y-0.5 border-t border-border/40 pt-1">
+      {fit ? (
+        <>
+          <div className="flex items-center gap-1.5">
+            <span className="shrink-0 text-muted-foreground">Jev</span>
+            <div className="flex-1" title={fit.label}>
+              <FitBar value={fit.fit * 100} />
+            </div>
+            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
+          </div>
+          <p className="text-muted-foreground">
+            {fit.label}
+            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+          </p>
+          {fit.probabilities?.length ? <FitDistribution probabilities={fit.probabilities} /> : null}
+        </>
+      ) : (
+        <p className="text-muted-foreground">Jev doesn't rate this housing type.</p>
+      )}
+    </div>
+  );
   const shared = {
     ref: (el: HTMLDivElement | null) => {
       cardRef.current = el;
@@ -397,43 +433,19 @@ function TypologyTile({
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
-          <span className="shrink-0 font-semibold leading-none tabular-nums" style={{ color }} data-score>
-            {scoreText}
-          </span>
+          {scoreButton}
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="min-w-0 flex-1">{verdictBlock}</div>
-          <button
-            type="button"
-            aria-expanded={expanded}
-            aria-label={expanded ? "Hide details" : "Show details"}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((v) => !v);
-            }}
-            className="-mr-1 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
-          >
-            <ChevronDown className={`size-3.5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
-          </button>
-        </div>
-        {/* Collapsed by default; grid-rows 0fr -> 1fr animates to the content's natural height. */}
-        <div
-          className="grid transition-[grid-template-rows] duration-200 ease-out"
-          style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
-          data-details
-        >
-          <div className="min-h-0 overflow-hidden text-muted-foreground">
-            <p className="truncate" style={{ color }} title={tooltip}>
-              {routeText}
-            </p>
-            {overall != null && (
-              <p>
-                Overall <span style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
-              </p>
-            )}
-            {scenarioButton}
-          </div>
-        </div>
+        <p className="truncate" style={{ color }} title={tooltip}>
+          {routeText}
+        </p>
+        {overall != null && (
+          <p className="text-muted-foreground">
+            Overall <span style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
+          </p>
+        )}
+        {verdictBlock}
+        {jevDetail}
+        {scenarioButton}
       </div>
     );
   }
@@ -451,9 +463,7 @@ function TypologyTile({
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
-          <span className="shrink-0 font-semibold leading-none tabular-nums" style={{ color }} data-score>
-            {scoreText}
-          </span>
+          {scoreButton}
         </div>
         <p className="truncate" style={{ color }} title={tooltip}>
           {routeText}
@@ -464,49 +474,9 @@ function TypologyTile({
           </p>
         )}
       </div>
-
-      <div className="flex min-h-0 items-center overflow-hidden" style={{ height: "var(--chart-h, 0px)" }} data-chart>
-        <div
-          className="w-full shrink-0"
-          style={{
-            height: "var(--chart-inner-h, 0px)",
-            fontSize: "var(--chart-font, 11px)",
-            opacity: "var(--chart-o, 0)",
-            transform: "scaleY(var(--chart-unfold, 0))",
-          }}
-        >
-          {!showChart ? null : fit?.probabilities?.length ? (
-            <FitDistribution probabilities={fit.probabilities} />
-          ) : (
-            <p className="flex h-full items-center justify-center text-muted-foreground">Jev doesn't rate this housing type</p>
-          )}
-        </div>
-      </div>
-
       <div className="flex flex-col gap-0.5" data-bottom>
-        {/* The fit bar reads as a tiny, meaningless sliver at typical pane
-         * heights; only worth showing once there's also room for the fit
-         * chart below it. Hidden with `invisible`, not unmounted: this row's
-         * height is part of the card's fixed "cardPx" measurement below, so
-         * unmounting it when showChart flips would change that measurement
-         * and feed back into the very calculation that sets showChart --
-         * an infinite ResizeObserver loop while the pane is being dragged. */}
-        <div className={`flex items-center gap-1.5 ${showChart ? "" : "invisible"}`}>
-          <span className="shrink-0 text-muted-foreground">Jev</span>
-          {fit ? (
-            <div className="flex-1" title={fit.label}>
-              <FitBar value={fit.fit * 100} />
-            </div>
-          ) : (
-            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
-              not rated
-            </span>
-          )}
-          {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
-        </div>
-        <div className="min-h-[2.6em]" data-details>
-          {verdictBlock}
-        </div>
+        {verdictBlock}
+        {jevDetail}
         {scenarioButton}
       </div>
     </div>
@@ -588,14 +558,11 @@ function TypologyTrack({
   const [edges, setEdges] = useState({ left: false, right: false });
   const [compact, setCompact] = useState(false);
   const compactRef = useRef(false);
-  const [showChart, setShowChart] = useState(false);
-  const showChartRef = useRef(false);
   const cardPx = useRef(DEFAULT_CARD_PX);
 
-  // Fits the cards to the pane height. Writes CSS variables directly (no React
-  // render) so dragging the pane stays smooth; React only re-renders when the
-  // layout flips between compact and full or the chart appears/disappears.
-  // `measure` re-reads the full card's natural height; only needed when its
+  // Fits the cards to the pane height: switches to the compact layout once
+  // the full card's own natural (top + bottom section) height no longer
+  // fits. `measure` re-reads that natural height; only needed when a card's
   // content changes, so a pane drag never forces an extra layout pass.
   const fitCards = useCallback((measure: boolean) => {
     const scroller = scrollerRef.current;
@@ -603,7 +570,7 @@ function TypologyTrack({
     if (!scroller || !track) return;
     const card = measure ? track.querySelector<HTMLElement>('[data-density="full"]') : null;
     if (card) {
-      // Top + bottom sections plus padding (0.8em) and two gaps (0.7em).
+      // Top + bottom sections plus padding and the gap between them.
       const top = card.querySelector<HTMLElement>("[data-top]")?.offsetHeight ?? 0;
       const bottom = card.querySelector<HTMLElement>("[data-bottom]")?.offsetHeight ?? 0;
       cardPx.current = top + bottom + 1.5 * BASE_FONT_PX;
@@ -615,27 +582,6 @@ function TypologyTrack({
       compactRef.current = nextCompact;
       setCompact(nextCompact);
     }
-    if (nextCompact) return;
-    const leftover = Math.max(0, available - cardPx.current);
-    // The chart (and the fit bar next to it) only show once there's room for
-    // the chart at its smallest readable size -- a sliver of leftover space
-    // used to unfold it into an illegibly squished strip instead of just
-    // staying hidden.
-    const minChartPx = CHART_ROWS_EM * CHART_MIN_FONT_PX;
-    const unfold = Math.min(1, leftover / minChartPx);
-    const chartNeeded = leftover >= minChartPx;
-    if (chartNeeded !== showChartRef.current) {
-      showChartRef.current = chartNeeded;
-      setShowChart(chartNeeded);
-    }
-    const chartFont = Math.max(CHART_MIN_FONT_PX, Math.min(CHART_FULL_FONT_PX, leftover / CHART_ROWS_EM));
-    track.style.setProperty("--chart-h", `${leftover.toFixed(1)}px`);
-    track.style.setProperty("--chart-inner-h", `${Math.max(leftover, minChartPx).toFixed(1)}px`);
-    track.style.setProperty("--chart-font", `${chartFont.toFixed(2)}px`);
-    track.style.setProperty("--chart-unfold", unfold.toFixed(3));
-    track.style.setProperty("--chart-o", (unfold * unfold).toFixed(3));
-    // Labels only appear once the chart is nearly unfolded, so squashed text is never visible.
-    track.style.setProperty("--chart-label-o", Math.max(0, (unfold - 0.85) / 0.15).toFixed(3));
   }, []);
 
   // FLIP: after React reorders the tiles, each one is drawn back where it was
@@ -769,7 +715,7 @@ function TypologyTrack({
       >
         <div
           ref={trackRef}
-          className={`relative flex h-full w-max gap-2 transition-opacity duration-300 ${compact ? "items-start" : "items-stretch"} ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
+          className={`relative flex h-full w-max items-stretch gap-2 transition-opacity duration-300 ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
         >
           {ranked.map(({ id }) => (
             <TypologyTile
@@ -784,7 +730,6 @@ function TypologyTrack({
               fitsById={fits}
               lotWidthFt={lotWidthFt}
               compact={compact}
-              showChart={showChart}
               onSelectTypology={onSelectTypology}
             />
           ))}
