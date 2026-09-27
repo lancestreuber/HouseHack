@@ -369,14 +369,14 @@ function TypologyTile({
     onClick: canJumpToAlerts ? () => onSelectTypology?.(typologyId) : undefined,
     title: canJumpToAlerts ? "Jump to this typology's alerts" : undefined,
   };
-  const cardBase = `relative flex shrink-0 flex-col rounded border bg-background transition-colors ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`;
+  const cardBase = `relative flex shrink-0 flex-col rounded border border-border/60 bg-background transition-colors ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`;
 
   if (compact) {
     return (
       <div
         {...shared}
         className={`${cardBase} w-44 gap-1 px-2 py-1.5`}
-        style={{ "--score-color": score == null ? undefined : scoreColor(score), borderColor: `${VERDICT_COLOR[verdict.level]}99` } as CSSProperties}
+        style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
       >
         <div className="flex items-center gap-1.5">
           <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
@@ -442,7 +442,6 @@ function TypologyTile({
         {
           fontSize: `${BASE_FONT_PX}px`,
           "--score-color": score == null ? undefined : scoreColor(score),
-          borderColor: `${VERDICT_COLOR[verdict.level]}99`,
         } as CSSProperties
       }
     >
