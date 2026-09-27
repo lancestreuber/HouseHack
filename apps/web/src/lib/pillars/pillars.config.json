@@ -492,7 +492,7 @@
       "id": "afford_housing_transport",
       "pillar": "afford",
       "sub": "affordability",
-      "weight": 2,
+      "weight": 3,
       "evidence": "assumption",
       "label": "Housing + transportation cost share, median-income family (HUD LAI v3)",
       "geography": "tract",
