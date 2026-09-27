@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import {
@@ -9,6 +10,7 @@ import {
 } from "@HouseHack/ui/components/select";
 
 import { Disclaimer } from "@/components/disclaimer";
+import { openScenario } from "@/components/scenario/scenario-store";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
@@ -200,9 +202,23 @@ function TypologyTile({
         </Select>
         <span className="shrink-0 font-mono text-[10px] text-muted-foreground">{typologyId}</span>
       </div>
-      <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
-        {score == null ? "—" : score}
-      </span>
+      {/* The score row has room beside the number, so the tile keeps its size. */}
+      <div className="flex items-center justify-between gap-1">
+        <span className="text-2xl font-semibold tabular-nums" style={{ color: scoreColor(score ?? null) }}>
+          {score == null ? "—" : score}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => {
+            // The tile itself jumps to the Alerts pane; this only opens the scenario.
+            e.stopPropagation();
+            openScenario(typologyId);
+          }}
+          className="flex h-5 shrink-0 items-center gap-0.5 rounded border px-1 text-[10px] text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+        >
+          <MapPin className="size-3" aria-hidden /> Scenario
+        </button>
+      </div>
       <span
         className={score == null ? "truncate text-muted-foreground" : "truncate"}
         style={{ color: score == null ? undefined : scoreColor(score) }}

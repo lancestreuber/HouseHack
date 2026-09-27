@@ -17,6 +17,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { onAskChat } from "./chat-context-store";
 import { FactChip } from "./fact-chip";
 import { type Edge, useFloatingWindow } from "./floating";
 import { canListen, listen } from "./speech";
@@ -57,6 +58,9 @@ const EDGES: { edge: Edge; className: string }[] = [
  */
 export function ChatPane({ context, className, onClose, collapsed, onToggleCollapse }: ChatPaneProps) {
   const chat = useChat(context);
+  // Questions sent from elsewhere on the page (e.g. a scenario card).
+  const send = chat.send;
+  useEffect(() => onAskChat((question) => void send(question)), [send]);
   const [poppedOut, setFloating] = useState(false);
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);

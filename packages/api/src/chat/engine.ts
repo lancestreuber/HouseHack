@@ -40,7 +40,7 @@ const textOf = (parts: GeminiPart[]) => parts.map((p) => ("text" in p ? p.text :
 const fmt = (n: number | null) => (n === null ? "unavailable" : String(Math.round(n)));
 
 /** Facts from the screen, plus the standing definitions (screen facts win on id clashes). */
-function factsFrom(context: ChatContext | undefined): ChatFact[] {
+export function factsFrom(context: ChatContext | undefined): ChatFact[] {
   const seen = new Set<string>();
   const facts: ChatFact[] = [];
   for (const f of [...(context?.facts ?? []), ...DEFINITIONS]) {
@@ -91,7 +91,7 @@ export function createChat(deps: { generate: GenerateFn | null }) {
             role: "user",
             parts: [
               {
-                text: `Your last reply used numbers that aren't in the FACTS: ${bad.join(", ")}. Rewrite it using only numbers exactly as written in the FACTS, or leave those details out.`,
+                text: `Your last reply used numbers that aren't in the FACTS: ${bad.join(", ")}. Rewrite it using only numbers written as digits exactly as in the FACTS, or leave those details out.`,
               },
             ],
           },
@@ -114,7 +114,7 @@ export function createChat(deps: { generate: GenerateFn | null }) {
   };
 }
 
-function unverifiedIn(blocks: ReplyBlock[], facts: ChatFact[]): string[] {
+export function unverifiedIn(blocks: ReplyBlock[], facts: ChatFact[]): string[] {
   const allowed = facts.flatMap((f) => f.numbers);
   return [...new Set(blocks.flatMap((b) => unverifiedNumbers(b.text, allowed)))];
 }

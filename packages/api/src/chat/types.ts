@@ -114,6 +114,12 @@ export interface ContextFact {
   source_url: string;
   as_of: string;
   kind: FactKind;
+  /**
+   * Whether this fact makes the parcel a better ("good") or worse ("bad") place
+   * to build, when its own score says so clearly. Set by the screen from the
+   * data, never by the model; used to sort scenario points into pros and cons.
+   */
+  tone?: "good" | "bad";
 }
 
 /** One citable fact. `numbers` are the numeric tokens a reply may quote from it. */

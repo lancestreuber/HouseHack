@@ -35,6 +35,8 @@ const SCORES_SOURCE = `Yinzone pillars v${config.version}`;
 const MAX_TEXT = 600;
 
 const round = (n: number | null) => (n == null ? null : Math.round(n));
+/** Ends text with exactly one full stop (config phrases may already have one). */
+const sentence = (text: string) => `${text.trim().replace(/[.!?]+$/, "")}.`;
 const clip = (text: string) => (text.length <= MAX_TEXT ? text : `${text.slice(0, MAX_TEXT - 1)}…`);
 
 /** Joins sentences in priority order, leaving out whole low-priority ones that don't fit. */
@@ -52,6 +54,14 @@ function fact(id: string, text: string, kind: FactKind, source = SCORES_SOURCE, 
   return { id, text: clip(text), kind, source, source_url, as_of };
 }
 
+// Whether a fact makes the parcel clearly better or worse for building, from its
+// own score (every score here is 0–100 with 100 = a good place to build). The
+// middle band gets no tone. Scenario pros and cons are sorted by this.
+type Tone = ContextFact["tone"];
+const toneOf = (score: number | null | undefined, good = 75, bad = 40): Tone =>
+  score == null ? undefined : score >= good ? "good" : score <= bad ? "bad" : undefined;
+const withTone = (f: ContextFact, tone: Tone): ContextFact => (tone ? { ...f, tone } : f);
+
 // Codes rather than 0–100 scores (legal pathway, current use); covered by their own facts.
 const CODE_UNITS = new Set(["pathway", "use"]);
 
@@ -60,7 +70,7 @@ function imputeFor(pillar: (typeof config.pillars)[number]): number | null {
 }
 
 function pillarFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
-  return config.pillars.map((p) => {
+  return config.pillars.flatMap((p) => {
     const id = p.id as PillarId;
     const score = result.pillars[id];
     const rank = percentileRank(data.quantiles?.[id], score.score);
@@ -76,14 +86,20 @@ function pillarFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
       score.score == null
         ? `${p.label} pillar: not enough data to score${impute != null ? `; the overall score counts it as ${impute}, a conservative City value` : ""}.`
         : `${p.label} pillar: ${round(score.score)} of 100.`,
-      phrase && `In plain words: ${phrase}.`,
+      phrase && `In plain words: ${sentence(phrase)}`,
       rank != null && `Better than ${rank}% of City parcels.`,
-      ...score.flags.map((f) => (f.capped ? `Warning: ${f.text}, so this pillar is capped.` : `Note: ${f.text}.`)),
       subs && `Sub-scores: ${subs}.`,
       `${Math.round(score.coverage * 100)}% of its indicator weight has data.`,
-      p.description,
+      `What this pillar measures in general (not this parcel's values): ${p.description}`,
     ];
-    return fact(`pillar.${p.id}`, within(parts), "value");
+    // Warnings are their own facts: a strong pillar can still carry one, and they point the other way.
+    const warnings = score.flags.map((f, i) =>
+      withTone(
+        fact(`warning.${p.id}.${i + 1}`, `${p.label} warning: ${f.text}${f.capped ? ", so this pillar is capped" : ""}.`, "observed"),
+        "bad",
+      ),
+    );
+    return [withTone(fact(`pillar.${p.id}`, within(parts), "value"), toneOf(score.score)), ...warnings];
   });
 }
 
@@ -118,7 +134,7 @@ function indicatorFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
     const kind: FactKind = ind.evidence === "assumption" ? "assumption" : ind.evidence === "value" ? "value" : "observed";
     const file = (ind.source as { file: string | string[] }).file;
     const dataset = (Array.isArray(file) ? file : [file]).map((f) => f.split("/").pop()).join(", ");
-    return fact(`i.${ind.id}`, text, kind, `${dataset} (${ind.geography})`);
+    return withTone(fact(`i.${ind.id}`, text, kind, `${dataset} (${ind.geography})`), toneOf(norm));
   });
 }
 
@@ -126,8 +142,10 @@ function indicatorFacts(data: ParcelData, result: ParcelScore): ContextFact[] {
 // with the tile's name, score and, where Jev rates it, the site-fit bar. The
 // five mainstream types get the full detail; the rest stay short.
 const MAIN_TYPOLOGIES = new Set(config.legal.typologies);
+const JEV_SOURCE = "Jev (System One) site-fit model";
 
-function tileScore(zoning: string, typologyId: string): number | null {
+/** The number on a typology tile: a fixed score per legal pathway, or the rezoning-based one if not permitted. */
+export function tileScore(zoning: string, typologyId: string): number | null {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   if (!pathwayId) return null;
   return pathwayId === "not_permitted" ? notPermittedScore(zoning, typologyId) : (PATHWAY_SCORE[pathwayId] ?? null);
@@ -152,8 +170,6 @@ function typologyFacts(zoning: string, fit: TypologyFit | null): ContextFact[] {
     const parts = [
       `${SHORT_LABEL[id] ?? label}: ${meta?.label ?? pathwayId}.`,
       score != null && `Typology tile score ${score} of 100 (higher means fewer approvals or hearings).`,
-      siteFit &&
-        `Jev site fit: ${siteFit.label}, fit bar at ${Math.round(siteFit.fit * 100)}%, ${Math.round(siteFit.confidence * 100)}% confidence${siteFit.needsReview ? ", flagged for human review" : ""}.`,
       CELL_NOTES[zoning]?.[id]?.unconfirmed && "This reading of the code is unconfirmed.",
       main &&
         notPermitted &&
@@ -162,12 +178,23 @@ function typologyFacts(zoning: string, fit: TypologyFit | null): ContextFact[] {
       main && zbaLine(zoning, id) && `${zbaLine(zoning, id)}.`,
       main && SHORT_LABEL[id] && SHORT_LABEL[id] !== label && `Zoning code use: ${label}.`,
     ];
-    return [fact(`t.${id}`, within(parts), "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF)];
+    const tile = withTone(
+      fact(`t.${id}`, within(parts), "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF),
+      toneOf(score, 85, 40),
+    );
+    // Jev's physical fit is its own fact: it can point the other way from legality.
+    if (!siteFit) return [tile];
+    const fitFact = fact(
+      `fit.${id}`,
+      `${SHORT_LABEL[id] ?? label}, Jev site fit: ${siteFit.label}, fit bar at ${Math.round(siteFit.fit * 100)}%, ${Math.round(siteFit.confidence * 100)}% confidence${siteFit.needsReview ? ", flagged for human review" : ""}.`,
+      "assumption",
+      JEV_SOURCE,
+    );
+    return [tile, withTone(fitFact, toneOf(siteFit.fit * 100, 75, 49))];
   });
 }
 
 // Lot size and shape, hazards, how Jev rates fit, and the Alerts pane.
-const JEV_SOURCE = "Jev (System One) site-fit model";
 
 // What the tiles' fit bars are, whether or not Jev answered this time.
 const FIT_BARS = `The fit bars on the typology tiles are Jev's rating of how well each housing type physically fits the lot, from its size, shape and hazards, on four levels: ${SITE_FIT_LEVELS.join(", ")}. Zoning is checked separately in code, not by Jev.`;
@@ -178,7 +205,10 @@ function siteFitFacts(fit: FitState): ContextFact[] {
   const { data } = fit;
   const facts = [
     fact("lot", `Lot: ${data.facts.lot} ${data.facts.zoning}`, "observed", "Allegheny County parcel boundaries"),
-    fact("hazards", `Hazards on the lot: ${data.facts.hazards}`, "observed", "FEMA, City and County hazard maps"),
+    withTone(
+      fact("hazards", `Hazards on the lot: ${data.facts.hazards}`, "observed", "FEMA, City and County hazard maps"),
+      data.facts.hazards.startsWith("No mapped") ? "good" : "bad",
+    ),
     data.jev.status === "ok"
       ? fact(
           "jev",
@@ -192,7 +222,12 @@ function siteFitFacts(fit: FitState): ContextFact[] {
   if (!alerts.length) facts.push(fact("alerts", "The Alerts panel shows no alerts for this parcel.", "observed", JEV_SOURCE));
   for (const a of alerts) {
     const modelBased = a.notes.some((n) => n.startsWith("Physical fit") || n.startsWith("Site-fit"));
-    facts.push(fact(`alert.${a.id}`, `Alerts for ${a.label}: ${a.notes.join(" ")}`, modelBased ? "assumption" : "policy", modelBased ? JEV_SOURCE : "Pittsburgh Zoning Code §911.02"));
+    facts.push(
+      withTone(
+        fact(`alert.${a.id}`, `Alerts for ${a.label}: ${a.notes.join(" ")}`, modelBased ? "assumption" : "policy", modelBased ? JEV_SOURCE : "Pittsburgh Zoning Code §911.02"),
+        "bad",
+      ),
+    );
   }
   return facts;
 }
@@ -314,11 +349,12 @@ function statusFacts(result: ParcelScore): ContextFact[] {
   const { legal, availability } = result;
   if (legal) {
     const factor = legal.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${legal.multiplier}`;
-    facts.push(fact("legal", `Zoning: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF));
+    const tone: Tone = legal.multiplier >= 0.98 ? "good" : legal.multiplier < 0.9 ? "bad" : undefined;
+    facts.push(withTone(fact("legal", `Zoning: ${legal.label}, ${factor}.${legal.note ? ` ${legal.note}` : ""}`, "policy", "Pittsburgh Zoning Code §911.02", LEGAL_MATRIX_SOURCE, LEGAL_MATRIX_AS_OF), tone));
   }
   if (availability) {
     const factor = availability.multiplier === 1 ? "so the overall score isn't reduced" : `so the overall score is multiplied by ${availability.multiplier}`;
-    facts.push(fact("site_use", `On the parcel now: ${availability.label}, ${factor}.${availability.note ? ` ${availability.note}` : ""}`, "observed"));
+    facts.push(withTone(fact("site_use", `On the parcel now: ${availability.label}, ${factor}.${availability.note ? ` ${availability.note}` : ""}`, "observed"), availability.multiplier === 1 ? "good" : "bad"));
   }
   return facts;
 }
@@ -356,7 +392,7 @@ export function parcelChatContext(
             .join(", ")}.`,
           multiplier < 1 && result.overallBeforeMultipliers != null &&
             `The pillar blend alone is ${round(result.overallBeforeMultipliers)}; zoning and site factors bring it to ${overall}.`,
-          phrase && `In plain words: ${phrase}.`,
+          phrase && `In plain words: ${sentence(phrase)}`,
           rank != null && `Better than ${rank}% of City parcels.`,
         ]
           .filter(Boolean)
@@ -371,7 +407,7 @@ export function parcelChatContext(
       LEGAL_MATRIX_SOURCE,
       LEGAL_MATRIX_AS_OF,
     ),
-    fact("overall", overallText, "value"),
+    withTone(fact("overall", overallText, "value"), toneOf(result.overall)),
     ...statusFacts(result),
     ...pillarFacts(data, result),
     ...typologyFacts(data.zoning, fit.status === "ready" ? fit.data : null),

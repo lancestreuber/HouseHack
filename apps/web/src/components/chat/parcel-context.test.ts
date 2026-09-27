@@ -135,14 +135,25 @@ describe("parcelChatContext", () => {
     const fit = fakeFit(demo.zoning);
     const ctx = parcelChatContext(PIN, demo, {}, { status: "ready", data: fit });
     const text = (id: string) => ctx.facts.find((f) => f.id === id)?.text ?? "";
-    expect(text("t.two_unit")).toContain("Jev site fit: Fits with minor compromises, fit bar at 66%, 45% confidence.");
-    expect(text("t.elderly_limited")).toContain("10% confidence, flagged for human review");
+    expect(text("fit.two_unit")).toContain("Jev site fit: Fits with minor compromises, fit bar at 66%, 45% confidence.");
+    expect(text("fit.elderly_limited")).toContain("10% confidence, flagged for human review");
+    // Tone comes from each fact's own score: legality and physical fit are judged separately.
+    const tone = (id: string) => ctx.facts.find((f) => f.id === id)?.tone;
+    expect(tone("t.single_detached")).toBe("good");
+    expect(tone("t.two_unit")).toBe("bad");
+    expect(tone("fit.single_detached")).toBe("good");
+    expect(tone("fit.two_unit")).toBeUndefined();
+    expect(tone("fit.multi_unit")).toBe("bad");
+    expect(tone("hazards")).toBe("bad");
     expect(text("lot")).toContain("Lot area 4,463 sq ft");
     expect(text("hazards")).toContain("12% of the lot is at 25%+ slope");
     expect(text("jev")).toContain("jev-test");
     const alerts = typologyAlerts(fit);
     expect(alerts.length).toBeGreaterThan(0);
     for (const a of alerts) for (const note of a.notes) expect(text(`alert.${a.id}`)).toContain(note);
+    for (const a of alerts) expect(tone(`alert.${a.id}`)).toBe("bad");
+    // A pillar's warnings are separate, and always count against building.
+    for (const f of ctx.facts.filter((f) => f.id.startsWith("warning."))) expect(f.tone).toBe("bad");
   });
 
   test("says when site-fit ratings are loading or unavailable", () => {
