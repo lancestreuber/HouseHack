@@ -29,7 +29,7 @@ import { VERDICT_COLOR } from "@/lib/pillars/verdict";
 import { Disclaimer } from "@/components/disclaimer";
 import { openScenario } from "@/components/scenario/scenario-store";
 
-import { TYPOLOGIES } from "./overlays/legal-feasibility";
+import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
@@ -299,10 +299,18 @@ function TypologyTile({
   onSelectTypology?: (typologyId: string) => void;
 }) {
   const score = tileScore(zoning, typologyId) ?? null;
-  // The score counts to its new value and its color eases with it, written
+  const weights = usePillarWeights();
+  const overall = overallForTypology(values, weights, typologyId);
+  // The tile's headline number is the per-type Overall (pillar blend at this
+  // type's own zoning factor) when it's available; the 11 typologies outside
+  // the 5 mainstream ones fall back to the legal-pathway score instead of
+  // showing nothing. Legality itself moved to a plain text label (below),
+  // no longer the big number.
+  const headline = overall ?? score;
+  // The number counts to its new value and its color eases with it, written
   // straight to the card each frame; React only renders the final values.
   const cardRef = useRef<HTMLDivElement | null>(null);
-  useNumberTween(score, (value) => {
+  useNumberTween(headline, (value) => {
     const card = cardRef.current;
     if (!card) return;
     card.style.setProperty("--score-color", value == null ? "" : scoreColor(value));
@@ -312,9 +320,11 @@ function TypologyTile({
   const Icon = TYPOLOGY_ICON[typologyId] ?? House;
   const fullLabel = TYPOLOGIES.find(([id]) => id === typologyId)?.[1] ?? typologyId;
   const name = SHORT_LABEL[typologyId] ?? fullLabel;
+  const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
+  const legalityLabel = pathwayId ? PATHWAY_META[pathwayId]?.label : undefined;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
-  const color = score == null ? undefined : "var(--score-color)";
+  const color = headline == null ? undefined : "var(--score-color)";
   const [expanded, setExpanded] = useState(false);
 
   // The verdict/pencil check: can this actually be built, and does it pencil?
@@ -324,10 +334,8 @@ function TypologyTile({
   const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
   // All reasons, not just blockers: verdictFor already includes the green
   // ("pro") facts too (e.g. "Allowed by right"), not only red/yellow cons.
-  const weights = usePillarWeights();
-  const overall = overallForTypology(values, weights, typologyId);
 
-  const scoreText = score == null ? "—" : Math.round(score);
+  const scoreText = headline == null ? "—" : Math.round(headline);
   const canJumpToAlerts = Boolean(onSelectTypology);
   // Short form of the level label for the tile -- the full wording
   // ("Possible, with extra approvals or site cost") is still what Alerts and
@@ -418,20 +426,19 @@ function TypologyTile({
       <div
         {...shared}
         className={`${cardBase} w-[15.6rem] gap-1 px-2 py-1.5`}
-        style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
+        style={{ "--score-color": headline == null ? undefined : scoreColor(headline) } as CSSProperties}
       >
         <div className="flex items-center gap-1.5">
           <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
+          <span className="text-muted-foreground">Overall</span>
           {scoreButton}
         </div>
-        {overall != null && (
-          <p className="text-muted-foreground">
-            Overall <span style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
-          </p>
-        )}
+        <p className="truncate text-muted-foreground" title="Legal pathway in this district">
+          {legalityLabel ?? "Unresolved in the code"}
+        </p>
         {verdictBlock}
         {jevDetail}
         {scenarioButton}
@@ -444,7 +451,7 @@ function TypologyTile({
     <div
       {...shared}
       className={`${cardBase} h-full w-[18.2rem] justify-between gap-1 p-2`}
-      style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
+      style={{ "--score-color": headline == null ? undefined : scoreColor(headline) } as CSSProperties}
     >
       <div className="flex flex-col gap-0.5" data-top>
         <div className="flex items-center gap-1.5">
@@ -452,13 +459,12 @@ function TypologyTile({
           <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
             {name}
           </span>
+          <span className="text-muted-foreground">Overall</span>
           {scoreButton}
         </div>
-        {overall != null && (
-          <p className="text-muted-foreground">
-            Overall <span className="tabular-nums" style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
-          </p>
-        )}
+        <p className="truncate text-muted-foreground" title="Legal pathway in this district">
+          {legalityLabel ?? "Unresolved in the code"}
+        </p>
       </div>
       <div className="flex flex-col gap-0.5" data-bottom>
         {verdictBlock}
