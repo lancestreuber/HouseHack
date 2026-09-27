@@ -5,9 +5,11 @@ import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanst
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
+import { ThemeProvider } from "next-themes";
 
 import type { orpc } from "@/utils/orpc";
 
+import { ChatLauncher } from "../components/chat/chat-launcher";
 import Header from "../components/header";
 
 import appCss from "../index.css?url";
@@ -47,16 +49,19 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
       <body>
-        <div className="grid h-svh grid-rows-[auto_1fr]">
-          <Header />
-          <Outlet />
-        </div>
-        <Toaster richColors />
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
+          <div className="grid h-svh grid-rows-[auto_1fr]">
+            <Header />
+            <Outlet />
+          </div>
+          <ChatLauncher />
+          <Toaster richColors />
+        </ThemeProvider>
         <TanStackRouterDevtools position="bottom-left" />
         <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         <Scripts />

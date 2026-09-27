@@ -7,4 +7,6 @@ export type Context = {
   session: Session | null;
   db: Database;
   systemOne: SystemOne;
+  /** Server-only key for the chat assistant; undefined disables it. */
+  geminiApiKey?: string;
 };

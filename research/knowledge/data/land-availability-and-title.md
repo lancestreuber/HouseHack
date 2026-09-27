@@ -1,0 +1,101 @@
+# Land availability, ownership and title
+
+**Type:** data
+**One line:** Which parcels are publicly owned or available (city vacant inventory, treasury and side-yard sales, URA, Land Bank transfers) and which carry title or distress flags (liens, delinquency, foreclosure, conservatorship, condemnation).
+**Why we care:** An "acquirable now" filter and title-risk flags are cheap to add and directly useful to the City, URA and Land Bank. Ownership and availability are different things, and several layers are stale.
+**Last checked:** 2026-09-26
+
+City base `C = https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services`.
+
+## Availability
+
+### `C/ParcelsPublicCityVacant/FeatureServer/0` `[read]` (best source)
+**5,786 city-owned vacant parcels**, edited 2026-09-01. Also carries zoning, flood and prior-years-delinquent fields.
+
+| `current_status` | n | `inventory_type` | n |
+|---|---|---|---|
+| Available for Sale | **3,260** | Public Sale | 2,480 |
+| Hold for Study | 1,836 | URA Transfer | 1,419 |
+| Sale Pending | 489 | PLB (Land Bank) Transfer | 117 |
+
+The 3,260 figure was flagged unverified by one sweep and confirmed by another's live query (corrections log), and re-confirmed by the critique's live query on 2026-09-26 (other statuses: Unknown 82; null 72; Litigation Pending 24; Acquisition Pending 20; Cancelled 3).
+
+#### ⚠ Listed ≠ buildable *(corrected 2026-09-26 per docs/04-critique.md row 18)*
+
+3,260 city lots are listed Available for Sale; about half are under 2,400 sf, and roughly a third of the residential ones are below their district's minimum lot size. **Buildability is unassessed.** From the critique's live pull of all 3,260 (`calcacreag`, `zon_new`) against the post-reform minimum lot sizes `[read]`:
+
+- **Median lot 2,178 sf; 51% are under 2,400 sf.**
+- Of the **2,621** in residential districts, **1,684 (64%) meet** the post-reform minimum lot size, so about 36% do not.
+- **298 are zoned H (Hillside)**, where any construction triggers Site Plan Review (a mirror-read rule, `[skimmed]`).
+- **1,006** of the 3,260 are URA Transfer inventory.
+- Not accounted for: `calcacreag` precision, and **Ch. 921 lot-of-record relief** (unchecked). So "below minimum" does not mean "unbuildable".
+
+### Other layers
+
+| Layer | Count | Vintage | Note | Tag |
+|---|---|---|---|---|
+| WPRDC City-owned properties, resource `e1dcee82-9179-4306-8167-5891915b62a7` (key `pin`) | 12,477 | updated 2026-09-26 | `inventory_type`, `current_status` | `[read]` |
+| `C/Treasury_Sales_2026_New` | 41 points | edited 2026-09-18 | upset price, delinquency, outcome | `[read]` |
+| `C/Sideyard_Sales` | 652 | 2026-08 | | `[read]` |
+| `C/ParcelsURA` | 1,570 | 2023 | | `[read]` |
+| `C/Surface_Parking_Lots` | 332 | not stated | | `[read]` |
+| `C/Tax_Delinquent` | 13,796 | not stated | | `[read]` |
+| `C/City_and_URA_Owned_Parcels` | 62 | stale | | `[read]` |
+| `C/Vacant_Lots` | aggregate counts only | | **skip** | `[read]` |
+| Assessments `USEDESC='VACANT LAND'` | 65,694 countywide | 2026 | privately and publicly owned | `[read]` |
+| WPRDC Lots to Love (`027d0b43…`) | | | **no parcel ID**, only lat/lon and address | `[read]` |
+
+- **Pittsburgh Land Bank:** no WPRDC dataset, no API. Use `inventory_type = PLB Transfer` above. *(updated 2026-09-26, round 5)* The earlier connection failure was the wrong domain: the site is **pghlandbank.org** (`pittsburghlandbank.org` has no DNS answer). pghlandbank.org loads `[read]` but publishes **no machine-readable inventory**; parcel IDs appear only inside individual board resolutions. Its Pending Sales page lists 46 approved projects and its Completed Sales page 31 entries for 2025 `[read]`. ⚠ Search results for "PLB" minutes can be the **Philadelphia** Land Bank; check the PDF header. See [Land Bank](../stakeholders/land-bank.md).
+- **Scale of the problem** *(updated 2026-09-26, round 5)*: the Land Bank's Dec 2025 task-force report counts **13,770 parcels** needing some level of land bank intervention (~5,000 vacant lots and 270 condemned structures in the Three Taxing Bodies inventory, plus 3,825 vacant lots and 4,675 structures privately owned and ≥5 years delinquent) and ~11,311 City tax-delinquent parcels, calling these "preliminary projections" `[read]` ([report](https://pghlandbank.org/wp-content/uploads/2026/01/2025-2698-PLB-Task-Force-Report-Recommendations-1.pdf)). Compare with `C/Tax_Delinquent` (13,796 features) above; definitions differ and were not reconciled.
+- **Disposition is not instant** *(updated 2026-09-26, round 5)* `[read]`: every PLB sale needs a two-thirds Board vote, ≥30 days' public notice and signage, and a 20-day objection window (15+ petitioners trigger a neighborhood hearing). Direct sales are allowed for side yards (adjacent owner-occupants, max 2) and housing with ≥25% of units at ≤80% AMI, among others. The City–URA–PLB agreement sets a goal that 80% of dispositions be for affordable housing. An "acquirable now" filter should label PLB parcels as "available via Land Bank process", not "for sale" (inference).
+- Organizer catalog caveat on city-owned properties: "Ownership and availability are different; verify disposition status."
+
+## Title, distress and ownership (WPRDC) `[read]`
+
+| Dataset | Resource id | Parcel key | Rows | Freshness |
+|---|---|---|---|---|
+| Tax liens with current status | 65d0d259-3e58-49d3-bebb-80dc75f61245 | pin | 2.16M | current 2026-09 |
+| County delinquent RE taxes (cumulative) | 96e9d6b2-3e1a-4a0c-8ef6-23a049c263d8 | parcel_id | 545,765 | |
+| City tax delinquency | ed0d1550-c300-4114-865c-82dc7c23235b | pin | 27,527 | catalog: reflects current year |
+| Condemned / dead-end | 0a963f26-eb4b-4325-bbbc-3ddf6a871410 | parcel_id | 3,569 | |
+| PLI/DOMI/ES violations | 70c06278-92c5-4040-ab28-17671866f81c | parcel_id | 643,994 | |
+| Conservatorship filings | fd64c179-b5af-4263-9275-fb581705d878 | pin | 582 | |
+| Foreclosure filings | package `allegheny-county-mortgage-foreclosure-records` | | | current 2026-09 |
+| Sheriff sales | package `sheriff-sales` | not checked | | **last updated 2024-06 (stale)** |
+
+Catalog caveats: a foreclosure filing does not mean the property changed hands; condemnation does not establish demolition feasibility or availability.
+
+## Owner name
+⚠ **Do not ingest owner names** *(corrected 2026-09-26 per docs/04-critique.md row 32)*. Owner names of private individuals are PII under the project's hard rule. They exist on the County Real Estate Portal, and `ParcelsPublicCityVacant` also carries owner fields; request only non-owner fields. Use **OWNERDESC** (owner category, from WPRDC assessments) only ([parcels and assessments](parcels-and-assessments.md)).
+
+## Open questions
+- Why does WPRDC city-owned (12,477) differ from `ParcelsPublicCityVacant` (5,786)? Presumably non-vacant city property, but not checked.
+- Does `inventory_type = PLB Transfer` capture Land Bank holdings fully, or only transfers in progress? (The PLB publishes no parcel list to check against; its Tri-Party §17 reports were not found.)
+- Sheriff sales after 2024-06: no current source found.
+- Adjacency of available city lots (for assembly): not computed.
+- How many sub-minimum available lots are buildable as lots of record under Ch. 921 (Nonconformities)? Ch. 921 not read; Bill 2026-0834 would amend it.
+
+## Connects to
+- [Land Bank](../stakeholders/land-bank.md)
+- [City of Pittsburgh](../stakeholders/city-of-pittsburgh.md)
+- [Parcels and assessments](parcels-and-assessments.md)
+- [Permits and outcomes](permits-and-outcomes.md): condemned and demolition records
+- [Score design options](../methods/score-design-options.md): "acquirable now" filter
+- [Displacement and equity](../track3/displacement-and-equity.md): distress indicators
+
+## Sources
+- [City ParcelsPublicCityVacant](https://services1.arcgis.com/YZCmUqbcsUpOKfj7/arcgis/rest/services/ParcelsPublicCityVacant/FeatureServer/0) `[read]` *(accessed 2026-09-26)*: status counts
+- City `Treasury_Sales_2026_New`, `Sideyard_Sales`, `ParcelsURA`, `Surface_Parking_Lots`, `Tax_Delinquent`, `City_and_URA_Owned_Parcels`, `Vacant_Lots` `[read]` *(accessed 2026-09-26)*: counts and edit dates
+- WPRDC resources e1dcee82, 65d0d259, 96e9d6b2, ed0d1550, 0a963f26, 70c06278, fd64c179 via [datastore_search](https://data.wprdc.org/api/3/action/datastore_search) `[read]` *(accessed 2026-09-26)*
+- WPRDC `sheriff-sales` and foreclosure packages `[read]` *(accessed 2026-09-26)*: update dates only
+- Pittsburgh Land Bank website: `pittsburghlandbank.org` `[inaccessible]` (no DNS answer; the earlier curl 000 failure) *(accessed 2026-09-26)*; the correct site [pghlandbank.org](https://pghlandbank.org/) with [Pending Sales](https://pghlandbank.org/pending-sales/) and [Completed Sales](https://pghlandbank.org/completed-sales/) `[read]` *(accessed 2026-09-26, round 5)*
+- [PLB Disposition Process 2022 (PDF)](https://pghlandbank.org/wp-content/uploads/2022/10/PLB-Disposition-Process_2022.pdf) and [Tri-Party Agreement rev. 10/18/23 (PDF)](https://pghlandbank.org/wp-content/uploads/2024/02/PLB-City-URA-Tri-Party-Coop-Agreement-final-revised-10.18.23.pdf) `[read]` *(accessed 2026-09-26, round 5)*; excerpts at [../../sources/pghlandbank-2026-09-26-disposition-policy-and-2026-board-records.md](../../sources/pghlandbank-2026-09-26-disposition-policy-and-2026-board-records.md)
+- [PLB Task Force report, Dec 22, 2025 (PDF)](https://pghlandbank.org/wp-content/uploads/2026/01/2025-2698-PLB-Task-Force-Report-Recommendations-1.pdf) `[read]` *(accessed 2026-09-26, round 5)*: 13,770 parcels
+- WPRDC CKAN search "land bank" `[read]` *(accessed 2026-09-26, round 5)*: no PLB inventory dataset
+- Sweep: [../../sweeps/r5-council-records-and-methodologies.md](../../sweeps/r5-council-records-and-methodologies.md) §5
+- [WPRDC city-owned-properties](https://data.wprdc.org/dataset/city-owned-properties), [delinquent-real-estate-taxes](https://data.wprdc.org/dataset/delinquent-real-estate-taxes), [city-of-pittsburgh-property-tax-delinquency](https://data.wprdc.org/dataset/city-of-pittsburgh-property-tax-delinquency), [allegheny-county-mortgage-foreclosure-records](https://data.wprdc.org/dataset/allegheny-county-mortgage-foreclosure-records), [condemned-properties](https://data.wprdc.org/dataset/condemned-properties) `[found]` *(accessed 2026-09-26)*: organizer catalog entries
+- [Organizer Public Data Catalog (Google Sheet)](https://docs.google.com/spreadsheets/d/19CKyt1kansUZ3VGOAOBihYYxNFuitx5VTkzOiEy4iXA) `[read]` *(accessed 2026-09-26)*; saved copy [../../sources/organizers-2026-09-26-public-data-catalog.csv](../../sources/organizers-2026-09-26-public-data-catalog.csv)
+- Sweep: [../../sweeps/r1-parcel-environmental-infrastructure-data.md](../../sweeps/r1-parcel-environmental-infrastructure-data.md)
+- Sweep: [../../sweeps/r2-deeper-data-sources.md](../../sweeps/r2-deeper-data-sources.md)
+- Notes: [../../archive/working-notes-2026-09-26/01-data-sources.md](../../archive/working-notes-2026-09-26/01-data-sources.md)
+- [Adversarial critique](../../docs/04-critique.md) — rows 18, 32

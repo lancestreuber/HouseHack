@@ -127,7 +127,7 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
     });
 
   return (
-    <div className="max-h-full w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
+    <div className="max-h-[70vh] w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
       <p className="mb-1 font-medium">Heat overlay</p>
       <label className="flex items-center gap-1.5">
         <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />

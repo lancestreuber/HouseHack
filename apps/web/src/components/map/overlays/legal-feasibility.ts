@@ -2,7 +2,7 @@ import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, PATHWAYS, ZBA_OUTCOM
 import { matchColor, NO_DATA_COLOR } from "./styles";
 import type { OverlayDefinition, OverlayMetric } from "./types";
 
-const TYPOLOGIES: [string, string][] = [
+export const TYPOLOGIES: [string, string][] = [
   ["single_detached", "Single-unit detached house"],
   ["single_attached", "Single-unit attached (rowhouse)"],
   ["two_unit", "Two-unit (duplex)"],
@@ -23,7 +23,7 @@ const TYPOLOGIES: [string, string][] = [
 
 // Ranked pathways run cyan (easiest) to red (hardest). The non-ranked states sit
 // off that ramp: planned-unit districts purple, Mount Oliver light grey.
-const PATHWAY_META: Record<string, { color: string; label: string }> = {
+export const PATHWAY_META: Record<string, { color: string; label: string }> = {
   by_right: { color: "#22d3ee", label: "By right (staff review)" },
   za: { color: "#60a5fa", label: "Administrator exception" },
   zbe_special_exception: { color: "#fbbf24", label: "Special exception (Zoning Board hearing)" },
@@ -45,6 +45,14 @@ function pathwayFill(typology: string) {
   return matchColor("zon_new", byZone, NO_DATA_COLOR);
 }
 
+// What happens if the City misses its decision deadline. Where the research
+// found City code and state law disagree, say so rather than pick one.
+function missedDeadlineLine(value: string | undefined) {
+  if (!value || value === "n/a" || value === "unknown") return "";
+  if (/conflict/i.test(value)) return "Missed deadline: City code says deemed denial; conflicts with state law (unresolved)";
+  return `Missed deadline: ${value}`;
+}
+
 // ZBA outcomes are keyed by base district: "R1D-L" -> "R1D", "UC-MU" -> "UC".
 const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
 // These bases pool subdistricts with different rules (e.g. RIV-GI bars housing,
@@ -53,7 +61,7 @@ const zbaBase = (zone: string) => (zone === "R-MU" ? zone : zone.split("-")[0]);
 const ZBA_POOLED_SKIP = new Set(["UC", "RIV", "SP"]);
 const ZBA_POOLED_LABEL: Record<string, string> = { GT: "Golden Triangle (GT-A…E) pooled" };
 
-function zbaLine(zone: string, typology: string) {
+export function zbaLine(zone: string, typology: string) {
   const base = zbaBase(zone);
   if (ZBA_POOLED_SKIP.has(base)) return "";
   const byType = ZBA_OUTCOMES[base];
@@ -109,13 +117,17 @@ export const legalPathwayOverlay: OverlayDefinition = {
     return [
       `${metric.label} in ${zone}${row?.full_zoning_type ? ` (${row.full_zoning_type.toLowerCase()})` : ""}`,
       PATHWAY_META[pathway]?.label ?? "Unresolved: the code doesn't clearly say",
-      info ? `Decided by: ${info.decider}` : "",
-      info && info.hearing !== "no" ? `Hearing: ${info.hearing}` : "",
-      info && info.clock !== "none" ? `Timeline: ${info.clock}` : "",
+      info?.decider ? `Decided by: ${info.decider}` : "",
+      info?.hearing && info.hearing !== "no" ? `Hearing: ${info.hearing}` : "",
+      info?.clock && info.clock !== "none" ? `Timeline: ${info.clock.replace(/ before deemed denial$/, "")}` : "",
+      missedDeadlineLine(info?.missedDeadline),
       info?.fee ? `Extra fee: $${info.fee}` : "",
-      info ? `Code: ${info.section}${info.note ? ` · ${info.note}` : ""}` : "",
+      info?.section ? `Code: ${info.section}` : "",
+      // Unranked rows (per plan, Mount Oliver, unknown) carry notes meant for
+      // the data team; the per-cell note below explains those districts.
+      info?.note && info.rank != null ? `Note: ${info.note.replace(/\s*\([\w-]+\.csv\)/g, "")}` : "",
       zbaLine(zone, metric.id),
-      cell?.unconfirmed ? "⚠ Unconfirmed reading of the code" : "",
+      cell?.unconfirmed ? `⚠ ${cell.basis ?? "Unconfirmed reading of the code"}` : "",
       cell ? cell.note : "",
     ].filter(Boolean);
   },
@@ -132,7 +144,7 @@ export const legalPathwayOverlay: OverlayDefinition = {
     caveats: [
       "Working research, not legal advice.",
       "Zoning Board counts cover posted decisions only (withdrawn cases have none), so approval rates skew high.",
-      "Faint districts are unconfirmed readings (mostly SP-10 and the Grandview public-realm districts); the tooltip explains why.",
+      "Faint districts are unconfirmed readings or inferred from a district's adopted use list; the tooltip explains why.",
       "The use table is not the only gate: dimensional standards, overlays, Site Plan Review at 4+ units and historic review add steps.",
       "Housing for the elderly limited and general have different permissions; pick the one that matches the project size.",
       "Pending Bills 2025-1545 (ADUs, parking) and 2026-0834 (Ch. 922 procedures) would change some cells.",
@@ -157,7 +169,7 @@ const SENIOR_TYPES: Record<string, { color: string; label: string }> = {
 const pathwayLabel = (v: unknown) =>
   String(v ?? "unknown")
     .split("|")
-    .map((x) => PATHWAY_META[x]?.label.toLowerCase() ?? "not in the use table")
+    .map((x) => PATHWAY_META[x]?.label.toLowerCase() ?? "unresolved in the code")
     .join(" or ");
 
 export const seniorHousingOverlay: OverlayDefinition = {
@@ -440,3 +452,45 @@ function zbaOverlay(housing: boolean): OverlayDefinition {
 
 export const zbaHousingOverlay = zbaOverlay(true);
 export const zbaOtherOverlay = zbaOverlay(false);
+
+export const careSpacingOverlay: OverlayDefinition = {
+  id: "care-facility-spacing",
+  label: "800 ft care-facility spacing (partial)",
+  group: "legal",
+  drawBelowOutlines: true,
+  description: "New assisted living or personal care residences must be at least 800 ft from these licensed care facilities.",
+  source: { kind: "static", url: "/data/overlays/care-facility-spacing.geojson" },
+  layers: (sourceId) => [
+    {
+      id: "care-facility-spacing-fill",
+      type: "fill",
+      source: sourceId,
+      paint: { "fill-color": "#f472b6", "fill-opacity": 0.1 },
+    },
+    {
+      id: "care-facility-spacing-outline",
+      type: "line",
+      source: sourceId,
+      paint: { "line-color": "#f472b6", "line-width": 1.5, "line-dasharray": [3, 2] },
+    },
+  ],
+  tooltipLayerIds: ["care-facility-spacing-fill"],
+  tooltip: (p) =>
+    [
+      `Within ${p.radius_ft ?? 800} ft of ${String(p.facility_name ?? "a licensed care facility")}`,
+      p.counts_as ? `Counts as: ${p.counts_as}` : "",
+      "A new assisted living or personal care residence can't locate here (§911.04.A.66, .95A/B)",
+    ].filter(Boolean),
+  legend: () => [{ color: "#f472b6", label: "800 ft around a licensed care facility", shape: "dashed-line" }],
+  meta: {
+    source: "Research team, from PA DHS licensed personal care / assisted living and CMS nursing homes; rule from Zoning Code §911.04",
+    sourceUrl: "https://ecode360.com/45476524",
+    asOf: "Facilities as of 2026-09-26",
+    geography: "800 ft circles, City of Pittsburgh",
+    evidence: "policy",
+    caveats: [
+      "Partial: only licensed facilities are drawn; unlicensed group homes also count under the rule but aren't mapped (privacy).",
+      "A parcel-level gate the district map can't show.",
+    ],
+  },
+};

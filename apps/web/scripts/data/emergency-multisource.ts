@@ -1,5 +1,6 @@
 // Fire, police and EMS from official county lists merged with City layers and
-// OpenStreetMap (extracts in inputs/places/), clipped to the county.
+// OpenStreetMap (extracts in inputs/places/). OSM and City additions are
+// clipped to the county; official county-list agencies are always kept.
 // - Fire: ConnectGovs county fire departments + City fire stations + named OSM
 //   fire stations, merged within 200 m upstream.
 // - Police: ConnectGovs municipal departments + OSM police, merged within 150 m
@@ -33,9 +34,12 @@ export async function buildEmergencyMultisource() {
   const boundary = await fetchAllGeoJSON(COUNTY_BOUNDARY, { outFields: [] });
   const index = polygonIndex(boundary.map((f) => ({ key: true, geometry: f.geometry as never })));
   const inCounty = (lon: number, lat: number) => index(lon, lat) === true;
+  // Official county-list agencies stay even if their base is just over the
+  // line (Trafford, McDonald and Penn Township serve Allegheny municipalities);
+  // only OSM and City additions are clipped.
   const toFeatures = (rows: Row[], props: (r: Row) => Record<string, unknown>) =>
     rows
-      .filter((r) => Number(r.lat) && Number(r.lon) && inCounty(Number(r.lon), Number(r.lat)))
+      .filter((r) => Number(r.lat) && Number(r.lon) && (r.sources?.includes("ConnectGovs") || inCounty(Number(r.lon), Number(r.lat))))
       .map((r) => ({ type: "Feature" as const, geometry: point(Number(r.lon), Number(r.lat)), properties: props(r) }));
 
   const fire = toFeatures(await read("allegheny_fire_stations_merged.csv"), (r) => ({
