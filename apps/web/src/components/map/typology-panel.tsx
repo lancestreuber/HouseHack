@@ -328,7 +328,8 @@ function TypologyTile({
   // averaged away -- see lib/pillars/verdict.ts.
   const pencil = usePencilAssumptions();
   const verdict = verdictFor(zoning, typologyId, values, { fitsById, lotWidthFt, pencil });
-  const blockers = verdict.reasons.filter((r) => r.level !== "green");
+  // All reasons, not just blockers: verdictFor already includes the green
+  // ("pro") facts too (e.g. "Allowed by right"), not only red/yellow cons.
   const weights = usePillarWeights();
   const overall = overallForTypology(values, weights, typologyId);
 
@@ -341,18 +342,16 @@ function TypologyTile({
   // every blocker beyond the first two) is a click away, in Alerts.
   const verdictBlock = (
     <div title={canJumpToAlerts ? "See why, in Alerts" : undefined}>
-      {blockers.length === 0 && (
-        <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
-          <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-          {verdict.label}
-        </p>
-      )}
-      {blockers.slice(0, 2).map((r) => (
-        <p key={r.text} className="text-muted-foreground">
-          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
+      <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
+        <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+        {verdict.label}
+      </p>
+      {verdict.reasons.slice(0, 3).map((r) => (
+        <p key={r.text}>
+          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> <span className="text-muted-foreground">{r.text.split(/[;:]/)[0]}</span>
         </p>
       ))}
-      {blockers.length > 2 && <p className="text-muted-foreground">+{blockers.length - 2} more (hover)</p>}
+      {verdict.reasons.length > 3 && <p className="text-muted-foreground">+{verdict.reasons.length - 3} more (hover)</p>}
     </div>
   );
   const scenarioButton = (
@@ -380,7 +379,7 @@ function TypologyTile({
       aria-expanded={expanded}
       aria-label={expanded ? "Hide Jev's site-fit rating" : "Show Jev's site-fit rating"}
       title="Click for Jev's physical site-fit rating"
-      className="shrink-0 font-semibold leading-none tabular-nums hover:underline"
+      className="shrink-0 text-2xl font-bold leading-none tabular-nums hover:underline"
       style={{ color }}
       data-score
     >
