@@ -1,27 +1,84 @@
+import { TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
 
+import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { scoreParcel, type WeightOverrides } from "@/lib/pillars/score";
+import { VERDICT_COLOR, VERDICT_LABEL, type VerdictLevel } from "@/lib/pillars/verdict";
 
+import { TYPOLOGIES } from "./overlays/legal-feasibility";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
-import { type ParcelData, useParcelData } from "./pillars-panel";
+import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
+import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
+
+function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
+  const cls =
+    level === "red"
+      ? "border-red-500/30 bg-red-500/10 text-red-400"
+      : level === "unknown"
+        ? "border-neutral-400/30 bg-neutral-400/10 text-neutral-400"
+        : "border-yellow-400/30 bg-yellow-400/10 text-yellow-400";
+  return (
+    <div className={`flex items-start gap-1.5 rounded border px-2 py-1 ${cls}`}>
+      <TriangleAlert className="mt-0.5 size-3 shrink-0" />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+/** Every non-green typology's full verdict reasons, one anchored section
+ * each (`alert-${typologyId}`) so a bottom-panel tile can scroll straight to
+ * its own detail. The tile itself only shows a one-line summary. */
+function TypologyAlerts({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useTypologyFit(pin, data);
+  const pencil = usePencilAssumptions();
+  const fitsById = useMemo(() => {
+    if (!query.data) return undefined;
+    const map: FitsById = {};
+    for (const t of query.data.typologies) map[t.id] = t.fit;
+    return map;
+  }, [query.data]);
+  const lotWidthFt = query.data?.lot.widthFt;
+
+  const flagged = TYPOLOGIES.map(([id, label]) => ({
+    id,
+    label: SHORT_LABEL[id] ?? label,
+    verdict: verdictFor(data.zoning, id, data, { fitsById, lotWidthFt, pencil }),
+  })).filter((t) => t.verdict.level !== "green");
+
+  if (!flagged.length) {
+    return <p className="text-muted-foreground">No housing-type alerts for this parcel right now.</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {flagged.map((t) => (
+        <section key={t.id} id={`alert-${t.id}`} className="scroll-mt-2 space-y-1">
+          <div className="flex items-center gap-1.5">
+            <span className="size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[t.verdict.level] }} />
+            <p className="font-medium">
+              {t.label} <span className="text-muted-foreground">· {VERDICT_LABEL[t.verdict.level]}</span>
+            </p>
+          </div>
+          {t.verdict.reasons.map((r) => (
+            <AlertRow key={r.text} text={r.text} level={r.level} />
+          ))}
+        </section>
+      ))}
+    </div>
+  );
+}
 
 /** Parcel-wide dealkillers: a hazard severe enough to multiply the whole
  * Overall score (not just one pillar, so a good neighborhood can't average it
  * away), and what's actually on the lot today (an occupied or large building,
- * an institution, a park or right-of-way) if that limits redevelopment.
- * Everything typology-specific -- verdict, pencil check, physical fit -- lives
- * in the bottom Typology panel instead; this pane never repeats it. */
-function AlertsContent({ data }: { data: ParcelData }) {
+ * an institution, a park or right-of-way) if that limits redevelopment. */
+function ParcelAlerts({ data }: { data: ParcelData }) {
   const weights = usePillarWeights();
   const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
   const result = useMemo(() => scoreParcel(data.norm, overrides), [data, overrides]);
-  const hasHazard = Boolean(result.hazard);
-  const hasAvailability = Boolean(result.availability && result.availability.multiplier < 1);
 
-  if (!hasHazard && !hasAvailability) {
-    return <p className="text-muted-foreground">No parcel-wide alerts for this parcel right now.</p>;
-  }
+  if (!result.hazard && !(result.availability && result.availability.multiplier < 1)) return null;
 
   return (
     <div className="space-y-2">
@@ -41,6 +98,15 @@ function AlertsContent({ data }: { data: ParcelData }) {
           {result.availability.note && <p className="text-muted-foreground">{result.availability.note}</p>}
         </section>
       )}
+    </div>
+  );
+}
+
+function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
+  return (
+    <div className="space-y-3">
+      <ParcelAlerts data={data} />
+      <TypologyAlerts pin={pin} data={data} />
     </div>
   );
 }
@@ -69,7 +135,7 @@ export function AlertsPanel({
           {pin && status === "missing" && (
             <p className="text-muted-foreground">No indicator data for this parcel (city parcels only).</p>
           )}
-          {pin && data && <AlertsContent data={data} />}
+          {pin && data && <AlertsContent pin={pin} data={data} />}
         </div>
       )}
     </div>

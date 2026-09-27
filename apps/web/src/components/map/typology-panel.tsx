@@ -268,6 +268,7 @@ function TypologyTile({
   lotWidthFt,
   compact,
   showChart,
+  onSelectTypology,
 }: {
   elementRef?: (el: HTMLDivElement | null) => void;
   typologyId: string;
@@ -285,6 +286,8 @@ function TypologyTile({
   compact: boolean;
   /** Whether the pane has room for the fit chart (skips rendering it otherwise). */
   showChart: boolean;
+  /** Scrolls the Alerts pane to this card's full verdict reasons. */
+  onSelectTypology?: (typologyId: string) => void;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score = tileScore(zoning, typologyId) ?? null;
@@ -320,19 +323,21 @@ function TypologyTile({
 
   const scoreText = score == null ? "—" : Math.round(score);
   const routeText = pathway?.label ?? "Unresolved in the code";
+  const canJumpToAlerts = Boolean(onSelectTypology);
+  // Summary only -- the full reasons live in the Alerts pane; click the card
+  // (or this line) to jump there.
   const verdictBlock = (
-    <div title={verdict.reasons.map((r) => `${r.level.toUpperCase()}: ${r.text}`).join("\n")}>
-      <p className="flex items-center gap-1 font-medium" style={{ color: VERDICT_COLOR[verdict.level] }}>
-        <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-        <span className="truncate">{verdict.label}</span>
-      </p>
-      {blockers.slice(0, compact ? 1 : 2).map((r) => (
-        <p key={r.text} className="truncate">
-          <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
-        </p>
-      ))}
-      {blockers.length > (compact ? 1 : 2) && <p>+{blockers.length - (compact ? 1 : 2)} more (hover)</p>}
-    </div>
+    <p
+      className="flex items-center gap-1 font-medium"
+      style={{ color: VERDICT_COLOR[verdict.level] }}
+      title={canJumpToAlerts ? "See why, in Alerts" : undefined}
+    >
+      <span className="inline-block size-2 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+      <span className="truncate">
+        {verdict.label}
+        {blockers.length > 0 && ` (${blockers.length} in Alerts)`}
+      </span>
+    </p>
   );
   const jevDetails = fit && (
     <p className="truncate">
@@ -361,8 +366,10 @@ function TypologyTile({
     },
     "data-typology": typologyId,
     "data-density": compact ? "compact" : "full",
+    onClick: canJumpToAlerts ? () => onSelectTypology?.(typologyId) : undefined,
+    title: canJumpToAlerts ? "Jump to this typology's alerts" : undefined,
   };
-  const cardBase = "relative flex shrink-0 flex-col rounded border bg-background transition-colors";
+  const cardBase = `relative flex shrink-0 flex-col rounded border bg-background transition-colors ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`;
 
   if (compact) {
     return (
@@ -538,7 +545,15 @@ const VERDICT_RANK: Record<string, number> = { green: 0, unknown: 1, yellow: 2, 
 /** Horizontal, ranked track of every housing type. Vertical mouse wheels
  * scroll it sideways (eased, not stepped), arrows page through it, and the
  * edges fade where there's more to see. */
-function TypologyTrack({ snapshot, updating }: { snapshot: Snapshot; updating: boolean }) {
+function TypologyTrack({
+  snapshot,
+  updating,
+  onSelectTypology,
+}: {
+  snapshot: Snapshot;
+  updating: boolean;
+  onSelectTypology?: (typologyId: string) => void;
+}) {
   const zoning = snapshot.data.zoning ?? "";
   const { fits, lotWidthFt } = snapshot;
   const pencil = usePencilAssumptions();
@@ -762,6 +777,7 @@ function TypologyTrack({ snapshot, updating }: { snapshot: Snapshot; updating: b
               lotWidthFt={lotWidthFt}
               compact={compact}
               showChart={showChart}
+              onSelectTypology={onSelectTypology}
             />
           ))}
         </div>
@@ -882,20 +898,22 @@ function PencilAssumptionsPopover() {
 }
 
 /** Bottom pane: every housing type ranked for the selected parcel, as a
- * horizontal slider. Each tile shows the legal-pathway score for its zoning
- * district, the red/yellow/green verdict and pencil (value vs. cost) check,
- * and (where a close enough match exists) Jev's physical site fit. This
- * panel owns every typology-specific fact the app shows -- verdicts,
- * dealkillers and the pencil check are never split across another pane.
- * Changing parcels keeps the tiles in place and glides them to their new rank. */
+ * horizontal slider. Each tile is an overview -- score, Jev's fit bar and
+ * confidence, and a one-line verdict summary -- and clicking it (or its
+ * "Scenario" button) opens the full detail elsewhere: the verdict's full
+ * reasons (dealkillers, pencil check) in the Alerts pane, or the scenario
+ * card. Changing parcels keeps the tiles in place and glides them to their
+ * new rank. */
 export function TypologyPanel({
   pin,
   collapsed,
   onToggleCollapse,
+  onSelectTypology,
 }: {
   pin: string | null;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  onSelectTypology?: (typologyId: string) => void;
 }) {
   const parcel = useParcelData(pin);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -917,7 +935,7 @@ export function TypologyPanel({
   else if (parcel.status === "missing")
     body = <p className="text-muted-foreground">No zoning data for this parcel (city parcels only).</p>;
   else if (!snapshot) body = <p className="text-muted-foreground">Loading…</p>;
-  else body = <TypologyTrack snapshot={snapshot} updating={updating} />;
+  else body = <TypologyTrack snapshot={snapshot} updating={updating} onSelectTypology={onSelectTypology} />;
 
   return (
     <div className="flex h-full w-full flex-col gap-1.5 overflow-hidden p-2 text-xs">
