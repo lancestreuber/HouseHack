@@ -206,7 +206,7 @@ async function rateSiteFit(
     const fits: Partial<Record<TypologyId, SiteFit>> = {};
     for (const id of typologies) {
       const answer = answers[id];
-      if (answer) fits[id] = toSiteFit(answer);
+      if (answer) fits[id] = toSiteFit(answer, id);
     }
     return { status: "ok", model, fits };
   } catch (error) {

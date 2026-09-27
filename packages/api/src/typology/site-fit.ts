@@ -233,17 +233,34 @@ export const SITE_FIT_LEVELS = [
   "Comfortable fit",
 ] as const;
 
+// Extra calibration nudge, appended only for typologies whose ratings ran
+// harsher than warranted. "detached" is the least space/design-demanding of
+// the five (no shared walls, no elevator/step-free requirements, smallest
+// realistic footprint) -- most ordinary lots fit one, so it should take a
+// real disqualifier (genuinely tiny, oddly-shaped, or hazard-heavy) to rate
+// it below "Comfortable fit", not just "isn't a large lot".
+const CALIBRATION_HINT: Partial<Record<TypologyId, string>> = {
+  detached: " This is the least demanding of the five typologies; don't rate it down just for being an ordinary-sized lot -- reserve low ratings for lots that are genuinely small, oddly shaped, or hazard-heavy.",
+};
+
 export function siteFitQuestion(typology: TypologyId): ScoreQuestion {
   const { describe } = TYPOLOGIES.find((t) => t.id === typology)!;
   return {
     type: "score",
-    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit primarily from those two facts; legality is checked separately. If \`weights\` is present, it's the evaluator's stated priorities -- let it nudge a genuinely borderline rating in that direction (e.g. someone weighing Climate heavily should see a mild penalty for tight, low-canopy lots reflected in a marginal case), but never let it override real physical constraints like lot size or hazard exposure.`,
+    instructions: `How well can ${describe} physically fit on the parcel described by \`lot\` and \`hazards\`? Judge physical fit primarily from those two facts; legality is checked separately. If \`weights\` is present, it's the evaluator's stated priorities -- let it nudge a genuinely borderline rating in that direction (e.g. someone weighing Climate heavily should see a mild penalty for tight, low-canopy lots reflected in a marginal case), but never let it override real physical constraints like lot size or hazard exposure.${CALIBRATION_HINT[typology] ?? ""}`,
     criteria: SITE_FIT_LEVELS,
   };
 }
 
 /** Below this confidence a rating is shown but flagged for human review. Tuned on real answers (~0.3–0.55 observed). */
 export const REVIEW_CONFIDENCE = 0.3;
+
+// "detached" ratings are the ones that should least often need a human
+// second-guess (see CALIBRATION_HINT); a lower bar means fewer of its
+// borderline-but-reasonable calls get an unnecessary "needs review" flag.
+const REVIEW_CONFIDENCE_OVERRIDE: Partial<Record<TypologyId, number>> = {
+  detached: 0.2,
+};
 
 export type SiteFit = {
   /** 0–1, probability-weighted position on the rubric. */
@@ -254,12 +271,13 @@ export type SiteFit = {
   needsReview: boolean;
 };
 
-export function toSiteFit(answer: ScoreAnswer): SiteFit {
+export function toSiteFit(answer: ScoreAnswer, typology: TypologyId): SiteFit {
+  const threshold = REVIEW_CONFIDENCE_OVERRIDE[typology] ?? REVIEW_CONFIDENCE;
   return {
     fit: answer.normalized,
     label: answer.label,
     probabilities: answer.probabilities,
     confidence: answer.confidence,
-    needsReview: answer.confidence < REVIEW_CONFIDENCE,
+    needsReview: answer.confidence < threshold,
   };
 }
