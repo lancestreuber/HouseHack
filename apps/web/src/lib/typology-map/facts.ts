@@ -15,6 +15,15 @@ type Header = {
   zones: string[];
   pins: string[];
   columns: ColumnSpec[];
+  levers?: LeverCodes;
+};
+
+/** How the lever columns are coded (bit flags and index lists), from the build script. */
+export type LeverCodes = {
+  designation_bits: Record<string, number>;
+  overlay_bits: Record<string, number>;
+  city_classes: string[];
+  mva_types: string[];
 };
 
 export type Facts = {
@@ -31,6 +40,9 @@ export type Facts = {
   missing: number;
   norm: Record<string, Uint8Array>;
   raw: Record<string, Float32Array>;
+  /** Public-lever facts per parcel (designations, overlays, MVA, City land, tax status); absent in older files. */
+  levers: Record<string, Uint8Array>;
+  leverCodes: LeverCodes | null;
 };
 
 export function decodeFacts(buffer: ArrayBuffer): Facts {
@@ -51,9 +63,11 @@ export function decodeFacts(buffer: ArrayBuffer): Facts {
   };
   const norm: Record<string, Uint8Array> = {};
   const raw: Record<string, Float32Array> = {};
+  const levers: Record<string, Uint8Array> = {};
   for (const name of cols.keys()) {
     if (name.startsWith("norm:")) norm[name.slice(5)] = pick<Uint8Array>(name);
     if (name.startsWith("raw:")) raw[name.slice(4)] = pick<Float32Array>(name);
+    if (name.startsWith("lever:")) levers[name.slice(6)] = pick<Uint8Array>(name);
   }
   return {
     count: n,
@@ -69,6 +83,8 @@ export function decodeFacts(buffer: ArrayBuffer): Facts {
     missing: header.missing_u8,
     norm,
     raw,
+    levers,
+    leverCodes: header.levers ?? null,
   };
 }
 

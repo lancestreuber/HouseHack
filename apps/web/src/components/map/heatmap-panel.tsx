@@ -7,8 +7,12 @@ import { type ReactNode, useEffect, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import type { PillarId } from "@/lib/pillars/score";
 import { CAPACITY_ASSUMPTIONS, TARGET_ZONES } from "@/lib/typology-map/capacity";
-import { BORDER_FT, type Cluster, EASE_WEIGHTS, HAZARD_KNOBS, HEAT_TYPOLOGIES, type HazardKnob, type HeatParams, type HeatTypology } from "@/lib/typology-map/engine";
+import { BORDER_FT, type Cluster, EASE_WEIGHTS, HAZARD_KNOBS, HEAT_TYPOLOGIES, type HazardKnob, type HeatParams, type HeatTypology, mostlyStressed } from "@/lib/typology-map/engine";
+import { areaReport } from "@/lib/typology-map/area-report";
 import { focusHeatCluster, rerunHeat, setHeatEnabled, setHeatParams, useHeat } from "@/lib/typology-map/heatmap-store";
+
+import { AreaReportCard } from "./area-report-card";
+import { LeversPanel } from "./levers-panel";
 
 import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
 import { usePillarWeights } from "./pillar-weights-store";
@@ -45,6 +49,19 @@ function easeNote(c: Cluster) {
   const step = c.easeParts.step === 1 ? "density change only" : c.easeParts.step === 0.5 ? "one district step" : "big district jump";
   const border = c.easeParts.borders ? `extends a neighboring ${c.target.split("-")[0]} district` : `no ${c.target.split("-")[0]} district next door`;
   return `${step} · ${border} · ZBA approves ${Math.round(c.easeParts.approval * 100)}% here`;
+}
+
+function leverNote(c: Cluster) {
+  const l = c.levers;
+  if (!l.known) return null;
+  const city = l.cityForSale + l.cityTransfer + l.cityPending;
+  const parts = [
+    city ? `${city} City lot${city > 1 ? "s" : ""}` : null,
+    l.anyIncentive ? `${l.anyIncentive} in QCT/DDA/OZ` : null,
+    l.delinquent ? `${l.delinquent} tax-delinquent` : null,
+    mostlyStressed(l) ? "⚠ mostly Transitional/Stressed market" : null,
+  ].filter(Boolean);
+  return parts.length ? parts.join(" · ") : "no City land or federal designation";
 }
 const fmt = (n: number) => Math.round(n).toLocaleString("en-US");
 const pct = (n: number) => `${Math.round(n * 100)}%`;
@@ -86,7 +103,15 @@ function Knob({ label, value, display, min, max, step, onChange }: { label: stri
 }
 
 /** Knobs and results for the typology heatmap and rezoning explorer. Every change re-runs the engine citywide. */
-export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyTo: (bounds: [[number, number], [number, number]]) => void }) {
+export function HeatmapPanel({
+  onClose,
+  onFlyTo,
+  selectedPin,
+}: {
+  onClose: () => void;
+  onFlyTo: (bounds: [[number, number], [number, number]]) => void;
+  selectedPin: string | null;
+}) {
   const heat = useHeat();
   const { params, result, previous, status } = heat;
   const myWeights = usePillarWeights();
@@ -123,6 +148,15 @@ export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyT
   };
 
   const s = result?.summary;
+  const focused = heat.focusCluster != null ? result?.clusters.find((c) => c.id === heat.focusCluster) : undefined;
+  // Picking an area (here or on the map) brings its report into view.
+  useEffect(() => {
+    if (heat.focusCluster == null) return;
+    // Scroll only the panel's own scroller; scrollIntoView would also shift the map pane.
+    const report = document.getElementById("heat-area-report");
+    const scroller = report?.closest(".overflow-y-auto");
+    if (report && scroller) scroller.scrollTo({ top: report.getBoundingClientRect().top - scroller.getBoundingClientRect().top + scroller.scrollTop - 8, behavior: "smooth" });
+  }, [heat.focusCluster]);
   const busy = status === "loading" || status === "running";
 
   return (
@@ -201,6 +235,19 @@ export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyT
           ))}
         </div>
       )}
+      {focused && (
+        <div id="heat-area-report" className="scroll-mt-2 rounded-md border border-purple-500 p-2">
+          <AreaReportCard report={areaReport(focused, params)} onBack={() => focusHeatCluster(null)} />
+        </div>
+      )}
+      {selectedPin && (
+        <details className="rounded-md border px-2 py-1">
+          <summary className="cursor-pointer text-foreground">Selected parcel: what could the City do here?</summary>
+          <div className="mt-1">
+            <LeversPanel pin={selectedPin} typology={params.typology} embedded />
+          </div>
+        </details>
+      )}
       {status === "loading" && <p>Loading citywide parcel facts (about 3 MB)…</p>}
       {status === "error" && <p className="text-red-600">Heatmap failed: {heat.error}</p>}
 
@@ -273,6 +320,17 @@ export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyT
         <Knob label="Group parcels within" value={params.rezone.joinFt} display={`${params.rezone.joinFt} ft`} min={25} max={500} step={25} onChange={(joinFt) => updateRezone({ joinFt })} />
         <Knob label="Smallest area worth showing" value={params.rezone.minHomes} display={`${params.rezone.minHomes} homes`} min={1} max={200} step={1} onChange={(minHomes) => updateRezone({ minHomes })} />
         <div className="grid grid-cols-1 gap-1">
+          <div className="pt-1 text-foreground">Line up the levers</div>
+          <Check checked={params.rezone.requireCityLand} onChange={(v) => updateRezone({ requireCityLand: v })}>
+            Only areas with City land (for sale, in transfer or pending)
+          </Check>
+          <Check checked={params.rezone.requireIncentive} onChange={(v) => updateRezone({ requireIncentive: v })}>
+            Only areas in a QCT, DDA or Opportunity Zone
+          </Check>
+          <Check checked={params.rezone.excludeStressed} onChange={(v) => updateRezone({ excludeStressed: v })}>
+            Skip areas mostly in Transitional/Stressed markets (a value judgment)
+          </Check>
+          <div className="pt-1 text-foreground">Which parcels count</div>
           <Check checked={params.rezone.vacantOnly} onChange={(v) => updateRezone({ vacantOnly: v })}>
             Vacant land and parking only (no one displaced)
           </Check>
@@ -299,7 +357,8 @@ export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyT
               All {fmt(result.clusters.length)} areas: +{fmt(s.homesUnlocked)} homes
               <Delta now={s.homesUnlocked} before={previous?.homesUnlocked} /> on {fmt(s.lockedParcels)} locked parcels ({s.acresLocked.toFixed(0)} acres). Green parcels
               today could hold about {fmt(s.homesGreenToday)}
-              <Delta now={s.homesGreenToday} before={previous?.homesGreenToday} /> {SHORT_LABEL[params.typology].toLowerCase()} homes.
+              <Delta now={s.homesGreenToday} before={previous?.homesGreenToday} /> homes ({SHORT_LABEL[params.typology].toLowerCase()}).{" "}
+              {fmt(s.aligned)} areas have zoning, City land and a federal incentive lined up. Click an area for its report.
             </div>
           </div>
         )}
@@ -317,6 +376,7 @@ export function HeatmapPanel({ onClose, onFlyTo }: { onClose: () => void; onFlyT
                   </span>{" "}
                   ({fmt(c.affordableHomes)} affordable) · {c.acres.toFixed(1)} ac · {c.parcels.length} parcels, {c.vacant} vacant · {c.zones.join("/")} → {c.target}
                   <span className="block">{easeNote(c)}</span>
+                  {leverNote(c) && <span className="block text-foreground/80">{leverNote(c)}</span>}
                 </button>
               </li>
             ))}

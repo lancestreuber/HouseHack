@@ -11,11 +11,17 @@ import { getHeat, type HeatState } from "@/lib/typology-map/heatmap-store";
 
 const POINTS_SOURCE = "heat-points";
 const POINTS_LAYER = "heat-points";
+const DENSITY_LAYER = "heat-density";
 const FILL_LAYER = "heat-parcel-fill";
+const OUTLINE_LAYER = "heat-parcel-outline";
 const CLUSTER_SOURCE = "heat-clusters";
 const CLUSTER_FILL = "heat-clusters-fill";
 const CLUSTER_LINE = "heat-clusters-line";
 export const HEAT_POINTS_MAX_ZOOM = 14;
+// Below this zoom the parcels blend into a density heatmap (like the lead-line overlay); dots take over above it.
+const DOT_ZOOM = 12.5;
+// How much each legend entry adds to the heatmap: only the parcels worth building on glow.
+const HEAT_WEIGHT: Record<string, number> = { green: 1, yellow: 0.2, unlocked: 1, unlocked_small: 0.6 };
 const CLUSTER_COLOR = "#a855f7";
 
 const TRANSPARENT = "rgba(0,0,0,0)";
@@ -32,17 +38,57 @@ function ensureLayers(map: MapLibreMap, { parcelSourceId, beforeLayerId }: HeatL
   const before = map.getLayer(beforeLayerId) ? beforeLayerId : undefined;
   if (!map.getSource(POINTS_SOURCE)) map.addSource(POINTS_SOURCE, { type: "geojson", data: empty });
   if (!map.getSource(CLUSTER_SOURCE)) map.addSource(CLUSTER_SOURCE, { type: "geojson", data: empty });
+  if (!map.getLayer(DENSITY_LAYER)) {
+    map.addLayer(
+      {
+        id: DENSITY_LAYER,
+        type: "heatmap",
+        source: POINTS_SOURCE,
+        maxzoom: HEAT_POINTS_MAX_ZOOM + 1,
+        filter: [">", ["get", "w"], 0],
+        paint: {
+          "heatmap-weight": ["get", "w"],
+          "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 10, 5, 12, 9, HEAT_POINTS_MAX_ZOOM, 16],
+          "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 10, 0.35, HEAT_POINTS_MAX_ZOOM, 1],
+          "heatmap-color": [
+            "interpolate",
+            ["linear"],
+            ["heatmap-density"],
+            // A dark rim at low density keeps the glow readable over the zoning colors underneath.
+            0,
+            "rgba(0,0,0,0)",
+            0.08,
+            "rgba(5,20,10,0.55)",
+            0.25,
+            "rgba(22,163,74,0.9)",
+            0.55,
+            "rgba(74,222,128,0.95)",
+            0.8,
+            "rgba(217,249,157,1)",
+            1,
+            "rgba(255,255,255,1)",
+          ],
+          "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], DOT_ZOOM, 0.9, HEAT_POINTS_MAX_ZOOM + 0.5, 0],
+        },
+      },
+      before,
+    );
+  }
   if (!map.getLayer(POINTS_LAYER)) {
     map.addLayer(
       {
         id: POINTS_LAYER,
         type: "circle",
         source: POINTS_SOURCE,
+        minzoom: DOT_ZOOM,
         maxzoom: HEAT_POINTS_MAX_ZOOM,
         paint: {
           "circle-color": TRANSPARENT,
-          "circle-radius": ["interpolate", ["linear"], ["zoom"], 10, 1, 12, 2, 14, 3.5],
-          "circle-opacity": 0.8,
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 12, 2.5, 14, 4.5],
+          "circle-opacity": 0.95,
+          "circle-stroke-color": "#000000",
+          "circle-stroke-width": 0.75,
+          "circle-stroke-opacity": 0.8,
         },
       },
       before,
@@ -50,9 +96,12 @@ function ensureLayers(map: MapLibreMap, { parcelSourceId, beforeLayerId }: HeatL
   }
   if (!map.getLayer(FILL_LAYER) && map.getSource(parcelSourceId)) {
     map.addLayer(
-      { id: FILL_LAYER, type: "fill", source: parcelSourceId, paint: { "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0.55 } },
+      { id: FILL_LAYER, type: "fill", source: parcelSourceId, paint: { "fill-color": "rgba(0,0,0,0)", "fill-opacity": 0.7 } },
       before,
     );
+  }
+  if (!map.getLayer(OUTLINE_LAYER) && map.getSource(parcelSourceId)) {
+    map.addLayer({ id: OUTLINE_LAYER, type: "line", source: parcelSourceId, paint: { "line-color": "rgba(0,0,0,0)", "line-width": 1.5 } }, before);
   }
   if (!map.getLayer(CLUSTER_FILL)) {
     map.addLayer({ id: CLUSTER_FILL, type: "fill", source: CLUSTER_SOURCE, paint: { "fill-color": CLUSTER_COLOR, "fill-opacity": ["case", ["get", "focus"], 0.3, 0.12] } });
@@ -67,7 +116,7 @@ function ensureLayers(map: MapLibreMap, { parcelSourceId, beforeLayerId }: HeatL
   }
 }
 
-const HEAT_LAYERS = [POINTS_LAYER, FILL_LAYER, CLUSTER_FILL, CLUSTER_LINE];
+const HEAT_LAYERS = [DENSITY_LAYER, POINTS_LAYER, FILL_LAYER, OUTLINE_LAYER, CLUSTER_FILL, CLUSTER_LINE];
 
 let lastPointsResult: unknown = null;
 let lastClusterKey = "";
@@ -88,9 +137,11 @@ export function syncHeatLayers(map: MapLibreMap, options: HeatLayerOptions, heat
 
   if (force || lastPointsResult !== result) {
     lastPointsResult = result;
+    const weights = result.legend.map((e) => HEAT_WEIGHT[e.key] ?? 0);
     const features = new Array(base.pins.length);
     for (let i = 0; i < base.pins.length; i++) {
-      features[i] = { type: "Feature", id: i, geometry: { type: "Point", coordinates: [base.lng[i], base.lat[i]] }, properties: { l: result.level[i] } };
+      const l = result.level[i];
+      features[i] = { type: "Feature", id: i, geometry: { type: "Point", coordinates: [base.lng[i], base.lat[i]] }, properties: { l, w: weights[l] } };
     }
     (map.getSource(POINTS_SOURCE) as GeoJSONSource).setData({ type: "FeatureCollection", features });
     map.setPaintProperty(POINTS_LAYER, "circle-color", levelColor(result.legend));
@@ -137,11 +188,9 @@ export function paintParcelFill(map: MapLibreMap, { parcelSourceId }: HeatLayerO
     if (i != null) byLevel[heat.result.level[i]].push(pin);
   }
   const branches = byLevel.flatMap((pins, code) => (pins.length && legend[code].color !== TRANSPARENT ? [pins, legend[code].color] : []));
-  map.setPaintProperty(
-    FILL_LAYER,
-    "fill-color",
-    branches.length ? (["match", ["get", "pin"], ...branches, TRANSPARENT] as unknown as ExpressionSpecification) : TRANSPARENT,
-  );
+  const color = branches.length ? (["match", ["get", "pin"], ...branches, TRANSPARENT] as unknown as ExpressionSpecification) : TRANSPARENT;
+  map.setPaintProperty(FILL_LAYER, "fill-color", color);
+  if (map.getLayer(OUTLINE_LAYER)) map.setPaintProperty(OUTLINE_LAYER, "line-color", color);
 }
 
 /** Hover popups and clicks for the heat layers; returns an unsubscribe. */

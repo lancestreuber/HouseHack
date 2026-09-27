@@ -3,10 +3,19 @@ import { describe, expect, test } from "bun:test";
 import config from "@/lib/pillars/pillars.config.json";
 
 import { capacity } from "./capacity";
+import { areaChatContext, areaReport } from "./area-report";
 import { DEFAULT_PARAMS, type HeatParams, runHeatmap, smallestChange, stepCloseness } from "./engine";
 import { decodeFacts, type Facts } from "./facts";
 
-type Lot = { zone: string; lng: number; lat: number; w?: number; d?: number; area?: number; norm?: Record<string, number | null> };
+type Lot = { zone: string; lng: number; lat: number; w?: number; d?: number; area?: number; norm?: Record<string, number | null>; lever?: Partial<Record<string, number>> };
+
+const LEVER_CODES = {
+  designation_bits: { qct: 1, dda: 2, oz: 4 },
+  overlay_bits: { inclusionary: 1, historic: 2, historic_landmark: 2, parking_reduction: 4, transit_buffer: 4 },
+  city_classes: ["", "available", "transfer", "pending", "hold", "not_developable"],
+  mva_types: ["", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "NC"],
+};
+const LEVER_COLUMNS = ["designations", "overlays", "mva", "city_owned", "treasury_sale", "years_delinquent"];
 
 // ~100 ft of latitude.
 const STEP = 100 / 364_000;
@@ -42,6 +51,8 @@ function makeFacts(lots: Lot[]): Facts {
       demand_median_sale_price: Float32Array.from(lots, () => Number.NaN),
       afford_rent_vs_ami: Float32Array.from(lots, () => Number.NaN),
     },
+    levers: Object.fromEntries(LEVER_COLUMNS.map((c) => [c, Uint8Array.from(lots, (l) => l.lever?.[c] ?? (c === "mva" ? 2 : 0))])),
+    leverCodes: LEVER_CODES,
   };
 }
 
@@ -192,5 +203,41 @@ describe("rezoning delta", () => {
     expect(r.clusters[0].easeParts.borders).toBe(true);
     expect(r.clusters[1].easeParts.borders).toBe(false);
     expect(r.clusters[0].ease).toBeGreaterThan(r.clusters[1].ease);
+  });
+});
+
+describe("public levers", () => {
+  // Two separate areas: one with a City lot for sale in a QCT, one in a Stressed market.
+  const withLand = [0, 1].map((k) => ({ zone: "R1D-L", lng: -79.95, lat: 40.45 + k * STEP, lever: k === 0 ? { city_owned: 1, designations: 1, years_delinquent: 4 } : { designations: 1 } }));
+  const stressed = [0, 1].map((k) => ({ zone: "R1D-L", lng: -79.8, lat: 40.5 + k * STEP, lever: { mva: 9 } }));
+
+  test("areas carry lever counts", () => {
+    const r = runHeatmap(makeFacts([...withLand, ...stressed]), params());
+    const land = r.clusters.find((c) => c.levers.cityForSale > 0)!;
+    expect(land.levers).toMatchObject({ cityForSale: 1, qct: 2, anyIncentive: 2, delinquent: 1, delinquent3: 1 });
+    expect(land.levers.mva.robust).toBe(2);
+    expect(r.summary.aligned).toBe(1);
+  });
+
+  test("lever filters narrow the areas", () => {
+    const facts = makeFacts([...withLand, ...stressed]);
+    expect(runHeatmap(facts, params()).clusters).toHaveLength(2);
+    expect(runHeatmap(facts, params({}, { requireCityLand: true })).clusters).toHaveLength(1);
+    expect(runHeatmap(facts, params({}, { requireIncentive: true })).clusters).toHaveLength(1);
+    const kept = runHeatmap(facts, params({}, { excludeStressed: true })).clusters;
+    expect(kept).toHaveLength(1);
+    expect(kept[0].levers.cityForSale).toBe(1);
+  });
+
+  test("the area report warns on Transitional/Stressed markets and the chat gets the same facts", () => {
+    const r = runHeatmap(makeFacts(stressed), params());
+    const report = areaReport(r.clusters[0], r.params);
+    const equity = report.sections.find((s) => s.key === "equity")!;
+    expect(equity.tone).toBe("warn");
+    expect(equity.lines.map((l) => l.id)).toContain("area.equity.warn");
+    const chat = areaChatContext(report, "2026-09-27");
+    expect(chat.facts.map((f) => f.id)).toContain("area.zoning.record");
+    expect(chat.facts.every((f) => f.text.length <= 600)).toBe(true);
+    expect(report.sections.find((s) => s.key === "land")!.tone).toBe("stop");
   });
 });

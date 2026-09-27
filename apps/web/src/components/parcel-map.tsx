@@ -3,7 +3,7 @@ import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useNavigate } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 // MapLibre parses vector tiles in a Web Worker. The bundler rewrites the
 // worker's URL to an /assets/ path but never emits the file, so the worker 404s
@@ -43,7 +43,8 @@ import { useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
 import { paintParcelFill, registerHeatInteractions, syncHeatLayers } from "./map/heat-layers";
 import { HeatmapPanel } from "./map/heatmap-panel";
-import { focusHeatCluster, getHeat, setHeatEnabled, subscribeHeat } from "@/lib/typology-map/heatmap-store";
+import { areaChatContext, areaReport } from "@/lib/typology-map/area-report";
+import { focusHeatCluster, getHeat, setHeatEnabled, subscribeHeat, useHeat } from "@/lib/typology-map/heatmap-store";
 import {
   hitsClickableOverlay,
   INITIAL_OVERLAY_STATE,
@@ -299,7 +300,14 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     }
   };
   // The chat explains exactly what the panes show for the selected parcel.
-  const chatContext = useParcelChatContext(selectedPin) ?? undefined;
+  const parcelChat = useParcelChatContext(selectedPin) ?? undefined;
+  // A focused rezoning area in "Where to build" takes over the chat until it's closed.
+  const heat = useHeat();
+  const focusedArea = heat.enabled && heat.focusCluster != null ? heat.result?.clusters.find((c) => c.id === heat.focusCluster) : undefined;
+  const chatContext = useMemo(
+    () => (focusedArea && heat.result ? areaChatContext(areaReport(focusedArea, heat.result.params), heat.base?.built.slice(0, 10) ?? "") : parcelChat),
+    [focusedArea, heat.result, heat.base, parcelChat],
+  );
   // A typology tile's scenario card, shown on the map for the selected parcel.
   const scenario = useScenario();
   useEffect(() => closeScenario(), [selectedPin]);
@@ -604,6 +612,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                       <div className="mt-1 max-h-[calc(100vh-12rem)] overflow-y-auto">
                         <HeatmapPanel
                           onClose={() => setHeatOpen(false)}
+                          selectedPin={selectedPin}
                           onFlyTo={(bounds) => mapRef.current?.fitBounds(bounds, { padding: 60, maxZoom: 17 })}
                         />
                       </div>

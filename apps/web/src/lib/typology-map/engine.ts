@@ -61,6 +61,12 @@ export type HeatParams = {
     vacantOnly: boolean;
     /** Drop clusters that unlock fewer homes than this. */
     minHomes: number;
+    /** Only areas with City-owned land that is for sale, in transfer, or pending. */
+    requireCityLand: boolean;
+    /** Only areas with a parcel in a federal QCT, DDA or Opportunity Zone. */
+    requireIncentive: boolean;
+    /** Value judgment: drop areas mostly in Transitional or Stressed markets (MVA 2021). */
+    excludeStressed: boolean;
   };
 };
 
@@ -73,7 +79,7 @@ export const DEFAULT_PARAMS: HeatParams = {
   subsidy: true,
   strict: false,
   tiers: { green: 0.25, red: 0.25 },
-  rezone: { target: "auto", rankBy: "balanced", affordableShare: 0.1, joinFt: 150, sameDistrict: true, includeYellow: false, hearingsLocked: false, vacantOnly: false, minHomes: 20 },
+  rezone: { target: "auto", rankBy: "balanced", affordableShare: 0.1, joinFt: 150, sameDistrict: true, includeYellow: false, hearingsLocked: false, vacantOnly: false, minHomes: 20, requireCityLand: false, requireIncentive: false, excludeStressed: false },
 };
 
 // Levels as small ints for the typed result arrays and the map's feature state.
@@ -103,6 +109,30 @@ const VACANT = 0;
 const PERMITTING = new Set(["by_right", "za"]);
 const HEARINGS = new Set(["zbe_special_exception", "conditional_use"]);
 
+/** MVA 2021 market groups (Reinvestment Fund's executive summary). */
+export const MVA_GROUPS = { robust: ["A", "B", "C"], steady: ["D", "E", "F"], transitional: ["G", "H"], stressed: ["I", "J"] } as const;
+export type MvaGroup = keyof typeof MVA_GROUPS | "unclassified";
+
+/** Public-lever facts summed over an area's parcels (counts of parcels). */
+export type AreaLevers = {
+  known: boolean;
+  qct: number;
+  dda: number;
+  oz: number;
+  anyIncentive: number;
+  inclusionary: number;
+  historic: number;
+  parkingReduction: number;
+  cityForSale: number;
+  cityTransfer: number;
+  cityPending: number;
+  cityHeld: number;
+  treasurySale: number;
+  delinquent: number;
+  delinquent3: number;
+  mva: Record<MvaGroup, number>;
+};
+
 export type Cluster = {
   id: number;
   parcels: number[];
@@ -127,6 +157,7 @@ export type Cluster = {
     /** Zoning Board relief approval rate in the current district, 2023–26 (a proxy; rezonings go to Council). */
     approval: number;
   };
+  levers: AreaLevers;
 };
 
 export type HeatResult = {
@@ -150,6 +181,8 @@ export type HeatResult = {
     affordableUnlocked: number;
     acresLocked: number;
     top10: { homes: number; affordable: number; acres: number };
+    /** Areas where zoning, City land and a federal incentive all line up. */
+    aligned: number;
     ms: number;
   };
 };
@@ -219,6 +252,59 @@ function tierOf(rank: number, tiers: HeatParams["tiers"]): VerdictLevel {
   if (rank < tiers.red) return "red";
   return "yellow";
 }
+
+export function areaLevers(facts: Facts, parcels: number[]): AreaLevers {
+  const mva: Record<MvaGroup, number> = { robust: 0, steady: 0, transitional: 0, stressed: 0, unclassified: 0 };
+  const out: AreaLevers = {
+    known: facts.leverCodes != null,
+    qct: 0,
+    dda: 0,
+    oz: 0,
+    anyIncentive: 0,
+    inclusionary: 0,
+    historic: 0,
+    parkingReduction: 0,
+    cityForSale: 0,
+    cityTransfer: 0,
+    cityPending: 0,
+    cityHeld: 0,
+    treasurySale: 0,
+    delinquent: 0,
+    delinquent3: 0,
+    mva,
+  };
+  const codes = facts.leverCodes;
+  if (!codes) return out;
+  const L = facts.levers;
+  const D = codes.designation_bits;
+  const O = codes.overlay_bits;
+  const group = (type: string): MvaGroup =>
+    (Object.keys(MVA_GROUPS) as (keyof typeof MVA_GROUPS)[]).find((g) => (MVA_GROUPS[g] as readonly string[]).includes(type)) ?? "unclassified";
+  for (const i of parcels) {
+    const d = L.designations[i];
+    if (d & D.qct) out.qct++;
+    if (d & D.dda) out.dda++;
+    if (d & D.oz) out.oz++;
+    if (d) out.anyIncentive++;
+    const o = L.overlays[i];
+    if (o & O.inclusionary) out.inclusionary++;
+    if (o & O.historic) out.historic++;
+    if (o & O.parking_reduction) out.parkingReduction++;
+    const cls = codes.city_classes[L.city_owned[i]];
+    if (cls === "available") out.cityForSale++;
+    else if (cls === "transfer") out.cityTransfer++;
+    else if (cls === "pending") out.cityPending++;
+    else if (cls === "hold") out.cityHeld++;
+    if (L.treasury_sale[i]) out.treasurySale++;
+    if (L.years_delinquent[i] > 0) out.delinquent++;
+    if (L.years_delinquent[i] >= 3) out.delinquent3++;
+    mva[group(codes.mva_types[L.mva[i]] ?? "")]++;
+  }
+  return out;
+}
+
+/** True when most of the area's parcels are in Transitional or Stressed markets. */
+export const mostlyStressed = (l: AreaLevers) => l.known && l.mva.transitional + l.mva.stressed > (Object.values(l.mva).reduce((a, b) => a + b, 0) || 1) / 2;
 
 const BASE_LADDER = ["R1D", "R1A", "R2", "R3", "RM"];
 const DENSITY_LADDER = ["VL", "L", "M", "H", "VH"];
@@ -384,6 +470,7 @@ export function runHeatmap(facts: Facts, params: HeatParams): HeatResult {
       homesUnlocked,
       affordableUnlocked: clusters.reduce((a, c) => a + c.affordableHomes, 0),
       acresLocked,
+      aligned: clusters.filter((c) => c.levers.anyIncentive > 0 && c.levers.cityForSale + c.levers.cityTransfer + c.levers.cityPending > 0).length,
       top10: {
         homes: top.reduce((a, c) => a + c.homes, 0),
         affordable: top.reduce((a, c) => a + c.affordableHomes, 0),
@@ -505,9 +592,19 @@ function findClusters(
       target,
       ease,
       easeParts: { step, borders, approval },
+      levers: areaLevers(facts, parcels),
       hull: paddedHull(pts, center, 60 / FT_PER_DEG_LAT, cosLat),
     });
   }
+  const { requireCityLand, requireIncentive, excludeStressed } = params.rezone;
+  const kept = clusters.filter(
+    (c) =>
+      (!requireCityLand || c.levers.cityForSale + c.levers.cityTransfer + c.levers.cityPending > 0) &&
+      (!requireIncentive || c.levers.anyIncentive > 0) &&
+      (!excludeStressed || !mostlyStressed(c.levers)),
+  );
+  clusters.length = 0;
+  clusters.push(...kept);
   const rankValue = (c: Cluster) => (rankBy === "homes" ? c.homes : rankBy === "ease" ? c.ease : c.homes * c.ease);
   clusters.sort((a, b) => rankValue(b) - rankValue(a) || b.homes - a.homes);
   const cluster = new Uint32Array(unlocked.length);
