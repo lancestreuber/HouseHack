@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { keepVerified, numbersIn, parseReply, unverifiedNumbers } from "./guard";
+import { keepVerified, numbersIn, parseReply, spelledNumbers, unverifiedNumbers } from "./guard";
 
 describe("parseReply", () => {
   test("strips markdown emphasis, headings and code so no symbols reach the UI", () => {
@@ -49,6 +49,24 @@ describe("parseReply", () => {
 describe("numbersIn", () => {
   test("normalizes commas, currency and percents", () => {
     expect(numbersIn("Rent is $1,299 and 40% of lots; 412 m; 0.5 mi")).toEqual(["1299", "40", "412", "0.5"]);
+  });
+});
+
+describe("spelledNumbers", () => {
+  test("finds quantities written in words, which can't be checked", () => {
+    for (const text of ["Zero percent of the lot is in a floodplain.", "Thirty-six percent of the lot is steep.", "One hundred percent of the lot is over mines.", "Eighty-three point seven percent of renters are burdened.", "It is twenty feet wide."]) {
+      expect(spelledNumbers(text)).toHaveLength(1);
+    }
+  });
+
+  test("leaves ordinary words alone", () => {
+    for (const text of ["A two-unit building fits.", "One house is allowed.", "It is one of the five pillars.", "Zero hazards are mapped here."]) {
+      expect(spelledNumbers(text)).toEqual([]);
+    }
+  });
+
+  test("counts them as unverified, even when the value is right", () => {
+    expect(unverifiedNumbers("Thirty-six percent of the lot is steep.", ["36"])).toEqual(["Thirty-six percent"]);
   });
 });
 

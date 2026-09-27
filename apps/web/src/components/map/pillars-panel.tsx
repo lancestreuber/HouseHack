@@ -12,6 +12,7 @@ import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil
 import { VERDICT_COLOR, VERDICT_NOT_CHECKED, VERDICT_PERMIT_NOTE } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
+import { EASIEST, setLegalFor, useLegalFor } from "./legal-for-store";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { type FitsById, legalLevelFor, SHORT_LABEL, verdictFor } from "./typology-meta";
 
@@ -524,7 +525,10 @@ export function PillarsPanel({
   const { data, status } = useParcelData(pin);
   // "easiest" = the zoning factor uses the easiest of the mainstream types (the
   // published default); otherwise it follows the one housing type picked here.
-  const [legalFor, setLegalFor] = useState("easiest");
+  // Shared with the chat, so it scores the parcel the way this panel does; back
+  // to the easiest type when the panel closes, as when this was local state.
+  const legalFor = useLegalFor();
+  useEffect(() => () => setLegalFor(EASIEST), []);
   const overrides = useMemo<WeightOverrides>(
     () => ({
       pillars: weights,

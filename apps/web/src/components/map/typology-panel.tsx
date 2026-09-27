@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
@@ -13,6 +14,7 @@ import {
 } from "@HouseHack/ui/components/select";
 
 import { Disclaimer } from "@/components/disclaimer";
+import { openScenario } from "@/components/scenario/scenario-store";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS } from "./overlays/legal-matrix.generated";
@@ -159,6 +161,17 @@ function TypologyTile({
           {score == null ? "—" : score}
         </span>
         <span className="truncate text-muted-foreground">{pathway?.label ?? "Unresolved in the code"}</span>
+        <button
+          type="button"
+          onClick={(e) => {
+            // The tile itself jumps to the Alerts pane; this only opens the scenario.
+            e.stopPropagation();
+            openScenario(typologyId);
+          }}
+          className="ml-auto flex h-4 shrink-0 items-center gap-0.5 self-center rounded border px-1 text-[10px] leading-none text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+        >
+          <MapPin className="size-3" aria-hidden /> Scenario
+        </button>
       </div>
       {fit && (
         <div className="space-y-0.5 border-t border-border/40 pt-1">

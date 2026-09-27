@@ -2,6 +2,7 @@ import z from "zod";
 
 import { createChat } from "../chat/engine";
 import { type AudioChunk, geminiGenerate, geminiSpeakStream } from "../chat/gemini";
+import { createScenario } from "../chat/scenario";
 import { publicProcedure } from "../index";
 
 const factKind = z.enum(["evidence", "assumption", "observed", "policy", "value", "definition"]);
@@ -13,6 +14,7 @@ const contextFact = z.object({
   source_url: z.string().max(500),
   as_of: z.string().max(40),
   kind: factKind,
+  tone: z.enum(["good", "bad"]).optional(),
 });
 
 export const chatContext = z.object({
@@ -62,6 +64,26 @@ function chatFor(apiKey: string | undefined) {
   return chat;
 }
 
+const scenarioInput = z.object({
+  context: chatContext,
+  typology: z.object({ id: z.string().regex(/^[a-z0-9_]{1,40}$/), name: z.string().min(1).max(60) }),
+  focus: z.array(z.string().regex(/^[a-z0-9_.:-]{1,80}$/i)).max(10).optional(),
+});
+
+// Same pattern for scenario pros and cons.
+const scenarios = new Map<string, ReturnType<typeof createScenario>>();
+const noKeyScenario = createScenario({ generate: null });
+
+function scenarioFor(apiKey: string | undefined) {
+  if (!apiKey) return noKeyScenario;
+  let scenario = scenarios.get(apiKey);
+  if (!scenario) {
+    scenario = createScenario({ generate: geminiGenerate(apiKey) });
+    scenarios.set(apiKey, scenario);
+  }
+  return scenario;
+}
+
 // Spoken replies, cached by text so replays and repeated demo answers are free.
 // Bump VOICE_VERSION when the TTS request changes so stale clips aren't reused.
 const VOICE_VERSION = 3;
@@ -71,6 +93,9 @@ const SPEECH_CACHE_LIMIT = 100;
 export const chatRouter = {
   /** Explain-only assistant grounded in the facts the screen is showing. */
   ask: publicProcedure.input(askInput).handler(({ input, context }) => chatFor(context.geminiApiKey)(input)),
+
+  /** Up to five pros and five cons for building one housing type on the parcel, from the same facts. */
+  scenario: publicProcedure.input(scenarioInput).handler(({ input, context }) => scenarioFor(context.geminiApiKey)(input)),
 
   /**
    * Stream a natural voice reading `text`, chunk by chunk, so playback can start
