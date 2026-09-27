@@ -615,12 +615,13 @@ function TypologyTrack({
     }
     if (nextCompact) return;
     const leftover = Math.max(0, available - cardPx.current);
-    // The chart takes all leftover height. Until there's room for it at its
-    // smallest readable size it unfolds (scaled vertically and faded in), so
-    // the space fills with something emerging rather than a blank band.
+    // The chart (and the fit bar next to it) only show once there's room for
+    // the chart at its smallest readable size -- a sliver of leftover space
+    // used to unfold it into an illegibly squished strip instead of just
+    // staying hidden.
     const minChartPx = CHART_ROWS_EM * CHART_MIN_FONT_PX;
     const unfold = Math.min(1, leftover / minChartPx);
-    const chartNeeded = leftover > 0.5;
+    const chartNeeded = leftover >= minChartPx;
     if (chartNeeded !== showChartRef.current) {
       showChartRef.current = chartNeeded;
       setShowChart(chartNeeded);
