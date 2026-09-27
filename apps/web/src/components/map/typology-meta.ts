@@ -119,3 +119,20 @@ export function verdictFor(zoning: string, typologyId: string, data: { norm: Ind
     pencil: pencilCheck(typologyId, data.norm, data.raw, ctx.pencil),
   });
 }
+
+const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"];
+const DENSITIES = ["VL", "L", "M", "H", "VH"];
+
+/** The other residential districts at the nearest density to this one. */
+export function rezoningTargets(zoning: string): string[] {
+  const [base, density = ""] = zoning.split("-");
+  if (!base || !RESIDENTIAL_BASES.includes(base)) return [];
+  const at = DENSITIES.indexOf(density);
+  return RESIDENTIAL_BASES.filter((b) => b !== base).flatMap((b) => {
+    const options = DENSITIES.map((d) => `${b}-${d}`).filter((code) => DISTRICT_PATHWAYS[code]);
+    const nearest = options.sort(
+      (x, y) => Math.abs(DENSITIES.indexOf(x.split("-")[1]!) - at) - Math.abs(DENSITIES.indexOf(y.split("-")[1]!) - at),
+    )[0];
+    return nearest ? [nearest] : [];
+  });
+}
