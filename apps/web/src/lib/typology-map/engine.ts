@@ -46,7 +46,9 @@ export type HeatParams = {
     /** District the land would be rezoned to (sets the envelope for capacity), or "auto": the smallest change that allows the type. */
     target: string;
     /** How to order the rezoning areas: most homes, easiest to rezone, or homes × ease. */
-    rankBy: "balanced" | "ease" | "homes";
+    rankBy: "balanced" | "ease" | "homes" | "levers";
+    /** Only areas where at least this many of the three levers are in reach (0–3). */
+    minLevers: number;
     /** Share of new homes that would be income-restricted, 0–1. */
     affordableShare: number;
     /** Locked parcels whose representative points are this close join one cluster. */
@@ -63,7 +65,7 @@ export type HeatParams = {
     minHomes: number;
     /** Only areas with City-owned land that is for sale, in transfer, or pending. */
     requireCityLand: boolean;
-    /** Only areas with a parcel in a federal QCT, DDA or Opportunity Zone. */
+    /** Only areas with a location incentive that helps this housing type (see LOCATION_INCENTIVES). */
     requireIncentive: boolean;
     /** Value judgment: drop areas mostly in Transitional or Stressed markets (MVA 2021). */
     excludeStressed: boolean;
@@ -79,7 +81,7 @@ export const DEFAULT_PARAMS: HeatParams = {
   subsidy: true,
   strict: false,
   tiers: { green: 0.25, red: 0.25 },
-  rezone: { target: "auto", rankBy: "balanced", affordableShare: 0.1, joinFt: 150, sameDistrict: true, includeYellow: false, hearingsLocked: false, vacantOnly: false, minHomes: 20, requireCityLand: false, requireIncentive: false, excludeStressed: false },
+  rezone: { target: "auto", rankBy: "levers", minLevers: 0, affordableShare: 0.1, joinFt: 150, sameDistrict: true, includeYellow: false, hearingsLocked: false, vacantOnly: false, minHomes: 20, requireCityLand: false, requireIncentive: false, excludeStressed: false },
 };
 
 // Levels as small ints for the typed result arrays and the map's feature state.
@@ -101,6 +103,29 @@ const DELTA_LEGEND = [
 
 /** Ease-of-rezoning weights: value judgments, shown in the panel. */
 export const EASE_WEIGHTS = { step: 0.4, borders: 0.3, approval: 0.3 };
+/** A rezoning counts as an easy zoning lever at or above this ease (a value judgment). */
+export const EASY_REZONING = 0.6;
+
+/** Which location-based incentives help which housing type (policy facts; City-wide programs aren't location levers). */
+export const LOCATION_INCENTIVES: Record<string, ("qct" | "dda" | "oz")[]> = {
+  // The QCT/DDA basis boost is for tax-credit (LIHTC) rentals; Opportunity Zone capital-gains deferral applies to any qualified investment.
+  multi_unit: ["qct", "dda", "oz"],
+  three_unit: ["oz"],
+  two_unit: ["oz"],
+  single_attached: ["oz"],
+  single_detached: ["oz"],
+};
+
+export type LeverAccess = { zoning: boolean; land: boolean; incentive: boolean; count: number };
+
+export function leverAccess(c: Pick<Cluster, "ease" | "levers">, typology: string): LeverAccess {
+  const l = c.levers;
+  const zoning = c.ease >= EASY_REZONING;
+  const land = l.cityForSale + l.cityTransfer + l.cityPending > 0;
+  const incentive = (LOCATION_INCENTIVES[typology] ?? []).some((d) => l[d] > 0);
+  return { zoning, land, incentive, count: Number(zoning) + Number(land) + Number(incentive) };
+}
+
 /** A locked parcel this close to the target district (same base, e.g. RM) could be rezoned by extending that district. */
 export const BORDER_FT = 150;
 
@@ -158,6 +183,7 @@ export type Cluster = {
     approval: number;
   };
   levers: AreaLevers;
+  access: LeverAccess;
 };
 
 export type HeatResult = {
@@ -181,8 +207,8 @@ export type HeatResult = {
     affordableUnlocked: number;
     acresLocked: number;
     top10: { homes: number; affordable: number; acres: number };
-    /** Areas where zoning, City land and a federal incentive all line up. */
-    aligned: number;
+    /** Areas (and their homes) by how many of the three levers are in reach, index 0–3. */
+    byLevers: { areas: number; homes: number }[];
     ms: number;
   };
 };
@@ -331,7 +357,10 @@ export function smallestChange(zone: string, typology: string): string | null {
     const [tBase, tDensity] = target.split("-");
     const tBaseRank = BASE_LADDER.indexOf(tBase ?? "");
     const baseCost = baseRank === -1 ? 0 : Math.abs(tBaseRank - baseRank);
-    const cost = baseCost * 10 + Math.abs(DENSITY_LADDER.indexOf(tDensity ?? "") - (densityRank === -1 ? 2 : densityRank));
+    const from = densityRank === -1 ? 2 : densityRank;
+    const to = DENSITY_LADDER.indexOf(tDensity ?? "");
+    // Equal distance: prefer the denser district (a lower one can leave no room for the type).
+    const cost = baseCost * 10 + Math.abs(to - from) + (to < from ? 0.5 : 0);
     if (cost < bestCost) {
       bestCost = cost;
       best = target;
@@ -470,7 +499,10 @@ export function runHeatmap(facts: Facts, params: HeatParams): HeatResult {
       homesUnlocked,
       affordableUnlocked: clusters.reduce((a, c) => a + c.affordableHomes, 0),
       acresLocked,
-      aligned: clusters.filter((c) => c.levers.anyIncentive > 0 && c.levers.cityForSale + c.levers.cityTransfer + c.levers.cityPending > 0).length,
+      byLevers: [0, 1, 2, 3].map((k) => {
+        const at = clusters.filter((c) => c.access.count === k);
+        return { areas: at.length, homes: at.reduce((a, c) => a + c.homes, 0) };
+      }),
       top10: {
         homes: top.reduce((a, c) => a + c.homes, 0),
         affordable: top.reduce((a, c) => a + c.affordableHomes, 0),
@@ -593,19 +625,23 @@ function findClusters(
       ease,
       easeParts: { step, borders, approval },
       levers: areaLevers(facts, parcels),
+      access: { zoning: false, land: false, incentive: false, count: 0 },
       hull: paddedHull(pts, center, 60 / FT_PER_DEG_LAT, cosLat),
     });
   }
-  const { requireCityLand, requireIncentive, excludeStressed } = params.rezone;
+  const { requireCityLand, requireIncentive, excludeStressed, minLevers } = params.rezone;
+  for (const c of clusters) c.access = leverAccess(c, params.typology);
   const kept = clusters.filter(
     (c) =>
-      (!requireCityLand || c.levers.cityForSale + c.levers.cityTransfer + c.levers.cityPending > 0) &&
-      (!requireIncentive || c.levers.anyIncentive > 0) &&
+      c.access.count >= minLevers &&
+      (!requireCityLand || c.access.land) &&
+      (!requireIncentive || c.access.incentive) &&
       (!excludeStressed || !mostlyStressed(c.levers)),
   );
   clusters.length = 0;
   clusters.push(...kept);
-  const rankValue = (c: Cluster) => (rankBy === "homes" ? c.homes : rankBy === "ease" ? c.ease : c.homes * c.ease);
+  const rankValue = (c: Cluster) =>
+    rankBy === "homes" ? c.homes : rankBy === "ease" ? c.ease : rankBy === "levers" ? c.access.count * 1e9 + c.homes * c.ease : c.homes * c.ease;
   clusters.sort((a, b) => rankValue(b) - rankValue(a) || b.homes - a.homes);
   const cluster = new Uint32Array(unlocked.length);
   clusters.forEach((c, k) => {
@@ -644,4 +680,35 @@ function paddedHull(points: [number, number][], center: [number, number], pad: n
     return [x + ((dx / len) * pad) / cosLat, y + (dy / len) * pad] as [number, number];
   });
   return [...padded, padded[0]];
+}
+
+export type LeverMatrixRow = {
+  typology: HeatTypology;
+  areas: number;
+  homes: number;
+  affordable: number;
+  /** Index = number of levers in reach (0–3). */
+  byLevers: { areas: number; homes: number }[];
+  /** Areas with each lever in reach. */
+  withLever: { zoning: number; land: number; incentive: number };
+};
+
+/** Every housing type under the same knobs (each rezoned by its own smallest change unless a target is fixed and allows it). */
+export function leverMatrix(facts: Facts, params: HeatParams): LeverMatrixRow[] {
+  return HEAT_TYPOLOGIES.map((typology) => {
+    const fixed = params.rezone.target !== "auto" && PERMITTING.has(DISTRICT_PATHWAYS[params.rezone.target]?.[typology] ?? "");
+    const r = runHeatmap(facts, { ...params, typology, zoning: "delta", rezone: { ...params.rezone, target: fixed ? params.rezone.target : "auto" } });
+    return {
+      typology,
+      areas: r.clusters.length,
+      homes: r.summary.homesUnlocked,
+      affordable: r.summary.affordableUnlocked,
+      byLevers: r.summary.byLevers,
+      withLever: {
+        zoning: r.clusters.filter((c) => c.access.zoning).length,
+        land: r.clusters.filter((c) => c.access.land).length,
+        incentive: r.clusters.filter((c) => c.access.incentive).length,
+      },
+    };
+  });
 }

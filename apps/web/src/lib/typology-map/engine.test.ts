@@ -4,7 +4,7 @@ import config from "@/lib/pillars/pillars.config.json";
 
 import { capacity } from "./capacity";
 import { areaChatContext, areaReport } from "./area-report";
-import { DEFAULT_PARAMS, type HeatParams, runHeatmap, smallestChange, stepCloseness } from "./engine";
+import { DEFAULT_PARAMS, type HeatParams, leverMatrix, runHeatmap, smallestChange, stepCloseness } from "./engine";
 import { decodeFacts, type Facts } from "./facts";
 
 type Lot = { zone: string; lng: number; lat: number; w?: number; d?: number; area?: number; norm?: Record<string, number | null>; lever?: Partial<Record<string, number>> };
@@ -189,6 +189,8 @@ describe("rezoning delta", () => {
   test("the smallest change keeps the density and moves the fewest district steps", () => {
     expect(smallestChange("R1D-L", "two_unit")).toBe("R2-L");
     expect(smallestChange("R2-M", "three_unit")).toBe("R3-M");
+    // RM-L doesn't exist, so the tie between RM-VL and RM-M goes to the denser one.
+    expect(smallestChange("R1D-L", "multi_unit")).toBe("RM-M");
     expect(stepCloseness("RM-L", "RM-M")).toBe(1);
     expect(stepCloseness("R2-M", "R3-M")).toBe(0.5);
     expect(stepCloseness("R1D-L", "RM-M")).toBe(0.2);
@@ -216,7 +218,20 @@ describe("public levers", () => {
     const land = r.clusters.find((c) => c.levers.cityForSale > 0)!;
     expect(land.levers).toMatchObject({ cityForSale: 1, qct: 2, anyIncentive: 2, delinquent: 1, delinquent3: 1 });
     expect(land.levers.mva.robust).toBe(2);
-    expect(r.summary.aligned).toBe(1);
+    expect(r.summary.byLevers.reduce((a, b) => a + b.areas, 0)).toBe(2);
+  });
+
+  test("levers in reach count zoning ease, City land and a type-relevant incentive", () => {
+    const r = runHeatmap(makeFacts([...withLand, ...stressed]), params({}, { rankBy: "levers" }));
+    const [first, second] = r.clusters;
+    // R1D-L → RM-M is a big jump with no RM next door, so the zoning lever is out of reach here.
+    expect(first.access).toEqual({ zoning: false, land: true, incentive: true, count: 2 });
+    expect(second.access.count).toBe(0);
+    expect(r.summary.byLevers.map((b) => b.areas)).toEqual([1, 0, 1, 0]);
+    // A QCT only helps tax-credit apartments; Opportunity Zones help any type.
+    const duplex = runHeatmap(makeFacts(withLand), params({ typology: "two_unit" }, { target: "R2-L" }));
+    expect(duplex.clusters[0].access.incentive).toBe(false);
+    expect(runHeatmap(makeFacts(withLand), params({}, { minLevers: 3 })).clusters).toHaveLength(0);
   });
 
   test("lever filters narrow the areas", () => {
@@ -239,5 +254,18 @@ describe("public levers", () => {
     expect(chat.facts.map((f) => f.id)).toContain("area.zoning.record");
     expect(chat.facts.every((f) => f.text.length <= 600)).toBe(true);
     expect(report.sections.find((s) => s.key === "land")!.tone).toBe("stop");
+  });
+});
+
+describe("lever matrix", () => {
+  test("runs every housing type under the same knobs", () => {
+    const lots = [0, 1].map((k) => ({ zone: "R1D-L", lng: -79.95, lat: 40.45 + k * STEP, lever: { city_owned: 1, designations: 4 } }));
+    const rows = leverMatrix(makeFacts(lots), params({}, { target: "auto" }));
+    expect(rows.map((r) => r.typology)).toEqual(["single_detached", "single_attached", "two_unit", "three_unit", "multi_unit"]);
+    const apartments = rows.find((r) => r.typology === "multi_unit")!;
+    expect(apartments.areas).toBe(1);
+    expect(apartments.withLever).toEqual({ zoning: 0, land: 1, incentive: 1 });
+    // Houses are already allowed on R1D land, so there is nothing to unlock.
+    expect(rows[0].areas).toBe(0);
   });
 });

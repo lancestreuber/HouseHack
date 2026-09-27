@@ -23,6 +23,8 @@ const DOT_ZOOM = 12.5;
 // How much each legend entry adds to the heatmap: only the parcels worth building on glow.
 const HEAT_WEIGHT: Record<string, number> = { green: 1, yellow: 0.2, unlocked: 1, unlocked_small: 0.6 };
 const CLUSTER_COLOR = "#a855f7";
+// Area outlines by levers in reach: all three stand out.
+const clusterColor = ["match", ["get", "levers"], 3, "#facc15", 2, CLUSTER_COLOR, "#c4b5fd"] as unknown as ExpressionSpecification;
 
 const TRANSPARENT = "rgba(0,0,0,0)";
 const levelColor = (legend: LegendEntry[]) =>
@@ -104,14 +106,14 @@ function ensureLayers(map: MapLibreMap, { parcelSourceId, beforeLayerId }: HeatL
     map.addLayer({ id: OUTLINE_LAYER, type: "line", source: parcelSourceId, paint: { "line-color": "rgba(0,0,0,0)", "line-width": 1.5 } }, before);
   }
   if (!map.getLayer(CLUSTER_FILL)) {
-    map.addLayer({ id: CLUSTER_FILL, type: "fill", source: CLUSTER_SOURCE, paint: { "fill-color": CLUSTER_COLOR, "fill-opacity": ["case", ["get", "focus"], 0.3, 0.12] } });
+    map.addLayer({ id: CLUSTER_FILL, type: "fill", source: CLUSTER_SOURCE, paint: { "fill-color": clusterColor, "fill-opacity": ["case", ["get", "focus"], 0.3, 0.12] } });
   }
   if (!map.getLayer(CLUSTER_LINE)) {
     map.addLayer({
       id: CLUSTER_LINE,
       type: "line",
       source: CLUSTER_SOURCE,
-      paint: { "line-color": CLUSTER_COLOR, "line-width": ["case", ["get", "focus"], 3, 1.5], "line-dasharray": [2, 1] },
+      paint: { "line-color": clusterColor, "line-width": ["case", ["get", "focus"], 3, 1.5], "line-dasharray": [2, 1] },
     });
   }
 }
@@ -166,6 +168,7 @@ export function syncHeatLayers(map: MapLibreMap, options: HeatLayerOptions, heat
           zones: c.zones.join(", "),
           target: c.target,
           ease: Math.round(c.ease * 100),
+          levers: c.access.count,
           focus: c.id === heat.focusCluster,
         },
       })),
@@ -203,7 +206,7 @@ export function registerHeatInteractions(map: MapLibreMap, handlers: { onPickPoi
     popup
       .setLngLat(e.lngLat)
       .setHTML(
-        `<div style="color:#171717"><b>Rezoning area #${p.id}</b><br/>+${fmt(p.homes)} homes (${fmt(p.affordable)} affordable)<br/>${Number(p.acres).toFixed(1)} acres · ${p.parcels} parcels (${p.vacant} vacant)<br/>${p.zones} → ${p.target} · ease ${p.ease}/100</div>`,
+        `<div style="color:#171717"><b>Rezoning area #${p.id}</b><br/>+${fmt(p.homes)} homes (${fmt(p.affordable)} affordable)<br/>${Number(p.acres).toFixed(1)} acres · ${p.parcels} parcels (${p.vacant} vacant)<br/>${p.zones} → ${p.target} · ease ${p.ease}/100 · ${p.levers}/3 levers</div>`,
       )
       .addTo(map);
   };

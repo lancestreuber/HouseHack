@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
 
 import type { Verdict } from "@/lib/pillars/verdict";
 
-import { DEFAULT_PARAMS, type HeatParams, type HeatResult } from "./engine";
+import { DEFAULT_PARAMS, type HeatParams, type HeatResult, type LeverMatrixRow } from "./engine";
 import type { WorkerRequest, WorkerResponse } from "./heatmap.worker";
 
 export type HeatBase = {
@@ -29,6 +29,10 @@ export type HeatState = {
   result: HeatResult | null;
   previous: HeatResult["summary"] | null;
   focusCluster: number | null;
+  /** Levers × housing types, computed on request for the knobs in `matrixParams`. */
+  matrix: LeverMatrixRow[] | null;
+  matrixParams: HeatParams | null;
+  matrixStatus: "idle" | "running" | "ready";
 };
 
 let state: HeatState = {
@@ -40,6 +44,9 @@ let state: HeatState = {
   result: null,
   previous: null,
   focusCluster: null,
+  matrix: null,
+  matrixParams: null,
+  matrixStatus: "idle",
 };
 const listeners = new Set<() => void>();
 
@@ -62,6 +69,7 @@ export function useHeat(): HeatState {
 let worker: Worker | null = null;
 let nextId = 1;
 let latestRun = 0;
+let latestMatrix = 0;
 let timer: ReturnType<typeof setTimeout> | null = null;
 const explainWaiters = new Map<number, (v: Verdict | null) => void>();
 
@@ -75,6 +83,8 @@ function getWorker() {
     } else if (msg.type === "ran") {
       if (msg.id !== latestRun) return;
       set({ status: "ready", error: null, previous: state.result?.summary ?? null, result: msg.result });
+    } else if (msg.type === "matrix") {
+      if (msg.id === latestMatrix) set({ matrix: msg.rows, matrixStatus: "ready" });
     } else if (msg.type === "explained") {
       explainWaiters.get(msg.id)?.(msg.verdict);
       explainWaiters.delete(msg.id);
@@ -111,6 +121,15 @@ export function setHeatParams(update: (prev: HeatParams) => HeatParams) {
 
 export function rerunHeat() {
   scheduleRun(0);
+}
+
+/** Runs every housing type under the current knobs (a few seconds, off the main thread). */
+export function computeLeverMatrix() {
+  const id = nextId++;
+  latestMatrix = id;
+  set({ matrixStatus: "running", matrixParams: state.params });
+  const req: WorkerRequest = { type: "matrix", id, params: state.params };
+  getWorker().postMessage(req);
 }
 
 export function focusHeatCluster(id: number | null) {
