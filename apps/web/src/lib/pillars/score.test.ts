@@ -86,6 +86,14 @@ describe("scoreParcel", () => {
     expect(notPermitted.overallBeforeMultipliers).toBeCloseTo(base.overall as number, 5);
   });
 
+  test("the zoning factor can follow one housing type instead of the easiest", () => {
+    const easiest = scoreParcel(parcel(80));
+    const apartments = scoreParcel(parcel(80), { legalLevel: "not_permitted" });
+    expect(apartments.legal?.id).toBe("not_permitted");
+    expect(apartments.overall).toBeCloseTo((easiest.overall as number) * 0.2, 5);
+    expect(scoreParcel(parcel(80), { legalLevel: "no_such_level" }).legal?.id).toBe("by_right");
+  });
+
   test("a pillar without enough data counts as a neutral 50 in the overall", () => {
     const demandIds = config.indicators.filter((i) => i.pillar === "demand").map((i) => i.id);
     const s = scoreParcel(parcel(80, Object.fromEntries(demandIds.map((id) => [id, null]))));

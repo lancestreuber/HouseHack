@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@HouseHack/ui/components/select";
+
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { Disclaimer } from "@/components/disclaimer";
@@ -9,7 +11,7 @@ import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
-import { type FitsById, SHORT_LABEL, verdictFor } from "./typology-meta";
+import { type FitsById, legalLevelFor, SHORT_LABEL, verdictFor } from "./typology-meta";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -397,8 +399,18 @@ export function PillarsPanel({
   weights: Partial<Record<PillarId, number>>;
 }) {
   const { data, status } = useParcelData(pin);
-  const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
+  // "easiest" = the zoning factor uses the easiest of the mainstream types (the
+  // published default); otherwise it follows the one housing type picked here.
+  const [legalFor, setLegalFor] = useState("easiest");
+  const overrides = useMemo<WeightOverrides>(
+    () => ({
+      pillars: weights,
+      ...(legalFor !== "easiest" && data ? { legalLevel: legalLevelFor(data.zoning, legalFor, data.norm.site_legal_pathway) } : {}),
+    }),
+    [weights, legalFor, data],
+  );
   const hasCustomWeights = Object.keys(weights).length > 0;
+  const isCustom = hasCustomWeights || legalFor !== "easiest";
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
   const range = useMemo(() => {
     if (!result) return null;
@@ -452,7 +464,7 @@ export function PillarsPanel({
               {rank != null && (
                 <p className="mt-1">
                   Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
-                  {hasCustomWeights ? " (compared with scores at equal weights)" : ""}.
+                  {isCustom ? " (compared with scores at the default settings)" : ""}.
                 </p>
               )}
               {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
@@ -486,14 +498,35 @@ export function PillarsPanel({
             <section
               className={`rounded border p-2 ${result.legal && result.legal.multiplier < 0.6 ? "border-red-500/60 bg-red-500/10" : "border-border/60"}`}
             >
-              <p className="font-medium">Zoning (current code)</p>
-              <p>{result.legal ? result.legal.label : "Legal status unknown for this district"}</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium">Zoning (current code)</p>
+                <Select value={legalFor} onValueChange={(v) => v && setLegalFor(v)}>
+                  <SelectTrigger size="sm" className="h-6 w-auto gap-1 px-1.5" aria-label="Zoning factor for which housing type">
+                    <SelectValue>{legalFor === "easiest" ? "Easiest type" : (SHORT_LABEL[legalFor] ?? legalFor)}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="easiest">Easiest type</SelectItem>
+                    {VERDICT_TYPOLOGIES.map((id) => (
+                      <SelectItem key={id} value={id}>
+                        {SHORT_LABEL[id] ?? id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <p>
+                {legalFor !== "easiest" && `${SHORT_LABEL[legalFor] ?? legalFor}: `}
+                {result.legal ? result.legal.label : "Legal status unknown for this district"}
+              </p>
               {result.legal && result.legal.multiplier < 1 && (
                 <p className="text-muted-foreground">Overall score × {result.legal.multiplier}.</p>
               )}
               {result.legal?.note && <p className="text-muted-foreground">{result.legal.note}</p>}
               <p className="text-muted-foreground">
-                Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing. Simplified reading of §911.02;
+                {legalFor === "easiest"
+                  ? "Easiest pathway among detached, townhouse, two-unit, three-unit and multi-unit housing; pick a type to score for that type instead."
+                  : "Pathway for this housing type only."}{" "}
+                Simplified reading of §911.02;
                 verify with the Zoning Administrator.
               </p>
             </section>

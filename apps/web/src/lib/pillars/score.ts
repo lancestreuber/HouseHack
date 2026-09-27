@@ -14,6 +14,9 @@ export type WeightOverrides = {
   pillars?: Partial<Record<PillarId, number>>;
   // Legal multipliers by level id, e.g. { not_permitted: 0.1 }.
   legal?: LegalOverrides;
+  // Use this legal level (by id) instead of the parcel's easiest pathway among
+  // the mainstream types, e.g. when the user is asking about one housing type.
+  legalLevel?: string;
   subscores?: Record<string, number>;
   indicators?: Record<string, number>;
   overall?: "arithmetic" | "geometric";
@@ -172,7 +175,12 @@ function levelStatus(block: LevelBlock, values: IndicatorValues, overrides: Reco
 // Zoning legality multiplies the overall score rather than being averaged in,
 // so a parcel where housing isn't permitted can't be rescued by good access.
 export function legalStatus(values: IndicatorValues, overrides: WeightOverrides = {}, cfg: PillarsConfig = config): LegalStatus | null {
-  return levelStatus(cfg.legal as LevelBlock, values, overrides.legal);
+  const block = cfg.legal as LevelBlock;
+  if (overrides.legalLevel) {
+    const code = block.levels.find((l) => l.id === overrides.legalLevel)?.code;
+    if (code != null) return levelStatus(block, { [block.indicator]: code }, overrides.legal);
+  }
+  return levelStatus(block, values, overrides.legal);
 }
 
 // Combines the pillars. Arithmetic lets a strong pillar offset a weak one;

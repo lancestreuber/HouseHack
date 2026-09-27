@@ -76,6 +76,17 @@ export const SHORT_LABEL: Record<string, string> = {
   interim_housing: "Interim housing",
 };
 
+/** The pillars config's legal level id for one housing type in this district, so
+ * the overall score's zoning factor can follow that type instead of the easiest
+ * of the five. `parcelLegalCode` is the parcel's precomputed site_legal_pathway,
+ * which carries the district-border and hillside cases. */
+export function legalLevelFor(zoning: string, typologyId: string, parcelLegalCode: number | null | undefined): string {
+  const pathway = DISTRICT_PATHWAYS[zoning]?.[typologyId] ?? "unknown";
+  if (pathway === "za" && parcelLegalCode === 9) return "za_hillside";
+  if (pathway === "not_permitted" && parcelLegalCode === 4) return "not_permitted_border";
+  return pathway;
+}
+
 export type FitsById = Record<string, { fit: number; label: string; confidence: number; needsReview: boolean } | null>;
 
 /** The red / yellow / green verdict for one typology on one parcel. */
