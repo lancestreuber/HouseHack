@@ -31,9 +31,13 @@ function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
   const flagged = query.data.typologies
     .map((t) => {
       const notes: string[] = [];
-      if (t.gate.rezoningTo?.length) notes.push(`not permitted here; would need rezoning to ${t.gate.rezoningTo.join(", ")}`);
-      if (t.fit && t.fit.fit < POOR_FIT_THRESHOLD) notes.push(`physical fit: ${t.fit.label.toLowerCase()}`);
-      if (t.fit?.needsReview) notes.push("site-fit rating has low confidence, needs human review");
+      // Full reason text, not a shortened re-derivation: it already names the
+      // exact district(s) a rezoning would need to go to, plus the code cite.
+      if (t.gate.rezoningTo?.length) notes.push(t.gate.reason);
+      if (t.fit && t.fit.fit < POOR_FIT_THRESHOLD) {
+        notes.push(`Physical fit: ${t.fit.label.toLowerCase()} -- ${query.data.facts.hazards}`);
+      }
+      if (t.fit?.needsReview) notes.push("Site-fit rating has low confidence, needs human review.");
       return { ...t, notes };
     })
     .filter((t) => t.notes.length > 0);
