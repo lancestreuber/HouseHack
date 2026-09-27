@@ -1,6 +1,7 @@
 import {
   Armchair,
   BedSingle,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Building,
@@ -15,7 +16,7 @@ import {
   Users,
   Warehouse,
 } from "lucide-react";
-import { type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
@@ -183,7 +184,7 @@ function tileScore(zoning: string, typologyId: string): number | null | undefine
   return pathwayId === "not_permitted" ? notPermittedScore(zoning, typologyId) : pathwayId ? PATHWAY_SCORE[pathwayId] : undefined;
 }
 
-type Fit = { fit: number; label: string; confidence: number; needsReview: boolean };
+type Fit = { fit: number; label: string; confidence: number; needsReview: boolean; probabilities?: number[] };
 type FitsById = Record<string, Fit | null>;
 
 // One motion language for the whole panel: tiles glide to their new rank,
@@ -197,35 +198,40 @@ const FIT_WAIT_MS = 4000;
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-/** Eases a displayed number to its new value instead of snapping to it. If the
- * target changes mid-animation it continues from wherever it currently is. */
-function useTweenedNumber(target: number | null): number | null {
-  const [value, setValue] = useState(target);
+/** Eases a number to its new value, handing each frame to `write` to put on
+ * screen directly (no React re-render per frame). If the target changes
+ * mid-animation it continues from wherever it currently is. */
+function useNumberTween(target: number | null, write: (value: number | null) => void) {
   const currentRef = useRef(target);
-  useEffect(() => {
+  const writeRef = useRef(write);
+  writeRef.current = write;
+  // Layout effect: runs before paint, so the frame React just rendered (with
+  // the final value) is replaced by the starting value and never flashes.
+  useLayoutEffect(() => {
     const from = currentRef.current;
     if (target == null || from == null || from === target || prefersReducedMotion()) {
       currentRef.current = target;
-      setValue(target);
+      writeRef.current(target);
       return;
     }
+    writeRef.current(from);
     const start = performance.now();
     let frame = requestAnimationFrame(function tick(now) {
-      const t = Math.min(1, (now - start) / MOVE_MS);
+      // rAF timestamps can predate `start` slightly; clamp so the ease never overshoots.
+      const t = Math.min(1, Math.max(0, (now - start) / MOVE_MS));
       const next = from + (target - from) * (1 - (1 - t) ** 4);
       currentRef.current = next;
-      setValue(next);
+      writeRef.current(next);
       if (t < 1) frame = requestAnimationFrame(tick);
     });
     return () => cancelAnimationFrame(frame);
   }, [target]);
-  return value;
 }
 
 /** Site-fit bar. Animates with a GPU transform rather than width. */
-function FitBar({ value }: { value: number }) {
+function FitBar({ value, className = "h-1.5" }: { value: number; className?: string }) {
   return (
-    <div className="h-1.5 w-full overflow-hidden rounded bg-foreground/10">
+    <div className={`${className} w-full overflow-hidden rounded bg-foreground/10`}>
       <div
         className="h-full w-full origin-left rounded"
         style={{
@@ -238,12 +244,55 @@ function FitBar({ value }: { value: number }) {
   );
 }
 
+// Jev's four fit levels, best first, for the distribution chart.
+const FIT_LEVELS_BEST_FIRST = ["Comfortable", "Minor compromises", "Major compromises", "Cannot fit"];
+
+/** How Jev's rating is spread across the four fit levels (bars only; exact
+ * odds on hover). Sized in em of the chart's own font, and its rows spread
+ * out to fill whatever height the card gives the chart. */
+function FitDistribution({ probabilities }: { probabilities: number[] }) {
+  const bestFirst = [...probabilities].reverse();
+  return (
+    <div className="flex h-full flex-col justify-evenly" role="img" aria-label="How Jev's rating is spread across the fit levels">
+      {FIT_LEVELS_BEST_FIRST.map((label, i) => {
+        const p = bestFirst[i] ?? 0;
+        return (
+          <div key={label} className="flex items-center gap-[0.6em]" title={`${label}: ${Math.round(p * 100)}% likely`}>
+            <span className="w-[9.5em] shrink-0 truncate leading-none text-muted-foreground" style={{ opacity: "var(--chart-label-o, 1)" }}>
+              {label}
+            </span>
+            <div className="h-[0.35em] flex-1 overflow-hidden rounded bg-foreground/10">
+              <div
+                className="h-full w-full origin-left rounded bg-foreground/40"
+                style={{ transform: `scaleX(${p})`, transition: `transform ${MOVE_MS}ms ${EASE_OUT}` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Card sizing. Cards stay one fixed size: the full card shows when the pane
+// is tall enough for it, the compact card (details behind a toggle) when it
+// isn't, and any extra height goes to the fit chart, which unfolds into it.
+const BASE_FONT_PX = 12;
+// Natural height of a full card (refined by measurement once one is on screen).
+const DEFAULT_CARD_PX = 110;
+// The chart needs about this many em of its own font for four rows.
+const CHART_ROWS_EM = 5;
+const CHART_MIN_FONT_PX = 9;
+const CHART_FULL_FONT_PX = 11;
+
 function TypologyTile({
   elementRef,
   typologyId,
   rank,
   zoning,
   fitsById,
+  compact,
+  showChart,
   onSelectTypology,
 }: {
   elementRef?: (el: HTMLDivElement | null) => void;
@@ -254,14 +303,28 @@ function TypologyTile({
   /** Jev's site-fit results, keyed by its own (coarser) typology id -- see
    * SITE_FIT_TYPOLOGY. Undefined while loading or if Jev is unavailable. */
   fitsById?: FitsById;
+  /** True when the pane is too short for the full card. */
+  compact: boolean;
+  /** Whether the pane has room for the fit chart (skips rendering it otherwise). */
+  showChart: boolean;
   /** Scrolls the Alerts pane to this card's typology, if it has one there. */
   onSelectTypology?: (siteFitId: string) => void;
 }) {
   const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score = tileScore(zoning, typologyId) ?? null;
-  const shownScore = useTweenedNumber(score);
+  // The score counts to its new value and its color eases with it, written
+  // straight to the card each frame; React only renders the final values.
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  useNumberTween(score, (value) => {
+    const card = cardRef.current;
+    if (!card) return;
+    card.style.setProperty("--score-color", value == null ? "" : scoreColor(value));
+    const text = card.querySelector<HTMLElement>("[data-score]");
+    if (text) text.textContent = value == null ? "—" : String(Math.round(value));
+  });
   const Icon = TYPOLOGY_ICON[typologyId] ?? House;
   const fullLabel = TYPOLOGIES.find(([id]) => id === typologyId)?.[1] ?? typologyId;
+  const name = SHORT_LABEL[typologyId] ?? fullLabel;
   const pathway = pathwayId ? PATHWAY_META[pathwayId] : undefined;
   const tooltip =
     pathwayId === "not_permitted"
@@ -270,45 +333,161 @@ function TypologyTile({
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
   const canJumpToAlerts = Boolean(siteFitId && onSelectTypology);
-  const color = shownScore == null ? undefined : scoreColor(shownScore);
+  const color = score == null ? undefined : "var(--score-color)";
+  const [expanded, setExpanded] = useState(false);
 
-  return (
-    <div
-      ref={elementRef}
-      data-typology={typologyId}
-      className={`relative flex w-44 shrink-0 flex-col gap-1 rounded border border-border/60 bg-background p-2 transition-colors ${canJumpToAlerts ? "cursor-pointer hover:border-border" : ""}`}
-      onClick={canJumpToAlerts ? () => onSelectTypology?.(siteFitId!) : undefined}
-      title={canJumpToAlerts ? "Jump to this typology's alerts" : undefined}
-    >
-      <div className="flex items-center gap-1.5">
-        <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
-          #{rank}
-        </span>
-        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-        <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
-          {SHORT_LABEL[typologyId] ?? fullLabel}
-        </span>
-        <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
-          {shownScore == null ? "—" : Math.round(shownScore)}
-        </span>
-      </div>
-      <span className={score == null ? "truncate text-muted-foreground" : "truncate"} style={{ color }} title={tooltip}>
-        {pathway?.label ?? "Unresolved in the code"}
-      </span>
-      {fit && (
-        <div className="space-y-0.5">
-          <div className="flex items-center gap-1.5">
-            <div className="flex-1">
+  const scoreText = score == null ? "—" : Math.round(score);
+  const routeText = pathway?.label ?? "Unresolved in the code";
+  const jevDetails = fit && (
+    <>
+      <p className="truncate" title={fit.label}>
+        {fit.label}
+      </p>
+      <p className="truncate">
+        Jev confidence {Math.round(fit.confidence * 100)}%
+        {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
+      </p>
+    </>
+  );
+  const shared = {
+    ref: (el: HTMLDivElement | null) => {
+      cardRef.current = el;
+      elementRef?.(el);
+    },
+    "data-typology": typologyId,
+    "data-density": compact ? "compact" : "full",
+    onClick: canJumpToAlerts ? () => onSelectTypology?.(siteFitId!) : undefined,
+    title: canJumpToAlerts ? "Jump to this typology's alerts" : undefined,
+  };
+  const cardBase = `relative flex shrink-0 flex-col rounded border border-border/60 bg-background transition-colors ${
+    canJumpToAlerts ? "cursor-pointer hover:border-border" : ""
+  }`;
+
+  if (compact) {
+    return (
+      <div
+        {...shared}
+        className={`${cardBase} w-44 gap-1 px-2 py-1.5`}
+        style={{ "--score-color": score == null ? undefined : scoreColor(score) } as CSSProperties}
+      >
+        <div className="flex items-center gap-1.5">
+          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
+            #{rank}
+          </span>
+          <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+          <span className="min-w-0 flex-1 truncate font-medium" title={fullLabel}>
+            {name}
+          </span>
+          <span className="shrink-0 text-lg font-semibold leading-none tabular-nums" style={{ color }} data-score>
+            {scoreText}
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="shrink-0 text-muted-foreground">Jev score</span>
+          {fit ? (
+            <div className="flex-1" title={fit.label}>
               <FitBar value={fit.fit * 100} />
             </div>
-            <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.confidence * 100)}%</span>
-          </div>
-          <p className="truncate text-muted-foreground" title={fit.label}>
-            {fit.label}
-            {fit.needsReview && <span className="text-yellow-400"> · needs review</span>}
-          </p>
+          ) : (
+            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+              not rated
+            </span>
+          )}
+          <button
+            type="button"
+            aria-expanded={expanded}
+            aria-label={expanded ? "Hide details" : "Show details"}
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((v) => !v);
+            }}
+            className="-mr-1 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+          >
+            <ChevronDown className={`size-3.5 transition-transform duration-200 ${expanded ? "rotate-180" : ""}`} />
+          </button>
         </div>
-      )}
+        {/* Collapsed by default; grid-rows 0fr -> 1fr animates to the content's natural height. */}
+        <div
+          className="grid transition-[grid-template-rows] duration-200 ease-out"
+          style={{ gridTemplateRows: expanded ? "1fr" : "0fr" }}
+          data-details
+        >
+          <div className="min-h-0 overflow-hidden text-[11px] leading-[14px] text-muted-foreground">
+            <p className="truncate" style={{ color }} title={tooltip}>
+              {routeText}
+            </p>
+            {jevDetails}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full card.
+  return (
+    <div
+      {...shared}
+      className={`${cardBase} h-full w-[14.667em] justify-between gap-[0.35em] px-[0.667em] py-[0.4em]`}
+      style={
+        {
+          fontSize: `${BASE_FONT_PX}px`,
+          "--score-color": score == null ? undefined : scoreColor(score),
+        } as CSSProperties
+      }
+    >
+      <div className="flex flex-col gap-[0.25em]" data-top>
+        <div className="flex items-center gap-[0.4em]">
+          <span className="shrink-0 tabular-nums text-muted-foreground" title={`Ranked #${rank} on this parcel`}>
+            #{rank}
+          </span>
+          <Icon className="size-[1.333em] shrink-0 text-muted-foreground" aria-hidden />
+          <span className="min-w-0 flex-1 truncate text-[1.083em] font-medium" title={fullLabel}>
+            {name}
+          </span>
+          <span className="shrink-0 text-[1.5em] font-semibold leading-none tabular-nums" style={{ color }} data-score>
+            {scoreText}
+          </span>
+        </div>
+        <p className="truncate leading-[1.3]" style={{ color }} title={tooltip}>
+          {routeText}
+        </p>
+      </div>
+
+      <div className="flex min-h-0 items-center overflow-hidden" style={{ height: "var(--chart-h, 0px)" }} data-chart>
+        <div
+          className="w-full shrink-0"
+          style={{
+            height: "var(--chart-inner-h, 0px)",
+            fontSize: "var(--chart-font, 11px)",
+            opacity: "var(--chart-o, 0)",
+            transform: "scaleY(var(--chart-unfold, 0))",
+          }}
+        >
+          {!showChart ? null : fit?.probabilities?.length ? (
+            <FitDistribution probabilities={fit.probabilities} />
+          ) : (
+            <p className="flex h-full items-center justify-center text-muted-foreground">Jev doesn't rate this housing type</p>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-[0.25em]" data-bottom>
+        <div className="flex items-center gap-[0.4em]">
+          <span className="shrink-0 text-muted-foreground">Jev score</span>
+          {fit ? (
+            <div className="flex-1" title={fit.label}>
+              <FitBar value={fit.fit * 100} className="h-[0.5em]" />
+            </div>
+          ) : (
+            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+              not rated
+            </span>
+          )}
+        </div>
+        <div className="min-h-[2.6em] text-[0.9167em] leading-[1.3] text-muted-foreground" data-details>
+          {jevDetails}
+        </div>
+      </div>
     </div>
   );
 }
@@ -372,26 +551,87 @@ function TypologyTrack({
     );
   }, [zoning, fits]);
 
-  // FLIP: after React reorders the tiles, each one is drawn back at where it
-  // was and glides to its new slot. Positions come from offsetLeft (layout,
-  // unaffected by scrolling or in-flight transforms), and a glide that's
-  // interrupted by another parcel click continues from where the tile
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const [compact, setCompact] = useState(false);
+  const compactRef = useRef(false);
+  const [showChart, setShowChart] = useState(false);
+  const showChartRef = useRef(false);
+  const cardPx = useRef(DEFAULT_CARD_PX);
+
+  // Fits the cards to the pane height. Writes CSS variables directly (no React
+  // render) so dragging the pane stays smooth; React only re-renders when the
+  // layout flips between compact and full or the chart appears/disappears.
+  // `measure` re-reads the full card's natural height; only needed when its
+  // content changes, so a pane drag never forces an extra layout pass.
+  const fitCards = useCallback((measure: boolean) => {
+    const scroller = scrollerRef.current;
+    const track = trackRef.current;
+    if (!scroller || !track) return;
+    const card = measure ? track.querySelector<HTMLElement>('[data-density="full"]') : null;
+    if (card) {
+      // Top + bottom sections plus padding (0.8em) and two gaps (0.7em).
+      const top = card.querySelector<HTMLElement>("[data-top]")?.offsetHeight ?? 0;
+      const bottom = card.querySelector<HTMLElement>("[data-bottom]")?.offsetHeight ?? 0;
+      cardPx.current = top + bottom + 1.5 * BASE_FONT_PX;
+    }
+    const available = scroller.clientHeight - 6; // bottom padding + border
+    // A little hysteresis so the layout can't flicker at the boundary.
+    const nextCompact = compactRef.current ? available < cardPx.current + 4 : available < cardPx.current;
+    if (nextCompact !== compactRef.current) {
+      compactRef.current = nextCompact;
+      setCompact(nextCompact);
+    }
+    if (nextCompact) return;
+    const leftover = Math.max(0, available - cardPx.current);
+    // The chart takes all leftover height. Until there's room for it at its
+    // smallest readable size it unfolds (scaled vertically and faded in), so
+    // the space fills with something emerging rather than a blank band.
+    const minChartPx = CHART_ROWS_EM * CHART_MIN_FONT_PX;
+    const unfold = Math.min(1, leftover / minChartPx);
+    const chartNeeded = leftover > 0.5;
+    if (chartNeeded !== showChartRef.current) {
+      showChartRef.current = chartNeeded;
+      setShowChart(chartNeeded);
+    }
+    const chartFont = Math.max(CHART_MIN_FONT_PX, Math.min(CHART_FULL_FONT_PX, leftover / CHART_ROWS_EM));
+    track.style.setProperty("--chart-h", `${leftover.toFixed(1)}px`);
+    track.style.setProperty("--chart-inner-h", `${Math.max(leftover, minChartPx).toFixed(1)}px`);
+    track.style.setProperty("--chart-font", `${chartFont.toFixed(2)}px`);
+    track.style.setProperty("--chart-unfold", unfold.toFixed(3));
+    track.style.setProperty("--chart-o", (unfold * unfold).toFixed(3));
+    // Labels only appear once the chart is nearly unfolded, so squashed text is never visible.
+    track.style.setProperty("--chart-label-o", Math.max(0, (unfold - 0.85) / 0.15).toFixed(3));
+  }, []);
+
+  // FLIP: after React reorders the tiles, each one is drawn back where it was
+  // and glides to its new slot. Start positions come from the old rank x the
+  // current card stride, so resizing the pane between reorders can't skew
+  // them; a glide interrupted by another click continues from where the tile
   // visibly is instead of snapping. Off-screen tiles glide too.
   const tileEls = useRef(new Map<string, HTMLDivElement>());
-  const lastOffsets = useRef(new Map<string, number>());
+  const lastIndex = useRef(new Map<string, number>());
   const orderKey = ranked.map((r) => r.id).join();
+  const lastOrderKey = useRef(orderKey);
   useLayoutEffect(() => {
+    fitCards(true);
+    const reordered = lastOrderKey.current !== orderKey;
+    lastOrderKey.current = orderKey;
+    const els = ranked.map(({ id }) => tileEls.current.get(id));
+    const origin = els[0]?.offsetLeft ?? 0;
+    const stride = els[0] && els[1] ? els[1].offsetLeft - els[0].offsetLeft : 0;
     const reduceMotion = prefersReducedMotion();
-    for (const [id, el] of tileEls.current) {
-      const next = el.offsetLeft;
-      const prev = lastOffsets.current.get(id);
-      lastOffsets.current.set(id, next);
-      if (prev == null) continue;
+    ranked.forEach(({ id }, index) => {
+      const el = tileEls.current.get(id);
+      const prevIndex = lastIndex.current.get(id);
+      lastIndex.current.set(id, index);
+      if (!el || !reordered || prevIndex == null) return;
       const transform = getComputedStyle(el).transform;
       const inFlight = transform && transform !== "none" ? new DOMMatrixReadOnly(transform).m41 : 0;
       for (const animation of el.getAnimations()) animation.cancel();
-      const dx = prev + inFlight - next;
-      if (reduceMotion || Math.abs(dx) < 1) continue;
+      const dx = origin + prevIndex * stride + inFlight - el.offsetLeft;
+      if (reduceMotion || Math.abs(dx) < 1) return;
       // Tiles climbing the ranking pass over the ones dropping, lifted by a
       // shadow that fades as they land.
       const climbing = dx > 0;
@@ -405,11 +645,8 @@ function TypologyTrack({
         { duration: MOVE_MS, easing: EASE_OUT },
       );
       glide.onfinish = () => (el.style.zIndex = "");
-    }
-  }, [orderKey]);
-
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const [edges, setEdges] = useState({ left: false, right: false });
+    });
+  });
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -419,16 +656,23 @@ function TypologyTrack({
       const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 2;
       setEdges((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
     };
+    // The pane's own size drives the card scale; the track's width (which the
+    // scale itself changes) only affects the scroll edges.
+    const paneObserver = new ResizeObserver(() => {
+      fitCards(false);
+      update();
+    });
+    const trackObserver = new ResizeObserver(update);
     update();
     el.addEventListener("scroll", update, { passive: true });
-    const observer = new ResizeObserver(update);
-    observer.observe(el);
-    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    paneObserver.observe(el);
+    if (trackRef.current) trackObserver.observe(trackRef.current);
     return () => {
       el.removeEventListener("scroll", update);
-      observer.disconnect();
+      paneObserver.disconnect();
+      trackObserver.disconnect();
     };
-  }, []);
+  }, [fitCards]);
 
   // Vertical wheel -> eased horizontal scroll. Horizontal trackpad swipes and
   // pinch-zoom are left to the browser.
@@ -491,7 +735,8 @@ function TypologyTrack({
         className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden overscroll-x-contain pb-1 [scrollbar-width:thin] focus-visible:outline-none"
       >
         <div
-          className={`relative flex h-full w-max gap-2 transition-opacity duration-300 ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
+          ref={trackRef}
+          className={`relative flex h-full w-max gap-2 transition-opacity duration-300 ${compact ? "items-start" : "items-stretch"} ${updating ? "opacity-60 delay-150" : "opacity-100 delay-0"}`}
         >
           {ranked.map(({ id }, rank) => (
             <TypologyTile
@@ -504,6 +749,8 @@ function TypologyTrack({
               rank={rank + 1}
               zoning={zoning}
               fitsById={fits}
+              compact={compact}
+              showChart={showChart}
               onSelectTypology={onSelectTypology}
             />
           ))}
