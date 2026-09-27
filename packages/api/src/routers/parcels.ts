@@ -26,6 +26,9 @@ const typologyFitInput = z.object({
   hazards: z
     .object({ floodway: share, floodplain: share, steepSlope: share, landslideProne: share, undermined: share })
     .optional(),
+  // From the navbar's Weights popover (0-3, 1 = default); nudges borderline
+  // site-fit judgments toward what the evaluator says they care about.
+  weights: z.record(z.string(), z.number()).optional(),
 });
 
 type FitResult =
@@ -162,8 +165,12 @@ export const parcelsRouter = {
       label: t.label,
       gate: gateFor(t.id, zoning, lot.areaSf),
     }));
-    const rated = typologies.filter((t) => t.gate.status !== "not_permitted").map((t) => t.id);
-    const state = buildSiteState(lot, zoning, input.hazards ?? {});
+    // Rate physical fit for every typology, even legally "not_permitted"
+    // ones: physical fit doesn't depend on zoning, and knowing a lot would
+    // comfortably fit a duplex is exactly the fact that makes a rezoning
+    // ask worth pursuing rather than a dead end.
+    const rated = typologies.map((t) => t.id);
+    const state = buildSiteState(lot, zoning, input.hazards ?? {}, input.weights);
 
     const cacheKey = JSON.stringify([context.systemOne.model, state, rated]);
     let jev = fitCache.get(cacheKey);
@@ -199,7 +206,7 @@ async function rateSiteFit(
     const fits: Partial<Record<TypologyId, SiteFit>> = {};
     for (const id of typologies) {
       const answer = answers[id];
-      if (answer) fits[id] = toSiteFit(answer);
+      if (answer) fits[id] = toSiteFit(answer, id);
     }
     return { status: "ok", model, fits };
   } catch (error) {

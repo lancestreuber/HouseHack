@@ -4,10 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
-import { DEFAULT_WEIGHTS, setPillarWeights, usePillarWeights } from "@/lib/pillars/weights";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
+import { usePillarWeights } from "./pillar-weights-store";
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = {
@@ -144,7 +144,7 @@ export function scoreColor(score: number | null) {
   return "#ef4444";
 }
 
-function ScoreBar({ score }: { score: number | null }) {
+export function ScoreBar({ score }: { score: number | null }) {
   return (
     <div className="h-1.5 w-full rounded bg-foreground/10">
       <div className="h-1.5 rounded" style={{ width: `${score ?? 0}%`, background: scoreColor(score) }} />
@@ -308,71 +308,15 @@ function PillarCard({
   );
 }
 
-// Pillar weights as 0–5 ratings (the OECD Better Life Index pattern). Shown as
-// percentages of the total. Weights are value judgments, so the panel says so.
-function WeightsControl({ weights, onChange }: { weights: Record<PillarId, number>; onChange: (w: Record<PillarId, number>) => void }) {
-  const [open, setOpen] = useState(false);
-  const total = Object.values(weights).reduce((a, b) => a + b, 0) || 1;
-  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
-  return (
-    <section className="rounded border border-border/60 p-2">
-      <button type="button" onClick={() => setOpen((v) => !v)} className="flex w-full justify-between text-left">
-        <span className="font-medium">
-          {open ? "▾" : "▸"} Your priorities {isDefault ? "(equal weights)" : "(custom)"}
-        </span>
-        <span className="text-muted-foreground">value judgments</span>
-      </button>
-      {open && (
-        <div className="mt-2 space-y-1.5">
-          {config.pillars.map((p) => {
-            const id = p.id as PillarId;
-            return (
-              <label key={id} className="grid grid-cols-[7.5rem_1fr_2.5rem] items-center gap-2">
-                <span className="truncate">{p.label}</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={5}
-                  step={0.5}
-                  value={weights[id]}
-                  onChange={(e) => onChange({ ...weights, [id]: Number(e.target.value) })}
-                  aria-label={`${p.label} weight`}
-                />
-                <span className="text-right tabular-nums text-muted-foreground">{Math.round((weights[id] / total) * 100)}%</span>
-              </label>
-            );
-          })}
-          <p className="text-muted-foreground">Presets are starting points; each is a different view of what matters.</p>
-          <div className="flex flex-wrap gap-1 pt-1">
-            {Object.entries(config.presets).map(([name, w]) => (
-              <button
-                key={name}
-                type="button"
-                onClick={() => onChange({ ...DEFAULT_WEIGHTS, ...(w as Partial<Record<PillarId, number>>) })}
-                title={(config.preset_notes as Record<string, string>)[name]}
-                className="rounded border px-1.5 py-0.5 hover:bg-foreground/10"
-              >
-                {name.replace(/_/g, " ")}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-    </section>
-  );
-}
-
-const GATE_LABEL: Record<string, { text: string; className: string }> = {
-  allowed: { text: "By right", className: "bg-green-500/15 text-green-400" },
-  conditional: { text: "Needs approval", className: "bg-yellow-500/15 text-yellow-400" },
-  not_permitted: { text: "Not permitted", className: "bg-foreground/10 text-muted-foreground" },
-  unknown: { text: "Zoning unknown", className: "bg-foreground/10 text-muted-foreground" },
-};
-
-// Legal gate from the zoning use table (code) plus physical site fit from the
-// System One decision model. Ratings are judgments with a confidence, not measurements.
-function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
-  const query = useQuery(
+/** Shared by the typology panel (bottom) and the Alerts pane, so both read
+ * the exact same (cached) System One result instead of issuing their own
+ * near-duplicate requests. */
+export function useTypologyFit(pin: string, data: ParcelData) {
+  // Global navbar weights, fed straight into Jev's state so a borderline
+  // physical-fit rating can be nudged by what the evaluator says they
+  // prioritize (site-fit.ts's siteFitQuestion explains how to the model).
+  const weights = usePillarWeights();
+  return useQuery(
     orpc.parcels.typologyFit.queryOptions({
       input: {
         pin,
@@ -384,51 +328,10 @@ function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
           landslideProne: data.raw.site_landslide_prone_share,
           undermined: data.raw.site_undermined_share,
         },
+        weights,
       },
       staleTime: Number.POSITIVE_INFINITY,
     }),
-  );
-
-  return (
-    <section className="space-y-1.5 rounded border border-border/60 p-2">
-      <p className="font-medium">Housing types on this lot</p>
-      {query.isPending && <p className="text-muted-foreground">Checking zoning and site fit…</p>}
-      {query.data && (
-        <>
-          <p className="text-muted-foreground">{query.data.facts.lot}</p>
-          <ul className="space-y-1">
-            {query.data.typologies.map((t) => {
-              const gate = GATE_LABEL[t.gate.status] ?? GATE_LABEL.unknown!;
-              return (
-                <li key={t.id} className="border-t border-border/40 pt-1" title={t.gate.reason}>
-                  <div className="flex items-center justify-between gap-2">
-                    <span>
-                      {t.label} <span className="text-muted-foreground">· {t.category}</span>
-                    </span>
-                    <span className={`rounded px-1 ${gate.className}`}>{gate.text}</span>
-                  </div>
-                  {t.fit && (
-                    <div className="mt-0.5 space-y-0.5">
-                      <ScoreBar score={t.fit.fit * 100} />
-                      <p className="text-muted-foreground">
-                        {t.fit.label} · confidence {Math.round(t.fit.confidence * 100)}%
-                        {t.fit.needsReview && <span className="text-yellow-400"> · needs human review</span>}
-                      </p>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-          <p className="text-muted-foreground">
-            {query.data.jev.status === "ok"
-              ? `Permission: simplified zoning use table (hover a row for the rule). Site fit: judged by ${query.data.jev.model} from the lot facts above; physical fit only. Decision support, not zoning advice.`
-              : "Site-fit ratings are unavailable right now; zoning permissions are still shown."}
-          </p>
-        </>
-      )}
-      {query.isError && <p className="text-muted-foreground">Couldn't load housing types for this parcel.</p>}
-    </section>
   );
 }
 
@@ -438,19 +341,19 @@ export function PillarsPanel({
   onSelectPillar,
   collapsed,
   onToggleCollapse,
+  weights,
 }: {
   pin: string;
   onClose: () => void;
   onSelectPillar?: (id: PillarId) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  /** Global pillar weights from the navbar's Weights popover (pillar-weights-store). */
+  weights: Partial<Record<PillarId, number>>;
 }) {
   const { data, status } = useParcelData(pin);
-  // Shared with the chat, so it explains the scores at the same weights.
-  const weights = usePillarWeights();
-  const setWeights = setPillarWeights;
   const overrides = useMemo<WeightOverrides>(() => ({ pillars: weights }), [weights]);
-  const isDefault = config.pillars.every((p) => weights[p.id as PillarId] === DEFAULT_WEIGHTS[p.id as PillarId]);
+  const hasCustomWeights = Object.keys(weights).length > 0;
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
   const range = useMemo(() => {
     if (!result) return null;
@@ -485,9 +388,8 @@ export function PillarsPanel({
         )}
         {data && result && (
           <>
-            <WeightsControl weights={weights} onChange={setWeights} />
             <section className="rounded border border-border/60 p-2">
-              <div className="flex items-baseline justify-between">
+              <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>
                 <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
                   {fmtScore(result.overall)}
@@ -504,13 +406,13 @@ export function PillarsPanel({
               {rank != null && (
                 <p className="mt-1">
                   Better than <span className="font-semibold">{rank}%</span> of City parcels as a place to build
-                  {isDefault ? "" : " (compared with scores at equal weights)"}.
+                  {hasCustomWeights ? " (compared with scores at equal weights)" : ""}.
                 </p>
               )}
               {overallPhrase && <p className="mt-1">{overallPhrase}</p>}
               <p className="mt-1 text-muted-foreground">
                 Weighted {config.overall.method} mean of the five pillars ({fmtScore(result.overallBeforeMultipliers)}),{" "}
-                {isDefault ? "equal weights" : "your weights"}
+                {hasCustomWeights ? "your weights" : "equal weights"}
                 {result.legal && result.legal.multiplier < 1 ? `, × ${result.legal.multiplier} for zoning` : ""}
                 {result.availability && result.availability.multiplier < 1 ? `, × ${result.availability.multiplier} for site availability` : ""}.
                 {range && ` If the weights shifted a little: ${Math.round(range.p10)}–${Math.round(range.p90)}.`}
@@ -537,7 +439,6 @@ export function PillarsPanel({
                 verify with the Zoning Administrator.
               </p>
             </section>
-            <TypologyFitSection pin={pin} data={data} />
             {config.pillars.map((p) => (
               <PillarCard
                 key={p.id}

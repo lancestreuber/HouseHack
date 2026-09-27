@@ -32,6 +32,8 @@ import { client } from "@/utils/orpc";
 
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
+import { decodeWeights, encodeWeights, setPillarWeights, usePillarWeights } from "./map/pillar-weights-store";
+import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { CameraViewer } from "./map/camera-viewer";
 import { ChatPane } from "./chat/chat-pane";
@@ -82,13 +84,6 @@ const PARCEL_LAYER_ID = "parcels-outline";
 const PARCEL_HIT_LAYER_ID = "parcels-hit";
 const PARCEL_SELECTED_LAYER_ID = "parcels-selected";
 
-// Pittsburgh CITY zoning only (not county-wide) -- static file, small enough
-// (1068 features) to ship as one asset instead of a DB-backed bbox query.
-const ZONING_SOURCE_ID = "zoning";
-const ZONING_FILL_LAYER_ID = "zoning-fill";
-const ZONING_LINE_LAYER_ID = "zoning-outline";
-const ZONING_DATA_URL = "/data/pittsburgh-zoning.geojson";
-
 // Full Allegheny County extent, so the map opens zoomed out to the whole
 // county rather than any single neighborhood.
 const COUNTY_BOUNDS: [[number, number], [number, number]] = [
@@ -96,9 +91,12 @@ const COUNTY_BOUNDS: [[number, number], [number, number]] = [
   [-79.69, 40.68],
 ];
 
-// Heat overlays are inserted beneath the first of these that exists, so zoning
-// and parcel outlines stay readable on top of the color fill.
-const UNDER_OVERLAY_LAYER_IDS = [ZONING_FILL_LAYER_ID, ZONING_LINE_LAYER_ID, PARCEL_LAYER_ID];
+// Heat overlays are inserted beneath parcel outlines, so parcel boundaries
+// stay readable on top of the color fill. Zoning used to be its own always-on
+// layer here; it's now just the default heat overlay (registered in
+// overlays/legal-feasibility.ts as "residential-zoning"), so it no longer
+// needs its own entry in this list.
+const UNDER_OVERLAY_LAYER_IDS = [PARCEL_LAYER_ID];
 
 // Below this zoom, parcels are too small/numerous to render usefully, so we
 // skip fetching them entirely and just show the bare basemap.
@@ -117,50 +115,6 @@ const SPIN_DEGREES_PER_SECOND = 6;
 // full indicator coverage, used so the panels show real demo data on first
 // load instead of empty "select a parcel" placeholders everywhere.
 const DEMO_PIN = "0001N00154000000";
-
-function addZoningLayer(map: MapLibreMap) {
-  if (map.getSource(ZONING_SOURCE_ID)) return;
-  map.addSource(ZONING_SOURCE_ID, {
-    type: "geojson",
-    data: ZONING_DATA_URL,
-  });
-  // Added before the parcel layer, so parcel outlines always draw on top of
-  // the zoning fill/border.
-  map.addLayer({
-    id: ZONING_FILL_LAYER_ID,
-    type: "fill",
-    source: ZONING_SOURCE_ID,
-    paint: {
-      "fill-color": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        "#ef4444",
-        "rgba(0,0,0,0)",
-      ],
-      "fill-opacity": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        0.4,
-        0,
-      ],
-    },
-  });
-  map.addLayer({
-    id: ZONING_LINE_LAYER_ID,
-    type: "line",
-    source: ZONING_SOURCE_ID,
-    paint: {
-      "line-color": "#ef4444",
-      "line-width": 1,
-      "line-opacity": [
-        "case",
-        ["==", ["get", "non_housing"], true],
-        0.7,
-        0.15,
-      ],
-    },
-  });
-}
 
 // MapLibre's compact attribution control briefly shows its full text next to
 // the (i) icon the first time it enters compact mode (and again on some
@@ -247,9 +201,9 @@ async function refreshParcels(map: MapLibreMap) {
 /** Wires a ResizablePanel up to a header collapse button: tracks whether
  * it's currently collapsed (via onResize, so dragging past the threshold
  * keeps the icon in sync too, not just button clicks) and exposes a toggle. */
-function usePaneCollapse() {
+function usePaneCollapse(defaultCollapsed = false) {
   const ref = useRef<PanelImperativeHandle | null>(null);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(defaultCollapsed);
   const onResize = (size: { asPercentage: number }) => setCollapsed(size.asPercentage <= 0.5);
   const toggle = () => {
     const panel = ref.current;
@@ -257,12 +211,18 @@ function usePaneCollapse() {
     if (panel.isCollapsed()) panel.expand();
     else panel.collapse();
   };
+  useEffect(() => {
+    if (defaultCollapsed) ref.current?.collapse();
+    // Only ever applied once, right after the panel mounts.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return { ref, collapsed, onResize, toggle };
 }
 
-export function ParcelMap({ initialPin }: { initialPin?: string }) {
+export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string; initialWeights?: string }) {
   const navigate = useNavigate({ from: "/" });
   const initialPinRef = useRef(initialPin);
+  const pillarWeights = usePillarWeights();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
@@ -277,7 +237,6 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
   const isDark = resolvedTheme !== "light";
   const isDarkRef = useRef(isDark);
   isDarkRef.current = isDark;
-  const [showZoning, setShowZoning] = useState(true);
   const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
   const overlayStateRef = useRef(overlayState);
   overlayStateRef.current = overlayState;
@@ -300,9 +259,36 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
   const styleReadyRef = useRef(false);
   const mapPane = usePaneCollapse();
   const scoresPane = usePaneCollapse();
-  const breakdownPane = usePaneCollapse();
+  const alertsPane = usePaneCollapse();
+  // Alerts and Breakdowns share one slot in spirit: only one is open by
+  // default, and opening either collapses the other (see the two toggle
+  // handlers below).
+  const breakdownPane = usePaneCollapse(true);
   const typologyPane = usePaneCollapse();
-  const chatPane = usePaneCollapse();
+  const chatPane = usePaneCollapse(true);
+
+  const toggleAlerts = () => {
+    const alerts = alertsPane.ref.current;
+    const breakdown = breakdownPane.ref.current;
+    if (!alerts) return;
+    if (alerts.isCollapsed()) {
+      alerts.expand();
+      if (breakdown && !breakdown.isCollapsed()) breakdown.collapse();
+    } else {
+      alerts.collapse();
+    }
+  };
+  const toggleBreakdown = () => {
+    const alerts = alertsPane.ref.current;
+    const breakdown = breakdownPane.ref.current;
+    if (!breakdown) return;
+    if (breakdown.isCollapsed()) {
+      breakdown.expand();
+      if (alerts && !alerts.isCollapsed()) alerts.collapse();
+    } else {
+      breakdown.collapse();
+    }
+  };
   // The chat explains exactly what the panes show for the selected parcel.
   const chatContext = useParcelChatContext(selectedPin) ?? undefined;
 
@@ -316,7 +302,14 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
 
   const handleSelectPillar = (id: PillarId) => {
     if (breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current.expand();
+    if (!alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current?.collapse();
     document.getElementById(`breakdown-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleSelectTypology = (siteFitId: string) => {
+    if (alertsPane.ref.current?.isCollapsed()) alertsPane.ref.current.expand();
+    if (!breakdownPane.ref.current?.isCollapsed()) breakdownPane.ref.current?.collapse();
+    document.getElementById(`alert-${siteFitId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   // The address search itself lives in the navbar (mounted on every route);
@@ -326,15 +319,24 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     return () => setAddressSelectHandler(null);
   });
 
-  // Keep the selected parcel in the URL so a refresh (or a shared link)
-  // restores the same one, instead of always falling back to the demo parcel.
+  // Seed the global weights store from the URL once on mount; only ever runs
+  // for the very first page load (a real navigation replaces the URL from
+  // the store below, not the other way around).
+  useEffect(() => {
+    if (initialWeights) setPillarWeights(decodeWeights(initialWeights));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the selected parcel and pillar weights in the URL so a refresh (or
+  // a shared link) restores the same view, instead of always falling back to
+  // the demo parcel and default weights.
   useEffect(() => {
     void navigate({
-      search: (prev) => ({ ...prev, pin: selectedPin ?? undefined }),
+      search: (prev) => ({ ...prev, pin: selectedPin ?? undefined, w: encodeWeights(pillarWeights) }),
       replace: true,
       resetScroll: false,
     });
-  }, [selectedPin, navigate]);
+  }, [selectedPin, pillarWeights, navigate]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -349,7 +351,6 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     map.addControl(new NavigationControl({}), "top-right");
 
     map.on("load", () => {
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       collapseAttribution(map);
@@ -364,7 +365,6 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
       }
     });
     map.on("styledata", () => {
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
     });
@@ -403,7 +403,6 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     // swap drops all sources and layers.
     const applyOverlays = () => {
       styleReadyRef.current = true;
-      addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
@@ -525,15 +524,6 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     map.setFilter(PARCEL_SELECTED_LAYER_ID, ["==", ["get", "pin"], selectedPin ?? ""]);
   }, [selectedPin, basemap]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !map.getLayer(ZONING_FILL_LAYER_ID)) return;
-    const visibility = showZoning ? "visible" : "none";
-    map.setLayoutProperty(ZONING_FILL_LAYER_ID, "visibility", visibility);
-    map.setLayoutProperty(ZONING_LINE_LAYER_ID, "visibility", visibility);
-    // Re-applied on every style swap too, since setStyle drops layout state.
-  }, [showZoning, basemap]);
-
   return (
     <div className="h-full w-full overflow-hidden">
       <ResizablePanelGroup orientation="horizontal" className="h-full w-full">
@@ -595,15 +585,8 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
                         <div className="flex overflow-hidden rounded-md border">
                           <button
                             type="button"
-                            onClick={() => setShowZoning((v) => !v)}
-                            className={`flex-1 px-2 py-1 ${showZoning ? "bg-foreground text-background" : ""}`}
-                          >
-                            Zoning
-                          </button>
-                          <button
-                            type="button"
                             onClick={() => setSpinning((v) => !v)}
-                            className={`flex-1 border-l px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
+                            className={`flex-1 px-2 py-1 ${spinning ? "bg-foreground text-background" : ""}`}
                           >
                             Spin
                           </button>
@@ -633,7 +616,12 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
               panelRef={typologyPane.ref}
               onResize={typologyPane.onResize}
             >
-              <TypologyPanel pin={selectedPin} collapsed={typologyPane.collapsed} onToggleCollapse={typologyPane.toggle} />
+              <TypologyPanel
+                pin={selectedPin}
+                collapsed={typologyPane.collapsed}
+                onToggleCollapse={typologyPane.toggle}
+                onSelectTypology={handleSelectTypology}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
@@ -641,7 +629,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
         <ResizablePanel defaultSize="25%" minSize="18%" maxSize="40%">
           <ResizablePanelGroup orientation="vertical" className="h-full w-full">
             <ResizablePanel
-              defaultSize="45%"
+              defaultSize="35%"
               minSize={0}
               collapsible
               collapsedSize="80px"
@@ -655,6 +643,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
                   onSelectPillar={handleSelectPillar}
                   collapsed={scoresPane.collapsed}
                   onToggleCollapse={scoresPane.toggle}
+                  weights={pillarWeights}
                 />
               ) : (
                 <p className="p-2 text-xs text-muted-foreground">
@@ -664,18 +653,29 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
-              defaultSize="25%"
+              defaultSize="20%"
+              minSize={0}
+              collapsible
+              collapsedSize="34px"
+              panelRef={alertsPane.ref}
+              onResize={alertsPane.onResize}
+            >
+              <AlertsPanel pin={selectedPin} collapsed={alertsPane.collapsed} onToggleCollapse={toggleAlerts} />
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize="20%"
               minSize={0}
               collapsible
               collapsedSize="34px"
               panelRef={breakdownPane.ref}
               onResize={breakdownPane.onResize}
             >
-              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={breakdownPane.toggle} />
+              <BreakdownPanel pin={selectedPin} collapsed={breakdownPane.collapsed} onToggleCollapse={toggleBreakdown} />
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
-              defaultSize="30%"
+              defaultSize="25%"
               minSize={0}
               collapsible
               collapsedSize="48px"

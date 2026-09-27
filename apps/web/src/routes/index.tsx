@@ -5,6 +5,7 @@ import { ParcelMap } from "@/components/parcel-map";
 
 const searchSchema = z.object({
   pin: z.string().optional(),
+  w: z.string().optional(),
 });
 
 export const Route = createFileRoute("/")({
@@ -13,6 +14,6 @@ export const Route = createFileRoute("/")({
 });
 
 function HomeComponent() {
-  const { pin } = Route.useSearch();
-  return <ParcelMap initialPin={pin} />;
+  const { pin, w } = Route.useSearch();
+  return <ParcelMap initialPin={pin} initialWeights={w} />;
 }
