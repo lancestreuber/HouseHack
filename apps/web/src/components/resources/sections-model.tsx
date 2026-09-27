@@ -8,7 +8,7 @@ import { PATHWAY_SCORE } from "@/components/map/typology-panel";
 import config from "@/lib/pillars/pillars.config.json";
 import { overallScore, type PillarId, type PillarScore } from "@/lib/pillars/score";
 
-import { DataTable, Equation, ExtLink, Mono, Panel, Section, SubHead, Tag } from "./ui";
+import { DataTable, Equation, ExtLink, Mono, Panel, Section, SubHead, Tag, Tex } from "./ui";
 
 type Indicator = (typeof config.indicators)[number] & {
   sub?: string;
@@ -185,95 +185,101 @@ export function EquationsSection() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Equation
           label="E1 · Normalize: percentile (mid-rank)"
-          lines={["p(v) = 100 · ( #{x < v} + ½ · #{x = v} ) / N", "s    = p(v)          if higher is better", "s    = 100 − p(v)    if lower is better"]}
+          tex={String.raw`\begin{aligned}
+p(v) &= 100\cdot\frac{\#\{x < v\} + \tfrac{1}{2}\,\#\{x = v\}}{N}\\[6pt]
+s &= \begin{cases} p(v) & \text{higher is better}\\ 100 - p(v) & \text{lower is better}\end{cases}
+\end{aligned}`}
           where={[
-            ["x", "every value in the reference set: all Allegheny County units in the source file (block groups, tracts, ZIPs), or all City parcels"],
-            ["N", "size of the reference set"],
-            ["s", "indicator score, rounded and clamped to 0–100"],
+            [String.raw`x`, "every value in the reference set: all Allegheny County units in the source file (block groups, tracts, ZIPs), or all City parcels"],
+            [String.raw`N`, "size of the reference set"],
+            [String.raw`s`, "indicator score, rounded and clamped to 0–100"],
           ]}
           note="Ties share the middle of their rank, so a value shared by many units doesn't jump to the top or bottom."
         />
         <Equation
           label="E2 · Normalize: fixed linear scale"
-          lines={["s = clamp( 100 · (v − zero) / (full − zero), 0, 100 )"]}
+          tex={String.raw`s = \operatorname{clamp}_{[0,\,100]}\!\left(100\cdot\frac{v - v_{\text{zero}}}{v_{\text{full}} - v_{\text{zero}}}\right)`}
           where={[
-            ["zero", "raw value that scores 0 (e.g. 2,400 m to a supermarket)"],
-            ["full", "raw value that scores 100 (e.g. 400 m)"],
+            [String.raw`v_{\text{zero}}`, "raw value that scores 0 (e.g. 2,400 m to a supermarket)"],
+            [String.raw`v_{\text{full}}`, "raw value that scores 100 (e.g. 400 m)"],
           ]}
           note="Used for distances, shares of lot area and other values with a meaningful absolute threshold. Category codes (lead line, legal pathway, parcel use) are used as-is."
         />
         <Equation
           label="E3 · Sub-score: weighted mean with renormalization"
-          lines={["S_k = Σ_{i ∈ present} w_i · s_i  /  Σ_{i ∈ present} w_i", "", "S_k = null   if  Σ_present w_i / Σ_all w_i  <  min_coverage"]}
+          tex={String.raw`S_k = \frac{\displaystyle\sum_{i \in A_k} w_i\, s_i}{\displaystyle\sum_{i \in A_k} w_i}
+\qquad\text{undefined if}\quad \frac{\sum_{i \in A_k} w_i}{\sum_{i \in I_k} w_i} < c_{\min}`}
           where={[
-            ["w_i", "indicator weight from the config (0 = shown as context, not scored)"],
-            ["present", "indicators with a value for this parcel; missing values are excluded, never filled"],
-            ["min_coverage", `${config.missing.min_coverage} by default; Demand requires ${PILLARS.find((p) => p.id === "demand")?.min_coverage}`],
+            [String.raw`w_i`, "indicator weight from the config (0 = shown as context, not scored)"],
+            [String.raw`I_k,\ A_k`, "all indicators of sub-score k, and those with a value for this parcel; missing values are excluded, never filled"],
+            [String.raw`c_{\min}`, `minimum coverage: ${config.missing.min_coverage} by default; Demand requires ${PILLARS.find((p) => p.id === "demand")?.min_coverage}`],
           ]}
         />
         <Equation
           label="E4 · Pillar: sub-scores, then hazard gates"
-          lines={["P_j = Σ_k W_k · S_k / Σ_k W_k        (scored sub-scores only)", "P_j = min( P_j, cap_g )   for every gate g whose conditions all hold"]}
+          tex={String.raw`P_j = \min\!\left(\frac{\sum_k W_k\, S_k}{\sum_k W_k},\ \min_{g \in G_j} \mathrm{cap}_g\right)`}
           where={[
-            ["W_k", "sub-score weight; pillars without sub-scores are one implicit sub-score"],
-            ["cap_g", "a ceiling such as 5 (half the lot in the floodway) or 50 (mostly 25%+ slope); cap 100 = warning only"],
+            [String.raw`W_k`, "sub-score weight (scored sub-scores only); a pillar without sub-scores is one implicit sub-score"],
+            [String.raw`G_j`, "the pillar's gates whose conditions all hold for this parcel"],
+            [String.raw`\mathrm{cap}_g`, "a ceiling such as 5 (half the lot in the floodway) or 50 (mostly 25%+ slope); cap 100 = warning only"],
           ]}
           note="Gates exist so an average can't hide a disqualifying hazard: great transit doesn't make a floodway buildable."
         />
         <Equation
           label="E5 · Overall: weighted geometric mean"
-          lines={["O = exp( Σ_j ω_j · ln max(P_j, 1)  /  Σ_j ω_j )", "", "P_j missing  →  P_j := impute_j"]}
+          tex={String.raw`O = \exp\!\left(\frac{\sum_j \omega_j \,\ln \max(P_j,\,1)}{\sum_j \omega_j}\right)
+\qquad P_j \leftarrow \mathrm{impute}_j\ \text{if missing}`}
           where={[
-            ["ω_j", "pillar weight (0–3 in the navbar Weights popover; published default 1)"],
-            ["floor 1", "keeps a zero pillar from zeroing the whole product"],
-            ["impute_j", "City 25th-percentile score for that pillar, used when it lacks data (and flagged): " + PILLARS.map((p) => `${p.label} ${p.impute}`).join(" · ")],
+            [String.raw`\omega_j`, "pillar weight (0–3 in the navbar Weights popover; published default 1)"],
+            [String.raw`\max(P_j, 1)`, "floor of 1 keeps a zero pillar from zeroing the whole product"],
+            [String.raw`\mathrm{impute}_j`, "City 25th-percentile score for that pillar, used when it lacks data (and flagged): " + PILLARS.map((p) => `${p.label} ${p.impute}`).join(" · ")],
           ]}
           note={config.overall.rationale}
         />
         <Equation
           label="E6 · Final parcel score"
-          lines={["Score = O × m_legal × m_availability × m_hazard"]}
+          tex={String.raw`\text{Score} = O \times m_{\text{legal}} \times m_{\text{avail}} \times m_{\text{hazard}}`}
           where={[
-            ["m_legal", "multiplier for the easiest legal pathway among detached, townhouse, two-, three- and multi-unit homes, or for one type the user picks in the panel (§4)"],
-            ["m_availability", "multiplier for what's on the lot now: vacant 1.0 … park, rail, right-of-way 0.05"],
-            ["m_hazard", "lowest overall factor among the fired deal-killer gates (floodway, sliver lot, mines), else 1 (§4)"],
+            [String.raw`m_{\text{legal}}`, "multiplier for the easiest legal pathway among detached, townhouse, two-, three- and multi-unit homes, or for one type the user picks in the panel (§4)"],
+            [String.raw`m_{\text{avail}}`, "multiplier for what's on the lot now: vacant 1.0 … park, rail, right-of-way 0.05"],
+            [String.raw`m_{\text{hazard}}`, "lowest overall factor among the fired deal-killer gates (floodway, sliver lot, mines), else 1 (§4)"],
           ]}
           note="Multiplied, not averaged: a parcel where housing isn't permitted, or sits in a floodway, can't be rescued by good access."
         />
         <Equation
           label="E7 · Contribution shown in the panel"
-          lines={["share_i = ( W_k / Σ W ) · w_i · s_i / Σ_{present in k} w"]}
+          tex={String.raw`\mathrm{share}_i = \frac{W_k}{\sum_{k'} W_{k'}} \cdot \frac{w_i\, s_i}{\sum_{i' \in A_k} w_{i'}}`}
           note="The shares of one pillar add up to the pillar score before any gate cap, so the parcel panel can say exactly which indicator added how many points."
         />
         <Equation
           label="E8 · Weight sensitivity (rank stability)"
-          lines={[`ω' ~ Dirichlet( ${config.sensitivity.concentration} · ω / Σω ),   ${config.sensitivity.draws} draws`, "report p10, p50, p90 of O(ω')"]}
+          tex={String.raw`\boldsymbol{\omega}' \sim \operatorname{Dirichlet}\!\left(\alpha\,\frac{\boldsymbol{\omega}}{\sum_j \omega_j}\right),
+\quad \alpha = ${config.sensitivity.concentration},\ \ ${config.sensitivity.draws}\ \text{draws}`}
+          where={[[String.raw`P_{10},\,P_{50},\,P_{90}`, "percentiles of the overall score O(ω′) across the draws, shown as the range in the parcel panel"]]}
           note={config.sensitivity.rationale}
         />
       </div>
 
       <SubHead right="computed live by score.ts">Worked example</SubHead>
       <Panel className="p-3">
-        <div className="grid gap-4 text-xs md:grid-cols-[1fr_auto]">
-          <div className="space-y-2">
-            <div className="flex flex-wrap gap-2">
-              {PILLARS.map((p) => (
-                <span key={p.id} className="rounded-sm border border-border px-2 py-1 font-mono">
-                  {p.label} <span className="text-foreground">{example[p.id as PillarId]}</span>
-                </span>
-              ))}
-            </div>
-            <pre className="overflow-x-auto font-mono text-[12px] leading-6 text-muted-foreground">
-              {`geometric  O = exp( (ln 72 + ln 85 + ln 30 + ln 64 + ln 58) / 5 ) = ${fmt(geo, 1)}
-arithmetic O = (72 + 85 + 30 + 64 + 58) / 5                            = ${fmt(arith, 1)}
-final      ${fmt(geo, 1)} × ${zbe.multiplier} (${zbe.label.toLowerCase()}) × ${occupied.multiplier} (occupied building) = ${fmt(finalScore, 1)}`}
-            </pre>
-          </div>
-          <p className="max-w-xs text-muted-foreground">
-            The weak Affordability pillar (30) pulls the geometric mean {fmt(arith - geo, 1)} points below the arithmetic one. That is the intended effect: strengths elsewhere only
-            partly offset a real weakness.
-          </p>
+        <div className="flex flex-wrap gap-2 text-xs">
+          {PILLARS.map((p) => (
+            <span key={p.id} className="rounded-sm border border-border px-2 py-1 font-mono">
+              {p.label} <span className="text-foreground">{example[p.id as PillarId]}</span>
+            </span>
+          ))}
         </div>
+        <div className="mt-2 text-[14px]">
+          <Tex block>{String.raw`\begin{aligned}
+O_{\text{geo}} &= \exp\!\left(\dfrac{\ln 72 + \ln 85 + \ln 30 + \ln 64 + \ln 58}{5}\right) = ${fmt(geo, 1)}\\[10pt]
+O_{\text{arith}} &= \dfrac{72 + 85 + 30 + 64 + 58}{5} = ${fmt(arith, 1)}\\[10pt]
+\text{Score} &= ${fmt(geo, 1)} \times \underbrace{${zbe.multiplier}}_{\text{special exception}} \times \underbrace{${occupied.multiplier}}_{\text{occupied building}} = ${fmt(finalScore, 1)}
+\end{aligned}`}</Tex>
+        </div>
+        <p className="mt-2 max-w-3xl text-xs text-muted-foreground">
+          The weak Affordability pillar (30) pulls the geometric mean {fmt(arith - geo, 1)} points below the arithmetic one. That is the intended effect: strengths elsewhere only
+          partly offset a real weakness.
+        </p>
       </Panel>
     </Section>
   );
@@ -462,22 +468,17 @@ export function VerdictSection() {
       />
       <Equation
         label="E11 · Pencil check (per unit)"
-        lines={[
-          "cost   = sf × $/sf × (1 + soft) + (site + steep adder) / units",
-          "need   = cost × (1 + margin)",
-          "value  = tract median sale price          (houses)",
-          `value  = monthly rent × ${p.rent_multiplier}                 (2+ units)`,
-          "status = pencils  if value ≥ need",
-          "         tight    if value ≥ need at the low $/sf",
-          `         subsidy  if value ≥ ${p.subsidy_floor} × need`,
-          "         no       otherwise",
-        ]}
+        tex={String.raw`\begin{aligned}
+\text{cost} &= \text{sf}\cdot c_{\text{sf}}\,(1+\text{soft}) + \frac{\text{site} + \text{steep}}{\text{units}} \qquad \text{need} = \text{cost}\,(1+\text{margin}) \\
+\text{value} &= \begin{cases} \text{tract median sale price} & \text{houses} \\ ${p.rent_multiplier} \times \text{monthly rent} & \text{2+ units} \end{cases} \\
+\text{status} &= \begin{cases} \text{pencils} & \text{value} \ge \text{need} \\ \text{tight} & \text{value} \ge \text{need at } c_{\text{sf}} = ${p.cost_per_sf.low} \\ \text{subsidy} & \text{value} \ge ${p.subsidy_floor}\,\text{need} \\ \text{no} & \text{otherwise} \end{cases}
+\end{aligned}`}
         where={[
-          ["$/sf", `editable; presets ${p.cost_per_sf.low} / ${p.cost_per_sf.mid} / ${p.cost_per_sf.high}`],
-          ["site", `$${p.site_cost_per_building.toLocaleString()} per building, editable`],
-          ["steep adder", `$${p.steep_site_adder.toLocaleString()} when half the lot is 25%+ slope`],
-          ["soft", `${Math.round(p.soft_cost_pct * 100)}% of hard cost`],
-          ["margin", `${Math.round(p.margin_pct * 100)}%`],
+          [String.raw`c_{\text{sf}}`, `construction $/sf, editable; presets ${p.cost_per_sf.low} / ${p.cost_per_sf.mid} / ${p.cost_per_sf.high}`],
+          [String.raw`\text{site}`, `$${p.site_cost_per_building.toLocaleString()} per building, editable`],
+          [String.raw`\text{steep}`, `$${p.steep_site_adder.toLocaleString()} when half the lot is 25%+ slope`],
+          [String.raw`\text{soft}`, `${Math.round(p.soft_cost_pct * 100)}% of hard cost`],
+          [String.raw`\text{margin}`, `${Math.round(p.margin_pct * 100)}%`],
         ]}
         note={p.about}
       />
@@ -533,25 +534,28 @@ export function TypologySection() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Equation
           label="E9 · Legal pathway score (tile number)"
-          lines={[
-            ...PATHWAY_ORDER.filter((id) => id in PATHWAY_SCORE).map(
-              (id) => `${id.padEnd(22)} → ${PATHWAY_SCORE[id] == null ? "— (no single number)" : PATHWAY_SCORE[id]}`,
-            ),
-            "not_permitted          → round( 5 + 30 · closeness · likelihood )",
-          ]}
+          tex={String.raw`T = \begin{cases}
+${PATHWAY_ORDER.filter((id) => PATHWAY_SCORE[id] != null)
+  .map((id) => `${PATHWAY_SCORE[id]} & \\text{${PATHWAY_META[id]?.label.split(" (")[0].toLowerCase() ?? id}}`)
+  .join(" \\\\ ")} \\
+\operatorname{round}\!\left(5 + 30\, c\, \ell\right) & \text{not permitted}
+\end{cases}`}
           where={[
-            ["closeness", "1 if a district in the same family allows it (density-suffix change), 0.5 if one step up/down the R1D → R1A → R2 → R3 → RM ladder, 0.2 if only a distant district, 0 if none"],
-            ["likelihood", "Zoning Board relief approval rate in this base district, 2023–26 (all case types); 0.7 where there are no local cases"],
+            [String.raw`c`, "rezoning closeness: 1 if a district in the same family allows it (density-suffix change), 0.5 if one step up/down the R1D → R1A → R2 → R3 → RM ladder, 0.2 if only a distant district, 0 if none"],
+            [String.raw`\ell`, "likelihood: Zoning Board relief approval rate in this base district, 2023–26 (all case types); 0.7 where there are no local cases"],
           ]}
-          note="Not-permitted tops out at 35, below conditional use (40): it always means extra process, but it isn't a flat zero either."
+          note="Not-permitted tops out at 35, below conditional use (40): it always means extra process, but it isn't a flat zero either. Planned-unit districts and Mount Oliver get no single number."
         />
         <Equation
           label="E10 · Jev site fit (typed rubric)"
-          lines={["E       = Σ_i p_i · i                 i = 0 … L−1", "fit     = E / (L − 1)                 shown as 0–100", "label   = level[ round(E) ]", `review  = confidence < ${REVIEW_CONFIDENCE}   (House: 0.2)`]}
+          tex={String.raw`\begin{aligned}
+E &= \sum_{i=0}^{L-1} i\, p_i \qquad \mathrm{fit} = \frac{E}{L-1}\\[10pt]
+\text{label} &= \text{level}_{\,\operatorname{round}(E)} \qquad \text{review if } \mathrm{conf} < ${REVIEW_CONFIDENCE}\ (\text{House: } 0.2)
+\end{aligned}`}
           where={[
-            ["levels", SITE_FIT_LEVELS.map((l, i) => `${i} ${l}`).join(" · ")],
-            ["p_i", "the model's probability for each level"],
-            ["state", "lot area, bounding-rectangle width × depth, district minimum lot size, hazard shares ≥ 1%, all computed in PostGIS/code first"],
+            [String.raw`L`, `${SITE_FIT_LEVELS.length} levels: ` + SITE_FIT_LEVELS.map((l, i) => `${i} ${l}`).join(" · ")],
+            [String.raw`p_i`, "the model's probability for each level"],
+            [String.raw`\text{facts}`, "lot area, bounding-rectangle width × depth, district minimum lot size, hazard shares ≥ 1%, all computed in PostGIS/code first"],
           ]}
           note="The expected value, not the model's top pick: a near 50/50 split between two levels lands between them instead of snapping to a falsely confident extreme."
         />
@@ -677,16 +681,21 @@ export function AiSection() {
           </div>
           <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
             <li>
-              Google Gemini, trying <Mono>{CHAT_MODELS.join(" → ")}</Mono> in order on rate limits or outages.
+              Google Gemini: <Mono>{CHAT_MODELS.join(" → ")}</Mono>. If a model errors, or hasn't answered after 4 s, the next one starts too and the first
+              answer wins; each call times out at 12 s.
             </li>
-            <li>Sees only the selected parcel's facts (scores, breakdowns, zoning) plus standing definitions. Each fact has an id, source and as-of date.</li>
+            <li>
+              Sees only what the panels show for the selected parcel (scores, breakdowns, typology tiles with Jev's site fit, alerts, zoning) plus standing definitions. Each fact
+              has an id, source and as-of date. Without a parcel, it only explains how the tool works.
+            </li>
             <li>Replies must cite fact ids. Citations to ids that weren't provided are removed.</li>
             <li>
               <span className="text-foreground">Number guard:</span> any sentence containing a number that no provided fact states is dropped. Small counting numbers (0–10) and a
               fraction's percent form (0.81 → 81) are allowed.
             </li>
             <li>
-              Can call one tool, <Mono>rescore</Mono>, which reruns E5 with new weights, so "what if I cared more about climate?" gets a computed answer, not an estimate.
+              What-ifs are computed, never estimated: the <Mono>rescore</Mono> tool reruns E5–E6 with new weights or a preset, and rezoning and vacant-land scenarios
+              are scored by the real scorer ahead of time. Anything else gets "not computed".
             </li>
             <li>At most 10 turns of history and 3 tool steps per answer. Without a key, it shows the screen's own notes instead.</li>
           </ul>

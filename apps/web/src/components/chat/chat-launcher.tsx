@@ -32,11 +32,8 @@ export function ChatLauncher() {
 
   return (
     <>
-      {started && (
-        <div hidden={!open}>
-          <ChatPane context={context} onClose={close} />
-        </div>
-      )}
+      {/* The pane portals itself into <body>, so it hides itself rather than relying on a wrapper. */}
+      {started && <ChatPane context={context} onClose={close} hidden={!open} />}
       {!open && (
         <LaunchButton
           onClick={() => {
