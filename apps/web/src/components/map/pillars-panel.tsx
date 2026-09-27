@@ -311,8 +311,9 @@ function PillarCard({
 
 /** Shared by the typology panel (bottom) and the Alerts pane, so both read
  * the exact same (cached) System One result instead of issuing their own
- * near-duplicate requests. */
-export function useTypologyFit(pin: string, data: ParcelData) {
+ * near-duplicate requests. The chat also reads it, before data may have
+ * loaded, so `data` can be null (the query just waits). */
+export function useTypologyFit(pin: string, data: ParcelData | null) {
   // Global navbar weights, fed straight into Jev's state so a borderline
   // physical-fit rating can be nudged by what the evaluator says they
   // prioritize (site-fit.ts's siteFitQuestion explains how to the model).
@@ -321,16 +322,17 @@ export function useTypologyFit(pin: string, data: ParcelData) {
     orpc.parcels.typologyFit.queryOptions({
       input: {
         pin,
-        zoning: data.zoning || null,
+        zoning: data?.zoning || null,
         hazards: {
-          floodway: data.raw.site_floodway_share,
-          floodplain: data.raw.site_sfha_share,
-          steepSlope: data.raw.site_steep_slope_share,
-          landslideProne: data.raw.site_landslide_prone_share,
-          undermined: data.raw.site_undermined_share,
+          floodway: data?.raw.site_floodway_share,
+          floodplain: data?.raw.site_sfha_share,
+          steepSlope: data?.raw.site_steep_slope_share,
+          landslideProne: data?.raw.site_landslide_prone_share,
+          undermined: data?.raw.site_undermined_share,
         },
         weights,
       },
+      enabled: Boolean(data),
       staleTime: Number.POSITIVE_INFINITY,
     }),
   );

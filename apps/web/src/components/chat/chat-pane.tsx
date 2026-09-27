@@ -61,6 +61,8 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
   const floating = poppedOut || Boolean(onClose);
   const win = useFloatingWindow(floating);
   const hasSubject = Boolean(context?.facts.length);
+  // Parcel contexts always carry a "parcel" fact; others (e.g. how the tool works) don't.
+  const aboutParcel = Boolean(context?.facts.some((f) => f.id === "parcel"));
 
   const pane = (
     <section
@@ -83,7 +85,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
         onPointerDown={floating ? win.begin("move") : undefined}
       >
         {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
-        <h2 className="mr-auto text-xs font-medium">{hasSubject ? "Ask about this parcel" : "Ask Groundwork"}</h2>
+        <h2 className="mr-auto text-xs font-medium">{aboutParcel ? "Ask about this parcel" : "Ask Yinzone"}</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
           pressed={chat.readAloud}
@@ -122,7 +124,7 @@ export function ChatPane({ context, className, onClose, collapsed, onToggleColla
 
           <Conversation chat={chat} suggestions={context?.suggestions?.length ? context.suggestions : GENERAL_QUESTIONS} />
 
-          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={hasSubject} />
+          <Composer onSend={chat.send} disabled={chat.thinking} hasParcel={aboutParcel} />
         </>
       )}
 
