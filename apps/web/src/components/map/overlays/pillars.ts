@@ -42,7 +42,7 @@ const OVERALL: Metric = {
   id: "overall",
   label: "Overall",
   description:
-    "The overall score from the parcel panel: a weighted geometric mean of the five pillars at equal default weights, times the zoning and site-availability multipliers.",
+    "The overall score from the parcel panel: a weighted geometric mean of the five pillars at equal default weights, times the zoning, site-availability and deal-killer hazard multipliers.",
 };
 
 function pillarOverlay(pillar: Metric): OverlayDefinition {

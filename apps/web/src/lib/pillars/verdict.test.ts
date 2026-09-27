@@ -92,4 +92,9 @@ describe("typologyVerdict", () => {
     expect(v.level).toBe("unknown");
     expect(v.reasons[0].text).toContain("undermined");
   });
+
+  test("pathway reasons carry the approval clock", () => {
+    const v = typologyVerdict({ typology: "multi_unit", pathway: "conditional_use", values: clean() });
+    expect(v.reasons[0].text).toContain("6 months");
+  });
 });

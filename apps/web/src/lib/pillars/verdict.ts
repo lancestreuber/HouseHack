@@ -45,7 +45,15 @@ function share(values: IndicatorValues, id: string): number | null {
   return v == null ? null : (100 - v) / 100;
 }
 
+const PATHWAY_TIME = V.pathway_time as Record<string, string>;
+
 function legalReason(pathway: string | undefined, closeness: number | undefined): VerdictReason {
+  const reason = legalReasonText(pathway, closeness);
+  const time = pathway ? PATHWAY_TIME[pathway] : undefined;
+  return time ? { ...reason, text: `${reason.text}; ${time}` } : reason;
+}
+
+function legalReasonText(pathway: string | undefined, closeness: number | undefined): VerdictReason {
   switch (pathway) {
     case "by_right":
       return { level: "green", text: "Allowed by right" };
@@ -165,3 +173,4 @@ export function typologyVerdict(input: VerdictInput): Verdict {
 }
 
 export const VERDICT_NOT_CHECKED = V.not_checked;
+export const VERDICT_PERMIT_NOTE = V.pathway_time.permit_note;

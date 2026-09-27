@@ -1651,6 +1651,14 @@
     },
     "single_house_typologies": ["single_detached"],
     "fit_yellow_below": 0.5,
+    "pathway_time": {
+      "about": "How long each approval can take before a building permit, shown with the pathway reason so hearings read as time and carrying cost, not just a probability (hackathon SME, 2026-09-27: variances are usually granted, but the time and expense make lots hard to develop). Code deadlines are maximums from the City code; the rezoning figure is observed.",
+      "za": "decision due 21 days after a complete application (§922.08)",
+      "zbe_special_exception": "hearing within 45 days, decision within 45 days after: up to about 3 months (§922.07)",
+      "conditional_use": "up to about 6 months across Planning Commission and Council (§922.06)",
+      "not_permitted": "a use variance runs on the ZBA clock (about 3 months); site rezonings took a median 123 days at Council (2015–26, 42 of 49 adopted)",
+      "permit_note": "Then the building permit: median 120–200 days to issue for new residential, 2019–26 (WPRDC PLI permits)."
+    },
     "side_setbacks": {
       "source": "Pittsburgh Code §903.03 as amended Ord. 10-2025 (eff. 2025-05-07), read on eCode360 2026-09-26: research/sources/ecode360-2026-09-26-pittsburgh-903-03-dimensional-standards.md",
       "about": "Total interior side setback (both sides, ft) by base district and density suffix. Buildable width = lot width minus this. Attached (party-wall) housing has no interior side setback, so it is skipped. Corner-lot exterior side setbacks and contextual setbacks (§925.06) are not modeled. Lot width is the short side of the lot's oriented bounding rectangle, so irregular lots are approximate.",

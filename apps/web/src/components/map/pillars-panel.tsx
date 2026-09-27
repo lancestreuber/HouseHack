@@ -7,7 +7,7 @@ import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { Disclaimer } from "@/components/disclaimer";
 import { type PillarId, type PillarScore, scoreMultiplier, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
-import { VERDICT_COLOR, VERDICT_NOT_CHECKED } from "@/lib/pillars/verdict";
+import { VERDICT_COLOR, VERDICT_NOT_CHECKED, VERDICT_PERMIT_NOTE } from "@/lib/pillars/verdict";
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
@@ -376,7 +376,7 @@ function BuildVerdicts({ pin, data }: { pin: string; data: ParcelData }) {
       </ul>
       <p className="mt-1 text-muted-foreground">
         {query.isPending ? "Checking physical fit… " : ""}
-        {VERDICT_NOT_CHECKED}
+        {VERDICT_PERMIT_NOTE} {VERDICT_NOT_CHECKED}
       </p>
     </section>
   );
