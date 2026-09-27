@@ -82,11 +82,11 @@
           "when": [
             {
               "indicator": "site_steep_slope_share",
-              "below": 26
+              "below": 51
             }
           ],
           "cap": 50,
-          "flag": "Most of the lot is 25%+ slope (steep-slope overlay: Planning Commission review)"
+          "flag": "Half or more of the lot is 25%+ slope (steep-slope overlay: Planning Commission hearing, §906.08)"
         },
         {
           "when": [
@@ -483,7 +483,7 @@
         "zero": 1,
         "full": 0
       },
-      "rationale": "Triggers the City steep-slope overlay (Ch. 906) and raises foundation cost.",
+      "rationale": "Triggers the City steep-slope overlay (Ch. 906) and raises foundation cost. Half or more of the lot at 25%+ slope caps Site Feasibility at 50 (was three-quarters until 2026-09-27; any development in SS-O needs a Planning Commission hearing, §906.08.C.1). Not an overall multiplier: a hackathon SME described slope as added cost, not a deal-killer.",
       "unit": "share"
     },
     {
