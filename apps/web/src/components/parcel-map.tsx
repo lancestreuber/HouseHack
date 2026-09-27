@@ -32,6 +32,7 @@ import { client } from "@/utils/orpc";
 
 import type { AddressResult } from "./map/address-search";
 import { setAddressSelectHandler } from "./map/address-select-store";
+import { decodeWeights, encodeWeights, setPillarWeights, usePillarWeights } from "./map/pillar-weights-store";
 import { AlertsPanel } from "./map/alerts-panel";
 import { BreakdownPanel } from "./map/breakdown-panel";
 import { ChatPane } from "./chat/chat-pane";
@@ -264,9 +265,10 @@ function usePaneCollapse(defaultCollapsed = false) {
   return { ref, collapsed, onResize, toggle };
 }
 
-export function ParcelMap({ initialPin }: { initialPin?: string }) {
+export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string; initialWeights?: string }) {
   const navigate = useNavigate({ from: "/" });
   const initialPinRef = useRef(initialPin);
+  const pillarWeights = usePillarWeights();
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const isFirstRun = useRef(true);
@@ -354,15 +356,24 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     return () => setAddressSelectHandler(null);
   });
 
-  // Keep the selected parcel in the URL so a refresh (or a shared link)
-  // restores the same one, instead of always falling back to the demo parcel.
+  // Seed the global weights store from the URL once on mount; only ever runs
+  // for the very first page load (a real navigation replaces the URL from
+  // the store below, not the other way around).
+  useEffect(() => {
+    if (initialWeights) setPillarWeights(decodeWeights(initialWeights));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the selected parcel and pillar weights in the URL so a refresh (or
+  // a shared link) restores the same view, instead of always falling back to
+  // the demo parcel and default weights.
   useEffect(() => {
     void navigate({
-      search: (prev) => ({ ...prev, pin: selectedPin ?? undefined }),
+      search: (prev) => ({ ...prev, pin: selectedPin ?? undefined, w: encodeWeights(pillarWeights) }),
       replace: true,
       resetScroll: false,
     });
-  }, [selectedPin, navigate]);
+  }, [selectedPin, pillarWeights, navigate]);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -678,6 +689,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
                   onSelectPillar={handleSelectPillar}
                   collapsed={scoresPane.collapsed}
                   onToggleCollapse={scoresPane.toggle}
+                  weights={pillarWeights}
                 />
               ) : (
                 <p className="p-2 text-xs text-muted-foreground">

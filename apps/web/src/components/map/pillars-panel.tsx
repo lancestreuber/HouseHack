@@ -1,13 +1,4 @@
-import {
-  Popover,
-  PopoverContent,
-  PopoverHeader,
-  PopoverTitle,
-  PopoverTrigger,
-} from "@HouseHack/ui/components/popover";
-import { Slider } from "@HouseHack/ui/components/slider";
 import { useQuery } from "@tanstack/react-query";
-import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
@@ -15,59 +6,6 @@ import { type PillarId, type PillarScore, scoreParcel, weightSensitivity } from 
 import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
-
-/** Button + popover of one slider per pillar, feeding `scoreParcel`'s
- * `overrides.pillars` -- pure and synchronous, so every drag recomputes the
- * Overall score and every pillar card live (see score.ts). */
-function WeightsPopover({
-  weights,
-  onChange,
-}: {
-  weights: Partial<Record<PillarId, number>>;
-  onChange: (next: Partial<Record<PillarId, number>>) => void;
-}) {
-  return (
-    <Popover>
-      <PopoverTrigger className="flex items-center gap-1 rounded px-1.5 py-1 text-muted-foreground hover:bg-foreground/10 hover:text-foreground">
-        <SlidersHorizontal className="size-3.5" />
-        Weights
-      </PopoverTrigger>
-      <PopoverContent side="left" align="start" className="w-64">
-        <PopoverHeader>
-          <PopoverTitle>Pillar weights</PopoverTitle>
-        </PopoverHeader>
-        <div className="space-y-3">
-          {config.pillars.map((p) => {
-            const id = p.id as PillarId;
-            const value = weights[id] ?? p.weight;
-            return (
-              <div key={id} className="space-y-1">
-                <div className="flex items-center justify-between">
-                  <span>{p.label}</span>
-                  <span className="tabular-nums text-muted-foreground">{value.toFixed(2)}</span>
-                </div>
-                <Slider
-                  value={[value]}
-                  min={0}
-                  max={3}
-                  step={0.25}
-                  onValueChange={(v) => onChange({ ...weights, [id]: Array.isArray(v) ? v[0]! : v })}
-                />
-              </div>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          onClick={() => onChange({})}
-          className="mt-1 text-left text-muted-foreground underline hover:text-foreground"
-        >
-          Reset to defaults
-        </button>
-      </PopoverContent>
-    </Popover>
-  );
-}
 
 export type Indicator = (typeof config.indicators)[number] & { sub?: string; unit?: string };
 type ShardIndex = { config_version: string; built: string; indicators: string[]; shards: string[] };
@@ -407,19 +345,21 @@ export function PillarsPanel({
   onSelectPillar,
   collapsed,
   onToggleCollapse,
+  weights,
 }: {
   pin: string;
   onClose: () => void;
   onSelectPillar?: (id: PillarId) => void;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
+  /** Global pillar weights from the navbar's Weights popover (pillar-weights-store). */
+  weights: Partial<Record<PillarId, number>>;
 }) {
   const { data, status } = useParcelData(pin);
-  const [pillarWeights, setPillarWeights] = useState<Partial<Record<PillarId, number>>>({});
-  const overrides = useMemo(() => ({ pillars: pillarWeights }), [pillarWeights]);
+  const overrides = useMemo(() => ({ pillars: weights }), [weights]);
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
   const range = useMemo(() => (result ? weightSensitivity(result.pillars, overrides) : null), [result, overrides]);
-  const hasCustomWeights = Object.keys(pillarWeights).length > 0;
+  const hasCustomWeights = Object.keys(weights).length > 0;
 
   return (
     <aside className="flex h-full w-full flex-col bg-background text-xs">
@@ -447,12 +387,9 @@ export function PillarsPanel({
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>
-                <div className="flex items-center gap-2">
-                  <WeightsPopover weights={pillarWeights} onChange={setPillarWeights} />
-                  <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
-                    {fmtScore(result.overall)}
-                  </span>
-                </div>
+                <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
+                  {fmtScore(result.overall)}
+                </span>
               </div>
               <ScoreBar score={result.overall} />
               <p className="mt-1 text-muted-foreground">
