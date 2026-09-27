@@ -378,6 +378,11 @@ export function PillarsPanel({
   const hasCustomWeights = Object.keys(weights).length > 0;
   const isCustom = hasCustomWeights || legalFor !== "easiest";
   const result = useMemo(() => (data ? scoreParcel(data.norm, overrides) : null), [data, overrides]);
+  // The published-default Overall (easiest of the 5 mainstream types),
+  // always computed alongside whatever `result` follows -- so the headline
+  // number shows both at once instead of just switching between them when
+  // a specific type is picked below.
+  const defaultResult = useMemo(() => (data ? scoreParcel(data.norm, { pillars: weights }) : null), [data, weights]);
   const range = useMemo(() => {
     if (!result) return null;
     const r = weightSensitivity(result.pillars, overrides);
@@ -414,11 +419,22 @@ export function PillarsPanel({
             <section className="rounded border border-border/60 p-2">
               <div className="flex items-baseline justify-between gap-2">
                 <span className="font-medium">Overall</span>
-                <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(result.overall) }}>
-                  {fmtScore(result.overall)}
+                <span className="flex items-baseline gap-1.5">
+                  <span className="text-lg font-semibold tabular-nums" style={{ color: scoreColor(defaultResult?.overall ?? null) }} title="Overall, easiest of the 5 mainstream types">
+                    {fmtScore(defaultResult?.overall ?? null)}
+                  </span>
+                  {legalFor !== "easiest" && (
+                    <span
+                      className="text-sm font-semibold tabular-nums"
+                      style={{ color: scoreColor(result.overall) }}
+                      title={`Overall for ${SHORT_LABEL[legalFor] ?? legalFor} specifically`}
+                    >
+                      · {fmtScore(result.overall)} for {SHORT_LABEL[legalFor] ?? legalFor}
+                    </span>
+                  )}
                 </span>
               </div>
-              <ScoreBar score={result.overall} />
+              <ScoreBar score={defaultResult?.overall ?? null} />
               {result.overall == null && <p className="mt-1">Not enough data for an overall score.</p>}
               {config.pillars.some((p) => result.pillars[p.id as PillarId].score == null) && (
                 <p className="mt-1 text-amber-400/90">
