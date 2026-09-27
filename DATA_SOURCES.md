@@ -243,21 +243,25 @@ Conventions:
 
 ### 2.12 Live cameras
 
+`cameras.geojson` holds 244 live feeds and `alpr-cameras.geojson` holds 956 ALPR points (branch `lance-flock`). They are rebuilt by `apps/web/scripts/data/cameras.ts`, which is wired into `build-all.ts` and fetches 511PA and PA Turnpike live. Each feed carries name, operator, category, feed_type (jpeg/hls/youtube/iframe), feed_url, page_url, refresh_s, attribution and coord_quality.
+
 | Camera network (operator) | Source | License / terms | Used in |
 |---|---|---|---|
-| 511PA traffic cameras (PennDOT) | https://www.511pa.com/cctv (still images, ~10 s refresh); camera list from the site's data endpoint https://www.511pa.com/List/GetData/Cameras ; video URLs via https://www.511pa.com/Camera/GetVideoUrl (PennDOT streams on pa-se1.arcadis-ivds.com returned 401, so stills are used) | 511PA terms | `cameras` |
-| PA Turnpike traffic cameras (Pennsylvania Turnpike Commission) | https://www.paturnpike.com/traveling/traffic-cameras ; roadway API https://www.paturnpike.com/traveling/traffic-cameras/getroadways and `/getbyroadway?roadwayId=` (HLS streams on CloudFront, played through the app's same-origin proxy) | PA Turnpike terms | `cameras` |
-| USGS HIVIS river cameras (USGS) | camera registry https://api.waterdata.usgs.gov/nims/cameras ; https://apps.usgs.gov/hivis/camera/PA_Monongahela_R_at_Point_State_Park_at_Pittsburgh ; https://apps.usgs.gov/hivis/camera/PA_Pine_Creek_at_Grant_Avenue_at_Etna (images on usgs-nims-images.s3.amazonaws.com) | Public domain | `cameras` |
-| Breathe Cam industrial smoke cameras (CMU CREATE Lab) | https://breathecam.org/ (Edgar Thomson North and South, Metalico, Riverside Concrete) | CREATE Lab terms | `cameras` |
-| WeatherSTEM Allegheny sky cameras (WeatherSTEM) | https://allegheny.weatherstem.com/heinzfield ; https://allegheny.weatherstem.com/falk (station list https://allegheny.weatherstem.com/stations ; snapshots on images.weatherstem.com) | WeatherSTEM terms | `cameras` |
-| EarthCam: Pittsburgh (Troy Hill) and The Andy Warhol Museum FigmentCam / ChurchCam | https://www.earthcam.com/usa/pennsylvania/pittsburgh/?cam=pittsburgh ; https://www.warhol.org/andy-warhols-life/figment/ ; https://www.earthcam.com/usa/pennsylvania/pittsburgh/warhol/?cam=warhol_churchcam | EarthCam terms | `cameras` |
-| PixCams bald eagle and red-tailed hawk nest cams (U. S. Steel, Duquesne Light; YouTube embeds) | https://pixcams.com/uss-eagles/ and related pages; 7 YouTube live embeds | Owner terms | `cameras` |
-| Pittsburgh Zoo & Aquarium penguin and cheetah cams (Ozolio) | https://www.pittsburghzoo.org/animals/webcams-online-activities/penguin-webcam/ ; `.../cheetah-webcam/` | Owner terms | `cameras` |
+| 511PA traffic cameras (PennDOT) | https://www.511pa.com/cctv (still images, ~10 s refresh); camera list from the site's data endpoint https://www.511pa.com/List/GetData/Cameras (DataTables query parameter, 100 rows per page), which yields 210 PennDOT stills (image `/map/Cctv/<id>`, ~60 s) plus 8 PA Turnpike HLS feeds; video URLs via https://www.511pa.com/Camera/GetVideoUrl (PennDOT streams on pa-se1.arcadis-ivds.com returned 401, so stills are used) | 511PA terms | `cameras` |
+| PA Turnpike traffic cameras (Pennsylvania Turnpike Commission) | https://www.paturnpike.com/traveling/traffic-cameras ; roadway API https://www.paturnpike.com/traveling/traffic-cameras/getroadways and `/getbyroadway?roadwayId=` (needs header `X-Requested-With: XMLHttpRequest`; in-county roadways I-76 `ef2829cb-fea1-4083-af4c-9bfbd85b8568` and PA-576 `2e8b2a93-1f81-4fed-8919-58b33b638eb8`; CloudFront streams are Referer-gated) (HLS streams on CloudFront, played through the app's same-origin proxy) | PA Turnpike terms | `cameras` |
+| USGS HIVIS river cameras (USGS) | camera registry https://api.waterdata.usgs.gov/nims/v0/cameras?enabled=true (needs an `api-key` header; the public key embedded in the HIVIS web app is used and isn't reproduced here); 2 cameras in Allegheny; https://apps.usgs.gov/hivis/camera/PA_Monongahela_R_at_Point_State_Park_at_Pittsburgh ; https://apps.usgs.gov/hivis/camera/PA_Pine_Creek_at_Grant_Avenue_at_Etna (images `https://usgs-nims-images.s3.amazonaws.com/720/<camId>/<camId>_newest.jpg`) | Public domain | `cameras` |
+| Breathe Cam industrial smoke cameras (CMU CREATE Lab) | https://breathecam.org/ ; list https://breathecam.org/cameras.json ; embedded as `https://breathecam.org/#s=<id>` (braddock2, westmifflin2, accan2, cementcam) | CREATE Lab terms | `cameras` |
+| WeatherSTEM Allegheny sky cameras (WeatherSTEM) | https://allegheny.weatherstem.com/heinzfield ; https://allegheny.weatherstem.com/falk (station list https://allegheny.weatherstem.com/stations ; snapshots `https://images.weatherstem.com/skycamera/allegheny/<handle>/cumulus/snapshot.jpg`; the `pitt` camera has been frozen since 2024 and is excluded) | WeatherSTEM terms | `cameras` |
+| EarthCam: Pittsburgh (Troy Hill) and The Andy Warhol Museum FigmentCam / ChurchCam | https://www.earthcam.com/usa/pennsylvania/pittsburgh/?cam=pittsburgh ; https://www.warhol.org/andy-warhols-life/figment/ ; https://www.earthcam.com/usa/pennsylvania/pittsburgh/warhol/?cam=warhol_churchcam | EarthCam terms; re-streaming is forbidden, so the pages are embedded as sandboxed iframes | `cameras` |
+| PixCams bald eagle and red-tailed hawk nest cams (U. S. Steel, Duquesne Light; YouTube embeds) | https://pixcams.com/uss-eagles/ and related pages; 7 YouTube live embeds: U. S. Steel eagles `2CP8QA_xKx4`, `9njkml1oQRQ`, `uxzRXhKshow`, `a83Y5shllLg`, `dDIfhPXn_-c`; hawk `jUS-CaVPNYU`; Hays eagle `yPq9aNukckQ` | Owner terms | `cameras` |
+| Pittsburgh Zoo & Aquarium penguin and cheetah cams (Ozolio) | https://www.pittsburghzoo.org/animals/webcams-online-activities/penguin-webcam/ ; `.../cheetah-webcam/` (Ozolio embeds `EMB_QVKU00000674` penguin, `EMB_ODOJ00000679` cheetah) | Owner terms | `cameras` |
 | Discover the Burgh North Side skyline cam (Nest) | https://www.discovertheburgh.com/pittsburgh-skyline/ | Owner terms | `cameras` |
-| PPG Place plaza cam | https://www.ppgplace.com/webcam/ | Owner terms | `cameras` |
-| W3SLL personal weather station cam (Squirrel Hill) | http://wx.w3sll.net/weewx/ | Owner terms | `cameras` |
-| Camp Guyasuta cam (WeatherBug, via the Webcam Galore cache) | https://www.webcamgalore.com/webcam/USA-Pennsylvania-Sharpsburg/24760.html | Owner terms | `cameras` |
-| Automatic license plate reader locations (OpenStreetMap contributors, incl. DeFlock mapping) | Overpass extract saved as `inputs/cameras/alpr.json` (956 OSM nodes); https://deflock.me | ODbL | `alpr-cameras` (locations only, no feeds) |
+| PPG Place plaza cam | https://www.ppgplace.com/webcam/ ; StarDot image http://96.69.79.178/image.jpg (HTTP, served through the app proxy) | Owner terms | `cameras` |
+| W3SLL personal weather station cam (Squirrel Hill) | http://wx.w3sll.net/weewx/ ; image http://wx.w3sll.net/weewx/image.jpg (HTTP, served through the app proxy) | Owner terms | `cameras` |
+| Camp Guyasuta cam (WeatherBug, via the Webcam Galore cache) | https://www.webcamgalore.com/webcam/USA-Pennsylvania-Sharpsburg/24760.html ; image https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg (~30 min refresh) | Owner terms | `cameras` |
+| Automatic license plate reader locations (OpenStreetMap contributors, incl. DeFlock mapping) | Overpass extract saved as `inputs/cameras/alpr.json` (956 OSM features; ~225 Flock Safety). Query: `nwr["man_made"="surveillance"]` and `nwr["surveillance:type"]` in bbox 40.19,-80.37,40.68,-79.68, `out center tags`, clipped to the TIGERweb county polygon (GEOID 42003). Tags carry manufacturer, operator and direction; https://deflock.me | ODbL | `alpr-cameras` (locations only, no feeds) |
+
+Duplicate trap (verified): the Windy and Weather Underground "Pittsburgh webcams" are all re-hosted PennDOT cameras, so they are skipped. PennDOT HLS video returns 401, so only stills are used. National Aviary falcon cams are seasonal or offline and aren't included.
 
 ---
 
@@ -1086,9 +1090,9 @@ Machine-extracted from every file on all 16 branches and from the 12 Claude sess
 | https://www.511pa.com/map/mapIcons/Cameras |  | 0 | cameras / live feeds |
 | https://www.511pa.com/scripts/jsresources/map/map |  | 0 | cameras / live feeds |
 | https://www.511pa.com/tooltip/Cameras/2 |  | 0 | cameras / live feeds |
-| http://96.69.79.178/image.jpg |  | 1 | cameras / live feeds |
-| http://96.69.79.178/netcam.jpg |  | 0 | cameras / live feeds |
-| http://96.69.79.178/nph-jpeg.cgi |  | 0 | cameras / live feeds |
+| http://96.69.79.178/image.jpg | ✓ | 1 | cameras / live feeds |
+| http://96.69.79.178/netcam.jpg | ✓ | 0 | cameras / live feeds |
+| http://96.69.79.178/nph-jpeg.cgi | ✓ | 0 | cameras / live feeds |
 | http://www.MACSK8.org |  | 1 |  |
 | https://SDMDataAccess.sc.egov.usda.gov/Tabular/post.rest |  | 4 | adding to map |
 | http://www.Spectrumcsi.org |  | 1 |  |
@@ -1152,8 +1156,8 @@ Machine-extracted from every file on all 16 branches and from the 12 Claude sess
 | https://api.municode.com/Clients/stateAbbr |  | 0 | adding to map |
 | https://api.us.socrata.com/api/catalog/v1 | ✓ | 0 | low level data |
 | https://api.waterdata.usgs.gov/nims-cameras/v1/cameras |  | 0 | cameras / live feeds |
-| https://api.waterdata.usgs.gov/nims/cameras | ✓ | 0 | cameras / live feeds |
-| https://api.waterdata.usgs.gov/nims/v0/cameras |  | 0 | cameras / live feeds |
+| https://api.waterdata.usgs.gov/nims/cameras |  | 0 | cameras / live feeds |
+| https://api.waterdata.usgs.gov/nims/v0/cameras | ✓ | 0 | cameras / live feeds |
 | https://api.weatherstem.com/allegheny |  | 0 | cameras / live feeds |
 | https://app.regrid.com/store/us/pa/allegheny |  | 3 |  |
 | https://app.regrid.com/us |  | 4 | adding to map |
@@ -1506,12 +1510,12 @@ Machine-extracted from every file on all 16 branches and from the 12 Claude sess
 | https://ideas.repec.org/a/bla/jorssa/v168y2005i2p307-323.html |  | 1 |  |
 | https://ideas.repec.org/a/taf/applec/v41y2009i12p1513-1523.html |  | 1 |  |
 | https://imagery.geoplatform.gov/iipp/rest/services/Vegetation/USFS_EDW_NLCD_TCC_CONUS/ImageServer |  | 1 |  |
-| https://images.weatherstem.com/skycamera/allegheny |  | 0 | cameras / live feeds |
-| https://images.weatherstem.com/skycamera/allegheny/falk/cumulus/snapshot.jpg |  | 1 |  |
-| https://images.weatherstem.com/skycamera/allegheny/heinzfield/cumulus/snapshot.jpg |  | 1 | cameras / live feeds |
-| https://images.weatherstem.com/skycamera/allegheny/heinzfield/northendzone/snapshot.jpg |  | 1 |  |
-| https://images.weatherstem.com/skycamera/allegheny/heinzfield/skyline/snapshot.jpg |  | 1 |  |
-| https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg |  | 1 | cameras / live feeds |
+| https://images.weatherstem.com/skycamera/allegheny | ✓ | 0 | cameras / live feeds |
+| https://images.weatherstem.com/skycamera/allegheny/falk/cumulus/snapshot.jpg | ✓ | 1 |  |
+| https://images.weatherstem.com/skycamera/allegheny/heinzfield/cumulus/snapshot.jpg | ✓ | 1 | cameras / live feeds |
+| https://images.weatherstem.com/skycamera/allegheny/heinzfield/northendzone/snapshot.jpg | ✓ | 1 |  |
+| https://images.weatherstem.com/skycamera/allegheny/heinzfield/skyline/snapshot.jpg | ✓ | 1 |  |
+| https://images.webcamgalore.com/24760-current-webcam-Sharpsburg-Pennsylvania.jpg | ✓ | 1 | cameras / live feeds |
 | https://incline-homes.com/blog/cost-to-build-a-new-home-in-pittsburgh |  | 4 |  |
 | https://infrastructurereportcard.org/making-the-grade |  | 1 |  |
 | https://innovation-hub.seattle.gov/2025/10/28/community-innovation-pactathon-permitting |  | 3 |  |
@@ -2246,7 +2250,7 @@ Machine-extracted from every file on all 16 branches and from the 12 Claude sess
 | https://www2.census.gov/geo/docs/maps-data/data/rel2020/tract/tab20_tract20_tract10_st42.txt | ✓ | 0 | low level data |
 | https://www2.census.gov/programs-surveys/decennial/2020/data/01-Redistricting_File--PL_94-171/Pennsylvania/pa2020.pl.zip | ✓ | 0 | low level data |
 | http://wx.w3sll.net/weewx | ✓ | 1 | cameras / live feeds |
-| http://wx.w3sll.net/weewx/image.jpg |  | 1 | cameras / live feeds |
+| http://wx.w3sll.net/weewx/image.jpg | ✓ | 1 | cameras / live feeds |
 | https://www.yardimatrix.com/blog/pittsburgh-multifamily-market-report |  | 1 |  |
 | http://www.yorku.ca/gis/es7189/docs/malczewski00.pdf |  | 1 |  |
 | http://www.ysga.org |  | 1 |  |
