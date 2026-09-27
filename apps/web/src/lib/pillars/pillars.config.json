@@ -146,7 +146,7 @@
     },
     {
       "id": "afford",
-      "label": "Housing Need",
+      "label": "Affordability",
       "brief_axes": [
         "affordability",
         "displacement risk"
@@ -1574,8 +1574,8 @@
       "demand": 1,
       "site": 2,
       "afford": 1,
-      "access": 2,
-      "climate": 1
+      "access": 2.5,
+      "climate": 2
     },
     "climate_first": {
       "demand": 1,
