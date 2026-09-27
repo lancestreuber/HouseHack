@@ -347,10 +347,12 @@ function TypologyTile({
   // every blocker beyond the first two) is a click away, in Alerts.
   const verdictBlock = (
     <div title={canJumpToAlerts ? "See why, in Alerts" : undefined}>
-      <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
-        <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-        {blockers.length === 0 && verdict.label}
-      </p>
+      {blockers.length === 0 && (
+        <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
+          <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
+          {verdict.label}
+        </p>
+      )}
       {blockers.slice(0, 2).map((r) => (
         <p key={r.text} className="text-muted-foreground">
           <span style={{ color: VERDICT_COLOR[r.level] }}>•</span> {r.text.split(/[;:]/)[0]}
@@ -482,19 +484,24 @@ function TypologyTile({
       </div>
 
       <div className="flex flex-col gap-0.5" data-bottom>
-        <div className="flex items-center gap-1.5">
-          <span className="shrink-0 text-muted-foreground">Jev</span>
-          {fit ? (
-            <div className="flex-1" title={fit.label}>
-              <FitBar value={fit.fit * 100} />
-            </div>
-          ) : (
-            <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
-              not rated
-            </span>
-          )}
-          {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
-        </div>
+        {/* The fit bar reads as a tiny, meaningless sliver at typical pane
+         * heights; only worth showing once there's also room for the fit
+         * chart below it. */}
+        {showChart && (
+          <div className="flex items-center gap-1.5">
+            <span className="shrink-0 text-muted-foreground">Jev</span>
+            {fit ? (
+              <div className="flex-1" title={fit.label}>
+                <FitBar value={fit.fit * 100} />
+              </div>
+            ) : (
+              <span className="flex-1 text-right text-muted-foreground" title="Jev doesn't rate this housing type">
+                not rated
+              </span>
+            )}
+            {fit && <span className="shrink-0 tabular-nums text-muted-foreground">{Math.round(fit.fit * 100)}</span>}
+          </div>
+        )}
         <div className="min-h-[2.6em]" data-details>
           {verdictBlock}
         </div>
