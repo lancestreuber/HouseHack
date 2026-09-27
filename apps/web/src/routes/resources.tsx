@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import katexCss from "katex/dist/katex.min.css?url";
 import { useEffect, useRef, useState } from "react";
 
 import { OVERLAYS } from "@/components/map/overlays";
@@ -18,7 +19,7 @@ import config from "@/lib/pillars/pillars.config.json";
 import catalog from "@/lib/resources/catalog.generated.json";
 
 export const Route = createFileRoute("/resources")({
-  head: () => ({ meta: [{ title: "Resources · Yinzone" }] }),
+  head: () => ({ meta: [{ title: "Resources · Yinzone" }], links: [{ rel: "stylesheet", href: katexCss }] }),
   component: ResourcesPage,
 });
 
