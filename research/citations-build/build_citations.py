@@ -13,12 +13,15 @@ Generated parts:
 import collections
 import datetime
 import json
+import os
 import re
 import subprocess
 
-REPO = "/Users/lancestreuber/Desktop/HouseHack"
+REPO = os.environ.get("HOUSEHACK_REPO") or subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)), "rev-parse", "--path-format=absolute", "--git-common-dir"], capture_output=True, text=True).stdout.strip().removesuffix("/.git")
+if not os.path.isdir(os.path.join(REPO, ".git")):
+    raise SystemExit("HouseHack repo not found; run from inside the repo or set HOUSEHACK_REPO")
 APP_BRANCH = "origin/lance-flock"      # newest branch with the full map, cameras and pillars
-LEGAL_BRANCH = "origin/better-jev"
+LEGAL_BRANCH = APP_BRANCH
 RESEARCH_BRANCH = "origin/lance-research"
 
 
@@ -41,6 +44,8 @@ endpoints = json.load(open("endpoints.json"))
 code_urls = json.load(open("code_urls.json"))
 repo_urls = json.load(open("repo_urls.json"))
 tx_urls = json.load(open("transcript_urls.json"))
+n_branches = len([b for b in git("branch", "-r").splitlines() if "HEAD" not in b])
+n_sessions = len({s for x in tx_urls.values() for s in x["fetched_by"] + x["mentioned_by"]})
 
 # ---------- §3 map layers ----------
 def layer_rows():
@@ -119,6 +124,7 @@ FILE_DATASET = {
     "landslide-prone.geojson": "City PGHWebLandslideProne (§2.2)",
     "undermined.geojson": "City PGHWebUndermined (§2.2)",
     "typology-district-matrix.csv": "Zoning Code §911.02 via eCode360 (§2.11)",
+    "typology-district-matrix.json": "Zoning Code §911.02 via eCode360 (§2.11)",
     "allegheny_tract_sales_2019_2025.csv": "County property sales + assessments (§2.4, §2.5)",
     "pittsburgh_evictions_zip_2025.csv": "Eviction Lab ETS (§2.4)",
     "allegheny_energy_burden_tract_2022.csv": "DOE LEAD 2022 (§2.4)",
@@ -254,7 +260,10 @@ def in_catalog(u):
     return core_u.split("/")[0] in curated and (core_u in curated or len(core_u.split("/")) <= 2 or "/".join(core_u.split("/")[:3]) in curated)
 
 IGNORE = re.compile(r"neon\.new|key=|token=|apikey|secret|sig=|schemas\.openxml|example\.(com|test)|github\.com|localhost|openstreetmap\.org/copyright|youtube\.com/embed|relay\.ozolio|video\.nest|images\.weatherstem|usgs-nims-images|images\.webcamgalore|96\.69\.79|wx\.w3sll\.net/weewx/image|breathecam\.org/#|/api/\?$|/1\.0$|resource_show\?id=$|datastore/dump$|data\.wprdc\.org$|/rest/services$|nominatim\.openstreetmap\.org/search\?$")
-missing = sorted(u for u in code_urls if not IGNORE.search(u) and not in_catalog(u))
+method_text = "\n".join(s9 + s10)
+checked = [u for u in code_urls if not IGNORE.search(u)]
+as_method = [u for u in checked if not in_catalog(u) and u in method_text]
+missing = sorted(u for u in checked if not in_catalog(u) and u not in method_text)
 
 FAMILIES = [
     ("pittsburghpa.gov ZBA decision PDFs and archived copies", r"zoning-board-of-adjustm|redtail/images|web\.archive\.org/web/\d+/https://www\.pittsburghpa\.gov"),
@@ -276,7 +285,7 @@ for e in endpoints:
 data_eps.sort(key=lambda e: re.sub(r"^https?://(www\.)?", "", e["endpoint"]))
 appA = ["## Appendix A. Every endpoint found in code, docs and session transcripts",
         "",
-        f"Machine-extracted from every file on all {len(set(b for u in repo_urls for b in []))  or 16} branches and from the 12 Claude session transcripts in this project. URLs are collapsed to one entry per ArcGIS layer, WPRDC resource/dataset, Socrata dataset or page. News articles and tooling links are excluded here (news is in §10). **{len(data_eps)} endpoints**, plus these row-level link families, which are records inside one dataset rather than separate sources:",
+        f"Machine-extracted from every file on all {n_branches} branches and from the {n_sessions} Claude session transcripts in this project. URLs are collapsed to one entry per ArcGIS layer, WPRDC resource/dataset, Socrata dataset or page. News articles and tooling links are excluded here (news is in §10). **{len(data_eps)} endpoints**, plus these row-level link families, which are records inside one dataset rather than separate sources:",
         ""]
 for name, n in fam_counts.most_common():
     appA.append(f"- {name}: {n:,} links")
@@ -288,7 +297,7 @@ for e in data_eps:
 
 appB = ["## Appendix B. Coverage check",
         "",
-        f"Every URL referenced by the app, map build scripts, pillar scripts or extraction scripts ({len(code_urls)} URLs on the newest branches) was checked against the catalog. Camera stream URLs, schema namespaces and placeholders are excluded; their pages are cited in §2.12.",
+        f"Every URL referenced by the app, map build scripts, pillar scripts or extraction scripts ({len(code_urls)} URLs on the newest branches) was checked against the catalog. Camera stream URLs, schema namespaces and placeholders are excluded; their pages are cited in §2.12. {len(as_method)} of the URLs are methodology references (mostly copied into the /resources page data) and are cited in §9 or §10.",
         ""]
 if missing:
     appB += [f"**{len(missing)} code-referenced URLs not matched to a catalog row:**", ""] + [f"- {u}" for u in missing]
@@ -297,21 +306,23 @@ else:
 
 # ---------- header ----------
 n_cat = sum(1 for line in "\n".join([sec[2]]).splitlines() if line.startswith("| ") and not line.startswith("| Dataset") and not line.startswith("| Camera") and not line.startswith("|---"))
-today = datetime.date(2026, 9, 27).isoformat()
+today = datetime.date.today().isoformat()
+n_bib = re.search(r"\*\*(\d+) unique external sources", bib)
+n_bib = n_bib.group(1) if n_bib else "?"
 header = f"""# HouseHack: Data Sources and Citations
 
 **Every dataset, service and reference used to build HouseHack**, the Track 3 (Housing Typology, Equity & Climate Matchmaker) entry for the AI Horizons 2026 AI for Housing Hackathon. It covers Pittsburgh and Allegheny County, Pennsylvania.
 
 Compiled {today} from:
-- the code on all 16 branches;
+- the code on all {n_branches} branches;
 - the overlay registry, where every map layer declares its source;
 - the provenance written into every built map file;
 - the pillar config;
 - the legal-feasibility source notes;
 - the research bibliography;
-- the transcripts of all 12 Claude sessions that worked on the project.
+- the transcripts of the {n_sessions} Claude sessions that worked on the project and cited or fetched a URL.
 
-Sections §3, §4, §5, §7, §9, §10 and both appendices are generated by code (`build_citations.py`, with `overlay_meta.py`, `repo_urls.py`, `transcript_urls.py`, `endpoints.py`). §1, §2, §6 and §8 are curated by hand from those extractions. Appendix B is a coverage check: every endpoint the code actually calls is matched against the catalog.
+Sections §3, §4, §5, §7, §9, §10 and both appendices are generated by code in `research/citations-build/` (`build_citations.py`, with `app_inputs.py`, `overlay_meta.py`, `repo_urls.py`, `transcript_urls.py`, `endpoints.py`). §1, §2, §6 and §8 are curated by hand from those extractions. Appendix B is a coverage check: every endpoint the code actually calls is matched against the catalog.
 
 **At a glance**
 
@@ -323,7 +334,7 @@ Sections §3, §4, §5, §7, §9, §10 and both appendices are generated by code
 | Pillar-score indicators, each traced to a dataset (§4) | {len(inds)} |
 | Team-built extract files (§7) | {len(data_files)} |
 | Methodology references (§9) | {len(refs)} |
-| Research sources consulted (§10) | 296 |
+| Research sources consulted (§10) | {n_bib} |
 | Distinct endpoints found anywhere (Appendix A) | {len(data_eps)} |
 
 **Contents:** [1. Attribution and licenses](#1-attribution-and-license-obligations) · [2. Dataset catalog](#2-dataset-catalog-by-theme) · [3. Map layers](#3-every-map-layer-and-its-source) · [4. Pillar indicators](#4-every-pillar-score-indicator-and-its-source) · [5. Legal-feasibility datasets](#5-legal-feasibility-datasets-city-of-pittsburgh) · [6. AI and runtime services](#6-ai-models-and-runtime-services) · [7. Team-built extracts](#7-team-built-extracts-and-the-scripts-that-made-them) · [8. Researched, not used](#8-researched-but-not-used-in-the-product) · [9. Methodology references](#9-methodology-references-pillar-scores) · [10. Research bibliography](#10-research-bibliography-all-sources-consulted) · [Appendix A](#appendix-a-every-endpoint-found-in-code-docs-and-session-transcripts) · [Appendix B](#appendix-b-coverage-check)

@@ -1,10 +1,12 @@
 """Every URL in every file on every branch (plus the uncommitted map worktree), with where it appears."""
 import json, re, subprocess, collections, os
-REPO = "/Users/lancestreuber/Desktop/HouseHack"
+REPO = os.environ.get("HOUSEHACK_REPO") or subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)), "rev-parse", "--path-format=absolute", "--git-common-dir"], capture_output=True, text=True).stdout.strip().removesuffix("/.git")
+if not os.path.isdir(os.path.join(REPO, ".git")):
+    raise SystemExit("HouseHack repo not found; run from inside the repo or set HOUSEHACK_REPO")
 SKIP = re.compile(r"(node_modules|\.agents/skills|bun\.lock|package-lock|\.geojson$|\.png$|\.jpg$|\.pdf$|\.ico$|\.woff|pnpm-lock|skills-lock|\.svg$|legal-matrix\.generated)")
 URL = re.compile(r"https?://[^\s\"'<>`)\]\\|,]+")
 def git(*a): return subprocess.run(["git", "-C", REPO, *a], capture_output=True, text=True, errors="replace").stdout
-branches = [b.strip() for b in git("branch", "-r").splitlines() if "HEAD" not in b] + ["lance-map-data"]
+branches = [b.strip() for b in git("branch", "-r").splitlines() if "HEAD" not in b]
 hits = collections.defaultdict(set)
 seen_blobs = set()
 for br in branches:

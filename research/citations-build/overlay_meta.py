@@ -1,7 +1,9 @@
 """Extract every map overlay's declared source metadata from the overlay registry on several branches."""
-import json, re, subprocess
-REPO = "/Users/lancestreuber/Desktop/HouseHack"
-BRANCHES = ["origin/lance-flock", "origin/main", "origin/better-jev", "origin/vid-branch", "origin/lance-pillar-hexes", "lance-map-data"]
+import json, os, re, subprocess
+REPO = os.environ.get("HOUSEHACK_REPO") or subprocess.run(["git", "-C", os.path.dirname(os.path.abspath(__file__)), "rev-parse", "--path-format=absolute", "--git-common-dir"], capture_output=True, text=True).stdout.strip().removesuffix("/.git")
+if not os.path.isdir(os.path.join(REPO, ".git")):
+    raise SystemExit("HouseHack repo not found; run from inside the repo or set HOUSEHACK_REPO")
+BRANCHES = ["origin/lance-flock", "origin/main", "origin/better-jev", "origin/vid-branch", "origin/lance-pillar-hexes", "origin/lance-map-data"]
 D = "apps/web/src/components/map/overlays/"
 
 def git(*a):

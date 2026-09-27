@@ -2,7 +2,8 @@
 import json, re, glob, collections, os
 URL = re.compile(r"https?://[^\s\"'<>`)\]\\|,]+")
 NAMES = {"8a73caaf": "adding to map", "92681206": "feasability data", "dbf658f5": "high level data", "b18003ab": "low level data",
-         "5dca8317": "cameras / live feeds", "64dbdd6d": "pillar hexes GUI", "1020b8c5": "dataset provenance Q&A",
+         "5dca8317": "camera finding", "a0944f19": "camera finding (2)", "059a4e86": "resources page",
+         "7afaebb9": "deal killers algo", "b35cbf37": "slack scrape", "cf831d34": "research followups", "64dbdd6d": "pillar hexes GUI", "1020b8c5": "dataset provenance Q&A",
          "a733fb5d": "typology Q&A", "37f2c559": "naming", "cdc8352b": "high level data (2)"}
 out = collections.defaultdict(lambda: {"fetched_by": set(), "mentioned_by": set()})
 for f in glob.glob(os.path.expanduser("~/.claude/projects/-Users-lancestreuber-Desktop-HouseHack/*.jsonl")):
