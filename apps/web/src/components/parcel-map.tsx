@@ -294,6 +294,10 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
   const threeDEnabledRef = useRef(threeDEnabled);
   threeDEnabledRef.current = threeDEnabled;
   const wasZoomedInRef = useRef(false);
+  // True once the current style has been parsed and our layers can be added.
+  // Not map.isStyleLoaded(): that also waits for every tile, so it stays false
+  // while spin/3D keeps streaming tiles and layer toggles were silently dropped.
+  const styleReadyRef = useRef(false);
   const mapPane = usePaneCollapse();
   const scoresPane = usePaneCollapse();
   const breakdownPane = usePaneCollapse();
@@ -398,6 +402,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
     // in ./map/overlays. Re-applied after every style load, since a basemap
     // swap drops all sources and layers.
     const applyOverlays = () => {
+      styleReadyRef.current = true;
       addZoningLayer(map);
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
@@ -447,6 +452,7 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
       isFirstRun.current = false;
       return;
     }
+    styleReadyRef.current = false;
     map.setStyle(basemap === "osm" ? OSM_RASTER_STYLE : cartoStyleUrl(isDark));
   }, [basemap, isDark]);
 
@@ -503,7 +509,8 @@ export function ParcelMap({ initialPin }: { initialPin?: string }) {
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    // Mid style swap: the style.load handler applies the latest state instead.
+    if (!map || !styleReadyRef.current) return;
     syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
     setLoadingIds(loadingOverlayIds(map, overlayState));
     void refreshViewportOverlays(map, overlayState).then(() =>
