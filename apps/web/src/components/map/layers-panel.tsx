@@ -74,7 +74,7 @@ function HoverRow({ active, row, details }: { active: boolean; row: ReactNode; d
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hovered = useRef(false);
   const [anchor, setAnchor] = useState<DOMRect | null>(null);
-  const [top, setTop] = useState(0);
+  const [pos, setPos] = useState({ left: 0, top: 0 });
 
   const cancelClose = () => {
     if (closeTimer.current) clearTimeout(closeTimer.current);
@@ -101,11 +101,21 @@ function HoverRow({ active, row, details }: { active: boolean; row: ReactNode; d
   useEffect(() => cancelClose, []);
 
   // Line the flyout up with the row, nudged up if it would run off the bottom.
+  // Inside the layers popover a transformed ancestor can offset `fixed`, so
+  // measure where it actually landed and correct by the difference.
   useLayoutEffect(() => {
-    if (!anchor || !flyoutRef.current) return;
-    const height = flyoutRef.current.offsetHeight;
-    setTop(Math.max(8, Math.min(anchor.top, window.innerHeight - height - 8)));
+    const el = flyoutRef.current;
+    if (!anchor || !el) return;
+    const want = { left: anchor.right + 6, top: Math.max(8, Math.min(anchor.top, window.innerHeight - el.offsetHeight - 8)) };
+    el.style.left = `${want.left}px`;
+    el.style.top = `${want.top}px`;
+    const got = el.getBoundingClientRect();
+    setPos({ left: 2 * want.left - got.left, top: 2 * want.top - got.top });
   }, [anchor]);
+
+  // Render inside the layers popover when there is one, so clicks in the
+  // flyout (e.g. a metric select) don't count as clicks outside it.
+  const portalTarget = rowRef.current?.closest<HTMLElement>('[data-slot="popover-content"]') ?? document.body;
 
   return (
     <div
@@ -128,11 +138,11 @@ function HoverRow({ active, row, details }: { active: boolean; row: ReactNode; d
             onMouseLeave={scheduleClose}
             onChange={() => (document.activeElement as HTMLElement | null)?.blur()}
             className="fixed z-50 max-h-[calc(100vh-16px)] w-72 overflow-y-auto rounded-md border bg-background/95 p-2 text-[11px] shadow-lg backdrop-blur"
-            style={{ left: anchor.right + 6, top }}
+            style={pos}
           >
             {details()}
           </div>,
-          document.body,
+          portalTarget,
         )}
     </div>
   );
@@ -258,7 +268,7 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
   };
 
   return (
-    <div className="max-h-full w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
+    <div className="max-h-[70vh] w-64 overflow-y-auto rounded-md border bg-background/85 p-2 text-[11px] backdrop-blur">
       <p className="mb-1 font-medium">Pillar scores</p>
       <label className="flex items-center gap-1.5">
         <input type="radio" name="heat-overlay" checked={state.heatId === null} onChange={() => setHeat(null)} />

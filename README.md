@@ -111,6 +111,22 @@ Bun's automatic env loading is disabled in `bunfig.toml`; the framework integrat
 
 Run standalone Node/Bun tools that use Varlock from the owning app directory so they load that app's schema and env files. `env:generate` only generates TypeScript files; it does not initialize environment values in a subsequent command.
 
+### System One decisions (Jev)
+
+Housing-type site-fit ratings come from a System One decision model: TypeSafe's **Jev**, currently called through **OpenRouter**. System One models return typed decisions (`noul` yes/no, `choice`, `score`) with calibrated probabilities instead of text, via `POST /v1/systemone`.
+
+```env
+OPENROUTER_API_KEY=                          # server-only; put it in apps/web/.env, never in the schema
+SYSTEM_ONE_BASE_URL=https://openrouter.ai/api
+SYSTEM_ONE_MODEL=jev-1.13                    # pinned so ratings don't shift
+```
+
+- The layer lives in `packages/api/src/system-one/`. Application code calls `context.systemOne.decide({ state, questions })` and doesn't know the provider, endpoint or auth. It's provider-independent: any `/v1/systemone`-compatible API works by changing the base URL and model.
+- The client is created server-side in `apps/web/src/services.ts` and passed to routers through the oRPC context, like `db`. The key never reaches the browser.
+- Without a key the app still runs: zoning permissions still show, and site-fit ratings are marked unavailable. Failed requests are logged server-side and never shown as ratings.
+- First use: `parcels.typologyFit` (`packages/api/src/typology/site-fit.ts`). Code decides what zoning permits; Jev only judges physical fit from lot facts that code computes. Ratings below 30% confidence are flagged for human review.
+- Tests: `cd packages/api && bun test` (the provider is mocked; no key needed).
+
 ## Deployment
 
 ### Vercel Services

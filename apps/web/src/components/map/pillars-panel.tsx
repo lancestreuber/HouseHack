@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
 import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
+import { orpc } from "@/utils/orpc";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 
@@ -370,6 +372,76 @@ function WeightsControl({ weights, onChange }: { weights: Record<PillarId, numbe
   );
 }
 
+const GATE_LABEL: Record<string, { text: string; className: string }> = {
+  allowed: { text: "By right", className: "bg-green-500/15 text-green-400" },
+  conditional: { text: "Needs approval", className: "bg-yellow-500/15 text-yellow-400" },
+  not_permitted: { text: "Not permitted", className: "bg-foreground/10 text-muted-foreground" },
+  unknown: { text: "Zoning unknown", className: "bg-foreground/10 text-muted-foreground" },
+};
+
+// Legal gate from the zoning use table (code) plus physical site fit from the
+// System One decision model. Ratings are judgments with a confidence, not measurements.
+function TypologyFitSection({ pin, data }: { pin: string; data: ParcelData }) {
+  const query = useQuery(
+    orpc.parcels.typologyFit.queryOptions({
+      input: {
+        pin,
+        zoning: data.zoning || null,
+        hazards: {
+          floodway: data.raw.site_floodway_share,
+          floodplain: data.raw.site_sfha_share,
+          steepSlope: data.raw.site_steep_slope_share,
+          landslideProne: data.raw.site_landslide_prone_share,
+          undermined: data.raw.site_undermined_share,
+        },
+      },
+      staleTime: Number.POSITIVE_INFINITY,
+    }),
+  );
+
+  return (
+    <section className="space-y-1.5 rounded border border-border/60 p-2">
+      <p className="font-medium">Housing types on this lot</p>
+      {query.isPending && <p className="text-muted-foreground">Checking zoning and site fit…</p>}
+      {query.data && (
+        <>
+          <p className="text-muted-foreground">{query.data.facts.lot}</p>
+          <ul className="space-y-1">
+            {query.data.typologies.map((t) => {
+              const gate = GATE_LABEL[t.gate.status] ?? GATE_LABEL.unknown!;
+              return (
+                <li key={t.id} className="border-t border-border/40 pt-1" title={t.gate.reason}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span>
+                      {t.label} <span className="text-muted-foreground">· {t.category}</span>
+                    </span>
+                    <span className={`rounded px-1 ${gate.className}`}>{gate.text}</span>
+                  </div>
+                  {t.fit && (
+                    <div className="mt-0.5 space-y-0.5">
+                      <ScoreBar score={t.fit.fit * 100} />
+                      <p className="text-muted-foreground">
+                        {t.fit.label} · confidence {Math.round(t.fit.confidence * 100)}%
+                        {t.fit.needsReview && <span className="text-yellow-400"> · needs human review</span>}
+                      </p>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          <p className="text-muted-foreground">
+            {query.data.jev.status === "ok"
+              ? `Permission: simplified zoning use table (hover a row for the rule). Site fit: judged by ${query.data.jev.model} from the lot facts above; physical fit only. Decision support, not zoning advice.`
+              : "Site-fit ratings are unavailable right now; zoning permissions are still shown."}
+          </p>
+        </>
+      )}
+      {query.isError && <p className="text-muted-foreground">Couldn't load housing types for this parcel.</p>}
+    </section>
+  );
+}
+
 export function PillarsPanel({
   pin,
   onClose,
@@ -480,6 +552,7 @@ export function PillarsPanel({
                 verify with the Zoning Administrator.
               </p>
             </section>
+            <TypologyFitSection pin={pin} data={data} />
             {config.pillars.map((p) => (
               <PillarCard
                 key={p.id}

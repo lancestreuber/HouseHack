@@ -16,7 +16,7 @@ import { useParcelData } from "./pillars-panel";
 // Legal pathway -> rough feasibility score, so four typologies can be
 // compared at a glance without reading the pathway label on every tile.
 // Higher = fewer approvals/hearings required to build that housing type here.
-const PATHWAY_SCORE: Record<string, number | null> = {
+export const PATHWAY_SCORE: Record<string, number | null> = {
   by_right: 100,
   za: 85,
   zbe_special_exception: 60,
