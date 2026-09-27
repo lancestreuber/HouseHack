@@ -18,6 +18,10 @@ export const RAMPS = {
   purple: ["#2d1b4e", "#4c2a85", "#6f42c1", "#a07fe0", "#d9c8ff"],
   // Red → green for pillar scores (ColorBrewer RdYlGn), green = best place to build.
   // Not safe for red-green colorblindness; the legend labels carry the values.
+  // TODO(colorblind): Lance chose red→green on 2026-09-26 and plans a color-blind
+  // option in personal settings later. When that exists, swap this ramp for a
+  // CVD-safe one (e.g. viridis: #440154 #414487 #2a788e #22a884 #7ad151 #fde725)
+  // when the setting is on. Other ramps in this file are already CVD-safe.
   score: ["#d73027", "#fc8d59", "#fee08b", "#d9ef8b", "#91cf60", "#1a9850"],
 };
 
