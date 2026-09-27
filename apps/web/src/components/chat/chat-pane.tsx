@@ -81,7 +81,7 @@ export function ChatPane({ context, className, onClose, hidden, collapsed, onTog
         onPointerDown={floating ? win.begin("move") : undefined}
       >
         {floating && <GripHorizontal className="mr-1 size-4 text-muted-foreground" aria-hidden />}
-        <h2 className="mr-auto text-xs font-medium">Parceltongue</h2>
+        <h2 className="mr-auto text-xs font-medium">Ask Parceltongue</h2>
         <IconButton
           label={chat.readAloud ? "Stop reading replies aloud" : "Read replies aloud"}
           pressed={chat.readAloud}
