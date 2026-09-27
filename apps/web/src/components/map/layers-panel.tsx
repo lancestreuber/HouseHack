@@ -182,13 +182,13 @@ function StackableSection({
               <label className="flex items-center gap-1.5" title={checked ? undefined : def.description}>
                 <input type="checkbox" checked={checked} onChange={() => toggle(def.id)} />
                 {def.label}
-                {checked && zoom < minZoom && <span className="text-muted-foreground">(zoom in to {minZoom}+)</span>}
-                {checked && zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
               </label>
             }
             details={() => (
               <>
                 <p className="mb-1 font-medium">{def.label}</p>
+                {zoom < minZoom && <p className="mb-1 text-amber-400/90">Zoom in to {minZoom}+ to load this layer.</p>}
+                {zoom >= minZoom && loadingIds.includes(def.id) && <LoadingBadge />}
                 <p className="mb-1 text-muted-foreground">{def.description}</p>
                 <Legend def={def} state={state} />
               </>
@@ -230,13 +230,12 @@ export function LayersPanel({ state, onChange, zoom, loadingIds }: Props) {
           <label className="flex items-center gap-1.5" title={active ? undefined : def.description}>
             <input type="radio" name="heat-overlay" checked={active} onChange={() => setHeat(def.id)} />
             {def.label}
-            {active && metric && <span className="truncate text-muted-foreground">· {metric.label}</span>}
-            {active && loadingIds.includes(def.id) && <LoadingBadge />}
           </label>
         }
         details={() => (
           <>
             <p className="mb-1 font-medium">{def.label}</p>
+            {loadingIds.includes(def.id) && <LoadingBadge />}
             <p className="mb-1 text-muted-foreground">{def.description}</p>
             {def.metrics && (
               <select
