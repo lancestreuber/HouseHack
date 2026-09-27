@@ -19,7 +19,11 @@ import {
 } from "lucide-react";
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
-import { usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
+import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from "@HouseHack/ui/components/popover";
+
+import config from "@/lib/pillars/pillars.config.json";
+import { COST_PRESETS, DEFAULT_PENCIL } from "@/lib/pillars/pencil";
+import { setPencilAssumptions, usePencilAssumptions } from "@/lib/pillars/pencil-assumptions";
 import { VERDICT_COLOR } from "@/lib/pillars/verdict";
 
 import { Disclaimer } from "@/components/disclaimer";
@@ -788,6 +792,95 @@ function TypologyTrack({ snapshot, updating }: { snapshot: Snapshot; updating: b
   );
 }
 
+/** Pop-out editor for the two assumptions that move the pencil check most
+ * (SME: the tool should do the pro-forma work, and user-typed assumptions
+ * help if they're clear). Shared across all tiles via pencil-assumptions.ts. */
+function PencilAssumptionsPopover() {
+  const a = usePencilAssumptions();
+  const [open, setOpen] = useState(false);
+  const pencil = config.pencil;
+  const presets = [
+    ["low", "Production builder"],
+    ["mid", "Typical infill"],
+    ["high", "Small builder"],
+  ] as const;
+  return (
+    <Popover>
+      <PopoverTrigger className="flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-muted-foreground hover:text-foreground">
+        Pencil assumptions
+      </PopoverTrigger>
+      <PopoverContent side="top" align="end" className="w-72 text-xs">
+        <PopoverHeader>
+          <PopoverTitle>Does it pencil?</PopoverTitle>
+        </PopoverHeader>
+        <div className="flex flex-wrap items-center gap-1">
+          <span className="text-muted-foreground">Construction</span>
+          {presets.map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              title={pencil.cost_per_sf.sources[key]}
+              onClick={() => setPencilAssumptions({ ...a, costPerSf: COST_PRESETS[key] })}
+              className={`rounded border px-1.5 py-0.5 ${a.costPerSf === COST_PRESETS[key] ? "border-foreground/60 bg-foreground/10" : "border-border/60"}`}
+            >
+              {label} ${COST_PRESETS[key]}
+            </button>
+          ))}
+          <label className="flex items-center gap-1">
+            <input
+              type="number"
+              min={50}
+              max={1000}
+              step={5}
+              value={a.costPerSf}
+              onChange={(e) => Number(e.target.value) > 0 && setPencilAssumptions({ ...a, costPerSf: Number(e.target.value) })}
+              className="w-16 rounded border border-border/60 bg-background px-1 tabular-nums"
+              aria-label="Construction cost per square foot"
+            />
+            /sf
+          </label>
+        </div>
+        <label className="mt-1 flex items-center gap-1 text-muted-foreground" title={pencil.site_cost_source}>
+          Site work per building $
+          <input
+            type="number"
+            min={0}
+            max={500000}
+            step={2500}
+            value={a.siteCostPerBuilding}
+            onChange={(e) => Number(e.target.value) >= 0 && setPencilAssumptions({ ...a, siteCostPerBuilding: Number(e.target.value) })}
+            className="w-20 rounded border border-border/60 bg-background px-1 tabular-nums text-foreground"
+            aria-label="Site work cost per building"
+          />
+          {(a.costPerSf !== DEFAULT_PENCIL.costPerSf || a.siteCostPerBuilding !== DEFAULT_PENCIL.siteCostPerBuilding) && (
+            <button type="button" onClick={() => setPencilAssumptions(DEFAULT_PENCIL)} className="underline">
+              reset
+            </button>
+          )}
+        </label>
+        <button type="button" onClick={() => setOpen((v) => !v)} className="mt-1 text-muted-foreground underline">
+          {open ? "Hide" : "How this is worked out"}
+        </button>
+        {open && (
+          <div className="mt-1 space-y-1 text-muted-foreground">
+            <p>
+              Cost per unit = unit size × construction $/sf × (1 + {Math.round(pencil.soft_cost_pct * 100)}% soft costs) + site work per building ÷ units, +
+              extra on a mostly steep lot. Value must beat cost by {Math.round(pencil.margin_pct * 100)}%. Houses use nearby sale prices (close to an
+              appraiser's comps); 2+ units use nearby rent × {pencil.rent_multiplier}. Value covering at least {Math.round(pencil.subsidy_floor * 100)}% of
+              cost reads as "needs subsidy"; less doesn't pencil. For scale, URA's gap caps are ${pencil.subsidy_cap_per_unit.sale.toLocaleString()} per
+              for-sale unit and ${pencil.subsidy_cap_per_unit.rent.toLocaleString()} per rental unit. {pencil.subsidy_cap_note}
+            </p>
+            <p>{pencil.value_bias}</p>
+            <p>{pencil.not_priced}</p>
+            <p>{pencil.cost_per_sf.note}</p>
+            <p>{pencil.typologies_note}</p>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 /** Bottom pane: every housing type ranked for the selected parcel, as a
  * horizontal slider. Each tile shows the legal-pathway score for its zoning
  * district, the red/yellow/green verdict and pencil (value vs. cost) check,
@@ -842,6 +935,7 @@ export function TypologyPanel({
             Updating…
           </span>
           {snapshot?.data.zoning && <span className="text-muted-foreground">Zoning {snapshot.data.zoning}</span>}
+          {!collapsed && <PencilAssumptionsPopover />}
           {onToggleCollapse && <PaneCollapseButton collapsed={Boolean(collapsed)} onClick={onToggleCollapse} label="typology scores" />}
         </div>
       </div>
