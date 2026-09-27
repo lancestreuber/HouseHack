@@ -24,7 +24,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@HouseHack/ui/components/resizable";
-import { Layers, SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -38,16 +38,14 @@ import { CameraViewer } from "./map/camera-viewer";
 import { DISCLAIMER, LIMITATIONS_URL } from "./disclaimer";
 import { ChatPane } from "./chat/chat-pane";
 import { useParcelChatContext } from "./chat/parcel-context";
-import { LayersPanel } from "./map/layers-panel";
 import {
   hitsClickableOverlay,
-  INITIAL_OVERLAY_STATE,
   loadingOverlayIds,
-  type OverlayState,
   refreshViewportOverlays,
   registerTooltips,
   syncOverlays,
 } from "./map/overlay-controller";
+import { getOverlayView, setOverlayView, useOverlayView } from "./map/overlay-store";
 import { ParcelTab } from "./map/parcel-tab";
 import { PillarsPanel } from "./map/pillars-panel";
 import { TypologyPanel } from "./map/typology-panel";
@@ -238,11 +236,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   const isDark = true;
   const isDarkRef = useRef(isDark);
   isDarkRef.current = isDark;
-  const [overlayState, setOverlayState] = useState<OverlayState>(INITIAL_OVERLAY_STATE);
-  const overlayStateRef = useRef(overlayState);
-  overlayStateRef.current = overlayState;
-  const [zoom, setZoom] = useState(0);
-  const [loadingIds, setLoadingIds] = useState<string[]>([]);
+  const { state: overlayState } = useOverlayView();
   // Pre-selected with a real, well-covered demo parcel so the scores,
   // breakdown and typology panes are never empty on first load -- an actual
   // click or address search just swaps this out.
@@ -372,8 +366,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     map.on("resize", () => collapseAttribution(map));
     map.on("moveend", () => {
       void refreshParcels(map);
-      void refreshViewportOverlays(map, overlayStateRef.current);
-      setZoom(map.getZoom());
+      void refreshViewportOverlays(map, getOverlayView().state);
+      setOverlayView({ zoom: map.getZoom() });
 
       // Tilt into a 3D view when zoomed in close enough to see buildings, and
       // back out when zooming back out -- but not while spin mode is driving
@@ -406,19 +400,19 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       styleReadyRef.current = true;
       addParcelLayer(map, isDarkRef.current);
       add3dBuildingsLayer(map, threeDEnabledRef.current);
-      syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
-      void refreshViewportOverlays(map, overlayStateRef.current);
+      syncOverlays(map, getOverlayView().state, UNDER_OVERLAY_LAYER_IDS);
+      void refreshViewportOverlays(map, getOverlayView().state);
     };
     map.on("style.load", applyOverlays);
 
-    // Keep the panel's "loading" badges in sync with MapLibre's source state.
+    // Keep the sidebar's "loading" badges in sync with MapLibre's source state.
     const updateLoading = () => {
-      const next = loadingOverlayIds(map, overlayStateRef.current);
-      setLoadingIds((prev) => (prev.join() === next.join() ? prev : next));
+      const next = loadingOverlayIds(map, getOverlayView().state);
+      if (getOverlayView().loadingIds.join() !== next.join()) setOverlayView({ loadingIds: next });
     };
     map.on("sourcedata", updateLoading);
     map.on("idle", updateLoading);
-    registerTooltips(map, () => overlayStateRef.current);
+    registerTooltips(map, () => getOverlayView().state);
 
     map.on("click", PARCEL_HIT_LAYER_ID, (e) => {
       if (hitsClickableOverlay(map, e.point)) return;
@@ -512,9 +506,9 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     // Mid style swap: the style.load handler applies the latest state instead.
     if (!map || !styleReadyRef.current) return;
     syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
-    setLoadingIds(loadingOverlayIds(map, overlayState));
+    setOverlayView({ loadingIds: loadingOverlayIds(map, overlayState) });
     void refreshViewportOverlays(map, overlayState).then(() =>
-      setLoadingIds(loadingOverlayIds(map, overlayStateRef.current)),
+      setOverlayView({ loadingIds: loadingOverlayIds(map, getOverlayView().state) }),
     );
   }, [overlayState]);
 
@@ -541,17 +535,6 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               <div className="flex h-full min-w-0 flex-col">
                 <ParcelTab pin={selectedPin} collapsed={mapPane.collapsed} onToggleCollapse={mapPane.toggle} />
                 <div className="relative min-h-0 flex-1">
-                  <div className="absolute left-2 top-2 z-10">
-                    <Popover>
-                      <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
-                        <Layers className="size-3.5" />
-                        Layers
-                      </PopoverTrigger>
-                      <PopoverContent side="bottom" align="start" className="w-auto border-none bg-transparent p-0 shadow-none ring-0">
-                        <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
                   <div ref={containerRef} className="h-full w-full" />
                   <CameraViewer />
                   <div className="absolute bottom-2 left-2 z-10">
