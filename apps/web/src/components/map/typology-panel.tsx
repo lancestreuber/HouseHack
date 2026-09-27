@@ -8,6 +8,8 @@ import {
   SelectValue,
 } from "@HouseHack/ui/components/select";
 
+import { Disclaimer } from "@/components/disclaimer";
+
 import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
@@ -319,6 +321,7 @@ export function TypologyPanel({
         </div>
       </div>
       {!collapsed && <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-x-auto">{body}</div>}
+      {!collapsed && <Disclaimer className="shrink-0" />}
     </div>
   );
 }

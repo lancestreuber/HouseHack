@@ -12,6 +12,7 @@ import {
   ServicesSection,
 } from "@/components/resources/sections-data";
 import { AiSection, EquationsSection, MultipliersSection, OverviewSection, PillarsSection, TypologySection } from "@/components/resources/sections-model";
+import { DISCLAIMER } from "@/components/disclaimer";
 import { Stat } from "@/components/resources/ui";
 import config from "@/lib/pillars/pillars.config.json";
 import catalog from "@/lib/resources/catalog.generated.json";
@@ -93,6 +94,10 @@ function ResourcesPage() {
               Sources, equations, weights, assumptions and limitations behind the parcel scores and housing-type fits. Weights are value judgments, not data. Zoning is a simplified
               interpretation, so verify it with the Zoning Administrator.
             </p>
+            <div className="mt-4 rounded-sm border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+              <span className="font-mono text-[10px] uppercase tracking-[0.15em]">Decision support, not advice · </span>
+              {DISCLAIMER}
+            </div>
             <div className="mt-4 grid grid-cols-2 overflow-hidden rounded-sm border border-border sm:grid-cols-3 lg:grid-cols-6">
               <Stat value={catalog.catalog.length} label="datasets" />
               <Stat value={OVERLAYS.length} label="map layers" />
