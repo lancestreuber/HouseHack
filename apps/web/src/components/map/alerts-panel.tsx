@@ -2,7 +2,7 @@ import { TriangleAlert } from "lucide-react";
 
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { type ParcelData, useParcelData, useTypologyFit } from "./pillars-panel";
-import { fmtUsd, VERDICT_DOT, VERDICT_LABEL, type VerdictLevel } from "./verdict";
+import { VERDICT_DOT, VERDICT_LABEL, type VerdictLevel } from "./verdict";
 
 function AlertRow({ text, level }: { text: string; level: VerdictLevel }) {
   const cls =
@@ -58,10 +58,6 @@ function AlertsContent({ pin, data }: { pin: string; data: ParcelData }) {
           {t.verdict.reasons.map((note) => (
             <AlertRow key={note} text={note} level={t.verdict.level} />
           ))}
-          <p className="text-muted-foreground">
-            Est. construction cost: {fmtUsd(t.cost.low)}–{fmtUsd(t.cost.high)} ({t.cost.units} unit{t.cost.units === 1 ? "" : "s"}, order of
-            magnitude only -- not a pro forma).
-          </p>
         </section>
       ))}
     </div>
