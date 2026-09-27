@@ -1,4 +1,5 @@
 import { describe, expect, test } from "bun:test";
+import { fileURLToPath } from "node:url";
 
 import { verdictFor } from "./typology-meta";
 
@@ -9,7 +10,9 @@ import { verdictFor } from "./typology-meta";
 // a zoning reason. Parcels and districts: research/sweeps/r9-sme-pointed-resources.md.
 // Cases whose blocker is height, FAR or lot area per unit (e.g. Carson Towers,
 // the Clark Building) are not caught; limitations.md says so.
-const DATA = new URL("../../../public/data/pillars/parcels", import.meta.url).pathname;
+// fileURLToPath, not .pathname: on Windows the latter keeps a leading slash
+// ("/C:/...") that Bun.file cannot resolve.
+const DATA = fileURLToPath(new URL("../../../public/data/pillars/parcels", import.meta.url));
 const index = (await Bun.file(`${DATA}/index.json`).json()) as { indicators: string[] };
 type Row = [string, (number | null)[], (number | null)[]];
 
