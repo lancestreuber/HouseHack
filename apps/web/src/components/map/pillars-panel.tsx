@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import config from "@/lib/pillars/pillars.config.json";
 import { overallPhrase as overallPhraseFor, phraseFor, pillarPhrase } from "@/lib/pillars/phrases";
-import { Disclaimer } from "@/components/disclaimer";
 import { type PillarId, type PillarScore, scoreParcel, type WeightOverrides, weightSensitivity } from "@/lib/pillars/score";
 import { orpc } from "@/utils/orpc";
 
@@ -461,7 +460,6 @@ export function PillarsPanel({
         )}
       </div>
       )}
-      <Disclaimer className="shrink-0 border-t border-border p-2" />
     </aside>
   );
 }

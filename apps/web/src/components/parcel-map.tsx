@@ -628,8 +628,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel
-              defaultSize="15%"
-              minSize="8%"
+              defaultSize="236px"
+              minSize="180px"
               maxSize="30%"
               collapsible
               collapsedSize="34px"
