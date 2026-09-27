@@ -29,7 +29,7 @@ import { VERDICT_COLOR } from "@/lib/pillars/verdict";
 import { Disclaimer } from "@/components/disclaimer";
 import { openScenario } from "@/components/scenario/scenario-store";
 
-import { PATHWAY_META, TYPOLOGIES } from "./overlays/legal-feasibility";
+import { TYPOLOGIES } from "./overlays/legal-feasibility";
 import { DISTRICT_PATHWAYS, ZBA_OUTCOMES } from "./overlays/legal-matrix.generated";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { usePillarWeights } from "./pillar-weights-store";
@@ -298,7 +298,6 @@ function TypologyTile({
   /** Scrolls the Alerts pane to this card's full verdict reasons. */
   onSelectTypology?: (typologyId: string) => void;
 }) {
-  const pathwayId = DISTRICT_PATHWAYS[zoning]?.[typologyId];
   const score = tileScore(zoning, typologyId) ?? null;
   // The score counts to its new value and its color eases with it, written
   // straight to the card each frame; React only renders the final values.
@@ -313,11 +312,6 @@ function TypologyTile({
   const Icon = TYPOLOGY_ICON[typologyId] ?? House;
   const fullLabel = TYPOLOGIES.find(([id]) => id === typologyId)?.[1] ?? typologyId;
   const name = SHORT_LABEL[typologyId] ?? fullLabel;
-  const pathway = pathwayId ? PATHWAY_META[pathwayId] : undefined;
-  const tooltip =
-    pathwayId === "not_permitted"
-      ? `${pathway?.label} -- rezoning closeness ${Math.round(rezoningCloseness(zoning, typologyId) * 100)}%, district relief approval rate ${Math.round(rezoningLikelihood(zoning) * 100)}%`
-      : pathway?.label;
   const siteFitId = SITE_FIT_TYPOLOGY[typologyId];
   const fit = siteFitId ? fitsById?.[siteFitId] : undefined;
   const color = score == null ? undefined : "var(--score-color)";
@@ -334,17 +328,16 @@ function TypologyTile({
   const overall = overallForTypology(values, weights, typologyId);
 
   const scoreText = score == null ? "—" : Math.round(score);
-  const routeText = pathway?.label ?? "Unresolved in the code";
   const canJumpToAlerts = Boolean(onSelectTypology);
-  // The generic level label ("Possible, with extra approvals or site cost")
-  // is only shown when there's nothing more specific to say; once a real
-  // dealkiller/blocker exists, its own text replaces it -- full detail (and
-  // every blocker beyond the first two) is a click away, in Alerts.
+  // Short form of the level label for the tile -- the full wording
+  // ("Possible, with extra approvals or site cost") is still what Alerts and
+  // the chat use; this is just the headline word for a small card.
+  const shortVerdictLabel = verdict.level === "green" ? "By right" : verdict.level === "yellow" ? "Possible" : verdict.label;
   const verdictBlock = (
     <div title={canJumpToAlerts ? "See why, in Alerts" : undefined}>
       <p className="flex items-center gap-1.5 font-semibold" style={{ color: VERDICT_COLOR[verdict.level] }}>
         <span className="inline-block size-2.5 shrink-0 rounded-full" style={{ background: VERDICT_COLOR[verdict.level] }} />
-        {verdict.label}
+        {shortVerdictLabel}
       </p>
       {verdict.reasons.slice(0, 3).map((r) => (
         <p key={r.text}>
@@ -434,9 +427,6 @@ function TypologyTile({
           </span>
           {scoreButton}
         </div>
-        <p className="truncate" style={{ color }} title={tooltip}>
-          {routeText}
-        </p>
         {overall != null && (
           <p className="text-muted-foreground">
             Overall <span style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
@@ -464,9 +454,6 @@ function TypologyTile({
           </span>
           {scoreButton}
         </div>
-        <p className="truncate" style={{ color }} title={tooltip}>
-          {routeText}
-        </p>
         {overall != null && (
           <p className="text-muted-foreground">
             Overall <span className="tabular-nums" style={{ color: scoreColor(overall) }}>{Math.round(overall)}</span> for this type
