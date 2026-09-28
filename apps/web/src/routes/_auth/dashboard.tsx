@@ -115,7 +115,7 @@ function DashboardPage() {
             <Skeleton className="h-4 w-64" />
           )}
         </div>
-        <Button render={<Link to="/" search={{ w: weights }} />}>
+        <Button nativeButton={false} render={<Link to="/" search={{ w: weights }} />}>
           <MapIcon className="size-3.5" /> Open the explorer
         </Button>
       </header>
