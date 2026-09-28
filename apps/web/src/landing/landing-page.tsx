@@ -39,19 +39,13 @@ function HeroSection() {
   return (
     <section className="relative w-full lg:flex-1">
       <video
-        className="absolute inset-0 size-full object-cover motion-reduce:hidden"
+        className="absolute inset-0 size-full object-cover"
         src="/media/hero-spin.mp4"
         poster="/media/hero-poster.webp"
         autoPlay
         muted
         loop
         playsInline
-        aria-hidden
-      />
-      <img
-        className="absolute inset-0 hidden size-full object-cover motion-reduce:block"
-        src="/media/hero-poster.webp"
-        alt=""
         aria-hidden
       />
       <div className="absolute inset-0 bg-gradient-to-b from-yz-ink/85 via-yz-ink/70 to-yz-ink" aria-hidden />
