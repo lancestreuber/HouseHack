@@ -4,8 +4,8 @@
 
 Yinzone is a parcel-level decision-support map for the City of Pittsburgh. Click a lot and see how good a place it is for new homes, which housing types the zoning code allows there and by what approval pathway, whether the site physically fits each type, a rough "does it pencil?" cost check, and every source behind each number.
 
-- **Live app:** https://house.bugdex.org
-- **Methodology and sources:** [`/resources`](https://house.bugdex.org/resources) in the app (every equation, weight, dataset, license and assumption)
+- **Live app:** https://yin.zone
+- **Methodology and sources:** [`/resources`](https://yin.zone/resources) in the app (every equation, weight, dataset, license and assumption)
 - **Limitations statement:** [`limitations.md`](limitations.md)
 - **Hackathon:** [AI Horizons 2026: AI for Housing Hackathon](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/) (Pittsburgh, virtual, Sept 26–27, 2026)
 - **Challenge track:** Track 3, [Housing Typology, Equity & Climate Matchmaker](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/typology-equity-climate)
