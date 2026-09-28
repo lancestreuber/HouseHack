@@ -17,9 +17,13 @@ import { PATHWAY_META, TYPOLOGIES, zbaLine } from "../map/overlays/legal-feasibi
 import { CELL_NOTES, DISTRICT_PATHWAYS, LEGAL_MATRIX_AS_OF, LEGAL_MATRIX_SOURCE, PATHWAYS } from "../map/overlays/legal-matrix.generated";
 import { formatRaw, INDICATORS, type ParcelData, percentileRank, useParcelData, useTypologyFit } from "../map/pillars-panel";
 import { EASIEST, useLegalFor } from "../map/legal-for-store";
+import type { LeverSection, Levers } from "../map/levers";
+import { useLevers } from "../map/use-levers";
 import { type PillarWeights, usePillarWeights } from "../map/pillar-weights-store";
 import { notPermittedScore, PATHWAY_SCORE } from "../map/typology-panel";
-import { type FitsById, legalLevelFor, rezoningCloseness, rezoningLikelihood, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
+import { type FitsById, legalLevelFor, rezoningCloseness, rezoningLikelihood, rezoningTargets, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
+
+export { rezoningTargets };
 
 /** What parcels.typologyFit returns: lot facts, zoning gates and Jev's site-fit ratings. */
 export type TypologyFit = NonNullable<ReturnType<typeof useTypologyFit>["data"]>;
@@ -246,8 +250,6 @@ function siteFitFacts(fit: FitState): ContextFact[] {
 // the easiest legal pathway among the mainstream types in the district, as in
 // scripts/pillars/build-indicators.ts; districts where housing is not permitted
 // are skipped because their factor depends on nearby districts.
-const RESIDENTIAL_BASES = ["R1D", "R1A", "R2", "R3", "RM"];
-const DENSITIES = ["VL", "L", "M", "H", "VH"];
 const PATHWAY_RANK = ["by_right", "za", "zbe_special_exception", "conditional_use", "not_permitted"];
 const LEVEL_CODE = Object.fromEntries(config.legal.levels.map((l) => [l.id, l.code])) as Record<string, number>;
 
@@ -261,20 +263,6 @@ export function legalCodeFor(district: string): number | null {
   if (best === "not_permitted") return null;
   if (best === "za" && district === "H") return LEVEL_CODE.za_hillside ?? null;
   return LEVEL_CODE[best] ?? null;
-}
-
-/** The other residential districts at the nearest density to this one. */
-export function rezoningTargets(zoning: string): string[] {
-  const [base, density = ""] = zoning.split("-");
-  if (!base || !RESIDENTIAL_BASES.includes(base)) return [];
-  const at = DENSITIES.indexOf(density);
-  return RESIDENTIAL_BASES.filter((b) => b !== base).flatMap((b) => {
-    const options = DENSITIES.map((d) => `${b}-${d}`).filter((code) => DISTRICT_PATHWAYS[code]);
-    const nearest = options.sort(
-      (x, y) => Math.abs(DENSITIES.indexOf(x.split("-")[1]!) - at) - Math.abs(DENSITIES.indexOf(y.split("-")[1]!) - at),
-    )[0];
-    return nearest ? [nearest] : [];
-  });
 }
 
 /**
@@ -389,6 +377,24 @@ function statusFacts(result: ParcelScore, picked: string | null = null): Context
   return facts;
 }
 
+function leverFacts(levers: Levers | null | undefined): ContextFact[] {
+  if (!levers) return [];
+  const group = (section: LeverSection, kind: FactKind) =>
+    fact(
+      `levers.${section.key}`,
+      within([
+        `${section.lever} for ${levers.typology.toLowerCase()}: ${sentence(section.question)} ${sentence(section.answer)}`,
+        sentence(section.explain),
+        ...section.paths.map((p) => sentence(`${p.title}: ${p.steps.map((st) => `${st.label.toLowerCase()} ${st.value.replace(/[.]$/, "")}`).join("; ")}`)),
+        ...section.items.map((l) => sentence(l.detail ? `${l.text}: ${l.detail}` : l.text)),
+      ]),
+      kind,
+      [...section.paths.map((p) => p.source), ...section.items.map((l) => l.source)].filter(Boolean).join("; "),
+      section.paths.find((p) => p.sourceUrl)?.sourceUrl ?? section.items.find((l) => l.sourceUrl)?.sourceUrl ?? "",
+    );
+  return [group(levers.zoning, "policy"), group(levers.incentives, "policy"), group(levers.land, "observed")];
+}
+
 /** What the chat may say about one explorer parcel: scores, key indicators and zoning, at the user's weights. */
 export function parcelChatContext(
   pin: string,
@@ -397,6 +403,7 @@ export function parcelChatContext(
   fit: FitState = { status: "loading" },
   pencil: PencilAssumptions = DEFAULT_PENCIL,
   legalFor: string = EASIEST,
+  levers?: Levers | null,
 ): ChatContext {
   const subject = `Parcel ${pin}`;
   if (!data) {
@@ -450,6 +457,7 @@ export function parcelChatContext(
     ...scenarioFacts(data, weights, result, legalFor),
     ...indicatorFacts(data, result),
     ...verdictFacts(data, pencil, fit),
+    ...leverFacts(levers),
     ...definitions(),
   ];
 
@@ -576,13 +584,14 @@ export function useParcelChatContext(pin: string | null): ChatContext | null {
   // The same cached request the typology and Alerts panes use.
   const query = useTypologyFit(pin ?? "", ready);
   const fit: FitState = query.data ? { status: "ready", data: query.data } : query.isError ? { status: "error" } : { status: "loading" };
+  const { levers } = useLevers(pin, ready?.zoning ?? null, legalFor !== EASIEST ? legalFor : "multi_unit");
   return useMemo(() => {
     if (!pin || loadedPin !== pin) return null;
-    if (status === "ready" && data) return parcelChatContext(pin, data, weights, fit, pencil, legalFor);
+    if (status === "ready" && data) return parcelChatContext(pin, data, weights, fit, pencil, legalFor, levers);
     if (status === "outside") return outsideCityChatContext(pin, scope.status === "outside" ? scope.name : null);
     if (status === "missing") return parcelChatContext(pin, null);
     return null;
     // `fit` is rebuilt each render; its inputs are listed instead.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pin, loadedPin, data, status, scope, weights, query.data, query.isError, pencil, legalFor]);
+  }, [pin, loadedPin, data, status, scope, weights, query.data, query.isError, pencil, legalFor, levers]);
 }

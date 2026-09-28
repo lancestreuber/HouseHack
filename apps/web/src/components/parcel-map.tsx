@@ -25,7 +25,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@HouseHack/ui/components/resizable";
-import { Layers, SlidersHorizontal } from "lucide-react";
+import { Flame, Layers, SlidersHorizontal } from "lucide-react";
 
 import type { PillarId } from "@/lib/pillars/score";
 import { client } from "@/utils/orpc";
@@ -42,6 +42,10 @@ import { ChatPane } from "./chat/chat-pane";
 import { mapChatInfo, registerMapController } from "./chat/map-actions";
 import { generalChatContext, useParcelChatContext } from "./chat/parcel-context";
 import { LayersPanel } from "./map/layers-panel";
+import { paintParcelFill, registerHeatInteractions, syncHeatLayers } from "./map/heat-layers";
+import { HeatmapPanel } from "./map/heatmap-panel";
+import { areaChatContext, areaReport } from "@/lib/typology-map/area-report";
+import { focusHeatCluster, getHeat, setHeatEnabled, subscribeHeat, useHeat } from "@/lib/typology-map/heatmap-store";
 import {
   hitsClickableOverlay,
   INITIAL_OVERLAY_STATE,
@@ -112,6 +116,7 @@ const CITY_BOUNDS: [[number, number], [number, number]] = [
 // overlays/legal-feasibility.ts as "residential-zoning"), so it no longer
 // needs its own entry in this list.
 const UNDER_OVERLAY_LAYER_IDS = [PARCEL_LAYER_ID];
+const HEAT_LAYER_OPTIONS = { parcelSourceId: PARCEL_SOURCE_ID, beforeLayerId: PARCEL_LAYER_ID, keepOnTopLayerId: PARCEL_SELECTED_LAYER_ID };
 // With no parcel selected, the chat explains how Yinzone works (and can still change the map).
 const GENERAL_CHAT = generalChatContext();
 
@@ -272,6 +277,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // Nothing is selected until the URL names a parcel or the user picks one.
   const [selectedPin, setSelectedPin] = useState<string | null>(initialPin ?? null);
   const [spinning, setSpinning] = useState(false);
+  const [heatOpen, setHeatOpen] = useState(false);
   const spinningRef = useRef(spinning);
   spinningRef.current = spinning;
   const [threeDEnabled, setThreeDEnabled] = useState(true);
@@ -318,10 +324,16 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // can change the map's layers (it sees the layer list and what's on now).
   const parcelChatContext = useParcelChatContext(selectedPin);
   const zoomLevel = Math.floor(zoom);
-  const chatContext = useMemo(
-    () => ({ ...(parcelChatContext ?? GENERAL_CHAT), map: mapChatInfo(overlayState, zoomLevel) }),
-    [parcelChatContext, overlayState, zoomLevel],
-  );
+  // A focused rezoning area in "Where to build" takes over the chat until it's closed.
+  const heat = useHeat();
+  const focusedArea = heat.enabled && heat.focusCluster != null ? heat.result?.clusters.find((c) => c.id === heat.focusCluster) : undefined;
+  const chatContext = useMemo(() => {
+    const base =
+      focusedArea && heat.result
+        ? areaChatContext(areaReport(focusedArea, heat.result.params), heat.base?.built.slice(0, 10) ?? "")
+        : (parcelChatContext ?? GENERAL_CHAT);
+    return { ...base, map: mapChatInfo(overlayState, zoomLevel) };
+  }, [focusedArea, heat.result, heat.base, parcelChatContext, overlayState, zoomLevel]);
   useEffect(() => registerMapController({ get: () => overlayStateRef.current, set: setOverlayState }), []);
   // A typology tile's scenario card, shown on the map for the selected parcel.
   const scenario = useScenario();
@@ -487,6 +499,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       add3dBuildingsLayer(map, threeDEnabledRef.current);
       syncOverlays(map, overlayStateRef.current, UNDER_OVERLAY_LAYER_IDS);
       void refreshViewportOverlays(map, overlayStateRef.current);
+      syncHeatLayers(map, HEAT_LAYER_OPTIONS, getHeat(), true);
     };
     map.on("style.load", applyOverlays);
 
@@ -503,6 +516,17 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       if (hitsClickableOverlay(map, e.point)) return;
       const pin = e.features?.[0]?.properties?.pin;
       if (typeof pin === "string") setSelectedPin(pin);
+    });
+    // Typology heatmap: recolor on every run, and color newly loaded parcels.
+    const unsubscribeHeat = subscribeHeat(() => {
+      if (styleReadyRef.current) syncHeatLayers(map, HEAT_LAYER_OPTIONS);
+    });
+    map.on("sourcedata", (e) => {
+      if (e.sourceId === PARCEL_SOURCE_ID && e.isSourceLoaded) paintParcelFill(map, HEAT_LAYER_OPTIONS);
+    });
+    const unregisterHeat = registerHeatInteractions(map, {
+      onPickPoint: (center) => map.flyTo({ center, zoom: 16 }),
+      onPickCluster: (id) => focusHeatCluster(id),
     });
     map.on("mouseenter", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = "pointer"));
     map.on("mouseleave", PARCEL_HIT_LAYER_ID, () => (map.getCanvas().style.cursor = ""));
@@ -547,6 +571,8 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
       window.removeEventListener("pointerup", onPointerUp, true);
       window.removeEventListener("pointercancel", onPointerUp, true);
       resizeObserver.disconnect();
+      unsubscribeHeat();
+      unregisterHeat();
       map.remove();
       mapRef.current = null;
     };
@@ -624,6 +650,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
     // Mid style swap: the style.load handler applies the latest state instead.
     if (!map || !styleReadyRef.current) return;
     syncOverlays(map, overlayState, UNDER_OVERLAY_LAYER_IDS);
+    syncHeatLayers(map, HEAT_LAYER_OPTIONS);
     setLoadingIds(loadingOverlayIds(map, overlayState));
     void refreshViewportOverlays(map, overlayState).then(() =>
       setLoadingIds(loadingOverlayIds(map, overlayStateRef.current)),
@@ -659,6 +686,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                 />
                 <div className="relative min-h-0 flex-1">
                   <div className="absolute left-2 top-2 z-10">
+                    <div className="flex gap-1">
                     <Popover>
                       <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
                         <Layers className="size-3.5" />
@@ -668,6 +696,27 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                         <LayersPanel state={overlayState} onChange={setOverlayState} zoom={zoom} loadingIds={loadingIds} />
                       </PopoverContent>
                     </Popover>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHeatOpen((open) => !open);
+                        setHeatEnabled(!heatOpen);
+                      }}
+                      className={`flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs backdrop-blur ${heatOpen ? "bg-foreground text-background" : "bg-background/80 text-muted-foreground hover:text-foreground"}`}
+                    >
+                      <Flame className="size-3.5" />
+                      Where to build
+                    </button>
+                    </div>
+                    {heatOpen && (
+                      <div className="mt-1 max-h-[calc(100vh-12rem)] overflow-y-auto">
+                        <HeatmapPanel
+                          onClose={() => setHeatOpen(false)}
+                          selectedPin={selectedPin}
+                          onFlyTo={(bounds) => mapRef.current?.fitBounds(bounds, { padding: 60, maxZoom: 17 })}
+                        />
+                      </div>
+                    )}
                   </div>
                   <div ref={containerRef} className="h-full w-full" />
                   <CameraViewer />
