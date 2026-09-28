@@ -30,8 +30,10 @@ export default function SignInForm({ onSwitchToSignUp }: { onSwitchToSignUp: () 
         },
         {
           onSuccess: () => {
+            // The onboarding layout forwards users with a completed profile
+            // straight to /dashboard.
             navigate({
-              to: "/dashboard",
+              to: "/onboarding",
             });
             toast.success("Sign in successful");
           },

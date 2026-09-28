@@ -147,7 +147,7 @@ export type OnboardingProfileState = {
   jurisdiction?: string | null;
   jurisdictionLat?: number | null;
   jurisdictionLon?: number | null;
-} | null;
+} | null | undefined;
 
 const PRIORITY_COLUMNS = [
   "demandPriority",

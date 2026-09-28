@@ -32,8 +32,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
+            // New accounts always land in onboarding; the layout forwards
+            // completed profiles straight to /dashboard.
             navigate({
-              to: "/dashboard",
+              to: "/onboarding",
             });
             toast.success("Sign up successful");
           },
