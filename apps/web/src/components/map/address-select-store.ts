@@ -9,6 +9,9 @@ export function setAddressSelectHandler(next: typeof handler) {
   handler = next;
 }
 
-export function dispatchAddressSelect(result: AddressResult) {
-  handler?.(result);
+/** Hands the result to the map; false when no map is mounted (another page). */
+export function dispatchAddressSelect(result: AddressResult): boolean {
+  if (!handler) return false;
+  handler(result);
+  return true;
 }
