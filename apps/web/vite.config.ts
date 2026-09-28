@@ -37,6 +37,9 @@ function maplibreSharedChunk(): Plugin {
 export default defineConfig({
   server: {
     port: 3001,
+    // Fail instead of moving to 3002: Better Auth only trusts BETTER_AUTH_URL's
+    // origin, so sign-in and sign-up on another port get 403 INVALID_ORIGIN.
+    strictPort: true,
   },
   resolve: {
     tsconfigPaths: true,

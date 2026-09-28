@@ -19,7 +19,7 @@ import { toast } from "sonner";
 import { ListMenu, ListNameDialog } from "@/components/dashboard/list-menu";
 import { type Outline, ParcelThumb } from "@/components/dashboard/parcel-thumb";
 import { encodeWeights } from "@/components/map/pillar-weights-store";
-import { OnboardingDialog } from "@/components/onboarding-dialog";
+import { OnboardingDialog, resumeStep } from "@/components/onboarding-dialog";
 import { AUDIENCE_LABEL, PRESET_LABEL, presetWeights } from "@/lib/onboarding";
 import { type Favorite, useFavorites, useListMutations, useLists, useMoveFavorite, useSetFavorite, useViewed } from "@/lib/user-parcels";
 import { orpc } from "@/utils/orpc";
@@ -228,6 +228,8 @@ function DashboardPage() {
   );
 
   const [editing, setEditing] = useState(false);
+  // Closed this visit (skipped or dismissed), even before the profile refetch lands.
+  const [dismissed, setDismissed] = useState(false);
   const [view, setView] = useState<ViewMode>("grid");
   const [query, setQuery] = useState("");
   const [zoningFilter, setZoningFilter] = useState(ALL);
@@ -246,6 +248,8 @@ function DashboardPage() {
   };
 
   const p = profile.data;
+  const incomplete = profile.isSuccess && !p?.onboardedAt;
+  const showOnboarding = editing || (incomplete && !dismissed && !p?.skippedAt);
   const weights = encodeWeights(presetWeights(p?.weightsPreset) ?? {});
   const favs: Favorite[] = favorites.data ?? [];
   const favoriteByPin = new Map(favs.map((f) => [f.pin, f]));
@@ -386,7 +390,7 @@ function DashboardPage() {
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">{session?.user.name ? `${session.user.name}'s dashboard` : "Dashboard"}</h1>
-          {p ? (
+          {p?.role ? (
             <p className="text-muted-foreground">
               {(p.audience && AUDIENCE_LABEL[p.audience]) ?? p.role.replace("_", " ")} ·{" "}
               {p.weightsPreset ? (PRESET_LABEL[p.weightsPreset] ?? p.weightsPreset) : "Default"} weights ·{" "}
@@ -402,6 +406,17 @@ function DashboardPage() {
           <MapIcon className="size-3.5" /> Open the explorer
         </Button>
       </header>
+
+      {incomplete && !showOnboarding && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-brass/40 bg-brass/10 px-3 py-2">
+          <span>
+            Finish setting up: step {resumeStep(p ?? null) + 1} of 3 is next. Your answers so far are saved.
+          </span>
+          <Button size="sm" onClick={() => setEditing(true)}>
+            Resume setup
+          </Button>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-48 flex-1">
@@ -508,7 +523,15 @@ function DashboardPage() {
         }
       />
       {profile.isSuccess && (
-        <OnboardingDialog open={p === null || editing} onClose={() => setEditing(false)} profile={p ?? null} name={session?.user.name} />
+        <OnboardingDialog
+          open={showOnboarding}
+          onClose={() => {
+            setEditing(false);
+            setDismissed(true);
+          }}
+          profile={p ?? null}
+          name={session?.user.name}
+        />
       )}
     </div>
   );

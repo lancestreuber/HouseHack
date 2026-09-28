@@ -5,20 +5,23 @@ import { user } from "./auth";
 // Per-user app data. Parcels are stored by PIN only (plus the zoning code seen
 // at the time, for display); never owner names or other parcel PII.
 
-/** Answers from the onboarding page. A row exists once onboarding is done. */
+/** Onboarding answers, saved step by step so onboarding can be skipped and resumed. */
 export const userProfile = pgTable("user_profile", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
-  /** "zoning_regulator" or "developer". */
-  role: text("role").notNull(),
+  /** "zoning_regulator" or "developer"; null until the first step is answered. */
+  role: text("role"),
   /** Which onboarding option they picked (a finer-grained audience within the role). */
   audience: text("audience"),
   /** Free text about their goal, job or tasks; given to the chat assistant as context. */
   context: text("context"),
   /** Pillar-weight preset picked during onboarding (a pillars.config.json preset name). */
   weightsPreset: text("weights_preset"),
-  onboardedAt: timestamp("onboarded_at").defaultNow().notNull(),
+  /** Set when every step is done; null while onboarding is in progress. */
+  onboardedAt: timestamp("onboarded_at"),
+  /** Set when the user chose "Skip for now", so the dashboard stops opening onboarding. */
+  skippedAt: timestamp("skipped_at"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())

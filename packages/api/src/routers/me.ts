@@ -28,7 +28,7 @@ const AUDIENCE_TEXT: Record<Audience, string> = {
 /** The chat assistant's note about who's asking, from their saved onboarding answers. */
 export async function userChatNote(db: Database, userId: string): Promise<string | undefined> {
   const [row] = await db.select().from(userProfile).where(eq(userProfile.userId, userId));
-  if (!row) return undefined;
+  if (!row?.role) return undefined;
   const audience = AUDIENCE_TEXT[row.audience as Audience];
   const who = `They are ${audience ?? row.role.replace("_", " ")} (role: ${row.role.replace("_", " ")}).`;
   return row.context ? `${who} In their words: "${row.context}"` : who;
@@ -48,10 +48,13 @@ async function assertOwnList(db: Database, userId: string, id: string) {
   if (!row) throw new ORPCError("NOT_FOUND", { message: "List not found" });
 }
 
+// Every field is optional: each onboarding step saves only its own answer.
 const profileInput = z.object({
-  audience: z.enum(AUDIENCES),
-  context: z.string().trim().max(CONTEXT_MAX).nullable(),
-  weightsPreset: z.string().max(40).nullable(),
+  audience: z.enum(AUDIENCES).optional(),
+  context: z.string().trim().max(CONTEXT_MAX).nullable().optional(),
+  weightsPreset: z.string().max(40).nullable().optional(),
+  /** "complete" finishes onboarding; "skip" puts it off (answers so far are kept). */
+  finish: z.enum(["complete", "skip"]).optional(),
 });
 
 /** The signed-in user's own data: onboarding answers, favorite and recently viewed parcels. */
@@ -63,7 +66,13 @@ export const meRouter = {
 
   saveProfile: protectedProcedure.input(profileInput).handler(async ({ input, context }) => {
     const userId = context.session.user.id;
-    const values = { ...input, role: ROLE_OF[input.audience] };
+    const { finish, ...answers } = input;
+    const values = {
+      ...answers,
+      ...(answers.audience ? { role: ROLE_OF[answers.audience] } : {}),
+      ...(finish === "complete" ? { onboardedAt: new Date() } : {}),
+      ...(finish === "skip" ? { skippedAt: new Date() } : {}),
+    };
     await context.db
       .insert(userProfile)
       .values({ userId, ...values })
