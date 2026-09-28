@@ -12,7 +12,7 @@ import { Skeleton } from "@HouseHack/ui/components/skeleton";
 import { cn } from "@HouseHack/ui/lib/utils";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { GripVertical, History, LayoutGrid, List as ListIcon, Map as MapIcon, MoreHorizontal, Plus, Search, Star } from "lucide-react";
+import { GripVertical, History, Lightbulb, LayoutGrid, List as ListIcon, Map as MapIcon, MoreHorizontal, Plus, Search, Star } from "lucide-react";
 import { type DragEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -20,6 +20,7 @@ import { ListMenu, ListNameDialog } from "@/components/dashboard/list-menu";
 import { type Outline, ParcelThumb } from "@/components/dashboard/parcel-thumb";
 import { encodeWeights } from "@/components/map/pillar-weights-store";
 import { OnboardingDialog, resumeStep } from "@/components/onboarding-dialog";
+import { EXAMPLE_PARCELS } from "@/lib/example-parcels";
 import { AUDIENCE_LABEL, PRESET_LABEL, presetWeights } from "@/lib/onboarding";
 import { type Favorite, useFavorites, useListMutations, useLists, useMoveFavorite, useSetFavorite, useViewed } from "@/lib/user-parcels";
 import { orpc } from "@/utils/orpc";
@@ -48,7 +49,8 @@ function ago(date: Date | string) {
 }
 
 /** A parcel card in any section. `when` is when it was added or last viewed. */
-type Item = { pin: string; zoning: string | null; nickname: string | null; when: Date; position: number; views?: number };
+/** `when` is null for example parcels, which have no added or viewed time. */
+type Item = { pin: string; zoning: string | null; nickname: string | null; when: Date | null; position: number; views?: number };
 /** Where a dragged parcel would land: a list (null = Favorites), before one card or at the end. */
 type DropTarget = { listId: string | null; beforePin: string | null };
 
@@ -75,8 +77,8 @@ const csvCell = (text: string) => (/[",\n]/.test(text) ? `"${text.replace(/"/g, 
 function sortItems(items: Item[], sort: SortId) {
   const by: Record<SortId, (a: Item, b: Item) => number> = {
     custom: (a, b) => a.position - b.position,
-    newest: (a, b) => b.when.getTime() - a.when.getTime(),
-    oldest: (a, b) => a.when.getTime() - b.when.getTime(),
+    newest: (a, b) => (b.when?.getTime() ?? 0) - (a.when?.getTime() ?? 0),
+    oldest: (a, b) => (a.when?.getTime() ?? 0) - (b.when?.getTime() ?? 0),
     pin: (a, b) => a.pin.localeCompare(b.pin),
     name: (a, b) => (a.nickname ?? `~${a.pin}`).localeCompare(b.nickname ?? `~${b.pin}`),
     zoning: (a, b) => (a.zoning ?? "~").localeCompare(b.zoning ?? "~"),
@@ -107,7 +109,7 @@ function ParcelCard({
   onDragStart: (e: DragEvent) => void;
   onDragOver: (e: DragEvent) => void;
 }) {
-  const meta = `${item.views && item.views > 1 ? `${item.views} views · ` : ""}${ago(item.when)}`;
+  const meta = [item.views && item.views > 1 ? `${item.views} views` : "", item.when ? ago(item.when) : ""].filter(Boolean).join(" · ");
   const link = { to: "/app" as const, search: { pin: item.pin, w: weights } };
   const actions = (
     <span className="flex shrink-0 items-center">
@@ -170,7 +172,8 @@ function ParcelCard({
           <span className="block truncate font-medium">{item.nickname ?? <span className="tnum">Parcel {item.pin}</span>}</span>
           <span className="block truncate text-muted-foreground">
             {item.nickname && <span className="tnum">{item.pin} · </span>}
-            Zoning {item.zoning ?? "unknown"} · {meta}
+            Zoning {item.zoning ?? "unknown"}
+            {meta && ` · ${meta}`}
           </span>
         </Link>
         {actions}
@@ -261,7 +264,8 @@ function DashboardPage() {
   const favs: Favorite[] = favorites.data ?? [];
   const favoriteByPin = new Map(favs.map((f) => [f.pin, f]));
 
-  const nicknameOf = (pin: string) => favoriteByPin.get(pin)?.nickname ?? null;
+  const exampleByPin = new Map(EXAMPLE_PARCELS.map((e) => [e.pin, e]));
+  const nicknameOf = (pin: string) => favoriteByPin.get(pin)?.nickname ?? exampleByPin.get(pin)?.nickname ?? null;
   const matches = (item: { pin: string; zoning: string | null }) => {
     const q = query.trim().toUpperCase();
     const text = [item.pin, item.zoning ?? "", nicknameOf(item.pin) ?? ""].join(" ").toUpperCase();
@@ -278,11 +282,19 @@ function DashboardPage() {
     sort === "custom" ? "newest" : sort,
   );
 
+  const exampleItems = sortItems(
+    EXAMPLE_PARCELS.filter(matches).map((e, i) => ({ pin: e.pin, zoning: e.zoning, nickname: nicknameOf(e.pin), when: null, position: i })),
+    sort === "newest" || sort === "oldest" ? "custom" : sort,
+  );
+
   const zonings = useMemo(
     () => [...new Set([...favs, ...(viewed.data ?? [])].map((x) => x.zoning).filter((z): z is string => Boolean(z)))].sort(),
     [favs, viewed.data],
   );
-  const pins = useMemo(() => [...new Set([...favs.map((f) => f.pin), ...(viewed.data ?? []).map((v) => v.pin)])].sort().slice(0, 100), [favs, viewed.data]);
+  const pins = useMemo(
+    () => [...new Set([...favs.map((f) => f.pin), ...(viewed.data ?? []).map((v) => v.pin), ...EXAMPLE_PARCELS.map((e) => e.pin)])].sort().slice(0, 100),
+    [favs, viewed.data],
+  );
   const outlines = useQuery({
     ...orpc.parcels.getOutlines.queryOptions({ input: { pins } }),
     enabled: pins.length > 0,
@@ -292,7 +304,7 @@ function DashboardPage() {
 
   // Drag and drop: the handle carries the parcel; sections and cards are drop targets.
   const startDrag = (item: Item) => (e: DragEvent) => {
-    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify({ pin: item.pin, zoning: item.zoning }));
+    e.dataTransfer.setData(DRAG_TYPE, JSON.stringify({ pin: item.pin, zoning: item.zoning, nickname: item.nickname }));
     e.dataTransfer.effectAllowed = "move";
     const card = (e.currentTarget as HTMLElement).closest("[data-card]");
     if (card) e.dataTransfer.setDragImage(card, 16, 16);
@@ -318,7 +330,7 @@ function DashboardPage() {
     setDrop(null);
     if (!raw) return;
     e.preventDefault();
-    const { pin, zoning } = JSON.parse(raw) as { pin: string; zoning: string | null };
+    const { pin, zoning, nickname } = JSON.parse(raw) as { pin: string; zoning: string | null; nickname: string | null };
     // Neighbours in the list's own order, without the dragged card.
     const ordered = favs.filter((f) => f.listId === listId && f.pin !== pin).sort((a, b) => a.position - b.position);
     const beforePin = sort === "custom" ? drop?.beforePin : null;
@@ -329,10 +341,11 @@ function DashboardPage() {
     else position = (ordered[at - 1]!.position + ordered[at]!.position) / 2;
     const current = favoriteByPin.get(pin);
     if (current && current.listId === listId && current.position === position) return;
-    move.mutate({ pin, zoning, listId, position });
+    move.mutate({ pin, zoning, nickname, listId, position });
   };
 
-  const toggleStar = (item: Item) => setFavorite.mutate({ pin: item.pin, zoning: item.zoning, favorite: !favoriteByPin.has(item.pin) });
+  const toggleStar = (item: Item) =>
+    setFavorite.mutate({ pin: item.pin, zoning: item.zoning, nickname: item.nickname, favorite: !favoriteByPin.has(item.pin) });
 
   const renderItems = (items: Item[], listId: string | null | undefined, empty: string) => {
     if (!favorites.data || (listId === undefined && !viewed.data)) return <Skeleton className="m-3 h-16" />;
@@ -504,6 +517,10 @@ function DashboardPage() {
           </Section>
         );
       })}
+
+      <Section icon={<Lightbulb className="size-3.5" />} title="Example parcels" count={exampleItems.length}>
+        {renderItems(exampleItems, undefined, "No example parcels match the filter.")}
+      </Section>
 
       <Section
         icon={<History className="size-3.5" />}

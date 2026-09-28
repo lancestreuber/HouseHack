@@ -22,8 +22,6 @@ export const userProfile = pgTable("user_profile", {
   onboardedAt: timestamp("onboarded_at"),
   /** Set when the user chose "Skip for now", so the dashboard stops opening onboarding. */
   skippedAt: timestamp("skipped_at"),
-  /** Set once the demo favorites were added, so unstarring them doesn't bring them back. */
-  demoSeededAt: timestamp("demo_seeded_at"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())

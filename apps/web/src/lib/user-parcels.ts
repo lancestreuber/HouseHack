@@ -48,7 +48,7 @@ export function useMoveFavorite() {
         await queryClient.cancelQueries({ queryKey: key });
         const before = queryClient.getQueryData<Favorite[]>(key);
         const position = input.position ?? -Date.now();
-        const moved = { pin: input.pin, zoning: input.zoning ?? null, nickname: null, listId: input.listId, position, createdAt: new Date() };
+        const moved = { pin: input.pin, zoning: input.zoning ?? null, nickname: input.nickname ?? null, listId: input.listId, position, createdAt: new Date() };
         const rest = (before ?? []).filter((f) => f.pin !== input.pin);
         const existing = before?.find((f) => f.pin === input.pin);
         const next = [...rest, existing ? { ...existing, listId: input.listId, position } : moved].sort((a, b) => a.position - b.position);

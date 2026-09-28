@@ -36,38 +36,14 @@ export async function userChatNote(db: Database, userId: string): Promise<string
 
 const pin = z.string().regex(/^[0-9A-Z]{8,20}$/);
 const zoning = z.string().max(20).nullable().optional();
+// Only used when the favorite is new (e.g. starring an example parcel keeps its name).
+const nickname = z.string().trim().max(80).nullable().optional();
 // How many recently viewed parcels the dashboard keeps per user.
 const VIEWED_LIMIT = 50;
 const listName = z.string().trim().min(1).max(60);
 const listId = z.string().uuid();
 // New favorites go to the top of their list.
 const topPosition = () => -Date.now();
-
-// Starred for every account on first visit so the dashboard isn't empty. City
-// parcels in different neighborhoods and zoning districts; nicknames name the
-// place only. Zoning is from the parcel score data (2026-09-27 build).
-export const DEMO_FAVORITES = [
-  { pin: "0010R00175000001", zoning: "RM-M", nickname: "Hill District: Centre Ave" },
-  { pin: "0174J00379000000", zoning: "LNC", nickname: "Homewood: Frankstown Ave" },
-  { pin: "0056K00182000002", zoning: "R1D-M", nickname: "Hazelwood: Second Ave" },
-  { pin: "0049B00287000000", zoning: "R1A-H", nickname: "Lawrenceville: near Butler St" },
-  { pin: "0084B00121000000", zoning: "UNC", nickname: "East Liberty: Penn Ave" },
-  { pin: "0035F00261000000", zoning: "LNC", nickname: "Beechview: Broadway Ave" },
-];
-
-/** Adds the demo favorites once per account (existing ones included). */
-async function seedDemoFavorites(db: Database, userId: string) {
-  const [row] = await db.select({ seeded: userProfile.demoSeededAt }).from(userProfile).where(eq(userProfile.userId, userId));
-  if (row?.seeded) return;
-  await db
-    .insert(favoriteParcel)
-    .values(DEMO_FAVORITES.map((f, i) => ({ userId, ...f, position: i + 1 })))
-    .onConflictDoNothing();
-  await db
-    .insert(userProfile)
-    .values({ userId, demoSeededAt: new Date() })
-    .onConflictDoUpdate({ target: userProfile.userId, set: { demoSeededAt: new Date() } });
-}
 
 async function assertOwnList(db: Database, userId: string, id: string) {
   const [row] = await db.select({ id: parcelList.id }).from(parcelList).where(and(eq(parcelList.id, id), eq(parcelList.userId, userId)));
@@ -107,7 +83,6 @@ export const meRouter = {
   }),
 
   favorites: protectedProcedure.handler(async ({ context }) => {
-    await seedDemoFavorites(context.db, context.session.user.id);
     return context.db
       .select({
         pin: favoriteParcel.pin,
@@ -123,13 +98,13 @@ export const meRouter = {
   }),
 
   setFavorite: protectedProcedure
-    .input(z.object({ pin, zoning, favorite: z.boolean() }))
+    .input(z.object({ pin, zoning, nickname, favorite: z.boolean() }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       if (input.favorite) {
         await context.db
           .insert(favoriteParcel)
-          .values({ userId, pin: input.pin, zoning: input.zoning ?? null, position: topPosition() })
+          .values({ userId, pin: input.pin, zoning: input.zoning ?? null, nickname: input.nickname || null, position: topPosition() })
           .onConflictDoNothing();
       } else {
         await context.db.delete(favoriteParcel).where(and(eq(favoriteParcel.userId, userId), eq(favoriteParcel.pin, input.pin)));
@@ -139,14 +114,14 @@ export const meRouter = {
 
   /** Put a parcel in a list (null = Favorites) at a position, favoriting it first if needed. Drag and drop and the list menu use this. */
   moveFavorite: protectedProcedure
-    .input(z.object({ pin, zoning, listId: listId.nullable(), position: z.number().finite().optional() }))
+    .input(z.object({ pin, zoning, nickname, listId: listId.nullable(), position: z.number().finite().optional() }))
     .handler(async ({ input, context }) => {
       const userId = context.session.user.id;
       if (input.listId) await assertOwnList(context.db, userId, input.listId);
       const position = input.position ?? topPosition();
       await context.db
         .insert(favoriteParcel)
-        .values({ userId, pin: input.pin, zoning: input.zoning ?? null, listId: input.listId, position })
+        .values({ userId, pin: input.pin, zoning: input.zoning ?? null, nickname: input.nickname || null, listId: input.listId, position })
         .onConflictDoUpdate({ target: [favoriteParcel.userId, favoriteParcel.pin], set: { listId: input.listId, position } });
       return { ok: true };
     }),
