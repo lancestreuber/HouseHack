@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import type { GenerateFn, GenerateRequest } from "./gemini";
-import { createScenario, MAX_POINTS, parseChecks, scenarioPrompt, splitSections } from "./scenario";
+import { createScenario, impactPoint, MAX_POINTS, parseChecks, scenarioPrompt, splitSections } from "./scenario";
 import type { ChatContext } from "./types";
 
 const fact = (id: string, text: string, tone?: "good" | "bad") => ({ id, text, source: "test", source_url: "", as_of: "2026-09-27", kind: "observed" as const, tone });
@@ -55,6 +55,60 @@ describe("splitSections", () => {
       expect(pros.trim()).toBe("- a [x]");
       expect(cons.trim()).toBe("- b [y]");
     }
+  });
+});
+
+describe("splitSections with helps and harms", () => {
+  test("reads the HELPS and HARMS sections", () => {
+    const { pros, cons, helps, harms } = splitSections("PROS:\n- a [x]\nCONS:\n- b [y]\nHELPS:\n- c [z]\n**Harms:**\n- d [w]");
+    expect([pros.trim(), cons.trim(), helps.trim(), harms.trim()]).toEqual(["- a [x]", "- b [y]", "- c [z]", "- d [w]"]);
+  });
+});
+
+describe("impactPoint", () => {
+  test("turns a helps/harms fact into a group-first point", () => {
+    const f = { ...fact("helps.two_unit.lowinc_renters", "Who a Duplex here helps: low-income renters. 74.4% of low-income renters here pay 30%+ of income on housing."), numbers: [] };
+    expect(impactPoint(f)).toEqual({ type: "bullet", text: "Low-income renters: 74.4% of low-income renters here pay 30%+ of income on housing.", fact_ids: [f.id] });
+  });
+});
+
+describe("scenario helps and harms", () => {
+  const impactContext: ChatContext = {
+    ...context,
+    facts: [
+      ...context.facts,
+      fact("helps.two_unit.lowinc_renters", "Who a Duplex here helps: low-income renters. 74.4% of low-income renters here pay 30%+ of income on housing."),
+      fact("harms.two_unit.current_occupants", "Who a Duplex here may harm: current occupants. The lot has an existing occupied building."),
+      fact("harms.two_unit.nearby_renters", "Who a Duplex here may harm: nearby renters. Rents rose 31.0% in 5 years."),
+    ],
+  };
+  const impactInput = { ...input, context: impactContext };
+
+  test("keeps the model's cited groups and fills in the ones it left out", async () => {
+    const model = fake(
+      "PROS:\n- Access scores 78 of 100 [pillar.access].\nCONS:\n- Not permitted [t.two_unit].\nHELPS:\n- Low-income renters: 74.4% pay 30%+ of income on housing [helps.two_unit.lowinc_renters].\n- Everyone, it's great [pillar.access].\nHARMS:\n- Nearby renters: rents rose 31.0% in 5 years [harms.two_unit.nearby_renters].",
+    );
+    const result = await createScenario(model)(impactInput);
+    if (result.status !== "ok") throw new Error(result.reason);
+    expect(result.helps.map((p) => p.text)).toEqual(["Low-income renters: 74.4% pay 30%+ of income on housing."]);
+    expect(result.harms.map((p) => p.fact_ids)).toEqual([["harms.two_unit.nearby_renters"], ["harms.two_unit.current_occupants"]]);
+    expect(result.harms[1]!.text).toBe("Current occupants: The lot has an existing occupied building.");
+    expect(result.facts.map((f) => f.id)).toContain("harms.two_unit.current_occupants");
+  });
+
+  test("lists every group from the facts when the model writes no HELPS or HARMS", async () => {
+    const model = fake("PROS:\n- Access scores 78 of 100 [pillar.access].\nCONS:\n- Not permitted [t.two_unit].");
+    const result = await createScenario(model)(impactInput);
+    if (result.status !== "ok") throw new Error(result.reason);
+    expect(result.helps).toHaveLength(1);
+    expect(result.harms).toHaveLength(2);
+  });
+
+  test("the prompt asks for HELPS and HARMS by group", () => {
+    const prompt = scenarioPrompt([], impactInput);
+    expect(prompt).toContain("HELPS:");
+    expect(prompt).toContain("HARMS:");
+    expect(prompt).toContain("[helps.two_unit.");
   });
 });
 
