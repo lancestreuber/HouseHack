@@ -10,6 +10,30 @@ const M_TO_FT = 3.28084;
 
 const share = z.number().min(0).max(1).nullable().optional();
 
+// Street addresses come from the County's assessment records on WPRDC. Only the
+// address fields are requested: the table also has tax-bill mailing
+// addresses, which must not be ingested (no PII).
+const ASSESSMENTS_URL = "https://data.wprdc.org/api/3/action/datastore_search";
+const ASSESSMENTS_RESOURCE = "65855e14-549e-4992-b5be-d629afc676fa";
+const ADDRESS_FIELDS = ["PARID", "PROPERTYHOUSENUM", "PROPERTYFRACTION", "PROPERTYADDRESS", "PROPERTYUNIT", "PROPERTYCITY", "PROPERTYSTATE", "PROPERTYZIP"];
+const addressCache = new Map<string, string | null>();
+const ADDRESS_CACHE_LIMIT = 5000;
+
+type AssessmentAddress = Record<(typeof ADDRESS_FIELDS)[number], string | null>;
+
+const titleCase = (text: string) => text.toLowerCase().replace(/\b([a-z])/g, (c) => c.toUpperCase());
+
+/** "4307 Dakota St, Pittsburgh, PA 15213", or null when the record has no street. */
+export function formatAddress(r: AssessmentAddress): string | null {
+  const part = (v: string | null | undefined) => (v ?? "").trim();
+  const street = [part(r.PROPERTYHOUSENUM), part(r.PROPERTYFRACTION), titleCase(part(r.PROPERTYADDRESS))].filter(Boolean).join(" ");
+  if (!street) return null;
+  const unit = part(r.PROPERTYUNIT);
+  const city = titleCase(part(r.PROPERTYCITY));
+  const stateZip = [part(r.PROPERTYSTATE), part(r.PROPERTYZIP)].filter(Boolean).join(" ");
+  return [unit ? `${street} ${unit}` : street, city, stateZip].filter(Boolean).join(", ");
+}
+
 const typologyFitInput = z.object({
   pin: z.string().regex(/^[0-9A-Z]{8,20}$/),
   // From the pillars shard the client already loaded; public data, only used as decision input.
@@ -70,6 +94,31 @@ export const parcelsRouter = {
     const code = Number(result.rows[0]?.municode);
     return { municode: Number.isFinite(code) && code > 0 ? code : null };
   }),
+  /** Street addresses for up to 50 parcels, keyed by PIN (null when the County has none). */
+  getAddresses: publicProcedure
+    .input(z.object({ pins: z.array(z.string().regex(/^[0-9A-Z]{8,20}$/)).max(50) }))
+    .handler(async ({ input }) => {
+      const missing = [...new Set(input.pins)].filter((p) => !addressCache.has(p));
+      if (missing.length) {
+        const url = new URL(ASSESSMENTS_URL);
+        url.searchParams.set("resource_id", ASSESSMENTS_RESOURCE);
+        url.searchParams.set("filters", JSON.stringify({ PARID: missing }));
+        url.searchParams.set("fields", ADDRESS_FIELDS.join(","));
+        url.searchParams.set("limit", String(missing.length));
+        try {
+          const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
+          if (response.ok) {
+            const body = (await response.json()) as { result?: { records?: AssessmentAddress[] } };
+            const found = new Map((body.result?.records ?? []).map((r) => [String(r.PARID), formatAddress(r)]));
+            if (addressCache.size + missing.length > ADDRESS_CACHE_LIMIT) addressCache.clear();
+            for (const p of missing) addressCache.set(p, found.get(p) ?? null);
+          }
+        } catch {
+          // WPRDC down or slow: show no address rather than fail the page.
+        }
+      }
+      return Object.fromEntries(input.pins.map((p) => [p, addressCache.get(p) ?? null]));
+    }),
   // Simplified outlines for the dashboard's parcel thumbnails (public boundary data only).
   getOutlines: publicProcedure
     .input(z.object({ pins: z.array(z.string().max(20)).max(100) }))

@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { Star, X } from "lucide-react";
 import { toast } from "sonner";
@@ -5,6 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@HouseHack/ui/lib/utils";
 
 import { useFavorites, useRecordView, useSetFavorite, useSignedIn } from "@/lib/user-parcels";
+import { orpc } from "@/utils/orpc";
 
 import { ListMenu } from "../dashboard/list-menu";
 import { PaneCollapseButton } from "./pane-collapse-button";
@@ -34,6 +36,13 @@ export function ParcelTab({
   const zoning = !current ? undefined : status === "ready" ? (data?.zoning ?? null) : status === "missing" || status === "outside" ? null : undefined;
   useRecordView(pin, zoning);
 
+  const addresses = useQuery({
+    ...orpc.parcels.getAddresses.queryOptions({ input: { pins: pin ? [pin] : [] } }),
+    enabled: pin != null,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+  const address = pin ? addresses.data?.[pin] : null;
+
   const favorites = useFavorites();
   const setFavorite = useSetFavorite();
   const pending = setFavorite.isPending ? setFavorite.variables : undefined;
@@ -51,10 +60,15 @@ export function ParcelTab({
 
   return (
     <div data-tour="parcel-bar" className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
-      <span className="flex items-baseline gap-2">
-        <span className="font-medium">{pin ? (favorite?.nickname ?? `Parcel ${pin}`) : "Select a parcel"}</span>
-        {pin && favorite?.nickname && <span className="tnum text-muted-foreground">{pin}</span>}
-        {pin && current && data && <span className="text-muted-foreground">Zoning {data.zoning || "unknown"}</span>}
+      <span className="flex min-w-0 items-baseline gap-2">
+        <span className="shrink-0 font-medium">{pin ? (favorite?.nickname ?? `Parcel ${pin}`) : "Select a parcel"}</span>
+        {pin && favorite?.nickname && <span className="tnum shrink-0 text-muted-foreground">{pin}</span>}
+        {address && (
+          <span className="truncate text-foreground/80" title="Address from Allegheny County assessment records">
+            {address}
+          </span>
+        )}
+        {pin && current && data && <span className="shrink-0 text-muted-foreground">Zoning {data.zoning || "unknown"}</span>}
       </span>
       <div className="flex items-center gap-1">
         <button
