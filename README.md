@@ -80,11 +80,11 @@ Public data ──▶ build scripts ──▶ normalize ──▶ weight + aggre
 7. **Verdict and pencil.** Pass/fail checks per housing type. Never derived from the weighted score.
 8. **Explain (chat).** Gemini explains on-screen facts with citations. Any sentence with a number not found in the facts is dropped.
 
-**The rule we held to:** deterministic code decides every score and every legal status. The AI components sit at the edges, get narrow pre-computed inputs, and have documented failure modes. All equations (E1–E11), weights and gates are on the app's [`/resources`](https://house.bugdex.org/resources) page, which is generated from the same config the scorer reads ([`apps/web/src/lib/pillars/pillars.config.json`](apps/web/src/lib/pillars/pillars.config.json)), so the documentation can't drift from the code.
+**The rule we held to:** deterministic code decides every score and every legal status. The AI components sit at the edges, get narrow pre-computed inputs, and have documented failure modes. All equations (E1–E11), weights and gates are on the app's [`/resources`](https://yin.zone/resources) page, which is generated from the same config the scorer reads ([`apps/web/src/lib/pillars/pillars.config.json`](apps/web/src/lib/pillars/pillars.config.json)), so the documentation can't drift from the code.
 
 ## Data sources
 
-We use 134 public datasets and services. The full catalog, with publisher, exact endpoint, vintage, license and where each one is used, is on the app's [`/resources#datasets`](https://house.bugdex.org/resources#datasets) page and in [`DATA_SOURCES.md`](DATA_SOURCES.md). The main ones, by theme:
+We use 134 public datasets and services. The full catalog, with publisher, exact endpoint, vintage, license and where each one is used, is on the app's [`/resources#datasets`](https://yin.zone/resources#datasets) page and in [`DATA_SOURCES.md`](DATA_SOURCES.md). The main ones, by theme:
 
 | Theme | Key datasets (publisher) | Where we got them |
 |---|---|---|
@@ -116,7 +116,7 @@ We use 134 public datasets and services. The full catalog, with publisher, exact
 
 ## Limitations
 
-The full statement is in [`limitations.md`](limitations.md) and on the app's [`/resources#limitations`](https://house.bugdex.org/resources#limitations) page. The short version:
+The full statement is in [`limitations.md`](limitations.md) and on the app's [`/resources#limitations`](https://yin.zone/resources#limitations) page. The short version:
 
 - **Not legal advice.** Zoning is our simplified reading of §911.02 and §903.03 as of 2026-09-26. Height, floor-area ratio, front and rear setbacks and lot area per unit are not checked. Pending bills (ADUs, Bill 2025-1545) are not applied.
 - **City of Pittsburgh only.** Scores, verdicts and zoning cover City parcels. Other municipalities, including the Mount Oliver enclave, are greyed out.
@@ -224,6 +224,6 @@ yinzone/
 
 ## License and attribution
 
-Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL) and © [CARTO](https://carto.com/attributions). Redlining map: Mapping Inequality, Nelson et al., University of Richmond Digital Scholarship Lab (CC BY-SA 4.0). Jobs by transit: University of Minnesota Accessibility Observatory (CC BY-NC 4.0, non-commercial). Energy burden: U.S. DOE LEAD Tool, 2022 update (CC BY 4.0). Rents: Zillow Research. Child Opportunity Index: diversitydatakids.org. Eviction data: The Eviction Lab at Princeton University. WPRDC datasets are CC0 or CC BY; we credit the publishing agency and WPRDC. Everything else is U.S. public domain or state, county or city open data. Per-dataset terms are on [`/resources#licenses`](https://house.bugdex.org/resources#licenses).
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL) and © [CARTO](https://carto.com/attributions). Redlining map: Mapping Inequality, Nelson et al., University of Richmond Digital Scholarship Lab (CC BY-SA 4.0). Jobs by transit: University of Minnesota Accessibility Observatory (CC BY-NC 4.0, non-commercial). Energy burden: U.S. DOE LEAD Tool, 2022 update (CC BY 4.0). Rents: Zillow Research. Child Opportunity Index: diversitydatakids.org. Eviction data: The Eviction Lab at Princeton University. WPRDC datasets are CC0 or CC BY; we credit the publishing agency and WPRDC. Everything else is U.S. public domain or state, county or city open data. Per-dataset terms are on [`/resources#licenses`](https://yin.zone/resources#licenses).
 
 Built during the AI Horizons 2026 hackathon, Sept 26–27, 2026.
