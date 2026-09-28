@@ -34,7 +34,9 @@ export async function userChatNote(db: Database, userId: string): Promise<string
   return row.context ? `${who} In their words: "${row.context}"` : who;
 }
 
-const pin = z.string().regex(/^[0-9A-Z]{8,20}$/);
+// A few County PINs are stored with lower-case letters (e.g. 0017f00173000001);
+// they're kept exactly as the parcel table has them so links back still work.
+const pin = z.string().regex(/^[0-9A-Za-z]{8,20}$/);
 const zoning = z.string().max(20).nullable().optional();
 // Only used when the favorite is new (e.g. starring an example parcel keeps its name).
 const nickname = z.string().trim().max(80).nullable().optional();

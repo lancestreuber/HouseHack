@@ -35,7 +35,7 @@ export function formatAddress(r: AssessmentAddress): string | null {
 }
 
 const typologyFitInput = z.object({
-  pin: z.string().regex(/^[0-9A-Z]{8,20}$/),
+  pin: z.string().regex(/^[0-9A-Za-z]{8,20}$/),
   // From the pillars shard the client already loaded; public data, only used as decision input.
   zoning: z.string().max(20).nullable().optional(),
   hazards: z
@@ -96,13 +96,14 @@ export const parcelsRouter = {
   }),
   /** Street addresses for up to 50 parcels, keyed by PIN (null when the County has none). */
   getAddresses: publicProcedure
-    .input(z.object({ pins: z.array(z.string().regex(/^[0-9A-Z]{8,20}$/)).max(50) }))
+    .input(z.object({ pins: z.array(z.string().regex(/^[0-9A-Za-z]{8,20}$/)).max(50) }))
     .handler(async ({ input }) => {
       const missing = [...new Set(input.pins)].filter((p) => !addressCache.has(p));
       if (missing.length) {
         const url = new URL(ASSESSMENTS_URL);
         url.searchParams.set("resource_id", ASSESSMENTS_RESOURCE);
-        url.searchParams.set("filters", JSON.stringify({ PARID: missing }));
+        // The assessments table's PARIDs are upper case even where the parcel table's PIN isn't.
+        url.searchParams.set("filters", JSON.stringify({ PARID: missing.map((p) => p.toUpperCase()) }));
         url.searchParams.set("fields", ADDRESS_FIELDS.join(","));
         url.searchParams.set("limit", String(missing.length));
         try {
@@ -111,7 +112,7 @@ export const parcelsRouter = {
             const body = (await response.json()) as { result?: { records?: AssessmentAddress[] } };
             const found = new Map((body.result?.records ?? []).map((r) => [String(r.PARID), formatAddress(r)]));
             if (addressCache.size + missing.length > ADDRESS_CACHE_LIMIT) addressCache.clear();
-            for (const p of missing) addressCache.set(p, found.get(p) ?? null);
+            for (const p of missing) addressCache.set(p, found.get(p.toUpperCase()) ?? null);
           }
         } catch {
           // WPRDC down or slow: show no address rather than fail the page.
