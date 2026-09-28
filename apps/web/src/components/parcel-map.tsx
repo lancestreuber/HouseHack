@@ -246,7 +246,7 @@ function usePaneCollapse(defaultCollapsed = false) {
 }
 
 export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string; initialWeights?: string }) {
-  const navigate = useNavigate({ from: "/" });
+  const navigate = useNavigate({ from: "/app" });
   const router = useRouter();
   const initialPinRef = useRef(initialPin);
   const pillarWeights = usePillarWeights();
@@ -383,7 +383,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   // this page: the map is still mounted while the next route loads, and a
   // navigate here would send the user straight back to the explorer.
   useEffect(() => {
-    if (router.state.location.pathname !== "/") return;
+    if (router.state.location.pathname !== "/app") return;
     void navigate({
       search: (prev) => ({ ...prev, pin: selectedPin ?? undefined, w: encodeWeights(pillarWeights) }),
       replace: true,

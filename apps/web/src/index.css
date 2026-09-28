@@ -1,1 +1,23 @@
 @import "@HouseHack/ui/globals.css";
+
+@theme {
+  --color-yz-ink: #0a0a0b;
+  --color-yz-panel: #141416;
+  --color-yz-panel-2: #1c1c20;
+  --color-yz-line: #2a2a30;
+  --color-yz-line-muted: #1f1f24;
+  --color-yz-brass: #d4a359;
+  --color-yz-brass-bright: #f2be71;
+  --color-yz-mut: #8f8e94;
+  --color-yz-subtle: #5f5e64;
+  --color-yz-body: #e5e2e3;
+  --color-yz-alarm: #ff6b6b;
+}
+
+.font-yz {
+  font-family: "Archivo Narrow", ui-sans-serif, system-ui, sans-serif;
+}
+
+.tnum-yz {
+  font-feature-settings: "tnum" 1, "cv05" 1;
+}

@@ -28,7 +28,7 @@ export function ChatLauncher() {
 
   // The explorer (home) page docks the chat into its own pane layout instead,
   // so the floating launcher would just be a redundant second chat there.
-  if (pathname === "/") return null;
+  if (pathname === "/app") return null;
 
   return (
     <>

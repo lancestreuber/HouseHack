@@ -108,7 +108,7 @@ function ParcelCard({
   onDragOver: (e: DragEvent) => void;
 }) {
   const meta = `${item.views && item.views > 1 ? `${item.views} views · ` : ""}${ago(item.when)}`;
-  const link = { to: "/" as const, search: { pin: item.pin, w: weights } };
+  const link = { to: "/app" as const, search: { pin: item.pin, w: weights } };
   const actions = (
     <span className="flex shrink-0 items-center">
       <button
@@ -414,7 +414,7 @@ function DashboardPage() {
             <Skeleton className="h-4 w-64" />
           ) : null}
         </div>
-        <Button nativeButton={false} render={<Link to="/" search={{ w: weights }} />}>
+        <Button nativeButton={false} render={<Link to="/app" search={{ w: weights }} />}>
           <MapIcon className="size-3.5" /> Open the explorer
         </Button>
       </header>

@@ -37,7 +37,7 @@ export function NavRail() {
       >
         <LogoMark className="size-5" />
       </Link>
-      <RailLink to="/" active={pathname === "/"} label="Explorer">
+      <RailLink to="/app" active={pathname === "/app"} label="Explorer">
         <Map className="size-5" />
       </RailLink>
       <RailLink to="/dashboard" active={pathname.startsWith("/dashboard")} label="Dashboard">

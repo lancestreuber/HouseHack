@@ -1,0 +1,503 @@
+<!DOCTYPE html><html class="dark" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+    @layer base {
+      html, body {
+        margin: 0;
+        padding: 0;
+        background-color: #0A0A0B;
+        color: #E5E2E3;
+      }
+      body {
+        overscroll-behavior: none;
+        font-family: 'Archivo Narrow', sans-serif;
+      }
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "pal-bg": "#0A0A0B",
+            "pal-card": "#141416",
+            "pal-card-alt": "#1C1C20",
+            "pal-border": "#2A2A30",
+            "pal-border-muted": "#1F1F24",
+            "pal-gold": "#D4A359",
+            "pal-gold-bright": "#F2BE71",
+            "pal-text-muted": "#8F8E94",
+            "pal-text-subtle": "#5F5E64",
+            "pal-text-main": "#FFFFFF",
+            "pal-error": "#FF6B6B"
+          },
+          fontFamily: {
+            sans: ['"Archivo Narrow"', 'sans-serif'],
+            mono: ['"Archivo Narrow"', 'monospace']
+          },
+          letterSpacing: {
+            tightest: '-0.04em',
+            tighter: '-0.02em',
+            wideish: '0.04em',
+            widest2: '0.12em'
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="bg-pal-bg text-pal-text-main antialiased selection:bg-pal-gold selection:text-black">
+<!-- TOP MINIMAL ENTERPRISE UTILITY BAR / HEADER -->
+<header class="sticky top-0 z-50 w-full bg-pal-bg/95 backdrop-blur-md border-b border-pal-border-muted">
+<div class="max-w-[1400px] mx-auto px-6 h-14 flex items-center justify-between text-[13px] tracking-wideish font-normal"><div class="flex items-center justify-end w-full"><a class="px-3.5 py-1.5 border border-pal-gold/80 text-pal-gold hover:bg-pal-gold hover:text-black transition-all text-[12px] font-semibold uppercase tracking-widest2" href="#quicksearch">Access Platform</a></div></div>
+</header>
+<main class="w-full flex flex-col">
+<!-- HERO SECTION: GOTHAM MASTHEAD STATEMENT -->
+<section class="w-full border-b border-pal-border-muted pt-16 pb-20 md:pt-24 md:pb-28">
+<div class="max-w-[1400px] mx-auto px-6 flex flex-col">
+<!-- Top breadcrumb / status row -->
+
+<!-- Huge Gotham Masthead Title -->
+<div class="w-full border-b border-pal-border pb-10 mb-12">
+<h1 class="text-6xl sm:text-7xl md:text-8xl lg:text-9xl font-semibold tracking-tightest leading-[0.9] text-white uppercase">YINZONE</h1>
+</div>
+<!-- Staggered/Stacked Declarative Statements (Gotham Typography Sequence) -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-16">
+<div class="md:col-span-8 flex flex-col gap-6">
+<p class="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight leading-[1.05] text-white">
+              Your zoning code is the decision system.
+            </p>
+<p class="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight leading-[1.1] text-pal-text-muted">
+              Viability intelligence from parcel to precinct.
+            </p>
+<p class="text-2xl sm:text-3xl md:text-4xl font-semibold tracking-tight leading-[1.15] text-pal-text-subtle">
+              Automate site feasibility at scale.
+            </p>
+</div>
+<div class="md:col-span-4 flex flex-col justify-between h-full pt-2 md:border-l md:border-pal-border md:pl-8">
+<div class="text-[12px] font-mono tracking-widest2 uppercase text-pal-gold mb-4">
+              [ SPATIAL OPERATING SYSTEM ]
+            </div>
+<p class="text-pal-text-muted text-[15px] leading-relaxed mb-6">Yinzone unifies municipal land records, 3D contour topography, environmental hazards, and codified statutes into a deterministic clearance pipeline.</p>
+<div class="text-[11px] font-mono text-pal-text-subtle uppercase tracking-wider space-y-1">
+<div class="">CLUSTER: ALLEGHENY &amp; PA-S (EPSG:2272)</div>
+<div class="">PARCELS INDEXED: 582,914 RECORD ENTITIES</div>
+<div class="">STATUTE ENGINE: TITLE 9 ZONING INGESTION</div>
+</div>
+</div>
+</div>
+<!-- Integrated Search CTA Strip -->
+<div class="w-full bg-pal-card border border-pal-border p-3 md:p-4 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4" id="quicksearch">
+<div class="flex items-center gap-3 flex-1 px-3 py-2 bg-pal-bg border border-pal-border">
+<span class="material-symbols-outlined text-pal-text-muted text-[20px]">search</span>
+<input class="w-full bg-transparent text-white placeholder:text-pal-text-subtle text-[14px] focus:outline-none font-mono" readonly="" type="text" value="1428 Woodruff St, Pittsburgh, PA 15220 [LOT 0001N001540000]">
+<span class="hidden sm:inline text-[11px] font-mono text-pal-text-subtle border border-pal-border px-1.5 py-0.5">⌘K</span>
+</div>
+<div class="flex items-center gap-3 shrink-0">
+<button class="px-5 py-3 bg-pal-gold text-black font-semibold uppercase text-[12px] tracking-widest2 hover:bg-pal-gold-bright transition-colors flex items-center gap-2">
+<span class="">Inspect Viability</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+<button class="px-4 py-3 bg-pal-card-alt text-pal-text-muted hover:text-white border border-pal-border uppercase text-[12px] tracking-widest2 transition-colors">
+              Launch Workspace
+            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- EDITORIAL SPLIT SECTION 1: POWERING THE VIABILITY CHAIN -->
+<section class="w-full border-b border-pal-border-muted py-20" id="targeting">
+<div class="max-w-[1400px] mx-auto px-6">
+<!-- Progress Tracker Line (Gotham style: [01] -------- 02 --- 03) -->
+<div class="flex items-center justify-between text-[11px] font-mono tracking-widest2 uppercase text-pal-text-muted pb-8 border-b border-pal-border-muted mb-12">
+<div class="flex items-center gap-3">
+<span class="text-pal-gold">[ 01 ]</span>
+<span class="text-pal-border">──────────────────────</span>
+<span class="text-pal-text-subtle">02</span>
+<span class="text-pal-border">──────────</span>
+<span class="text-pal-text-subtle">03</span>
+</div>
+<span class="text-pal-text-subtle">[ TARGETING &amp; ZONING CLEARANCE ]</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Editorial Column -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<h2 class="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white">
+              Powering the Viability chain
+            </h2>
+<div class="text-[13px] font-mono text-pal-gold tracking-widest2 uppercase">
+              // RECONCILING TITLE NINE STATUTES WITH ELEVATION MATRICES
+            </div>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">Yinzone’s automated targeting engine supports municipal planners and development analysts with an algorithmic viability chain. It seamlessly cross-references physical topography against legislative zoning barriers, calculating required variances before capital allocation.</p>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">
+              Teams experience enhanced spatial awareness and complete statute deconfliction across parcel boundaries—streamlining approval cycles across complex hillside geographies.
+            </p>
+<div class="flex items-center gap-3 pt-4">
+<span class="px-3 py-1 bg-pal-card border border-pal-border text-white text-[11px] font-mono uppercase tracking-wider">SPEC SHEET</span>
+<span class="px-3 py-1 bg-transparent border border-pal-border text-pal-text-muted text-[11px] font-mono uppercase tracking-wider">DETAILS</span>
+</div>
+<!-- Mini telemetry specs -->
+<div class="grid grid-cols-2 gap-4 pt-6 border-t border-pal-border mt-4 text-[12px] font-mono">
+<div>
+<span class="text-pal-text-subtle block">PARCEL IDENTIFIER</span>
+<span class="text-white font-semibold">0001N001540000</span>
+</div>
+<div>
+<span class="text-pal-text-subtle block">BASE DISTRICT</span>
+<span class="text-white font-semibold">R1D-H (HILLSIDE RES)</span>
+</div>
+<div>
+<span class="text-pal-text-subtle block">SLOPE THRESHOLD</span>
+<span class="text-pal-gold font-semibold">28.4% (CRITICAL)</span>
+</div>
+<div>
+<span class="text-pal-text-subtle block">SCORE DETERMINATION</span>
+<span class="text-white font-semibold">57 / 100 MODERATE</span>
+</div>
+</div>
+</div>
+<!-- Right Technical Viewport / CAD Frame -->
+<div class="lg:col-span-7 bg-pal-card border border-pal-border overflow-hidden">
+<!-- Frame Header -->
+<div class="px-4 py-2.5 bg-pal-card-alt border-b border-pal-border flex items-center justify-between text-[11px] font-mono">
+<div class="flex items-center gap-2 text-pal-text-muted">
+<span class="inline-block w-2 h-2 rounded-full bg-pal-gold"></span>
+<span class="">ENGINE: Allegheny_Master_Yinzone.geoparquet</span>
+</div>
+<span class="text-pal-text-subtle uppercase">PROJECTION EPSG:2272</span>
+</div>
+<div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 bg-pal-bg">
+<!-- Simulated Vector Cadastral Canvas -->
+<div class="md:col-span-7 bg-pal-card border border-pal-border relative min-h-[340px] p-4 flex flex-col justify-between overflow-hidden">
+<svg class="absolute inset-0 w-full h-full opacity-60 pointer-events-none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<pattern height="24" id="cadGridSmall" patternUnits="userSpaceOnUse" width="24">
+<path d="M 24 0 L 0 0 0 24" fill="none" stroke="#2A2A30" stroke-width="0.5"></path>
+</pattern>
+</defs>
+<rect fill="#0E0E10" height="100%" width="100%"></rect>
+<rect fill="url(#cadGridSmall)" height="100%" width="100%"></rect>
+<!-- Street alignment lines -->
+<path d="M -30 260 L 520 90" stroke="#2A2A30" stroke-width="24"></path>
+<path d="M 140 -20 L 250 420" stroke="#1F1F24" stroke-width="16"></path>
+<!-- Adjacent parcel boxes -->
+<polygon fill="#141416" points="60,160 130,135 160,195 90,220" stroke="#2A2A30" stroke-width="1"></polygon>
+<polygon fill="#141416" points="100,225 170,200 200,260 130,285" stroke="#2A2A30" stroke-width="1"></polygon>
+<polygon fill="#141416" points="190,115 270,90 300,150 220,175" stroke="#2A2A30" stroke-width="1"></polygon>
+<!-- Active Target Parcel Highlighted in Gold -->
+<polygon fill="#D4A359" fill-opacity="0.15" points="140,290 210,265 245,330 175,355" stroke="#D4A359" stroke-width="1.8"></polygon>
+<polygon fill="#D4A359" fill-opacity="0.4" points="160,298 195,285 210,318 175,331" stroke="#D4A359" stroke-width="1"></polygon>
+<!-- Slope gradient vectors -->
+<line stroke="#FF6B6B" stroke-dasharray="2 2" stroke-width="1.2" x1="150" x2="195" y1="345" y2="305"></line>
+<circle cx="195" cy="305" fill="#FF6B6B" r="2.5"></circle>
+<circle cx="150" cy="345" fill="#FF6B6B" r="2.5"></circle>
+</svg>
+<div class="relative z-10 flex items-center justify-between text-[11px] font-mono">
+<span class="text-white bg-pal-card-alt px-2 py-0.5 border border-pal-border">WOODRUFF ST CORRIDOR (WARD 19)</span>
+<span class="text-pal-gold">LIVE AUDIT</span>
+</div>
+<div class="relative z-10 bg-pal-card/90 border border-pal-border p-3 max-w-[210px]">
+<div class="text-[10px] font-mono text-pal-gold uppercase tracking-wider">SELECTED LOT 154</div>
+<div class="text-[13px] font-semibold text-white">1428 Woodruff St</div>
+<div class="text-[11px] font-mono text-pal-text-muted mt-1">0.24 AC (10,454 SF)</div>
+<div class="text-[10px] font-mono text-pal-error mt-0.5">SLOPE: 28.4% SW GRADIENT</div>
+</div>
+<div class="relative z-10 flex items-center justify-between text-[10px] font-mono text-pal-text-subtle pt-2 border-t border-pal-border">
+<span class="">LAT 40°26'29"N LON 79°58'44"W</span>
+<span class="">ELEV 1,048 FT</span>
+</div>
+</div>
+<!-- Inspector Card Column -->
+<div class="md:col-span-5 flex flex-col justify-between gap-4">
+<div class="bg-pal-card border border-pal-border p-4">
+<div class="text-[11px] font-mono text-pal-text-subtle uppercase">COMPUTED FEASIBILITY</div>
+<div class="flex items-baseline gap-2 my-1">
+<span class="text-4xl font-semibold text-white font-mono">57</span>
+<span class="text-pal-text-subtle text-base font-mono">/ 100</span>
+</div>
+<div class="text-[11px] font-mono text-pal-gold uppercase tracking-wider">MODERATE HURDLES • VARIANCE REQUIRED</div>
+<div class="w-full bg-pal-card-alt h-1.5 mt-3 overflow-hidden border border-pal-border">
+<div class="h-full bg-pal-gold" style="width: 57%;"></div>
+</div>
+</div>
+<div class="bg-pal-card border border-pal-border p-4 space-y-3 text-[12px]">
+<div class="flex items-center justify-between border-b border-pal-border pb-2 text-[11px] font-mono">
+<span class="text-pal-text-muted">ORDINANCE CITATION</span>
+<span class="text-pal-error">CRITICAL HURDLE</span>
+</div>
+<div>
+<span class="text-white font-semibold block">§ 911.04 Steep-Slope Protection</span>
+<span class="text-pal-text-muted text-[11px] leading-tight block mt-1">
+                      Gradient exceeds 25.0% threshold. Mandatory Geotechnical Core Sample and Hillside Variance hearing triggered.
+                    </span>
+</div>
+<div class="pt-2 border-t border-pal-border text-[11px] font-mono text-pal-text-subtle">
+                    SETBACK AUDIT: FRONT 25FT • SIDE 5FT • HT 35FT
+                  </div>
+</div>
+</div>
+</div>
+<!-- Frame Footer Bar -->
+<div class="px-4 py-2 bg-pal-card-alt border-t border-pal-border flex items-center justify-between text-[11px] font-mono text-pal-text-muted">
+<span class="">STATUS: INGESTION COMPLETE</span>
+<span class="text-white">DECISION ENGINE VERIFIED</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- EDITORIAL SPLIT SECTION 2: TASK SENSORS & OVERLAYS / ALGORITHMIC CODE DECONFLICTION -->
+<section class="w-full border-b border-pal-border-muted py-20 bg-pal-bg" id="sensors">
+<div class="max-w-[1400px] mx-auto px-6">
+<!-- Progress Tracker Line [ 02 ] -->
+<div class="flex items-center justify-between text-[11px] font-mono tracking-widest2 uppercase text-pal-text-muted pb-8 border-b border-pal-border-muted mb-12">
+<div class="flex items-center gap-3">
+<span class="text-pal-text-subtle">01</span>
+<span class="text-pal-border">──────────</span>
+<span class="text-pal-gold">[ 02 ]</span>
+<span class="text-pal-border">──────────────────────</span>
+<span class="text-pal-text-subtle">03</span>
+</div>
+<span class="text-pal-text-subtle">[ SENSOR LAYERS &amp; CODE DECONFLICTION ]</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Editorial Statement -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<h2 class="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white">
+              Task sensors &amp; overlays
+            </h2>
+<div class="text-[13px] font-mono text-pal-gold tracking-widest2 uppercase">
+              // ORCHESTRATE COMPLIANCE ACROSS HOUSING TYPOLOGIES
+            </div>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">Yinzone continuously monitors and indexes municipal tables of authorized land use against physical ground hazards. By converting written zoning code into executable spatial queries, developers identify buildable envelopes in milliseconds.</p>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">
+              Ingest multi-tier geotechnical surveys, LIDAR elevation rasters, and FEMA flood overlays into an integrated situational map.
+            </p>
+<div class="flex items-center gap-3 pt-4">
+<span class="px-3 py-1 bg-pal-card border border-pal-border text-white text-[11px] font-mono uppercase tracking-wider">SPECIFICATIONS</span>
+<span class="px-3 py-1 bg-transparent border border-pal-border text-pal-text-muted text-[11px] font-mono uppercase tracking-wider">STATUTORY AUDIT</span>
+</div>
+</div>
+<!-- Right: Precision Table / Code Matrix Component -->
+<div class="lg:col-span-7 bg-pal-card border border-pal-border p-6 flex flex-col gap-6">
+<div class="flex items-center justify-between border-b border-pal-border pb-3">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-pal-gold text-[18px]">rule</span>
+<span class="font-semibold text-white text-[14px] uppercase tracking-wider">Permitted Typology Clearance Matrix</span>
+</div>
+<span class="text-[11px] font-mono text-pal-text-muted">TITLE 9 • CHAPTER 911</span>
+</div>
+<!-- Tabular Row Entries -->
+<div class="space-y-3 font-mono text-[12px]">
+<!-- Row 1 -->
+<div class="p-3 bg-pal-bg border border-pal-border flex items-center justify-between">
+<div>
+<span class="text-white font-semibold block">Single-Family Detached</span>
+<span class="text-pal-text-subtle text-[11px]">Standard residential baseline (R1D-H)</span>
+</div>
+<div class="text-right">
+<span class="px-2.5 py-1 bg-pal-card-alt border border-pal-border text-white text-[10px] uppercase font-semibold">
+                    Permitted By-Right
+                  </span>
+<span class="block text-[10px] text-pal-text-subtle mt-0.5">§ 911.02 TABLE 1</span>
+</div>
+</div>
+<!-- Row 2 -->
+<div class="p-3 bg-pal-bg border border-pal-border flex items-center justify-between">
+<div>
+<span class="text-white font-semibold block">Two-Unit / Duplex Structure</span>
+<span class="text-pal-text-subtle text-[11px]">Requires min 2,400 SF per dwelling unit</span>
+</div>
+<div class="text-right">
+<span class="px-2.5 py-1 bg-pal-card-alt border border-pal-gold text-pal-gold text-[10px] uppercase font-semibold">
+                    Conditional (ZBA Relief)
+                  </span>
+<span class="block text-[10px] text-pal-text-subtle mt-0.5">SPECIAL EXCEPTION REQ.</span>
+</div>
+</div>
+<!-- Row 3 -->
+<div class="p-3 bg-pal-bg border border-pal-border flex items-center justify-between">
+<div>
+<span class="text-white font-semibold block">Triplex / Multi-Family Infill</span>
+<span class="text-pal-text-subtle text-[11px]">Exceeds allowable lot-area coverage by 34%</span>
+</div>
+<div class="text-right">
+<span class="px-2.5 py-1 bg-pal-card-alt border border-pal-border text-pal-text-muted text-[10px] uppercase font-semibold">
+                    Variance Required
+                  </span>
+<span class="block text-[10px] text-pal-text-subtle mt-0.5">HARDSHIP SHOWING</span>
+</div>
+</div>
+<!-- Row 4 -->
+<div class="p-3 bg-pal-bg border border-pal-border flex items-center justify-between">
+<div>
+<span class="text-white font-semibold block">Accessory Dwelling Unit (ADU)</span>
+<span class="text-pal-text-subtle text-[11px]">Max 800 SF rear yard footprint</span>
+</div>
+<div class="text-right">
+<span class="px-2.5 py-1 bg-pal-card-alt border border-pal-border text-white text-[10px] uppercase font-semibold">
+                    Permitted By-Right
+                  </span>
+<span class="block text-[10px] text-pal-text-subtle mt-0.5">MAX HT 24 FT</span>
+</div>
+</div>
+</div>
+<!-- Environmental Sensor Line Items -->
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-pal-border">
+<div class="p-3 bg-pal-bg border border-pal-border">
+<span class="text-[10px] font-mono text-pal-text-subtle block uppercase">GEOTECHNICAL HAZARD</span>
+<span class="text-pal-error text-[13px] font-semibold font-mono">28.4% STEEP SLOPE</span>
+<p class="text-[11px] text-pal-text-muted mt-1 font-mono">Mandatory geotechnical borehole survey under § 911.04.</p>
+</div>
+<div class="p-3 bg-pal-bg border border-pal-border">
+<span class="text-[10px] font-mono text-pal-text-subtle block uppercase">HYDROLOGY CLASSIFICATION</span>
+<span class="text-white text-[13px] font-semibold font-mono">FEMA ZONE X (UNSHADED)</span>
+<p class="text-[11px] text-pal-text-muted mt-1 font-mono">Minimal risk of flooding. Firm Panel 42003C0387H.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- EDITORIAL SPLIT SECTION 3: FIELD-READY SPATIAL COMMAND / CONVERSATIONAL PARCEL QUERY -->
+<section class="w-full border-b border-pal-border-muted py-20" id="terminal">
+<div class="max-w-[1400px] mx-auto px-6">
+<!-- Progress Tracker Line [ 03 ] -->
+<div class="flex items-center justify-between text-[11px] font-mono tracking-widest2 uppercase text-pal-text-muted pb-8 border-b border-pal-border-muted mb-12">
+<div class="flex items-center gap-3">
+<span class="text-pal-text-subtle">01</span>
+<span class="text-pal-border">──────────</span>
+<span class="text-pal-text-subtle">02</span>
+<span class="text-pal-border">──────────</span>
+<span class="text-pal-gold">[ 03 ]</span>
+</div>
+<span class="text-pal-text-subtle">[ FIELD-READY SPATIAL COMMAND ]</span>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+<!-- Left Editorial Column -->
+<div class="lg:col-span-5 flex flex-col gap-6">
+<h2 class="text-4xl sm:text-5xl font-semibold tracking-tight leading-[1.05] text-white">
+              Ops Center anywhere
+            </h2>
+<div class="text-[13px] font-mono text-pal-gold tracking-widest2 uppercase">
+              // NATURAL LANGUAGE CADASTRE &amp; STATUTE SYNTHESIS
+            </div>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">Harness the full power of the cadastral platform from municipal hearing chambers to remote field inspection trucks. Immerse your planning team in an ambient interface that unifies raw GIS coordinate geography with legislative text.</p>
+<p class="text-pal-text-muted text-[15px] leading-relaxed">
+              Ask unstructured inquiries across parcel boundaries: dimensional setback calculations, precedent variances, and allowable density thresholds calculated instantly in sub-second inference passes.
+            </p>
+<div class="flex items-center gap-3 pt-4">
+<span class="px-3 py-1 bg-pal-card border border-pal-border text-white text-[11px] font-mono uppercase tracking-wider">TELEMETRY</span>
+<span class="px-3 py-1 bg-transparent border border-pal-border text-pal-text-muted text-[11px] font-mono uppercase tracking-wider">DOCS</span>
+</div>
+</div>
+<!-- Right: Conversational Query Terminal Card -->
+<div class="lg:col-span-7 bg-pal-card border border-pal-border p-6 flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between border-b border-pal-border pb-3 mb-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-pal-gold text-[18px]">terminal</span>
+<span class="font-semibold text-white text-[14px] uppercase tracking-wider">Yinzone Language Runtime</span>
+</div>
+<span class="text-[11px] font-mono text-pal-text-subtle">SQL-GIS-LLM // LATENCY 42MS</span>
+</div>
+<!-- Prompt Quick Pills -->
+<div class="flex flex-wrap gap-2 mb-4 font-mono text-[11px]">
+<span class="px-2.5 py-1 bg-pal-bg border border-pal-border text-pal-text-muted cursor-pointer hover:text-white hover:border-pal-gold transition-colors">
+                  "Why is viability score 57?"
+                </span>
+<span class="px-2.5 py-1 bg-pal-bg border border-pal-border text-pal-text-muted cursor-pointer hover:text-white hover:border-pal-gold transition-colors">
+                  "Calculate max FAR &amp; building footprint"
+                </span>
+<span class="px-2.5 py-1 bg-pal-bg border border-pal-border text-pal-text-muted cursor-pointer hover:text-white hover:border-pal-gold transition-colors">
+                  "Can I subdivide this parcel?"
+                </span>
+</div>
+<!-- Realistic Terminal Dialogue Stream -->
+<div class="bg-pal-bg border border-pal-border p-4 font-mono text-[12px] space-y-3">
+<div class="flex items-center justify-between text-pal-text-subtle text-[11px] border-b border-pal-border/60 pb-1.5">
+<span class="text-pal-gold">QUERY INTERPRETER</span>
+<span class="">TARGET: LOT 0001N001540000</span>
+</div>
+<p class="text-white leading-relaxed">
+<span class="text-pal-text-subtle">&gt;</span> Lot 0001N001540000 has 50.0′ frontage along Woodruff St. While base zoning R1D-H permits single-family residential by-right, the measured rear surface gradient of 28.4% triggers Section 911.04 hillside variance scrutiny. Max buildable footprint is constrained to 1,820 sq ft with mandatory geotechnical review.
+                </p>
+<div class="text-[10px] text-pal-text-subtle pt-2 border-t border-pal-border/60 flex items-center justify-between">
+<span class="">CITATIONS: § 911.02.A, § 911.04.B, ALLEGHENY-GIS-LIDAR-2023</span>
+<span class="text-pal-gold">DETERMINISTIC VERIFICATION PASS</span>
+</div>
+</div>
+</div>
+<!-- Natural Language Query Bar -->
+<div class="mt-6 pt-4 border-t border-pal-border flex items-center gap-2">
+<div class="flex-1 bg-pal-bg border border-pal-border px-3 py-2 flex items-center gap-2">
+<span class="text-pal-gold font-mono text-sm">&gt;</span>
+<input class="w-full bg-transparent text-white text-[13px] font-mono focus:outline-none placeholder:text-pal-text-subtle" placeholder="Ask a technical parcel or municipal statute question..." type="text">
+</div>
+<button class="px-4 py-2 bg-pal-gold text-black font-semibold text-[11px] font-mono uppercase tracking-widest2 hover:bg-pal-gold-bright transition-colors">
+                EXECUTE
+              </button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- BIG QUOTE CALLOUT SECTION (Palantir Gotham / Mattis format) -->
+
+<!-- ARE YOU READY CALL TO ACTION SECTION -->
+<section class="w-full border-b border-pal-border-muted py-24 text-center bg-pal-bg">
+<div class="max-w-4xl mx-auto px-6 flex flex-col items-center gap-6">
+<!-- Large Palantir-style Word Question -->
+<h2 class="text-4xl sm:text-5xl md:text-6xl font-semibold tracking-tight text-white">
+          Are you ready?
+        </h2>
+<!-- Geometric Abstract Brand Mark (similar to Gotham mark) -->
+<div class="w-16 h-16 my-2 text-pal-gold opacity-90 flex items-center justify-center">
+<svg class="w-full h-full stroke-current" fill="none" stroke-width="4" viewBox="0 0 64 64">
+<circle cx="32" cy="32" r="26" stroke-dasharray="140 30"></circle>
+<path d="M 32 14 L 32 32 L 46 46"></path>
+</svg>
+</div>
+<p class="text-2xl sm:text-3xl md:text-4xl font-normal text-pal-text-muted max-w-2xl">
+          Transform how municipal land is evaluated and cleared.
+        </p>
+<div class="flex flex-col sm:flex-row items-center gap-4 mt-4">
+<a class="px-8 py-3.5 bg-pal-gold text-black font-semibold text-[13px] tracking-widest2 uppercase hover:bg-pal-gold-bright transition-colors" href="#quicksearch">Access Yinzone Workspace</a>
+<a class="px-6 py-3.5 bg-pal-card border border-pal-border text-white text-[13px] tracking-widest2 uppercase hover:border-pal-gold transition-colors font-mono" href="#citations">
+            Request Municipal Ingestion
+          </a>
+</div>
+</div>
+</section>
+<!-- TECHNICAL ENTERPRISE INDEX FOOTER (Palantir Gotham Style) -->
+<footer class="w-full bg-pal-bg pt-16 pb-12 text-[12px] font-mono text-pal-text-muted" id="citations">
+<div class="max-w-[1400px] mx-auto px-6">
+
+<!-- Footer Bottom Legal & Status Row -->
+<div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[11px]">
+<div class="flex items-center gap-4"><span class="text-white font-semibold tracking-wider">YINZONE</span><span class="text-pal-text-subtle">© 2025 Yinzone Spatial Systems Inc. All rights reserved.</span></div>
+<div class="flex items-center gap-4">
+<span class="text-pal-gold">● SPATIAL ENGINE v2.4 OPERATIONAL</span>
+<span class="text-pal-text-subtle">EPSG:2272 USft</span>
+<span class="text-pal-text-subtle">LATENCY: 24ms US-EAST</span>
+</div>
+</div>
+<div class="pt-4 text-pal-text-subtle text-[10px] leading-relaxed">
+          Decision support software only. All dimensional audits, permissible lot coverage metrics, and variance indications must be verified with certified municipal zoning administrators before construction.
+        </div>
+</div>
+</footer>
+</main>
+
+
+</body></html>
