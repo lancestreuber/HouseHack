@@ -103,6 +103,15 @@ export const PILLAR_LABEL: Record<OnboardingPillarId, string> = {
   climate: "Climate & Environment",
 };
 
+/** Onboarding pillar id -> stored profile column. */
+export const PRIORITY_COLUMN = {
+  demand: "demandPriority",
+  feasibility: "feasibilityPriority",
+  affordability: "affordabilityPriority",
+  opportunity: "opportunityPriority",
+  climate: "climatePriority",
+} as const;
+
 /** What "Skip for now" persists on the priorities step. */
 export const DEFAULT_PRIORITIES: Record<OnboardingPillarId, Priority> = {
   demand: "high",
