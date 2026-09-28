@@ -1,183 +1,226 @@
-# HouseHack
+# Yinzone
 
-Our entry for the **AI Horizons 2026 — AI for Housing Hackathon** (virtual, Sept 26–27, 2026).
+**Where could new housing go in Pittsburgh, what kind, and what stands in the way?**
 
-- Event: https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/
-- Hackathon packet: https://docs.google.com/document/d/1L-UYid6Q0JDRH3iy4cpqGIDlZNpJspok_rPxIsILbLQ/edit?usp=sharing
+Yinzone is a parcel-level decision-support map for the City of Pittsburgh. Click a lot and see how good a place it is for new homes, which housing types the zoning code allows there and by what approval pathway, whether the site physically fits each type, a rough "does it pencil?" cost check, and every source behind each number.
 
-## Tracks
+- **Live app:** https://house.bugdex.org
+- **Methodology and sources:** [`/resources`](https://house.bugdex.org/resources) in the app (every equation, weight, dataset, license and assumption)
+- **Limitations statement:** [`limitations.md`](limitations.md)
+- **Hackathon:** [AI Horizons 2026: AI for Housing Hackathon](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/) (Pittsburgh, virtual, Sept 26–27, 2026)
+- **Challenge track:** Track 3, [Housing Typology, Equity & Climate Matchmaker](https://ai-horizons-2026-ai-for-housing-hackathon.brandon831577.chatgpt.site/challenges/typology-equity-climate)
+- **Team:** Lance Streuber, Mat Manna, Vidyut Sriram, Rishit Rai
 
-1. **Development Feasibility & Pro Forma Navigator** — AI-assisted first-pass feasibility for parcels and housing concepts, grounded in public records and approved affordability assumptions.
-2. **Housing Production, Rents & Household Flow Observatory** — interactive tool combining administrative, market, and community indicators to show how the housing system evolves over time.
-3. **Housing Typology, Equity & Climate Matchmaker** — decision support matching locations with plausible housing types and tradeoffs across demand, transit, equity, and climate resilience.
+> **Decision support only, not legal, financial or zoning advice.** Zoning is a simplified reading of the City code. Verify with the Zoning Administrator and a qualified professional before acting.
 
-Judging favors practical, source-grounded prototypes with clear benefit to developers, nonprofits, public agencies, community partners, or households.
+---
 
-## Our project
+## Contents
 
-> **Team: start here.** This branch (`vid-branch`) holds the plan and research. The app's starting point (map, parcels in PostGIS, zoning layer) came from `zoning-parcels` and is now on `main`. See [PLAN.md](PLAN.md) §0.
+- [The problem](#the-problem)
+- [Who it's for](#whos-it-for)
+- [What it does](#what-it-does)
+- [How it works](#how-it-works)
+- [Data sources](#data-sources)
+- [AI disclosure](#ai-disclosure)
+- [Limitations](#limitations)
+- [What we'd build next](#what-wed-build-next)
+- [Getting started](#getting-started)
+- [Project structure](#project-structure)
+- [Libraries and services](#libraries-and-services)
+- [License and attribution](#license-and-attribution)
 
-### What we're building
-**Track 3: Housing Typology, Equity & Climate Matchmaker**, for the City of Pittsburgh. Click any city parcel and see which of six housing types fit there, and why: classic single-family, ADU, duplex, townhome, apartments, senior housing. Each type gets a fit score, its legal status under current zoning, and its top reasons with sources. There are two ways in. **Explore** starts from a parcel: you see its considerations, each scored like a review comment, plus one Parcel Score built from your own weights, plus a card for each housing type. **Find** starts from a goal ("I want to build senior housing in Homewood") and returns a ranked shortlist of parcels. A deterministic algorithm handles the scores and legality. [Jev](https://developers.cloudflare.com/ai/models/typesafe/jev/), a typed decision model, judges how well a parcel suits a purpose and reports a confidence. An explain-only chatbot answers questions using only those sourced facts. It never scores.
+## The problem
 
-> **Decision support only, not legal, financial or zoning advice.** Zoning is a simplified reading of the City code; verify with the Zoning Administrator and a qualified professional before acting. See [limitations.md](limitations.md) for what the tool doesn't assess, and the app's `/resources` page for every source, equation and assumption.
+Finding a site for new housing in Pittsburgh means stitching together the zoning code, a dozen hazard layers, Census demand data, sale prices and rents, and Zoning Board history, one parcel at a time. The answer to "can anything go here?" is spread across City, County, state and federal sources that don't talk to each other. Planners, small developers, nonprofits and CDCs do this first-pass screen by hand, before they know whether a lot is worth a closer look.
 
-### Read these, in order
-1. **[PLAN.md](PLAN.md)**: lanes, contracts, tasks, milestones and the cut order. This is the source of truth for the 30-hour build.
-2. **[Design spec](docs/superpowers/specs/2026-09-26-groundwork-pgh-design.md)**: the two modes, typologies, considerations, algorithm vs. Jev, the pane layout, and what's cut.
-3. **[docs/research/](docs/research/)**: background reference only. It covers more than we will build.
+## Who it's for
 
-### Get set up
-- Install bun: `curl -fsSL https://bun.sh/install | bash`.
-- Create `apps/web/.env` **before** running `bun install`. `DATABASE_URL` points at the shared Neon DB with PostGIS; ask the lead for it.
-- Run `bun run dev` and open http://localhost:3001.
-- **Git:** branch off `main` per lane, open PRs, and merge with merge commits, not squash. Never commit `.env` or API keys; the repo is public.
+- **Small and mid-size developers and CDCs** screening vacant or underused lots.
+- **City and County planners** asking where a housing type is allowed and where it would need relief.
+- **Nonprofits and community partners** who want to see the tradeoffs (demand, affordability, access, climate) behind a site, with the value judgments visible and adjustable.
 
+## What it does
 
-## Tech Stack
+**Explore the map.** Every City parcel (about 142,000) is scored on five pillars and shaded on the map. Dozens of context layers (flood zones, slopes, undermining, transit, food access, subsidized housing, zoning pathways and more) can be toggled on, each labeled with its source, date, geography and caveats.
 
-Scaffolded with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack), a modern TypeScript stack that combines React, TanStack Start, Self, ORPC, and more.
+**Click a parcel.** The panels show:
 
-- **TypeScript** - For type safety and improved developer experience
-- **TanStack Start** - SSR framework with TanStack Router
-- **TailwindCSS** - Utility-first CSS for rapid UI development
-- **Shared UI package** - shadcn/ui primitives live in `packages/ui`
-- **oRPC** - End-to-end type-safe APIs with OpenAPI integration
-- **Drizzle** - TypeScript-first ORM
-- **PostgreSQL** - Database engine
-- **Authentication** - Better-Auth
-- **Turborepo** - Optimized monorepo build system
+| Panel | What you get |
+|---|---|
+| **Parcel score** | An overall 0–100 score from five pillars: **Demand**, **Site Feasibility**, **Affordability** (unmet need), **Access to Opportunity** and **Climate & Environment**. Each pillar breaks down indicator by indicator, with its contribution in points and a weight-sensitivity range. |
+| **Weights** | One slider per pillar, plus presets (equal, family, older adult, climate-first, affordability-first, market-first). The score and map update live. Weights are value judgments, so they are yours to set. |
+| **Housing types** | 16 housing types, from a detached house to apartments, elderly housing, assisted living and personal-care residences. For each: the legal pathway in this district (by right, Zoning Administrator, special exception, conditional use, not permitted), its approval clock, and a site-fit rating. |
+| **Verdict** | Red / yellow / green per housing type, set by the worst reason: zoning, site hazards, lot width after setbacks, physical fit, or the pencil check. Unknown outranks green, so missing data never reads as buildable. |
+| **Does it pencil?** | A first screen comparing construction cost per unit (practitioner $/sf ranges, editable) with nearby sale prices or capitalized rents. Shows the gap beside URA's per-unit subsidy caps for scale. It is not a pro forma. |
+| **Levers** | Which programs and policy levers may apply (applies / applies with conditions / doesn't apply / unknown), each with its source. |
+| **Alerts** | Deal-killer hazards and flags for the parcel: floodway, sliver lot, steep slope, landslide-prone, mapped mines, lead service lines. |
+| **Chat** | An explain-only assistant that answers questions about the selected parcel from the facts on screen, with citations. It can re-run the scorer with new weights to show a what-if. It never makes up a score. |
 
-## Getting Started
+## How it works
 
-First, install the dependencies:
+```
+Public data ──▶ build scripts ──▶ normalize ──▶ weight + aggregate ──▶ zoning / availability / hazard multipliers ──▶ score
+   (134)         (clip, clean)     (0–100)       (open JSON weights)          (read from code, never estimated)
+                                                                                                 │
+                                          Jev site fit (typed model) ──▶ verdict + pencil check ◀┘
+                                                                                                 │
+                                                                     Gemini chat explains facts ◀┘
+```
+
+1. **Public data.** 134 datasets from the City, County, WPRDC, Census, HUD, FEMA, EPA, USGS, PA agencies and OpenStreetMap, pulled 2026-09-26/27.
+2. **Build scripts** clip everything to Allegheny County, clean known data traps, and write map overlays and per-parcel indicator files. No model is involved.
+3. **Normalize.** 53 indicators become 0–100 scores by percentile rank or fixed linear thresholds (100 = a good place to build).
+4. **Weight and aggregate.** Indicators roll up into sub-scores, then five pillars, then an overall score by **weighted geometric mean**, so strength elsewhere only partly offsets a real weakness. Missing data is dropped and weights renormalized, never filled with a guess. Hazard gates cap Site Feasibility, so good transit can't make a floodway buildable.
+5. **Legal, availability and hazard multipliers.** The overall score is multiplied by a zoning factor from the §911.02 use table, a factor for what's on the lot now, and a deal-killer hazard factor.
+6. **Site fit (Jev).** A typed decision model rates how well each housing type physically fits the lot, from facts code already computed (lot area, width × depth, minimum lot size, hazard shares). It returns a rubric level with probabilities and a confidence. Low-confidence ratings are flagged for review.
+7. **Verdict and pencil.** Pass/fail checks per housing type. Never derived from the weighted score.
+8. **Explain (chat).** Gemini explains on-screen facts with citations. Any sentence with a number not found in the facts is dropped.
+
+**The rule we held to:** deterministic code decides every score and every legal status. The AI components sit at the edges, get narrow pre-computed inputs, and have documented failure modes. All equations (E1–E11), weights and gates are on the app's [`/resources`](https://house.bugdex.org/resources) page, which is generated from the same config the scorer reads ([`apps/web/src/lib/pillars/pillars.config.json`](apps/web/src/lib/pillars/pillars.config.json)), so the documentation can't drift from the code.
+
+## Data sources
+
+We use 134 public datasets and services. The full catalog, with publisher, exact endpoint, vintage, license and where each one is used, is on the app's [`/resources#datasets`](https://house.bugdex.org/resources#datasets) page and in [`DATA_SOURCES.md`](DATA_SOURCES.md). The main ones, by theme:
+
+| Theme | Key datasets (publisher) | Where we got them |
+|---|---|---|
+| **Parcels and geography** | City `ParcelsPublic`; County parcel boundaries; zoning districts `PGHWebZoning`; neighborhoods; 2020 Census tracts, block groups and ZCTAs | City of Pittsburgh ArcGIS, WPRDC, U.S. Census Bureau |
+| **Zoning and approvals** | Pittsburgh Zoning Code Title Nine (§911.02 use table, §903.03 dimensional standards, Ch. 922 procedures); Zoning Board of Adjustment decisions; City Council land-use matters; Planning Commission minutes; OneStopPGH permits | eCode360, City DCP, Legistar, City of Pittsburgh |
+| **Hazards and climate** | FEMA National Flood Hazard Layer and National Risk Index; USGS 3DEP slope; City steep-slope, landslide-prone and undermined layers; PA DEP mined-out areas; NOAA tornado paths; Landsat surface temperature; NLCD tree canopy and impervious surface; EPA EJScreen | FEMA, USGS, City, PA DEP, NOAA, Microsoft Planetary Computer, MRLC, EPA (public mirror) |
+| **Infrastructure and transit** | PWSA lead service lines; County sewer lines; PRT transit stops; UMN Access Across America jobs-by-transit; POGOH bike share | PWSA, Allegheny County GIS, WPRDC, University of Minnesota |
+| **Housing costs and subsidy** | ACS 5-year; HUD CHAS, income limits, Small Area FMRs, LIHTC, QCT/DDA, public housing, assisted multifamily, vouchers; DOE LEAD; Eviction Lab; Reinvestment Fund MVA and displacement risk; County property sales; Zillow ZORI | Census Reporter API, HUD, DOE, Princeton Eviction Lab, WPRDC, Zillow Research |
+| **Land and property condition** | County assessments; USPS vacancy; City-owned property; tax delinquency; condemned properties; code violations; foreclosure filings | Allegheny County, City of Pittsburgh, HUD/USPS, via WPRDC |
+| **Demand and jobs** | 2020 Census PL 94-171; LEHD LODES8; BLS QCEW; new residential construction permits | U.S. Census Bureau, BLS, City PLI via WPRDC |
+| **Equity and opportunity** | CDC Social Vulnerability Index; Child Opportunity Index 3.0; Opportunity Atlas; HOLC 1937 redlining map; USDA Food Access Research Atlas; EPA Walkability Index | CDC, diversitydatakids.org, Opportunity Insights, Mapping Inequality, USDA, EPA |
+| **Health** | CDC PLACES; USALEEP life expectancy; HRSA shortage areas and health centers; CMS hospitals and nursing homes; NPPES pharmacies; ACHD blood-lead rates | CDC, HRSA, CMS, PA DOH via PASDA, ACHD via WPRDC |
+| **Everyday places** | Grocery and SNAP retailers; food facilities; schools; libraries; child care; parks and trails; fire, EMS and police stations; banks; community organizations | USDA, ACHD, Allegheny County GIS, PA DHS, PDE, NCES, FDIC, City, OpenStreetMap (Overpass) |
+
+**Team-built legal-feasibility datasets.** We coded a housing-type × zoning-district pathway matrix from §911.02, plus Zoning Board, Council and permit outcome datasets, as raw coded facts with no scores. They live in [`research/datasets/legal-feasibility/`](research/datasets/legal-feasibility/).
+
+**No personal data.** Owner names and contact fields are never ingested. Crime and race never enter any score.
+
+## AI disclosure
+
+**AI inside the product**
+
+| Component | What it does | What it never does |
+|---|---|---|
+| **Jev** (TypeSafe "System One" decision model, via OpenRouter) | Rates physical site fit per housing type on a four-level rubric with probabilities and a confidence, from lot facts code computed first. Pinned model version so ratings don't shift. | Decide legality, produce a parcel score, or see your weights. If it fails or has no key, the app shows "unavailable" rather than inventing a number. Its ratings have **not** been validated against ground truth. |
+| **Google Gemini** (free-tier flash-lite models, with fallback) | The chat companion: explains the facts on screen with citations, and can call the real scorer to show what a weight change does. Also read-aloud voice. | Produce a score, a legal status, or any number not in the cited facts. A guard strips sentences containing uncited numbers. |
+
+**AI tools used to build it.** We wrote the code with AI coding assistants, mainly **Claude Code** (Anthropic's Claude Opus and Sonnet models); commits it helped write carry a `Co-Authored-By: Claude` trailer. We also used Claude for background research on Pittsburgh zoning, data sources and methods (see [`research/`](research/)). The team designed the scoring model, chose every weight and threshold, checked the zoning transcription by hand, and reviewed the code.
+
+## Limitations
+
+The full statement is in [`limitations.md`](limitations.md) and on the app's [`/resources#limitations`](https://house.bugdex.org/resources#limitations) page. The short version:
+
+- **Not legal advice.** Zoning is our simplified reading of §911.02 and §903.03 as of 2026-09-26. Height, floor-area ratio, front and rear setbacks and lot area per unit are not checked. Pending bills (ADUs, Bill 2025-1545) are not applied.
+- **City of Pittsburgh only.** Scores, verdicts and zoning cover City parcels. Other municipalities, including the Mount Oliver enclave, are greyed out.
+- **Only a rough cost check.** The pencil check ignores land cost, financing and subsidy terms, and values new homes at existing-home prices, so it leans pessimistic.
+- **Not assessed:** environmental contamination, soils and buried foundations, water and sewer capacity (shown as **unknown, not bad**), school quality, and project-level approval odds. Zoning Board approval rates describe districts, not your application.
+- **Area averages are not the lot.** Tract, block-group and ZIP indicators apply to every parcel inside them, and source vintages range from 2015–20 to live.
+- **AI is advisory.** Jev site fit is an unvalidated model judgment shown with its confidence. The chat explains; it is not a source.
+- **Not tested with users.** The scoring follows published composite-indicator methods and hackathon expert feedback, but it has not been calibrated against real project outcomes.
+
+We say "we don't have good data on X" wherever that is true, instead of guessing.
+
+## What we'd build next
+
+- Height and FAR checks in the zoning verdict.
+- New-build sales comps in the pencil check, and land cost.
+- The pending ADU bill as a switchable policy scenario.
+- A contamination flag from PA DEP Act 2 records ("cleanup record nearby, verify").
+- User testing with CDCs, small developers and City Planning, and calibration of the verdict against built projects (for example Pro-Housing Pittsburgh's permit timelines).
+- Extending zoning coverage beyond the City to other Allegheny County municipalities.
+
+City Planning, URA and Pro-Housing Pittsburgh would be natural pilot partners. None has agreed to anything; this is where we would start.
+
+## Getting started
+
+**Prerequisites:** [Bun](https://bun.sh) 1.3+ and a Postgres database with PostGIS.
 
 ```bash
-bun install
+curl -fsSL https://bun.sh/install | bash   # if you don't have bun
 ```
 
-## Database Setup
+1. Create `apps/web/.env` **before** installing. The schema is in [`apps/web/.env.schema`](apps/web/.env.schema):
 
-This project uses PostgreSQL with Drizzle ORM.
+   ```env
+   DATABASE_URL=              # Postgres + PostGIS (we use Neon)
+   BETTER_AUTH_SECRET=
+   BETTER_AUTH_URL=http://localhost:3001
+   OPENROUTER_API_KEY=        # optional: Jev site fit; without it, site fit shows "unavailable"
+   SYSTEM_ONE_BASE_URL=https://openrouter.ai/api
+   SYSTEM_ONE_MODEL=jev-1.13
+   GEMINI_API_KEY=            # optional: chat companion
+   ```
 
-1. Make sure you have a PostgreSQL database set up.
-2. Update your `apps/web/.env` file with your PostgreSQL connection details.
+   Never commit `.env` files or keys. The app runs without the two AI keys; those features show as unavailable.
 
-3. Apply the schema to your database:
+2. Install and run:
+
+   ```bash
+   bun install
+   bun run dev
+   ```
+
+3. Open http://localhost:3001.
+
+**Rebuild the map data** (fetches public sources and writes overlays to `apps/web/public/data/overlays/`):
 
 ```bash
-bun run db:push
+cd apps/web && bun run data:overlays
 ```
 
-Then, run the development server:
+See [`apps/web/scripts/data/README.md`](apps/web/scripts/data/README.md) for how overlays are built and added, and [`apps/web/scripts/pillars/`](apps/web/scripts/pillars/) for the indicator and scoring pipeline.
+
+**Tests:**
 
 ```bash
-bun run dev
+cd apps/web && bun test        # scoring, verdict, pencil, map and chat UI logic
+cd packages/api && bun test    # chat guard, rescore, Jev client (provider mocked, no key needed)
 ```
 
-Open [http://localhost:3001](http://localhost:3001) in your browser to see the fullstack application.
+**Other scripts:**
 
-## UI Customization
+| Command | What it does |
+|---|---|
+| `bun run dev` | Start all apps in development mode |
+| `bun run build` | Build all apps |
+| `bun run check-types` | Type-check every package |
+| `bun run db:studio` | Open Drizzle Studio |
+| `bun run deploy` / `bun run deploy:prod` | Vercel preview / production deploy |
+| `bun run env:preview` / `bun run env:production` | Sync local env to Vercel |
 
-React web apps in this stack share shadcn/ui primitives through `packages/ui`.
-
-- Change design tokens and global styles in `packages/ui/src/styles/globals.css`
-- Update shared primitives in `packages/ui/src/components/*`
-- Adjust shadcn aliases or style config in `packages/ui/components.json` and `apps/web/components.json`
-
-### Add more shared components
-
-Run this from the project root to add more primitives to the shared UI package:
-
-```bash
-npx shadcn@latest add accordion dialog popover sheet table -c packages/ui
-```
-
-Import shared components like this:
-
-```tsx
-import { Button } from "@HouseHack/ui/components/button";
-```
-
-### Add app-specific blocks
-
-If you want to add app-specific blocks instead of shared primitives, run the shadcn CLI from `apps/web`.
-
-## Environment Configuration
-
-Each app owns its environment schema in `.env.schema`. Varlock generates `src/env.ts` during installation; run `bun run env:generate` after changing a schema. Commit schemas, and keep secrets in ignored env files or your deployment platform.
-
-Import the generated `ENV` accessor in application code. Shared database and auth packages receive configuration or initialized clients from the application. See [Varlock's monorepo guide](https://varlock.dev/guides/monorepos/).
-
-Bun's automatic env loading is disabled in `bunfig.toml`; the framework integration or server bootstrap loads Varlock. Node deployments must include Varlock and its dependencies alongside the app schema.
-
-Run standalone Node/Bun tools that use Varlock from the owning app directory so they load that app's schema and env files. `env:generate` only generates TypeScript files; it does not initialize environment values in a subsequent command.
-
-### System One decisions (Jev)
-
-Housing-type site-fit ratings come from a System One decision model: TypeSafe's **Jev**, currently called through **OpenRouter**. System One models return typed decisions (`noul` yes/no, `choice`, `score`) with calibrated probabilities instead of text, via `POST /v1/systemone`.
-
-```env
-OPENROUTER_API_KEY=                          # server-only; put it in apps/web/.env, never in the schema
-SYSTEM_ONE_BASE_URL=https://openrouter.ai/api
-SYSTEM_ONE_MODEL=jev-1.13                    # pinned so ratings don't shift
-```
-
-- The layer lives in `packages/api/src/system-one/`. Application code calls `context.systemOne.decide({ state, questions })` and doesn't know the provider, endpoint or auth. It's provider-independent: any `/v1/systemone`-compatible API works by changing the base URL and model.
-- The client is created server-side in `apps/web/src/services.ts` and passed to routers through the oRPC context, like `db`. The key never reaches the browser.
-- Without a key the app still runs: zoning permissions still show, and site-fit ratings are marked unavailable. Failed requests are logged server-side and never shown as ratings.
-- First use: `parcels.typologyFit` (`packages/api/src/typology/site-fit.ts`). Code decides what zoning permits; Jev only judges physical fit from lot facts that code computes. Ratings below 30% confidence are flagged for human review.
-- Tests: `cd packages/api && bun test` (the provider is mocked; no key needed).
-
-## Deployment
-
-### Vercel Services
-
-- Target: web + server
-- Config: `vercel.json`
-- Link the project first: bun run deploy:setup
-- Local Vercel dev: bun run dev:vercel
-- Sync preview env: bun run env:preview
-- Sync production env: bun run env:production
-- Dry-run check (no upload): bun run deploy:check
-- Preview deploy: bun run deploy
-- Production deploy: bun run deploy:prod
-  Vercel Services share project environment variables, but deploys do not upload local `.env` files automatically. Link the project with `vercel link`, then run the env sync command before your first deploy (otherwise the deployment starts with no env vars), or pass one-off envs with `vercel deploy -e KEY=value`.
-  Pass Vercel CLI flags to the env sync command directly, for example: `bun run env:production --scope your-team`.
-
-For more details, see the guide on [Deploying to Vercel](https://www.better-t-stack.dev/docs/guides/vercel).
-
-## Project Structure
+## Project structure
 
 ```
-HouseHack/
-├── apps/
-│   └── web/         # Fullstack application (React + TanStack Start)
+yinzone/
+├── apps/web/                    # TanStack Start app (map, panels, /resources)
+│   ├── src/lib/pillars/         # scorer: pillars.config.json, score.ts, verdict.ts, pencil.ts
+│   ├── src/components/map/      # map, overlays registry, parcel / typology / levers panels
+│   ├── src/components/chat/     # chat companion UI
+│   ├── src/components/resources/# the /resources methodology page
+│   └── scripts/                 # data/ (overlay builders), pillars/ (indicator pipeline)
 ├── packages/
-│   ├── ui/          # Shared shadcn/ui components and styles
-│   ├── api/         # API layer / business logic
-│   ├── auth/        # Authentication configuration & logic
-│   └── db/          # Database schema & queries
+│   ├── api/                     # oRPC routers, Jev client (system-one/), site fit (typology/), chat (chat/)
+│   ├── db/                      # Drizzle schema and queries (Postgres + PostGIS)
+│   ├── auth/                    # Better Auth config
+│   └── ui/                      # shared shadcn/ui components
+├── research/                    # domain research: BRIEFING.md, knowledge base, legal-feasibility datasets
+├── limitations.md               # limitations statement
+└── DATA_SOURCES.md              # full dataset catalog
 ```
 
-## Available Scripts
+## Libraries and services
 
-- `bun run dev`: Start all applications in development mode
-- `bun run build`: Build all applications
-- `bun run dev:web`: Start only the web application
-- `bun run check-types`: Check TypeScript types across all apps
-- `bun run db:push`: Push schema changes to database
-- `bun run db:generate`: Generate database client/types
-- `bun run db:migrate`: Run database migrations
-- `bun run db:studio`: Open database studio UI
-- `bun run deploy:setup`: Link this repo to a Vercel project (first-time setup)
-- `bun run dev:vercel`: Run the Vercel Services dev environment locally
-- `bun run env:preview`: Sync local env files to the Vercel preview environment
-- `bun run env:production`: Sync local env files to the Vercel production environment
-- `bun run deploy`: Create a Vercel preview deployment
-- `bun run deploy:prod`: Deploy to Vercel production
-- `bun run deploy:check`: Dry-run a deploy to preview framework detection and included files without uploading
+**Libraries:** [TypeScript](https://www.typescriptlang.org/), [React 19](https://react.dev/), [TanStack Start / Router / Query / Form](https://tanstack.com/), [MapLibre GL JS](https://maplibre.org/), [oRPC](https://orpc.unnoq.com/), [Drizzle ORM](https://orm.drizzle.team/), [Better Auth](https://www.better-auth.com/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Zod](https://zod.dev/), [KaTeX](https://katex.org/), [Varlock](https://varlock.dev/), [Turborepo](https://turbo.build/), [Bun](https://bun.sh/). Scaffolded with [Better-T-Stack](https://github.com/AmanVarshney01/create-better-t-stack).
 
-## Better Auth Schema Generation
+**Services:** [Neon](https://neon.tech/) Postgres + PostGIS, [Vercel](https://vercel.com/) hosting, [OpenRouter](https://openrouter.ai/) (Jev), [Google Gemini API](https://ai.google.dev/), [Microsoft Planetary Computer](https://planetarycomputer.microsoft.com/) (Landsat STAC), [Census Reporter API](https://censusreporter.org/), [Overpass API](https://overpass-api.de/) and [Nominatim](https://nominatim.org/) (OpenStreetMap), [CARTO](https://carto.com/basemaps) basemaps.
 
-After changing auth plugins or schema options, run `bun run auth:generate` from the project root. The script runs the Better Auth CLI through `varlock run` from the owning app directory, loading the auth instance from `src/services.ts`. Review the schema changes, then use your ORM's migration workflow to apply them.
+## License and attribution
+
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) (ODbL) and © [CARTO](https://carto.com/attributions). Redlining map: Mapping Inequality, Nelson et al., University of Richmond Digital Scholarship Lab (CC BY-SA 4.0). Jobs by transit: University of Minnesota Accessibility Observatory (CC BY-NC 4.0, non-commercial). Energy burden: U.S. DOE LEAD Tool, 2022 update (CC BY 4.0). Rents: Zillow Research. Child Opportunity Index: diversitydatakids.org. Eviction data: The Eviction Lab at Princeton University. WPRDC datasets are CC0 or CC BY; we credit the publishing agency and WPRDC. Everything else is U.S. public domain or state, county or city open data. Per-dataset terms are on [`/resources#licenses`](https://house.bugdex.org/resources#licenses).
+
+Built during the AI Horizons 2026 hackathon, Sept 26–27, 2026.
