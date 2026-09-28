@@ -9,7 +9,8 @@ import { setShellState, toggleSidebar, useShellState } from "./shell-store";
 /** App shell: vertical nav rail + console header + routed content. The
  * explorer docks the layers sidebar between rail and content; below 1024px
  * the sidebar becomes a slide-over drawer. The login page stays a standalone
- * centered card outside the shell. */
+ * centered card and the onboarding flow renders its own full-screen layout,
+ * both outside the shell. */
 export function AppShell() {
   const { pathname } = useLocation();
   const { sidebarOpen } = useShellState();
@@ -27,6 +28,10 @@ export function AppShell() {
 
   if (pathname === "/login") {
     return <div className="flex h-svh items-center justify-center bg-background p-4"><Outlet /></div>;
+  }
+
+  if (pathname.startsWith("/onboarding")) {
+    return <Outlet />;
   }
 
   const isExplorer = pathname === "/";
