@@ -1,6 +1,7 @@
 import type { Database } from "@HouseHack/db";
-import { favoriteParcel, userProfile, viewedParcel } from "@HouseHack/db/schema/user-data";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { favoriteParcel, parcelList, userProfile, viewedParcel } from "@HouseHack/db/schema/user-data";
+import { ORPCError } from "@orpc/server";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import z from "zod";
 
 import { protectedProcedure } from "../index";
@@ -37,6 +38,15 @@ const pin = z.string().regex(/^[0-9A-Z]{8,20}$/);
 const zoning = z.string().max(20).nullable().optional();
 // How many recently viewed parcels the dashboard keeps per user.
 const VIEWED_LIMIT = 50;
+const listName = z.string().trim().min(1).max(60);
+const listId = z.string().uuid();
+// New favorites go to the top of their list.
+const topPosition = () => -Date.now();
+
+async function assertOwnList(db: Database, userId: string, id: string) {
+  const [row] = await db.select({ id: parcelList.id }).from(parcelList).where(and(eq(parcelList.id, id), eq(parcelList.userId, userId)));
+  if (!row) throw new ORPCError("NOT_FOUND", { message: "List not found" });
+}
 
 const profileInput = z.object({
   audience: z.enum(AUDIENCES),
@@ -63,10 +73,16 @@ export const meRouter = {
 
   favorites: protectedProcedure.handler(async ({ context }) => {
     return context.db
-      .select({ pin: favoriteParcel.pin, zoning: favoriteParcel.zoning, createdAt: favoriteParcel.createdAt })
+      .select({
+        pin: favoriteParcel.pin,
+        zoning: favoriteParcel.zoning,
+        listId: favoriteParcel.listId,
+        position: favoriteParcel.position,
+        createdAt: favoriteParcel.createdAt,
+      })
       .from(favoriteParcel)
       .where(eq(favoriteParcel.userId, context.session.user.id))
-      .orderBy(desc(favoriteParcel.createdAt));
+      .orderBy(asc(favoriteParcel.position), desc(favoriteParcel.createdAt));
   }),
 
   setFavorite: protectedProcedure
@@ -76,13 +92,57 @@ export const meRouter = {
       if (input.favorite) {
         await context.db
           .insert(favoriteParcel)
-          .values({ userId, pin: input.pin, zoning: input.zoning ?? null })
+          .values({ userId, pin: input.pin, zoning: input.zoning ?? null, position: topPosition() })
           .onConflictDoNothing();
       } else {
         await context.db.delete(favoriteParcel).where(and(eq(favoriteParcel.userId, userId), eq(favoriteParcel.pin, input.pin)));
       }
       return { pin: input.pin, favorite: input.favorite };
     }),
+
+  /** Put a parcel in a list (null = Favorites) at a position, favoriting it first if needed. Drag and drop and the list menu use this. */
+  moveFavorite: protectedProcedure
+    .input(z.object({ pin, zoning, listId: listId.nullable(), position: z.number().finite().optional() }))
+    .handler(async ({ input, context }) => {
+      const userId = context.session.user.id;
+      if (input.listId) await assertOwnList(context.db, userId, input.listId);
+      const position = input.position ?? topPosition();
+      await context.db
+        .insert(favoriteParcel)
+        .values({ userId, pin: input.pin, zoning: input.zoning ?? null, listId: input.listId, position })
+        .onConflictDoUpdate({ target: [favoriteParcel.userId, favoriteParcel.pin], set: { listId: input.listId, position } });
+      return { ok: true };
+    }),
+
+  lists: protectedProcedure.handler(async ({ context }) => {
+    return context.db
+      .select({ id: parcelList.id, name: parcelList.name, createdAt: parcelList.createdAt })
+      .from(parcelList)
+      .where(eq(parcelList.userId, context.session.user.id))
+      .orderBy(asc(parcelList.createdAt));
+  }),
+
+  createList: protectedProcedure.input(z.object({ name: listName })).handler(async ({ input, context }) => {
+    const [row] = await context.db
+      .insert(parcelList)
+      .values({ id: crypto.randomUUID(), userId: context.session.user.id, name: input.name })
+      .returning({ id: parcelList.id, name: parcelList.name, createdAt: parcelList.createdAt });
+    return row!;
+  }),
+
+  renameList: protectedProcedure.input(z.object({ id: listId, name: listName })).handler(async ({ input, context }) => {
+    await context.db
+      .update(parcelList)
+      .set({ name: input.name })
+      .where(and(eq(parcelList.id, input.id), eq(parcelList.userId, context.session.user.id)));
+    return { ok: true };
+  }),
+
+  /** Deletes the list; its parcels stay favorites and move back to Favorites. */
+  deleteList: protectedProcedure.input(z.object({ id: listId })).handler(async ({ input, context }) => {
+    await context.db.delete(parcelList).where(and(eq(parcelList.id, input.id), eq(parcelList.userId, context.session.user.id)));
+    return { ok: true };
+  }),
 
   viewed: protectedProcedure.handler(async ({ context }) => {
     return context.db

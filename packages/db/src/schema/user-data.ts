@@ -1,4 +1,4 @@
-import { index, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
+import { doublePrecision, index, integer, pgTable, primaryKey, text, timestamp } from "drizzle-orm/pg-core";
 
 import { user } from "./auth";
 
@@ -25,6 +25,20 @@ export const userProfile = pgTable("user_profile", {
     .notNull(),
 });
 
+/** A user's named list of favorite parcels (each favorite sits in at most one list). */
+export const parcelList = pgTable(
+  "parcel_list",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("parcel_list_userId_idx").on(table.userId)],
+);
+
 export const favoriteParcel = pgTable(
   "favorite_parcel",
   {
@@ -33,6 +47,10 @@ export const favoriteParcel = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     pin: text("pin").notNull(),
     zoning: text("zoning"),
+    /** null = the default "Favorites" list. */
+    listId: text("list_id").references(() => parcelList.id, { onDelete: "set null" }),
+    /** Manual order within its list (drag and drop); lower comes first. */
+    position: doublePrecision("position").default(0).notNull(),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [primaryKey({ columns: [table.userId, table.pin] }), index("favorite_parcel_userId_idx").on(table.userId)],

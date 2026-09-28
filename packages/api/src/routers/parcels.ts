@@ -70,6 +70,21 @@ export const parcelsRouter = {
     const code = Number(result.rows[0]?.municode);
     return { municode: Number.isFinite(code) && code > 0 ? code : null };
   }),
+  // Simplified outlines for the dashboard's parcel thumbnails (public boundary data only).
+  getOutlines: publicProcedure
+    .input(z.object({ pins: z.array(z.string().max(20)).max(100) }))
+    .handler(async ({ input, context }) => {
+      if (!input.pins.length) return {};
+      const result = await context.db.execute<{ pin: string; geojson: string }>(sql`
+        SELECT pin, ST_AsGeoJSON(ST_SimplifyPreserveTopology(geom, 0.000003), 6) AS geojson
+        FROM parcel
+        WHERE pin IN (${sql.join(
+          input.pins.map((p) => sql`${p}`),
+          sql`, `,
+        )})
+      `);
+      return Object.fromEntries(result.rows.map((row) => [row.pin, JSON.parse(row.geojson) as { type: "Polygon" | "MultiPolygon"; coordinates: unknown }]));
+    }),
   searchAddress: publicProcedure.input(addressSearchInput).handler(async ({ input, context }) => {
     // Free, no-API-key geocoder. Usage policy requires a real identifying
     // User-Agent and caps at ~1 req/sec, which the command palette's input

@@ -6,6 +6,7 @@ import { cn } from "@HouseHack/ui/lib/utils";
 
 import { useFavorites, useRecordView, useSetFavorite, useSignedIn } from "@/lib/user-parcels";
 
+import { ListMenu } from "../dashboard/list-menu";
 import { PaneCollapseButton } from "./pane-collapse-button";
 import { useParcelData } from "./pillars-panel";
 
@@ -36,7 +37,8 @@ export function ParcelTab({
   const favorites = useFavorites();
   const setFavorite = useSetFavorite();
   const pending = setFavorite.isPending ? setFavorite.variables : undefined;
-  const starred = pin != null && (pending?.pin === pin ? pending.favorite : (favorites.data?.some((f) => f.pin === pin) ?? false));
+  const favorite = pin ? favorites.data?.find((f) => f.pin === pin) : undefined;
+  const starred = pin != null && (pending?.pin === pin ? pending.favorite : favorite != null);
 
   const toggleStar = () => {
     if (!pin) return;
@@ -67,6 +69,7 @@ export function ParcelTab({
         >
           <Star className={cn("size-3.5", starred && "fill-current")} />
         </button>
+        {pin && starred && favorite && <ListMenu pin={pin} zoning={favorite.zoning} listId={favorite.listId} />}
         <button
           type="button"
           onClick={onClear}
