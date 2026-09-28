@@ -9,7 +9,7 @@ import { toast } from "sonner";
 
 import { LogoMark } from "@/components/logo-mark";
 import { setPillarWeights } from "@/components/map/pillar-weights-store";
-import { AUDIENCE_OPTIONS, type AudienceId, CONTEXT_MAX, PRESET_LABEL, PRESET_NOTE, presetWeights } from "@/lib/onboarding";
+import { AUDIENCE_OPTIONS, type AudienceId, CONTEXT_MAX, PRESET_HINT, PRESET_LABEL, presetWeights } from "@/lib/onboarding";
 import { orpc } from "@/utils/orpc";
 
 export type Profile = { audience: string | null; context: string | null; weightsPreset: string | null; onboardedAt: Date | string | null };
@@ -164,7 +164,7 @@ export function OnboardingDialog({ open, onClose, profile, name }: { open: boole
                 onClick={() => {
                   setPreset(id);
                   setPresetPicked(true);
-                }} title={PRESET_LABEL[id]!} hint={PRESET_NOTE[id]} />
+                }} title={PRESET_LABEL[id]!} hint={PRESET_HINT[id]} />
             ))}
           </div>
         )}

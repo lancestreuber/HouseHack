@@ -27,7 +27,7 @@ function RouteComponent() {
         {showSignIn ? (
           <SignInForm redirectTo={redirectTo} onSwitchToSignUp={() => setShowSignIn(false)} />
         ) : (
-          <SignUpForm redirectTo={redirectTo} onSwitchToSignIn={() => setShowSignIn(true)} />
+          <SignUpForm onSwitchToSignIn={() => setShowSignIn(true)} />
         )}
       </div>
     </div>
