@@ -52,7 +52,8 @@ export function ParcelTab({
   return (
     <div className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
       <span className="flex items-baseline gap-2">
-        <span className="font-medium">{pin ? `Parcel ${pin}` : "Select a parcel"}</span>
+        <span className="font-medium">{pin ? (favorite?.nickname ?? `Parcel ${pin}`) : "Select a parcel"}</span>
+        {pin && favorite?.nickname && <span className="tnum text-muted-foreground">{pin}</span>}
         {pin && current && data && <span className="text-muted-foreground">Zoning {data.zoning || "unknown"}</span>}
       </span>
       <div className="flex items-center gap-1">
@@ -69,7 +70,7 @@ export function ParcelTab({
         >
           <Star className={cn("size-3.5", starred && "fill-current")} />
         </button>
-        {pin && starred && favorite && <ListMenu pin={pin} zoning={favorite.zoning} listId={favorite.listId} />}
+        {pin && starred && favorite && <ListMenu pin={pin} zoning={favorite.zoning} listId={favorite.listId} nickname={favorite.nickname} />}
         <button
           type="button"
           onClick={onClear}

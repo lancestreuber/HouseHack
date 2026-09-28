@@ -22,6 +22,8 @@ export const userProfile = pgTable("user_profile", {
   onboardedAt: timestamp("onboarded_at"),
   /** Set when the user chose "Skip for now", so the dashboard stops opening onboarding. */
   skippedAt: timestamp("skipped_at"),
+  /** Set once the demo favorites were added, so unstarring them doesn't bring them back. */
+  demoSeededAt: timestamp("demo_seeded_at"),
   updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
@@ -50,6 +52,8 @@ export const favoriteParcel = pgTable(
       .references(() => user.id, { onDelete: "cascade" }),
     pin: text("pin").notNull(),
     zoning: text("zoning"),
+    /** The user's own name for the parcel, shown instead of the PIN. */
+    nickname: text("nickname"),
     /** null = the default "Favorites" list. */
     listId: text("list_id").references(() => parcelList.id, { onDelete: "set null" }),
     /** Manual order within its list (drag and drop); lower comes first. */

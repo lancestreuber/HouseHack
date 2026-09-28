@@ -29,8 +29,8 @@ export const Route = createFileRoute("/_auth/dashboard")({
 });
 
 type ViewMode = "grid" | "list";
-type SortId = "custom" | "newest" | "oldest" | "pin" | "zoning";
-const SORT_LABEL: Record<SortId, string> = { custom: "My order", newest: "Newest", oldest: "Oldest", pin: "PIN", zoning: "Zoning" };
+type SortId = "custom" | "newest" | "oldest" | "name" | "pin" | "zoning";
+const SORT_LABEL: Record<SortId, string> = { custom: "My order", newest: "Newest", oldest: "Oldest", name: "Nickname", pin: "PIN", zoning: "Zoning" };
 const VIEW_KEY = "dashboard-view";
 const DRAG_TYPE = "application/x-yinzone-parcel";
 const ALL = "all";
@@ -48,7 +48,7 @@ function ago(date: Date | string) {
 }
 
 /** A parcel card in any section. `when` is when it was added or last viewed. */
-type Item = { pin: string; zoning: string | null; when: Date; position: number; views?: number };
+type Item = { pin: string; zoning: string | null; nickname: string | null; when: Date; position: number; views?: number };
 /** Where a dragged parcel would land: a list (null = Favorites), before one card or at the end. */
 type DropTarget = { listId: string | null; beforePin: string | null };
 
@@ -69,12 +69,16 @@ function download(name: string, text: string) {
   URL.revokeObjectURL(url);
 }
 
+// Quote a CSV cell when it has a comma, quote or newline (nicknames are free text).
+const csvCell = (text: string) => (/[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text);
+
 function sortItems(items: Item[], sort: SortId) {
   const by: Record<SortId, (a: Item, b: Item) => number> = {
     custom: (a, b) => a.position - b.position,
     newest: (a, b) => b.when.getTime() - a.when.getTime(),
     oldest: (a, b) => a.when.getTime() - b.when.getTime(),
     pin: (a, b) => a.pin.localeCompare(b.pin),
+    name: (a, b) => (a.nickname ?? `~${a.pin}`).localeCompare(b.nickname ?? `~${b.pin}`),
     zoning: (a, b) => (a.zoning ?? "~").localeCompare(b.zoning ?? "~"),
   };
   return [...items].sort(by[sort]);
@@ -117,7 +121,7 @@ function ParcelCard({
       >
         <Star className={cn("size-3.5", starred && "fill-current")} />
       </button>
-      {starred && <ListMenu pin={item.pin} zoning={item.zoning} listId={listId ?? null} />}
+      {starred && <ListMenu pin={item.pin} zoning={item.zoning} listId={listId ?? null} nickname={item.nickname} />}
     </span>
   );
   const handle = (
@@ -141,8 +145,10 @@ function ParcelCard({
           <ParcelThumb outline={outline} width={96} height={60} className="w-20 rounded-sm" />
         </Link>
         <Link {...link} className="min-w-0 flex-1 hover:underline">
-          <span className="tnum block truncate font-medium">Parcel {item.pin}</span>
-          <span className="text-muted-foreground">Zoning {item.zoning ?? "unknown"}</span>
+          <span className="block truncate font-medium">{item.nickname ?? <span className="tnum">Parcel {item.pin}</span>}</span>
+          <span className="text-muted-foreground">
+            {item.nickname && <span className="tnum">{item.pin} · </span>}Zoning {item.zoning ?? "unknown"}
+          </span>
         </Link>
         <span className="tnum shrink-0 text-muted-foreground">{meta}</span>
         {actions}
@@ -161,8 +167,9 @@ function ParcelCard({
       <div className="flex items-start gap-1 p-1.5">
         {handle}
         <Link {...link} className="min-w-0 flex-1 hover:underline">
-          <span className="tnum block truncate font-medium">Parcel {item.pin}</span>
+          <span className="block truncate font-medium">{item.nickname ?? <span className="tnum">Parcel {item.pin}</span>}</span>
           <span className="block truncate text-muted-foreground">
+            {item.nickname && <span className="tnum">{item.pin} · </span>}
             Zoning {item.zoning ?? "unknown"} · {meta}
           </span>
         </Link>
@@ -254,18 +261,20 @@ function DashboardPage() {
   const favs: Favorite[] = favorites.data ?? [];
   const favoriteByPin = new Map(favs.map((f) => [f.pin, f]));
 
+  const nicknameOf = (pin: string) => favoriteByPin.get(pin)?.nickname ?? null;
   const matches = (item: { pin: string; zoning: string | null }) => {
     const q = query.trim().toUpperCase();
-    if (q && !item.pin.includes(q) && !(item.zoning ?? "").toUpperCase().includes(q)) return false;
+    const text = [item.pin, item.zoning ?? "", nicknameOf(item.pin) ?? ""].join(" ").toUpperCase();
+    if (q && !text.includes(q)) return false;
     return zoningFilter === ALL || item.zoning === zoningFilter;
   };
   const favItems = (listId: string | null) =>
     sortItems(
-      favs.filter((f) => f.listId === listId && matches(f)).map((f) => ({ pin: f.pin, zoning: f.zoning, when: new Date(f.createdAt), position: f.position })),
+      favs.filter((f) => f.listId === listId && matches(f)).map((f) => ({ pin: f.pin, zoning: f.zoning, nickname: f.nickname, when: new Date(f.createdAt), position: f.position })),
       sort,
     );
   const viewedItems = sortItems(
-    (viewed.data ?? []).filter(matches).map((v) => ({ pin: v.pin, zoning: v.zoning, when: new Date(v.lastViewedAt), position: -new Date(v.lastViewedAt).getTime(), views: v.views })),
+    (viewed.data ?? []).filter(matches).map((v) => ({ pin: v.pin, zoning: v.zoning, nickname: nicknameOf(v.pin), when: new Date(v.lastViewedAt), position: -new Date(v.lastViewedAt).getTime(), views: v.views })),
     sort === "custom" ? "newest" : sort,
   );
 
@@ -353,7 +362,10 @@ function DashboardPage() {
   const exportCsv = (name: string, listId: string | null) =>
     download(
       `${name.replace(/[^\w-]+/g, "-").toLowerCase()}.csv`,
-      ["pin,zoning,added", ...listPins(listId).map((f) => `${f.pin},${f.zoning ?? ""},${new Date(f.createdAt).toISOString()}`)].join("\n"),
+      [
+        "pin,nickname,zoning,added",
+        ...listPins(listId).map((f) => [f.pin, csvCell(f.nickname ?? ""), f.zoning ?? "", new Date(f.createdAt).toISOString()].join(",")),
+      ].join("\n"),
     );
   const listTools = (name: string, listId: string | null) => (
     <DropdownMenu>
@@ -421,7 +433,7 @@ function DashboardPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative min-w-48 flex-1">
           <Search className="pointer-events-none absolute top-1/2 left-2 size-3.5 -translate-y-1/2 text-muted-foreground" />
-          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by PIN or zoning" aria-label="Filter parcels" className="pl-7" />
+          <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Filter by nickname, PIN or zoning" aria-label="Filter parcels" className="pl-7" />
         </div>
         <Select value={zoningFilter} onValueChange={(v) => setZoningFilter(String(v ?? ALL))}>
           <SelectTrigger size="sm" className="w-36" aria-label="Zoning district">

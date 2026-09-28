@@ -7,7 +7,7 @@ import { orpc } from "@/utils/orpc";
 // Favorite and recently viewed parcels, and favorite lists, for the signed-in
 // user. Signed out, nothing is fetched or recorded.
 
-export type Favorite = { pin: string; zoning: string | null; listId: string | null; position: number; createdAt: Date };
+export type Favorite = { pin: string; zoning: string | null; nickname: string | null; listId: string | null; position: number; createdAt: Date };
 
 export function useSignedIn() {
   const { data: session } = authClient.useSession();
@@ -48,11 +48,30 @@ export function useMoveFavorite() {
         await queryClient.cancelQueries({ queryKey: key });
         const before = queryClient.getQueryData<Favorite[]>(key);
         const position = input.position ?? -Date.now();
-        const moved = { pin: input.pin, zoning: input.zoning ?? null, listId: input.listId, position, createdAt: new Date() };
+        const moved = { pin: input.pin, zoning: input.zoning ?? null, nickname: null, listId: input.listId, position, createdAt: new Date() };
         const rest = (before ?? []).filter((f) => f.pin !== input.pin);
         const existing = before?.find((f) => f.pin === input.pin);
         const next = [...rest, existing ? { ...existing, listId: input.listId, position } : moved].sort((a, b) => a.position - b.position);
         queryClient.setQueryData(key, next);
+        return { before };
+      },
+      onError: (_error, _input, ctx) => {
+        if (ctx?.before) queryClient.setQueryData(key, ctx.before);
+      },
+      onSettled: () => queryClient.invalidateQueries({ queryKey: orpc.me.favorites.key() }),
+    }),
+  );
+}
+
+/** Renames a favorite, updating the favorites cache right away. */
+export function useSetNickname() {
+  const queryClient = useQueryClient();
+  const key = orpc.me.favorites.queryKey();
+  return useMutation(
+    orpc.me.setNickname.mutationOptions({
+      onMutate: (input) => {
+        const before = queryClient.getQueryData<Favorite[]>(key);
+        queryClient.setQueryData(key, before?.map((f) => (f.pin === input.pin ? { ...f, nickname: input.nickname || null } : f)));
         return { before };
       },
       onError: (_error, _input, ctx) => {
