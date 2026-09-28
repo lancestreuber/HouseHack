@@ -44,6 +44,7 @@ import { generalChatContext, useParcelChatContext } from "./chat/parcel-context"
 import { LayersPanel } from "./map/layers-panel";
 import { paintParcelFill, registerHeatInteractions, syncHeatLayers } from "./map/heat-layers";
 import { HeatmapPanel } from "./map/heatmap-panel";
+import { ExplorerTour } from "./tour/explorer-tour";
 import { areaChatContext, areaReport } from "@/lib/typology-map/area-report";
 import { focusHeatCluster, getHeat, setHeatEnabled, subscribeHeat, useHeat } from "@/lib/typology-map/heatmap-store";
 import {
@@ -688,7 +689,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                   <div className="absolute left-2 top-2 z-10">
                     <div className="flex gap-1">
                     <Popover>
-                      <PopoverTrigger className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
+                      <PopoverTrigger data-tour="layers" className="flex items-center gap-1.5 rounded-md border bg-background/80 px-2 py-1 text-xs text-muted-foreground backdrop-blur hover:text-foreground">
                         <Layers className="size-3.5" />
                         Layers
                       </PopoverTrigger>
@@ -698,6 +699,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                     </Popover>
                     <button
                       type="button"
+                      data-tour="where-to-build"
                       onClick={() => {
                         setHeatOpen((open) => !open);
                         setHeatEnabled(!heatOpen);
@@ -718,7 +720,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
                       </div>
                     )}
                   </div>
-                  <div ref={containerRef} className="h-full w-full" />
+                  <div ref={containerRef} data-tour="map" className="h-full w-full" />
                   <CameraViewer />
                   {scenario && selectedPin && (
                     <ScenarioCard
@@ -790,6 +792,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               collapsible
               collapsedSize="34px"
               panelRef={typologyPane.ref}
+              data-tour="typologies"
               onResize={typologyPane.onResize}
             >
               <TypologyPanel
@@ -810,6 +813,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               collapsible
               collapsedSize="80px"
               panelRef={scoresPane.ref}
+              data-tour="scores"
               onResize={scoresPane.onResize}
             >
               {selectedPin ? (
@@ -834,6 +838,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               collapsible
               collapsedSize="34px"
               panelRef={alertsPane.ref}
+              data-tour="alerts"
               onResize={alertsPane.onResize}
             >
               <AlertsPanel pin={selectedPin} collapsed={alertsPane.collapsed} onToggleCollapse={toggleAlerts} />
@@ -861,6 +866,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
               collapsible
               collapsedSize="48px"
               panelRef={chatPane.ref}
+              data-tour="chat"
               onResize={chatPane.onResize}
             >
               <ChatPane
@@ -873,6 +879,7 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
           </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
+      <ExplorerTour />
     </div>
   );
 }

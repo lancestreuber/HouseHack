@@ -50,7 +50,7 @@ export function ParcelTab({
   };
 
   return (
-    <div className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
+    <div data-tour="parcel-bar" className="flex shrink-0 items-center justify-between border-b bg-background px-3 py-1.5 text-xs">
       <span className="flex items-baseline gap-2">
         <span className="font-medium">{pin ? (favorite?.nickname ?? `Parcel ${pin}`) : "Select a parcel"}</span>
         {pin && favorite?.nickname && <span className="tnum text-muted-foreground">{pin}</span>}

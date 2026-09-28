@@ -75,7 +75,8 @@ function RootDocument() {
             <>
               <AppShell />
               <ChatLauncher />
-              <TanStackRouterDevtools position="top-right" />
+              {/* Dev only. Bottom-left, nudged past the rail so it covers neither Sign in nor the header buttons. */}
+              <TanStackRouterDevtools position="bottom-left" toggleButtonProps={{ style: { left: 64 } }} />
               <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
             </>
           )}
