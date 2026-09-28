@@ -9,7 +9,7 @@ import { WeightsPopover } from "./map/weights-popover";
 
 export default function Header() {
   const links = [
-    { to: "/", label: "Home" },
+    { to: "/app", label: "Home" },
     { to: "/dashboard", label: "Dashboard" },
     { to: "/todos", label: "Todos" },
     { to: "/resources", label: "Resources" },
