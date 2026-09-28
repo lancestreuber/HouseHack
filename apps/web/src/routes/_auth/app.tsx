@@ -8,7 +8,7 @@ const searchSchema = z.object({
   w: z.string().optional(),
 });
 
-export const Route = createFileRoute("/app")({
+export const Route = createFileRoute("/_auth/app")({
   validateSearch: searchSchema,
   component: HomeComponent,
 });

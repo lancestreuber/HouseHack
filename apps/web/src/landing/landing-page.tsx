@@ -1,8 +1,116 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, Ruler, Search, SquareTerminal } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
+
+import { useAddressSearch } from "@/components/map/address-search";
+import { isCityParcel } from "@/lib/city-scope";
 
 const DEMO_PIN = "0001N00154000000";
+// Allegheny County PINs: 4 digits, a letter, 5 digits, then 6 digits or letters.
+const PIN_RE = /^\d{4}[A-Z]\d{5}[0-9A-Z]{6}$/;
+const asPin = (text: string) => {
+  const t = text.replace(/[\s-]/g, "").toUpperCase();
+  return PIN_RE.test(t) ? t : null;
+};
+
+/** Hero search: an address (geocoded) or a PIN opens that parcel in the explorer. */
+function LandingSearch() {
+  const navigate = useNavigate();
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState("");
+  const [active, setActive] = useState(0);
+  const [focused, setFocused] = useState(false);
+  const [miss, setMiss] = useState(false);
+  const pin = asPin(query);
+  const { results, loading } = useAddressSearch(pin ? "" : query);
+  const options = results.filter((r) => r.pin).slice(0, 5);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
+  useEffect(() => {
+    setActive(0);
+    setMiss(false);
+  }, [query]);
+
+  const open = (target: string) => void navigate({ to: "/app", search: { pin: target } });
+  const inspect = () => {
+    if (!query.trim()) return open(DEMO_PIN);
+    if (pin) return open(pin);
+    const pick = options[active] ?? options.find((r) => isCityParcel(r.municode));
+    if (pick?.pin) return open(pick.pin);
+    setMiss(!loading);
+  };
+
+  return (
+    <div className="mt-10 flex flex-col gap-3 border border-yz-line bg-yz-panel p-3 md:flex-row md:items-center">
+      <div className="relative flex-1">
+        <div className="flex items-center gap-3 border border-yz-line bg-yz-ink px-3 py-2.5 focus-within:border-yz-brass">
+          <Search className="size-4 shrink-0 text-yz-subtle" />
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setTimeout(() => setFocused(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") inspect();
+              else if (e.key === "ArrowDown") setActive((i) => Math.min(i + 1, options.length - 1));
+              else if (e.key === "ArrowUp") setActive((i) => Math.max(i - 1, 0));
+            }}
+            placeholder={`Pittsburgh address or parcel PIN, e.g. ${DEMO_PIN}`}
+            aria-label="Address or parcel PIN"
+            role="combobox"
+            aria-expanded={focused && options.length > 0}
+            aria-controls="landing-search-results"
+            className="w-full bg-transparent text-[13px] text-yz-body outline-none placeholder:text-yz-subtle tnum-yz"
+          />
+          <span className="hidden shrink-0 border border-yz-line px-1.5 py-0.5 text-[11px] text-yz-subtle md:block">⌘ K</span>
+        </div>
+        {focused && !pin && (options.length > 0 || loading || miss) && (
+          <ul id="landing-search-results" role="listbox" className="absolute inset-x-0 top-full z-20 mt-1 border border-yz-line bg-yz-panel text-[13px]">
+            {loading && !options.length && <li className="px-3 py-2 text-yz-subtle">Searching…</li>}
+            {miss && !options.length && <li className="px-3 py-2 text-yz-subtle">No parcel found for that address.</li>}
+            {options.map((r, i) => (
+              <li key={`${r.pin}-${i}`} role="option" aria-selected={i === active}>
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => r.pin && open(r.pin)}
+                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left ${i === active ? "bg-yz-panel-2 text-white" : "text-yz-mut"}`}
+                >
+                  <span className="truncate">{r.label}</span>
+                  <span className="shrink-0 text-[11px] text-yz-subtle tnum-yz">{isCityParcel(r.municode) ? r.pin : "outside the City"}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={inspect}
+        className="flex items-center justify-center gap-2 bg-yz-brass px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-yz-ink transition-[filter] hover:brightness-108"
+      >
+        Inspect parcel
+        <ArrowRight className="size-3.5" />
+      </button>
+      <Link
+        to="/app"
+        className="flex items-center justify-center border border-yz-line bg-yz-panel-2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-yz-mut transition-colors hover:text-yz-body"
+      >
+        Open the map
+      </Link>
+    </div>
+  );
+}
 
 function LandingHeader() {
   return (
@@ -12,7 +120,7 @@ function LandingHeader() {
           to="/app"
           className="border border-yz-brass px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-yz-brass transition-colors hover:bg-yz-brass hover:text-yz-ink"
         >
-          Access Platform
+          Open Yinzone
         </Link>
       </div>
     </header>
@@ -60,55 +168,26 @@ function HeroSection() {
               <h2 className="max-w-2xl text-4xl font-semibold leading-tight text-white md:text-5xl">
                 Your zoning code is the decision system.
               </h2>
-              <p className="mt-4 text-2xl text-yz-mut md:text-3xl">
-                Viability intelligence from parcel to precinct.
-              </p>
-              <p className="mt-3 text-xl text-yz-subtle">Automate site feasibility at scale.</p>
+              <p className="mt-4 text-2xl text-yz-mut md:text-3xl">See which homes fit each Pittsburgh parcel.</p>
+              <p className="mt-3 text-xl text-yz-subtle">Decision support, not approvals.</p>
             </div>
             <div className="lg:col-span-4 lg:border-l lg:border-yz-line lg:pl-8">
               <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-yz-brass">
-                [ Spatial Operating System ]
+                [ Housing matchmaker ]
               </p>
               <p className="mt-4 text-[13px] leading-relaxed text-yz-mut">
-                Yinzone unifies municipal land records, 3D contour topography, environmental hazards, and codified
-                statutes into a deterministic clearance pipeline.
+                Parcel records, zoning rules, hazards and neighborhood data, combined into one deterministic score per
+                housing type.
               </p>
               <div className="mt-6 space-y-1.5 text-[11px] uppercase tracking-[0.04em] text-yz-subtle tnum-yz">
-                <p>Cluster: Allegheny ≥ PA-S (EPSG:2272)</p>
-                <p>Parcels ingested: 582,914 record entities</p>
-                <p>Statute engine: Title 9 zoning ingestion</p>
+                <p>Coverage: City of Pittsburgh</p>
+                <p>Parcels scored: 142,370</p>
+                <p>Housing types: 16</p>
               </div>
             </div>
           </div>
         </div>
-        <div className="mt-10 flex flex-col gap-3 border border-yz-line bg-yz-panel p-3 md:flex-row md:items-center">
-          <div className="flex flex-1 items-center gap-3 border border-yz-line bg-yz-ink px-3 py-2.5">
-            <Search className="size-4 shrink-0 text-yz-subtle" />
-            <input
-              readOnly
-              value={`1428 Woodruff St. Pittsburgh, PA 15205 [LOT ${DEMO_PIN}]`}
-              aria-label="Demo parcel address"
-              className="w-full bg-transparent text-[13px] text-yz-body outline-none tnum-yz"
-            />
-            <span className="hidden shrink-0 border border-yz-line px-1.5 py-0.5 text-[11px] text-yz-subtle md:block">
-              ⌘ K
-            </span>
-          </div>
-          <Link
-            to="/app"
-            search={{ pin: DEMO_PIN }}
-            className="flex items-center justify-center gap-2 bg-yz-brass px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-yz-ink transition-[filter] hover:brightness-108"
-          >
-            Inspect Viability
-            <ArrowRight className="size-3.5" />
-          </Link>
-          <Link
-            to="/app"
-            className="flex items-center justify-center border border-yz-line bg-yz-panel-2 px-5 py-2.5 text-[12px] font-semibold uppercase tracking-[0.04em] text-yz-mut transition-colors hover:text-yz-body"
-          >
-            Launch Workspace
-          </Link>
-        </div>
+        <LandingSearch />
       </div>
     </section>
   );
@@ -246,14 +325,14 @@ function CtaSection() {
         <path d="M32 32 L32 15 M32 32 L43 40" stroke="#D4A359" strokeWidth="2" fill="none" strokeLinecap="round" />
       </svg>
       <p className="mx-auto mt-10 max-w-md text-xl leading-relaxed text-yz-mut">
-        See which homes could fit each Pittsburgh parcel, and the zoning, equity and climate reasons behind it.
+        See what fits each Pittsburgh parcel, and why.
       </p>
       <div className="mt-10 flex justify-center">
         <Link
           to="/app"
           className="bg-yz-brass px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.04em] text-yz-ink transition-[filter] hover:brightness-108"
         >
-          Access Yinzone Workspace
+          Open Yinzone
         </Link>
       </div>
     </section>
@@ -266,21 +345,17 @@ function LandingFooter() {
       <div className="flex flex-col gap-3 text-[11px] uppercase tracking-[0.04em] md:flex-row md:items-center md:justify-between">
         <p className="text-yz-subtle">
           <span className="font-semibold text-white">Yinzone</span>
-          <span className="ml-3">© 2026 Yinzone Spatial Systems Inc. All rights reserved.</span>
+          <span className="ml-3">Built for the AI Horizons 2026 AI for Housing Hackathon, Pittsburgh.</span>
         </p>
         <p className="flex flex-wrap items-center gap-4 text-yz-subtle tnum-yz">
-          <span className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-yz-brass" aria-hidden />
-            Spatial engine v2.4 operational
-          </span>
-          <span>EPSG:2272 USft</span>
-          <span>Latency: 24ms US-East</span>
+          <Link to="/resources" className="hover:text-yz-body">
+            Methodology & sources
+          </Link>
         </p>
       </div>
       <p className="mt-4 max-w-3xl text-[11px] leading-relaxed normal-case tracking-normal text-yz-subtle">
-        Decision support software only. All dimensional audits, permissible lot coverage metrics, and variance
-        indicators must be verified with certified municipal zoning administrators before construction. Basemap ©
-        CARTO, © OpenStreetMap contributors.
+        Decision support only: not legal, financial or zoning advice. Check with the City's Zoning Administrator before
+        acting. Basemap © CARTO, © OpenStreetMap contributors.
       </p>
     </footer>
   );
@@ -297,27 +372,25 @@ export function LandingPage() {
         <StickySlot>
           <FeatureSection
             active={1}
-            tag="Targeting & Zoning Clearance"
-            title="Powering the Viability chain"
-            sub="// Reconciling Title Nine statutes with elevation matrices"
+            tag="Zoning & site fit"
+            title="Every parcel, scored"
+            sub="// Zoning, lot and hazards in one view"
             paragraphs={[
-              "Yinzone's automated targeting engine supports municipal planners and development analysts with an algorithmic viability chain. It seamlessly cross-references physical topography against legislative zoning barriers, calculating required variances before capital allocation.",
-              "Teams experience enhanced spatial awareness and complete statute deconfliction across parcel boundaries—streamlining approval cycles across complex hillside geographies.",
+              "Yinzone checks each parcel's zoning district, lot, slope and flood risk against 16 housing types: allowed by right, with approval, or only with a rezoning.",
+              "Scores are deterministic. Missing data shows as unknown, never as a fail.",
             ]}
-            chips={["Spec Sheet", "Details"]}
+            chips={["Zoning", "Lot", "Hazards"]}
             telemetry={[
-              { label: "Parcel Identifier", value: DEMO_PIN },
-              { label: "Base District", value: "R1D-H (Hillside Res)" },
-              { label: "Slope Threshold", value: "36% steep", tone: "brass" },
-              { label: "Score Determination", value: "50 / 100", tone: "brass" },
+              { label: "Parcel", value: DEMO_PIN },
+              { label: "Zoning", value: "R1D-H (hillside residential)" },
+              { label: "Steep slope", value: "36% of lot", tone: "brass" },
+              { label: "Overall score", value: "50 / 100", tone: "brass" },
             ]}
             frame={
               <CadFrame
                 icon={<span className="size-1.5 rounded-full bg-yz-brass" aria-hidden />}
-                left="Engine: Allegheny Manor. Homes geoparquet"
-                right="Projection EPSG:2272"
-                footerLeft="Status: Ingestion complete"
-                footerRight="Decision engine verified"
+                left="Explorer: one parcel"
+                right="City of Pittsburgh"
                 img="/media/section-01.webp"
                 alt="Yinzone explorer with the demo parcel selected, showing overall viability score and critical alerts"
               />
@@ -327,21 +400,21 @@ export function LandingPage() {
         <StickySlot>
           <FeatureSection
             active={2}
-            tag="Sensor Layers & Code Deconfliction"
-            title="Task sensors & overlays"
-            sub="// Orchestrate compliance across housing typologies"
+            tag="Layers & tradeoffs"
+            title="See the tradeoffs"
+            sub="// Equity, climate and market on the map"
             paragraphs={[
-              "Yinzone continuously monitors and indexes municipal tables of authorized land use against physical ground hazards. By converting written zoning code into executable spatial queries, developers identify buildable envelopes in milliseconds.",
-              "Ingest multi-tier geotechnical surveys, LiDAR elevation rasters, and FEMA flood overlays into an integrated situational map.",
+              "Turn on flood zones, steep slopes, transit, housing costs and market layers to see what shapes each site.",
+              "Weights are value judgments, so you set them.",
             ]}
-            chips={["Specifications", "Statutory Audit"]}
+            chips={["Equity", "Climate", "Market"]}
             frame={
               <CadFrame
                 icon={<Ruler className="size-3.5 text-yz-brass" />}
-                left="Permitted Typology Clearance Matrix"
-                right="Title 9 — Chapter 911"
+                left="Housing type fit"
+                right="Pittsburgh Zoning Code"
                 img="/media/section-02.webp"
-                alt="Yinzone layers sidebar with steep-slope overlay enabled and the typology clearance cards for the selected parcel"
+                alt="Yinzone layers sidebar with the steep-slope overlay on and housing type cards for the selected parcel"
               />
             }
           />
@@ -349,24 +422,24 @@ export function LandingPage() {
         <StickySlot>
           <FeatureSection
             active={3}
-            tag="Field-Ready Spatial Command"
-            title="Ops Center anywhere"
-            sub="// Natural language cadastre & statute synthesis"
+            tag="Parceltongue assistant"
+            title="Ask about any parcel"
+            sub="// Answers cite the data on screen"
             paragraphs={[
-              "Harness the full power of the cadastral platform from municipal hearing chambers to remote field inspection trucks. Immerse your planning team in an ambient interface that unifies raw GIS coordinate geography with legislative text.",
-              "Ask unstructured inquiries across parcel boundaries: dimensional setback calculations, precedent variances, and allowable density thresholds calculated instantly in sub-second inference passes.",
+              "Parceltongue explains scores, zoning and tradeoffs in plain language, and cites the facts behind each answer.",
+              "It explains. It never sets a score.",
             ]}
-            chips={["Telemetry", "Docs"]}
+            chips={["Plain language", "Cited"]}
             frame={
               <CadFrame
                 icon={<SquareTerminal className="size-3.5 text-yz-brass" />}
-                left="Yinzone Language Runtime"
-                right="SQ-95-LM-T latency 40ms"
+                left="Parceltongue"
+                right="Cites its sources"
                 img="/media/section-03.webp"
                 alt="Yinzone parcel assistant answering a viability question with statute citations"
               >
                 <div className="flex flex-wrap gap-2 border-t border-yz-line px-3 py-2.5">
-                  {["Why is the overall score 50?", "Calculate max FAR & building footprint", "Can I subdivide this parcel?"].map(
+                  {["Why is the overall score 50?", "Could a duplex go here?", "What would a rezoning change?"].map(
                     (p) => (
                       <span key={p} className="border border-yz-line bg-yz-panel-2 px-2.5 py-1 text-[11px] text-yz-mut">
                         {p}
@@ -379,7 +452,7 @@ export function LandingPage() {
                   <input
                     readOnly
                     value=""
-                    placeholder="Ask a technical parcel or municipal statute question..."
+                    placeholder="Ask about this parcel…"
                     aria-label="Demo query input"
                     className="w-full bg-transparent text-[12px] text-yz-body outline-none placeholder:text-yz-subtle"
                   />
@@ -387,7 +460,7 @@ export function LandingPage() {
                     to="/app"
                     className="shrink-0 bg-yz-brass px-4 py-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-yz-ink transition-[filter] hover:brightness-108"
                   >
-                    Execute
+                    Ask
                   </Link>
                 </div>
               </CadFrame>

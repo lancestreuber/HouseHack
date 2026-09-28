@@ -15,24 +15,10 @@ import { client } from "@/utils/orpc";
 
 export type AddressResult = { label: string; lng: number; lat: number; pin: string | null; municode: number | null };
 
-export function AddressSearch({ onSelect, className }: { onSelect: (result: AddressResult) => void; className?: string }) {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState("");
+/** Geocoded Allegheny County matches for `query`, City parcels first. */
+export function useAddressSearch(query: string) {
   const [results, setResults] = useState<AddressResult[]>([]);
   const [loading, setLoading] = useState(false);
-
-  // Cmd/Ctrl+K opens the palette from anywhere on the page.
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setOpen((v) => !v);
-      }
-    };
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
-  }, []);
-
   // Debounced so we don't hammer Nominatim's free (rate-limited) geocoder on
   // every keystroke.
   useEffect(() => {
@@ -50,6 +36,26 @@ export function AddressSearch({ onSelect, className }: { onSelect: (result: Addr
     }, 350);
     return () => clearTimeout(handle);
   }, [query]);
+  return { results, loading };
+}
+
+export function AddressSearch({ onSelect, className }: { onSelect: (result: AddressResult) => void; className?: string }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const { results, loading } = useAddressSearch(query);
+
+  // Cmd/Ctrl+K opens the palette from anywhere on the page.
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
+
 
   return (
     <>

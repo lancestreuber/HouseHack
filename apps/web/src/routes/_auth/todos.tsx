@@ -17,7 +17,7 @@ import { orpc } from "@/utils/orpc";
 
 type TodoId = number;
 
-export const Route = createFileRoute("/todos")({
+export const Route = createFileRoute("/_auth/todos")({
   component: TodosRoute,
 });
 

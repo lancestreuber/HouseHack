@@ -9,16 +9,17 @@ import {
   DropdownMenuTrigger,
 } from "@HouseHack/ui/components/dropdown-menu";
 import { Skeleton } from "@HouseHack/ui/components/skeleton";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { CircleUser } from "lucide-react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { CircleUser, LogIn } from "lucide-react";
 
 import { authClient } from "@/lib/auth-client";
 
-/** Rail-bottom account icon: sign-in link when signed out, account menu
- * otherwise. */
+/** Rail-bottom account control: a labeled sign-in link when signed out
+ * (returns to this page afterwards), the account menu otherwise. */
 export default function UserMenu() {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
+  const { href } = useLocation();
 
   if (isPending) {
     return <Skeleton className="my-1 size-9 rounded-lg" />;
@@ -28,11 +29,13 @@ export default function UserMenu() {
     return (
       <Link
         to="/login"
+        search={{ redirect: href }}
         aria-label="Sign in"
         title="Sign in"
-        className="flex h-10 w-full items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/40 hover:text-foreground"
+        className="flex w-full flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-brass transition-colors hover:bg-accent/40"
       >
-        <CircleUser className="size-5" />
+        <LogIn className="size-5" />
+        <span className="text-[9px] leading-none font-medium">Sign in</span>
       </Link>
     );
   }

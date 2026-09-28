@@ -75,7 +75,7 @@ function RootDocument() {
             <>
               <AppShell />
               <ChatLauncher />
-              <TanStackRouterDevtools position="bottom-left" />
+              <TanStackRouterDevtools position="top-right" />
               <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
             </>
           )}
