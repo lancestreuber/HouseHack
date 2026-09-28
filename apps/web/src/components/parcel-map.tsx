@@ -1,7 +1,7 @@
 import type { ExpressionSpecification, GeoJSONSource, StyleSpecification } from "maplibre-gl";
 import { Map as MapLibreMap, NavigationControl, setWorkerUrl } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useTheme } from "next-themes";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -247,6 +247,7 @@ function usePaneCollapse(defaultCollapsed = false) {
 
 export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string; initialWeights?: string }) {
   const navigate = useNavigate({ from: "/" });
+  const router = useRouter();
   const initialPinRef = useRef(initialPin);
   const pillarWeights = usePillarWeights();
   const containerRef = useRef<HTMLDivElement>(null);
@@ -378,14 +379,17 @@ export function ParcelMap({ initialPin, initialWeights }: { initialPin?: string;
   }, []);
 
   // Keep the selected parcel and pillar weights in the URL so a refresh (or
-  // a shared link) restores the same view.
+  // a shared link) restores the same view. Skipped once the router is leaving
+  // this page: the map is still mounted while the next route loads, and a
+  // navigate here would send the user straight back to the explorer.
   useEffect(() => {
+    if (router.state.location.pathname !== "/") return;
     void navigate({
       search: (prev) => ({ ...prev, pin: selectedPin ?? undefined, w: encodeWeights(pillarWeights) }),
       replace: true,
       resetScroll: false,
     });
-  }, [selectedPin, pillarWeights, navigate]);
+  }, [selectedPin, pillarWeights, navigate, router]);
 
   useEffect(() => {
     if (!containerRef.current) return;
