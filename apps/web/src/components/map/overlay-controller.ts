@@ -13,10 +13,9 @@ export type OverlayState = {
   metricByOverlay: Record<string, string>;
 };
 
-// Residential zoning is the one heat overlay shown by default (it used to be
-// a separate always-on "Zoning" toggle); like every other heat overlay, it
-// can be turned off via the Layers pane's "None" option.
-export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: "residential-zoning", infraIds: [], metricByOverlay: {} };
+// The overall pillar score is the heat overlay shown by default; like every
+// other heat overlay, it can be switched or turned off via the Layers pane.
+export const INITIAL_OVERLAY_STATE: OverlayState = { heatId: "pillar-overall", infraIds: [], metricByOverlay: {} };
 
 const sourceIdFor = (def: OverlayDefinition) => `overlay-${def.sharedSource ?? def.id}`;
 

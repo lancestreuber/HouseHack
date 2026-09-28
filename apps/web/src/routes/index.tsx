@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 
-import { ParcelMap } from "@/components/parcel-map";
+import { LandingPage } from "@/landing/landing-page";
 
 const searchSchema = z.object({
   pin: z.string().optional(),
@@ -10,10 +10,31 @@ const searchSchema = z.object({
 
 export const Route = createFileRoute("/")({
   validateSearch: searchSchema,
-  component: HomeComponent,
-});
 
-function HomeComponent() {
-  const { pin, w } = Route.useSearch();
-  return <ParcelMap initialPin={pin} initialWeights={w} />;
-}
+  loader: ({ location }) => {
+    const params = new URLSearchParams(location.search);
+    const pin = params.get("pin");
+    const w = params.get("w");
+    if (pin || w) {
+      throw redirect({
+        to: "/app",
+        search: { ...(pin ? { pin } : {}), ...(w ? { w } : {}) },
+      });
+    }
+  },
+
+  head: () => ({
+    meta: [
+      {
+        title: "YINZONE — Viability intelligence from parcel to precinct",
+      },
+      {
+        name: "description",
+        content:
+          "Yinzone unifies municipal land records, 3D contour topography, environmental hazards, and codified statutes into a deterministic clearance pipeline. Automate site feasibility at scale.",
+      },
+    ],
+  }),
+
+  component: LandingPage,
+});

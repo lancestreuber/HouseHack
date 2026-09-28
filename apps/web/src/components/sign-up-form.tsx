@@ -3,6 +3,7 @@ import { Input } from "@HouseHack/ui/components/input";
 import { Label } from "@HouseHack/ui/components/label";
 import { useForm } from "@tanstack/react-form";
 import { useNavigate } from "@tanstack/react-router";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -10,7 +11,7 @@ import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
 
-export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
+export default function SignUpForm({ onSwitchToSignIn, redirectTo }: { onSwitchToSignIn: () => void; redirectTo: string }) {
   const navigate = useNavigate({
     from: "/",
   });
@@ -31,9 +32,8 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
         },
         {
           onSuccess: () => {
-            navigate({
-              to: "/dashboard",
-            });
+            // Back to the page that asked for sign-in (the dashboard by default).
+            navigate({ href: redirectTo });
             toast.success("Sign up successful");
           },
           onError: (error) => {
@@ -56,8 +56,10 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
   }
 
   return (
-    <div className="mx-auto w-full mt-10 max-w-md p-6">
-      <h1 className="mb-6 text-center text-3xl font-bold">Create Account</h1>
+    <div className="flex w-full flex-col">
+      <h1 className="mb-5 text-sm font-semibold tracking-widest text-muted-foreground uppercase">
+        Create account
+      </h1>
 
       <form
         onSubmit={(e) => {
@@ -65,82 +67,105 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="space-y-4"
+        className="flex flex-col gap-4"
       >
-        <div>
-          <form.Field name="name">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Name</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
+        <form.Field name="name">
+          {(field) => (
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs text-muted-foreground" htmlFor={field.name}>
+                Full name
+              </Label>
+              <Input
+                autoComplete="name"
+                className="rounded-md bg-background"
+                id={field.name}
+                name={field.name}
+                placeholder="Sarah Analyst"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-xs text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
 
-        <div>
-          <form.Field name="email">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Email</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
+        <form.Field name="email">
+          {(field) => (
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs text-muted-foreground" htmlFor={field.name}>
+                Work email
+              </Label>
+              <Input
+                autoComplete="email"
+                className="rounded-md bg-background"
+                id={field.name}
+                name={field.name}
+                placeholder="analyst@department.gov"
+                type="email"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-xs text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
 
-        <div>
-          <form.Field name="password">
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Password</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                />
-                {field.state.meta.errors.map((error) => (
-                  <p key={error?.message} className="text-red-500">
-                    {error?.message}
-                  </p>
-                ))}
-              </div>
-            )}
-          </form.Field>
-        </div>
+        <form.Field name="password">
+          {(field) => (
+            <div className="flex flex-col gap-1">
+              <Label className="text-xs text-muted-foreground" htmlFor={field.name}>
+                Password
+              </Label>
+              <Input
+                autoComplete="new-password"
+                className="rounded-md bg-background tracking-wider"
+                id={field.name}
+                name={field.name}
+                placeholder="••••••••••••"
+                type="password"
+                value={field.state.value}
+                onBlur={field.handleBlur}
+                onChange={(e) => field.handleChange(e.target.value)}
+              />
+              {field.state.meta.errors.map((error) => (
+                <p key={error?.message} className="text-xs text-destructive">
+                  {error?.message}
+                </p>
+              ))}
+            </div>
+          )}
+        </form.Field>
 
         <form.Subscribe
           selector={(state) => ({ canSubmit: state.canSubmit, isSubmitting: state.isSubmitting })}
         >
           {({ canSubmit, isSubmitting }) => (
-            <Button type="submit" className="w-full" disabled={!canSubmit || isSubmitting}>
-              {isSubmitting ? "Submitting..." : "Sign Up"}
+            <Button
+              className="mt-1 w-full rounded-lg py-2 font-semibold"
+              disabled={!canSubmit || isSubmitting}
+              type="submit"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign up</span>
+                  <ArrowRight />
+                </>
+              )}
             </Button>
           )}
         </form.Subscribe>
@@ -148,9 +173,9 @@ export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () 
 
       <div className="mt-4 text-center">
         <Button
-          variant="link"
+          className="text-xs tracking-wider text-muted-foreground uppercase hover:text-brass"
           onClick={onSwitchToSignIn}
-          className="text-indigo-600 hover:text-indigo-800"
+          variant="link"
         >
           Already have an account? Sign In
         </Button>

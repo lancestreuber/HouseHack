@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { CircleDot, FileText, LayoutGrid, Map } from "lucide-react";
+import { FileText, LayoutGrid, Map } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { LogoMark } from "../logo-mark";
 import { ThemeToggle } from "../theme-toggle";
 import UserMenu from "../user-menu";
 import { EngineSettings } from "./engine-settings";
@@ -34,9 +35,9 @@ export function NavRail() {
         aria-label="Yinzone home"
         className="mb-2 flex size-9 shrink-0 items-center justify-center rounded-lg border border-brass/40 bg-brass/10 text-brass"
       >
-        <CircleDot className="size-5" />
+        <LogoMark className="size-5" />
       </Link>
-      <RailLink to="/" active={pathname === "/"} label="Explorer">
+      <RailLink to="/app" active={pathname === "/app"} label="Explorer">
         <Map className="size-5" />
       </RailLink>
       <RailLink to="/dashboard" active={pathname.startsWith("/dashboard")} label="Dashboard">

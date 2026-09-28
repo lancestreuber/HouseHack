@@ -1,7 +1,7 @@
 import { Toaster } from "@HouseHack/ui/components/sonner";
 import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useLocation } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { createMiddleware } from "@tanstack/react-start";
 import { evlogErrorHandler } from "evlog/nitro/v3";
@@ -44,13 +44,13 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
       {
         rel: "icon",
         type: "image/svg+xml",
-        href: `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔮</text></svg>`,
+        href: "/favicon.svg",
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400;0,600;1,400;1,600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&display=swap",
       },
     ],
   }),
@@ -59,6 +59,9 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 });
 
 function RootDocument() {
+  const { pathname } = useLocation();
+  // The landing page is its own full-bleed page: no app shell, chat or devtools.
+  const isLanding = pathname === "/";
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -66,12 +69,18 @@ function RootDocument() {
       </head>
       <body>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
-          <AppShell />
-          <ChatLauncher />
+          {isLanding ? (
+            <Outlet />
+          ) : (
+            <>
+              <AppShell />
+              <ChatLauncher />
+              <TanStackRouterDevtools position="top-right" />
+              <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
+            </>
+          )}
           <Toaster richColors />
         </ThemeProvider>
-        <TanStackRouterDevtools position="bottom-left" />
-        <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
         <Scripts />
       </body>
     </html>

@@ -9,7 +9,8 @@
     "check-types": "tsc -b ../../packages/api && vite build && tsc --noEmit",
     "env:generate": "varlock codegen",
     "auth:generate": "varlock run -- bun x auth@latest generate --config src/services.ts --output ../../packages/db/src/schema/auth.ts --yes",
-    "data:overlays": "bun scripts/data/build-all.ts"
+    "data:overlays": "bun scripts/data/build-all.ts",
+    "capture:media": "node --experimental-strip-types scripts/capture-media.ts"
   },
   "dependencies": {
     "@HouseHack/api": "workspace:*",
@@ -54,6 +55,7 @@
     "@vitejs/plugin-react": "^6.1.1",
     "bun-types": "^1.4.2",
     "jsdom": "^30.0.1",
+    "playwright": "^1.63.0",
     "typescript": "catalog:",
     "vite": "^8.2.2",
     "web-vitals": "^6.2.1"
