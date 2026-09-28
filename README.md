@@ -15,6 +15,9 @@ Yinzone is a parcel-level decision-support map for the City of Pittsburgh. Click
 
 ---
 
+[![Watch the demo video](https://github.com/user-attachments/assets/420bc51c-d562-426a-885e-c921621474d0)](https://youtu.be/ECZnv7R-q_8)
+
+
 ## Contents
 
 - [The problem](#the-problem)
