@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Building2, HandHeart, Landmark, Loader2, type Lu
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { LogoMark } from "@/components/logo-mark";
 import { setPillarWeights } from "@/components/map/pillar-weights-store";
 import { AUDIENCE_OPTIONS, type AudienceId, CONTEXT_MAX, PRESET_LABEL, PRESET_NOTE, presetWeights } from "@/lib/onboarding";
 import { orpc } from "@/utils/orpc";
@@ -125,7 +126,8 @@ export function OnboardingDialog({ open, onClose, profile, name }: { open: boole
       >
         <div className="flex flex-col gap-2 pr-6">
           <div className="flex items-center justify-between text-xs">
-            <span className="tnum font-semibold tracking-wider text-foreground uppercase">
+            <span className="tnum flex items-center gap-2 font-semibold tracking-wider text-foreground uppercase">
+              <LogoMark className="size-4 text-brass" />
               Step 0{step + 1} / 0{STEPS.length}
             </span>
             <span className="text-muted-foreground">{STEPS[step]}</span>
