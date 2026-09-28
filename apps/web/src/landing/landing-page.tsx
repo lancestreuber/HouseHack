@@ -246,7 +246,7 @@ function CtaSection() {
         <path d="M32 32 L32 15 M32 32 L43 40" stroke="#D4A359" strokeWidth="2" fill="none" strokeLinecap="round" />
       </svg>
       <p className="mx-auto mt-10 max-w-md text-xl leading-relaxed text-yz-mut">
-        Transform how municipal land is evaluated and cleared.
+        See which homes could fit each Pittsburgh parcel, and the zoning, equity and climate reasons behind it.
       </p>
       <div className="mt-10 flex justify-center">
         <Link
