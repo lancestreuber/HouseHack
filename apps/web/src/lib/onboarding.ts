@@ -27,7 +27,15 @@ export const PRESET_LABEL: Record<string, string> = {
   market_first: "Market first",
 };
 
-export const PRESET_NOTE = config.preset_notes as Record<string, string>;
+// One sentence each, kept to a similar length so the onboarding cards line up.
+export const PRESET_HINT: Record<string, string> = {
+  equal: "Weighs all five pillars equally, a neutral place to start before you adjust.",
+  affordability_first: "Weighs unmet need highest, favoring places where low-income renters are burdened.",
+  family: "Weighs access to schools, groceries and daily needs highest, then site safety.",
+  older_adult: "Weighs nearby health care and services highest, then safe sites and clean air.",
+  climate_first: "Weighs low-carbon, walkable places with clean air and tree canopy highest.",
+  market_first: "Weighs strong demand highest, which steers new homes away from disinvested areas.",
+};
 
 export function presetWeights(name: string | null | undefined): PillarWeights | undefined {
   return name ? (config.presets as Record<string, PillarWeights>)[name] : undefined;

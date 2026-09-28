@@ -11,7 +11,7 @@ import { authClient } from "@/lib/auth-client";
 
 import Loader from "./loader";
 
-export default function SignUpForm({ onSwitchToSignIn, redirectTo }: { onSwitchToSignIn: () => void; redirectTo: string }) {
+export default function SignUpForm({ onSwitchToSignIn }: { onSwitchToSignIn: () => void }) {
   const navigate = useNavigate({
     from: "/",
   });
@@ -32,8 +32,8 @@ export default function SignUpForm({ onSwitchToSignIn, redirectTo }: { onSwitchT
         },
         {
           onSuccess: () => {
-            // Back to the page that asked for sign-in (the dashboard by default).
-            navigate({ href: redirectTo });
+            // New accounts always land on the dashboard, which opens onboarding.
+            navigate({ to: "/dashboard" });
             toast.success("Sign up successful");
           },
           onError: (error) => {
