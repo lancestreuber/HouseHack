@@ -2,7 +2,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@HouseHack/ui/component
 import { useLocation, useNavigate } from "@tanstack/react-router";
 import { Compass, Scale } from "lucide-react";
 
-import { AddressSearch } from "../map/address-search";
+import { AddressSearch, type AddressResult } from "../map/address-search";
 import { dispatchAddressSelect } from "../map/address-select-store";
 import { startTour } from "../tour/explorer-tour";
 import { WeightsPanel } from "./engine-settings";
@@ -14,6 +14,10 @@ const HEADER_BUTTON =
 export function ShellHeader() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  // On the explorer the map flies to the result; elsewhere, open the explorer on that parcel.
+  const selectAddress = (result: AddressResult) => {
+    if (!dispatchAddressSelect(result) && result.pin) void navigate({ to: "/app", search: { pin: result.pin } });
+  };
   // The tour walks the explorer, so open it there first.
   const launchTour = () => {
     startTour();
@@ -23,7 +27,7 @@ export function ShellHeader() {
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b border-border bg-background/90 px-4 backdrop-blur-xl">
       <div data-tour="search" className="w-full max-w-xl flex-1">
-        <AddressSearch onSelect={dispatchAddressSelect} className="w-full" />
+        <AddressSearch onSelect={selectAddress} className="w-full" />
       </div>
       <Popover>
         <PopoverTrigger data-tour="weights" className={HEADER_BUTTON}>
