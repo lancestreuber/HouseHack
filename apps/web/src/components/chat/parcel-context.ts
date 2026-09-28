@@ -20,6 +20,7 @@ import { EASIEST, useLegalFor } from "../map/legal-for-store";
 import type { LeverSection, Levers } from "../map/levers";
 import { useLevers } from "../map/use-levers";
 import { type PillarWeights, usePillarWeights } from "../map/pillar-weights-store";
+import { typologyImpact } from "../map/typology-impact";
 import { notPermittedScore, PATHWAY_SCORE } from "../map/typology-panel";
 import { type FitsById, legalLevelFor, rezoningCloseness, rezoningLikelihood, rezoningTargets, SHORT_LABEL, SITE_FIT_TYPOLOGY, verdictFor } from "../map/typology-meta";
 
@@ -217,6 +218,23 @@ function verdictFacts(data: ParcelData, pencil: PencilAssumptions, fit: FitState
     fact("pencil.value_bias", config.pencil.value_bias, "assumption"),
   );
   return facts;
+}
+
+// Who building each type here helps and who it may harm, from the fixed rules in
+// typology-impact.ts (the Alerts pane's green and yellow rows). Ids read
+// `helps.<type>.<group>` / `harms.<type>.<group>` so the scenario report can
+// list them by side.
+export function impactFacts(data: ParcelData, typologyIds: Iterable<string>): ContextFact[] {
+  return [...typologyIds].flatMap((id) => {
+    const name = SHORT_LABEL[id] ?? id;
+    return typologyImpact(id, data).map((item) =>
+      fact(
+        `${item.effect}.${id}.${item.key}`,
+        `Who a ${name} here ${item.effect === "helps" ? "helps" : "may harm"}: ${item.group}. ${sentence(item.detail.charAt(0).toUpperCase() + item.detail.slice(1))}`,
+        "value",
+      ),
+    );
+  });
 }
 
 // Lot size and shape, hazards, how Jev rates fit, and the Alerts pane.
@@ -458,6 +476,7 @@ export function parcelChatContext(
     ...indicatorFacts(data, result),
     ...verdictFacts(data, pencil, fit),
     ...leverFacts(levers),
+    ...impactFacts(data, MAIN_TYPOLOGIES),
     ...definitions(),
   ];
 
@@ -512,8 +531,10 @@ export function typologyScore(data: ParcelData, weights: PillarWeights, typology
  * mustn't become a pro for a duplex that isn't permitted).
  */
 export function scenarioChatContext(context: ChatContext, data: ParcelData, weights: PillarWeights, typologyId: string): ChatContext {
+  // Who this type helps and may harm; the five mainstream types already have theirs.
+  const impact = impactFacts(data, [typologyId]).filter((f) => !context.facts.some((c) => c.id === f.id));
   const result = typologyScore(data, weights, typologyId);
-  if (!result) return context;
+  if (!result) return impact.length ? { ...context, facts: [...context.facts, ...impact] } : context;
   const name = SHORT_LABEL[typologyId] ?? typologyId;
   const overall = round(result.overall);
   const { legal, availability, hazard } = result;
@@ -530,6 +551,7 @@ export function scenarioChatContext(context: ChatContext, data: ParcelData, weig
     facts: [
       withTone(fact(`overall.${typologyId}`, text, "value", SCORES_SOURCE, LEGAL_MATRIX_SOURCE), toneOf(result.overall)),
       ...context.facts.filter((f) => !replaced(f.id)),
+      ...impact,
     ],
   };
 }

@@ -4,7 +4,9 @@
 // number must appear in the facts, or it's dropped. A second pass then checks
 // each point against only the facts it cites, drops anything they don't
 // directly say or that repeats an earlier point, and decides whether it's a
-// pro or a con. Fewer than five is fine.
+// pro or a con. Fewer than five is fine. The same reply names who building it
+// helps and who it may harm, from the Alerts pane's rule-based helps/harms
+// facts; any group the model leaves out is filled in from those facts.
 import { factsFrom, unverifiedIn } from "./engine";
 import type { GeminiContent, GeminiPart, GenerateFn } from "./gemini";
 import { keepVerified, parseReply } from "./guard";
@@ -22,25 +24,30 @@ export interface ScenarioInput {
 }
 
 export type ScenarioResult =
-  | { status: "ok"; pros: ReplyBlock[]; cons: ReplyBlock[]; facts: ChatFact[] }
+  | { status: "ok"; pros: ReplyBlock[]; cons: ReplyBlock[]; helps: ReplyBlock[]; harms: ReplyBlock[]; facts: ChatFact[] }
   | { status: "unavailable"; reason: string };
 
 export function scenarioPrompt(facts: ChatFact[], input: ScenarioInput): string {
-  const { name } = input.typology;
+  const { id, name } = input.typology;
   const factLines = facts.map((f) => `[${f.id}] ${f.text}`).join("\n");
   const focus = input.focus?.length ? `\nThe facts most about ${name} here: ${input.focus.map((id) => `[${id}]`).join(", ")}.` : "";
   return `You are Parceltongue, the guide inside Yinzone, a tool that suggests which housing types fit a City of Pittsburgh parcel. Someone is looking at ${input.context.subject} and considering building: ${name}.${focus}
 
-List the strongest reasons for and against building ${name} on this parcel, using only the FACTS below.
+List the strongest reasons for and against building ${name} on this parcel, and who it would help and who it may harm, using only the FACTS below.
 
 Write exactly this format and nothing else:
 PROS:
 - one pro [fact ids]
 CONS:
 - one con [fact ids]
+HELPS:
+- Group of people: how building ${name} here helps them [fact ids]
+HARMS:
+- Group of people: how building ${name} here may harm them [fact ids]
 
 Rules:
 - A pro makes building ${name} here easier or better (for example allowed by right, a good site fit, good access, no mapped hazard). A con makes it harder or worse (for example not permitted, a poor fit, a hazard, an alert, displacement risk).
+- HELPS and HARMS are about people, not the site: each line starts with one group (for example low-income renters, older adults, families with children, current occupants, nearby renters) and cites that group's [helps.${id}.…] or [harms.${id}.…] fact, plus any indicator fact it quotes. One group per line; cover every such fact. Don't repeat a HELPS or HARMS point among the pros and cons.
 - Up to ${MAX_POINTS} pros and up to ${MAX_POINTS} cons, most important first. If the FACTS support fewer, write fewer. Never pad or repeat a point.
 - Each point is one plain sentence of at most 25 words, specific to ${name} on this parcel: its zoning pathway and tile score, Jev's site fit for it, its alerts, the lot and hazards, and the scores and indicators that matter for it.
 - End every point with the ids of the facts it uses in square brackets. A point without a fact behind it must be left out.
@@ -57,20 +64,53 @@ ${factLines}`;
 
 const textOf = (parts: GeminiPart[]) => parts.map((p) => ("text" in p ? p.text : "")).join("");
 
-/** Split the model's reply into its PROS and CONS sections. */
-export function splitSections(reply: string): { pros: string; cons: string } {
-  const pros: string[] = [];
-  const cons: string[] = [];
+/** Split the model's reply into its PROS, CONS, HELPS and HARMS sections. */
+export function splitSections(reply: string): { pros: string; cons: string; helps: string; harms: string } {
+  const sections = { pros: [] as string[], cons: [] as string[], helps: [] as string[], harms: [] as string[] };
   let into: string[] | null = null;
   for (const line of reply.split("\n")) {
-    const heading = /^\s*(?:#+\s*)?\**\s*(pros?|cons?)\s*\**\s*:?\s*\**\s*$/i.exec(line);
+    const heading = /^\s*(?:#+\s*)?\**\s*(pros?|cons?|helps?|helped|harms?|harmed)\s*\**\s*:?\s*\**\s*$/i.exec(line);
     if (heading) {
-      into = heading[1]!.toLowerCase().startsWith("pro") ? pros : cons;
+      const word = heading[1]!.toLowerCase();
+      into = word.startsWith("pro") ? sections.pros : word.startsWith("con") ? sections.cons : word.startsWith("help") ? sections.helps : sections.harms;
       continue;
     }
     into?.push(line);
   }
-  return { pros: pros.join("\n"), cons: cons.join("\n") };
+  return { pros: sections.pros.join("\n"), cons: sections.cons.join("\n"), helps: sections.helps.join("\n"), harms: sections.harms.join("\n") };
+}
+
+/** A helps/harms fact as a plain point, for groups the model left out: "Who a Duplex here helps: low-income renters. …" → "Low-income renters: …". */
+export function impactPoint(fact: ChatFact): ReplyBlock {
+  const body = fact.text.replace(/^Who an? .+? here (?:helps|may harm): /, "");
+  const text = body.replace(/^([^.]+)\.\s*/, (_, group: string) => `${group.charAt(0).toUpperCase()}${group.slice(1)}: `);
+  return { type: "bullet", text, fact_ids: [fact.id] };
+}
+
+/**
+ * Who it helps (or may harm): the model's points that cite one of this side's
+ * helps/harms facts and pass the checks, then any group it left out, straight
+ * from the facts.
+ */
+async function impactSide(
+  generate: GenerateFn,
+  input: ScenarioInput,
+  section: string,
+  facts: ChatFact[],
+  effect: "helps" | "harms",
+): Promise<ReplyBlock[]> {
+  const prefix = `${effect}.${input.typology.id}.`;
+  const side = effect === "helps" ? "pro" : "con";
+  const written = points(section, facts)
+    .filter((p) => p.fact_ids.some((id) => id.startsWith(prefix)))
+    .map((point) => ({ point, side: side as "pro" | "con" }));
+  const kept = await checked(generate, input.typology.name, written, facts);
+  const out = side === "pro" ? kept.pros : kept.cons;
+  const covered = new Set(out.flatMap((p) => p.fact_ids));
+  for (const fact of facts) {
+    if (fact.id.startsWith(prefix) && !covered.has(fact.id) && out.length < MAX_POINTS) out.push(impactPoint(fact));
+  }
+  return out;
 }
 
 /** Parsed, cited, number-checked points: at most MAX_POINTS, no duplicates. */
@@ -186,12 +226,12 @@ export function createScenario(deps: { generate: GenerateFn | null }) {
 
     const facts = factsFrom(input.context);
     const system = scenarioPrompt(facts, input);
-    const contents: GeminiContent[] = [{ role: "user", parts: [{ text: `Pros and cons of building ${input.typology.name} here.` }] }];
+    const contents: GeminiContent[] = [{ role: "user", parts: [{ text: `Pros and cons of building ${input.typology.name} here, and who it helps and may harm.` }] }];
 
     try {
       let reply = textOf(await deps.generate({ system, contents }));
-      let { pros, cons } = splitSections(reply);
-      const bad = unverifiedIn(parseReply(`${pros}\n${cons}`, facts.map((f) => f.id)), facts);
+      let { pros, cons, helps, harms } = splitSections(reply);
+      const bad = unverifiedIn(parseReply(`${pros}\n${cons}\n${helps}\n${harms}`, facts.map((f) => f.id)), facts);
       if (bad.length) {
         contents.push(
           { role: "model", parts: [{ text: reply }] },
@@ -201,7 +241,7 @@ export function createScenario(deps: { generate: GenerateFn | null }) {
           },
         );
         reply = textOf(await deps.generate({ system, contents }));
-        ({ pros, cons } = splitSections(reply));
+        ({ pros, cons, helps, harms } = splitSections(reply));
       }
 
       const written = [
@@ -236,11 +276,13 @@ export function createScenario(deps: { generate: GenerateFn | null }) {
         const extra = await checked(deps.generate, input.typology.name, points(section, facts).map((point) => ({ point, side })), facts, used);
         list.push(...(side === "pro" ? extra.pros : extra.cons));
       }
-      if (!prosOut.length && !consOut.length) {
+      const helpsOut = await impactSide(deps.generate, input, helps, facts, "helps");
+      const harmsOut = await impactSide(deps.generate, input, harms, facts, "harms");
+      if (!prosOut.length && !consOut.length && !helpsOut.length && !harmsOut.length) {
         return { status: "unavailable", reason: "I couldn't write pros and cons I could verify against the data. Try again in a moment." };
       }
-      const cited = new Set([...prosOut, ...consOut].flatMap((b) => b.fact_ids));
-      const result: ScenarioResult = { status: "ok", pros: prosOut, cons: consOut, facts: facts.filter((f) => cited.has(f.id)) };
+      const cited = new Set([...prosOut, ...consOut, ...helpsOut, ...harmsOut].flatMap((b) => b.fact_ids));
+      const result: ScenarioResult = { status: "ok", pros: prosOut, cons: consOut, helps: helpsOut, harms: harmsOut, facts: facts.filter((f) => cited.has(f.id)) };
       if (cache.size >= CACHE_LIMIT) cache.delete(cache.keys().next().value as string);
       cache.set(key, result);
       return result;
