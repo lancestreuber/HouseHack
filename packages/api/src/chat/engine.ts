@@ -10,6 +10,8 @@ import type { ChatAction, ChatContext, ChatFact, ChatMessage, ChatResult, ReplyB
 export interface ChatInput {
   context?: ChatContext;
   messages: ChatMessage[];
+  /** Who's asking, from their onboarding answers (server-side, never from the request body). */
+  user?: string;
 }
 
 const MAX_HISTORY = 10;
@@ -70,7 +72,7 @@ export function createChat(deps: { generate: GenerateFn | null }) {
     if (!deps.generate) return unavailable("The chat assistant isn't set up yet (no API key).");
 
     const history = input.messages.slice(-MAX_HISTORY);
-    const key = JSON.stringify([input.context, history]);
+    const key = JSON.stringify([input.context, history, input.user]);
     const cached = cache.get(key);
     if (cached) return cached;
 
@@ -82,7 +84,7 @@ export function createChat(deps: { generate: GenerateFn | null }) {
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.text }],
     }));
-    const run = () => runWithTools(deps.generate as GenerateFn, input.context, facts, contents, actions);
+    const run = () => runWithTools(deps.generate as GenerateFn, input.context, facts, contents, actions, input.user);
 
     try {
       let reply = await run();
@@ -152,13 +154,14 @@ async function runWithTools(
   facts: ChatFact[],
   contents: GeminiContent[],
   actions: ChatAction[],
+  user?: string,
 ): Promise<string> {
   const scoring = context?.scoring;
   let map = context?.map;
   const tools = [...(scoring ? [rescoreTool(scoring)] : []), ...(map ? [mapTool(map)] : [])];
   for (let step = 0; step < MAX_TOOL_STEPS; step++) {
     const parts = await generate({
-      system: systemPrompt(facts, context?.subject, Boolean(map)),
+      system: systemPrompt(facts, context?.subject, Boolean(map), user),
       contents,
       tools: tools.length ? tools : undefined,
     });

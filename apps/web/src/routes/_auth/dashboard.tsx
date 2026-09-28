@@ -2,13 +2,13 @@ import { Button } from "@HouseHack/ui/components/button";
 import { Skeleton } from "@HouseHack/ui/components/skeleton";
 import { cn } from "@HouseHack/ui/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link, Navigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { History, Map as MapIcon, Star } from "lucide-react";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
-import { TYPOLOGIES } from "@/components/map/overlays/legal-feasibility";
 import { encodeWeights } from "@/components/map/pillar-weights-store";
-import { PRESET_LABEL, presetWeights, ROLE_LABEL } from "@/lib/onboarding";
+import { OnboardingDialog } from "@/components/onboarding-dialog";
+import { AUDIENCE_LABEL, PRESET_LABEL, presetWeights } from "@/lib/onboarding";
 import { useFavorites, useSetFavorite, useViewed } from "@/lib/user-parcels";
 import { orpc } from "@/utils/orpc";
 
@@ -16,7 +16,6 @@ export const Route = createFileRoute("/_auth/dashboard")({
   component: DashboardPage,
 });
 
-const TYPOLOGY_LABEL = Object.fromEntries(TYPOLOGIES);
 const relative = new Intl.RelativeTimeFormat("en", { numeric: "auto" });
 
 function ago(date: Date | string) {
@@ -92,7 +91,7 @@ function DashboardPage() {
     orpc.me.clearViewed.mutationOptions({ onSuccess: () => queryClient.invalidateQueries({ queryKey: orpc.me.viewed.key() }) }),
   );
 
-  if (profile.isSuccess && profile.data === null) return <Navigate to="/onboarding" />;
+  const [editing, setEditing] = useState(false);
 
   const p = profile.data;
   const weights = encodeWeights(presetWeights(p?.weightsPreset) ?? {});
@@ -105,15 +104,15 @@ function DashboardPage() {
           <h1 className="text-xl font-semibold">{session?.user.name ? `${session.user.name}'s dashboard` : "Dashboard"}</h1>
           {p ? (
             <p className="text-muted-foreground">
-              {ROLE_LABEL[p.role] ?? p.role} · {p.typology ? (TYPOLOGY_LABEL[p.typology] ?? p.typology) : "Any housing type"} ·{" "}
+              {(p.audience && AUDIENCE_LABEL[p.audience]) ?? p.role.replace("_", " ")} ·{" "}
               {p.weightsPreset ? (PRESET_LABEL[p.weightsPreset] ?? p.weightsPreset) : "Default"} weights ·{" "}
-              <Link to="/onboarding" className="underline hover:text-foreground">
+              <button type="button" onClick={() => setEditing(true)} className="underline hover:text-foreground">
                 Edit
-              </Link>
+              </button>
             </p>
-          ) : (
+          ) : profile.isPending ? (
             <Skeleton className="h-4 w-64" />
-          )}
+          ) : null}
         </div>
         <Button nativeButton={false} render={<Link to="/" search={{ w: weights }} />}>
           <MapIcon className="size-3.5" /> Open the explorer
@@ -149,6 +148,9 @@ function DashboardPage() {
         </Section>
       </div>
       <p className="text-muted-foreground">Decision support only; nothing here is legal, financial or zoning advice.</p>
+      {profile.isSuccess && (
+        <OnboardingDialog open={p === null || editing} onClose={() => setEditing(false)} profile={p ?? null} name={session?.user.name} />
+      )}
     </div>
   );
 }

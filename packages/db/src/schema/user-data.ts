@@ -10,9 +10,12 @@ export const userProfile = pgTable("user_profile", {
   userId: text("user_id")
     .primaryKey()
     .references(() => user.id, { onDelete: "cascade" }),
+  /** "zoning_regulator" or "developer". */
   role: text("role").notNull(),
-  /** Housing type the user cares about most (a typology id), if any. */
-  typology: text("typology"),
+  /** Which onboarding option they picked (a finer-grained audience within the role). */
+  audience: text("audience"),
+  /** Free text about their goal, job or tasks; given to the chat assistant as context. */
+  context: text("context"),
   /** Pillar-weight preset picked during onboarding (a pillars.config.json preset name). */
   weightsPreset: text("weights_preset"),
   onboardedAt: timestamp("onboarded_at").defaultNow().notNull(),

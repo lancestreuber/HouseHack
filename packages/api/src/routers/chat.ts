@@ -4,6 +4,7 @@ import { createChat } from "../chat/engine";
 import { type AudioChunk, geminiGenerate, geminiSpeakStream } from "../chat/gemini";
 import { createScenario } from "../chat/scenario";
 import { publicProcedure } from "../index";
+import { userChatNote } from "./me";
 
 const factKind = z.enum(["evidence", "assumption", "observed", "policy", "value", "definition"]);
 
@@ -120,7 +121,11 @@ const SPEECH_CACHE_LIMIT = 100;
 
 export const chatRouter = {
   /** Explain-only assistant grounded in the facts the screen is showing. */
-  ask: publicProcedure.input(askInput).handler(({ input, context }) => chatFor(context.geminiApiKey)(input)),
+  ask: publicProcedure.input(askInput).handler(async ({ input, context }) => {
+    // Signed in: tailor answers to what they told us at onboarding.
+    const user = context.session ? await userChatNote(context.db, context.session.user.id) : undefined;
+    return chatFor(context.geminiApiKey)({ ...input, user });
+  }),
 
   /** Up to five pros and five cons for building one housing type on the parcel, from the same facts. */
   scenario: publicProcedure.input(scenarioInput).handler(({ input, context }) => scenarioFor(context.geminiApiKey)(input)),

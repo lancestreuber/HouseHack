@@ -1,10 +1,37 @@
+import type { Database } from "@HouseHack/db";
 import { favoriteParcel, userProfile, viewedParcel } from "@HouseHack/db/schema/user-data";
 import { and, desc, eq, sql } from "drizzle-orm";
 import z from "zod";
 
 import { protectedProcedure } from "../index";
 
-export const ROLES = ["resident", "developer", "nonprofit", "city_staff", "advocate", "researcher"] as const;
+export const AUDIENCES = ["planner", "cdc", "developer", "public"] as const;
+type Audience = (typeof AUDIENCES)[number];
+export const CONTEXT_MAX = 1000;
+
+// The four onboarding audiences fold into two roles: people who set the rules and people who build.
+const ROLE_OF: Record<Audience, "zoning_regulator" | "developer"> = {
+  planner: "zoning_regulator",
+  public: "zoning_regulator",
+  cdc: "developer",
+  developer: "developer",
+};
+
+const AUDIENCE_TEXT: Record<Audience, string> = {
+  planner: "a municipal planner testing zoning and infrastructure scenarios",
+  cdc: "with a community development corporation, choosing projects that meet local needs",
+  developer: "a developer evaluating product type and likely market demand",
+  public: "a resident or public official comparing alternative growth patterns",
+};
+
+/** The chat assistant's note about who's asking, from their saved onboarding answers. */
+export async function userChatNote(db: Database, userId: string): Promise<string | undefined> {
+  const [row] = await db.select().from(userProfile).where(eq(userProfile.userId, userId));
+  if (!row) return undefined;
+  const audience = AUDIENCE_TEXT[row.audience as Audience];
+  const who = `They are ${audience ?? row.role.replace("_", " ")} (role: ${row.role.replace("_", " ")}).`;
+  return row.context ? `${who} In their words: "${row.context}"` : who;
+}
 
 const pin = z.string().regex(/^[0-9A-Z]{8,20}$/);
 const zoning = z.string().max(20).nullable().optional();
@@ -12,8 +39,8 @@ const zoning = z.string().max(20).nullable().optional();
 const VIEWED_LIMIT = 50;
 
 const profileInput = z.object({
-  role: z.enum(ROLES),
-  typology: z.string().max(40).nullable(),
+  audience: z.enum(AUDIENCES),
+  context: z.string().trim().max(CONTEXT_MAX).nullable(),
   weightsPreset: z.string().max(40).nullable(),
 });
 
@@ -26,10 +53,11 @@ export const meRouter = {
 
   saveProfile: protectedProcedure.input(profileInput).handler(async ({ input, context }) => {
     const userId = context.session.user.id;
+    const values = { ...input, role: ROLE_OF[input.audience] };
     await context.db
       .insert(userProfile)
-      .values({ userId, ...input })
-      .onConflictDoUpdate({ target: userProfile.userId, set: input });
+      .values({ userId, ...values })
+      .onConflictDoUpdate({ target: userProfile.userId, set: values });
     return { ok: true };
   }),
 
